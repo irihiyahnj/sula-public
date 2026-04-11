@@ -12,6 +12,9 @@ This playbook describes how to roll Sula into a repository cleanly.
    - `README.md`
    - `CHANGE-RECORDS.md`
    - `STATUS.md`
+   - `docs/change-records/_template.md`
+   - `docs/releases/_template.md`
+   - `docs/incidents/_template.md`
 5. Review managed files:
    - `CODEX.md`
    - `CLAUDE.md`
@@ -22,8 +25,10 @@ This playbook describes how to roll Sula into a repository cleanly.
    - `docs/ops/*`
    - profile-managed docs
 6. Adjust project-specific facts in scaffold files.
-7. Run `sula doctor`.
-8. Commit the adoption in the target repository.
+7. Create or migrate the first change record if useful for project onboarding history.
+8. Generate the first project memory digest if the team wants a fast recall layer.
+9. Run `sula doctor`.
+10. Commit the adoption in the target repository.
 
 ## Adopt An Existing Project
 
@@ -32,18 +37,21 @@ This playbook describes how to roll Sula into a repository cleanly.
 3. Generate into a working branch, not directly into the deployment branch.
 4. Compare the generated operating system with existing docs.
 5. Preserve project truth where it is already stronger than the scaffold.
-6. Sync only the files that should become centrally managed.
+6. Migrate existing status, change history, release notes, and incident notes into the new memory layout only when that improves clarity.
+7. Sync only the files that should become centrally managed.
 
 ## Upgrade An Adopted Project
 
 1. Pull the latest Sula changes.
-2. Run `sula sync`.
-3. Run `sula doctor`.
-4. Review diff carefully, especially:
+2. Run `sula sync --dry-run`.
+3. Review the planned managed-file changes and their impact levels.
+4. Run `sula sync`.
+5. Run `sula doctor --strict`.
+6. Review diff carefully, especially:
    - release checklist changes
    - architecture exception rules
    - tool adapter changes
-5. Commit as a discrete "Sula sync" batch.
+7. Commit as a discrete "Sula sync" batch.
 
 ## When Not To Adopt Immediately
 

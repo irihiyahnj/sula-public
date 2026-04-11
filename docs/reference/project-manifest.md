@@ -55,6 +55,14 @@ Sula uses `.sula/project.toml` as the local project manifest.
 - `session_expiry_codes`
 - `permission_denied_codes`
 
+### `[memory]` (optional but recommended)
+
+- `change_record_directory`
+- `release_record_directory`
+- `incident_record_directory`
+- `digest_file`
+- `status_max_age_days`
+
 ## Example
 
 See [../../schema/project.example.toml](../../schema/project.example.toml).
@@ -63,4 +71,5 @@ See [../../schema/project.example.toml](../../schema/project.example.toml).
 
 - TOML is used instead of YAML to avoid external parser dependencies.
 - The manifest should capture stable project facts, not temporary task state.
+- The optional `[memory]` section configures durable memory paths and freshness expectations without turning project history into managed truth.
 - Project history stays in the project repository, not in the manifest.

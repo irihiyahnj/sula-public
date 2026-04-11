@@ -10,6 +10,8 @@ Sula is not a product template for one stack. It is a coordination layer with:
 - profile-specific templates for project families
 - a project manifest that captures each repository's facts
 - scripts to initialize, sync, and audit project adoption
+- a governed rollout path for sync impact and release discipline
+- a single-project memory model for durable status, decisions, releases, and incidents
 
 ## What Sula Solves
 
@@ -41,9 +43,10 @@ Reusable docs and tool adapters that should evolve once and benefit many project
 
 A profile is a reusable project-family layer.
 
-Current profile:
+Current profiles:
 
 - `react-frontend-erpnext`
+- `sula-core`
 
 Profiles provide:
 
@@ -81,12 +84,18 @@ docs/
   versioning.md
   reference/
 schema/
+registry/
 scripts/
+tests/
 templates/
   core/
     managed/
+    scaffold/
   profiles/
     react-frontend-erpnext/
+      managed/
+      scaffold/
+    sula-core/
       managed/
       scaffold/
 examples/
@@ -115,15 +124,49 @@ python3 scripts/sula.py init \
 ### Sync improvements into an existing project
 
 ```bash
+python3 scripts/sula.py sync --project-root /path/to/project --dry-run
 python3 scripts/sula.py sync --project-root /path/to/project
 python3 scripts/sula.py doctor --project-root /path/to/project
+python3 scripts/sula.py doctor --project-root /path/to/project --strict
 ```
+
+Use `--dry-run` before every real sync so you can review which managed files would change and how risky they are.
+
+### Create durable project memory
+
+```bash
+python3 scripts/sula.py record new \
+  --project-root /path/to/project \
+  --title "Explain the non-trivial change"
+
+python3 scripts/sula.py memory digest --project-root /path/to/project
+```
+
+This creates durable project memory without mixing managed operating-system files with project-owned history.
 
 ## Current Version
 
-Sula version: `0.1.0`
+Sula version: `0.3.0`
 
 Versioning rules are in [docs/versioning.md](docs/versioning.md).
+
+## Operating Sula Core
+
+Sula itself is a maintained project. Before releasing changes that will later sync into adopted repositories:
+
+1. Run `python3 -m unittest discover -s tests -v`
+2. Review [CHANGELOG.md](CHANGELOG.md) and capture sync impact
+3. Review [registry/adopted-projects.toml](registry/adopted-projects.toml)
+4. Dry-run sync against canary projects before broad rollout
+5. Regenerate committed canary memory digests if the project policy uses them
+
+Release discipline and impact rules live in:
+
+- [docs/README.md](docs/README.md)
+- [docs/release-process.md](docs/release-process.md)
+- [docs/reference/project-memory-model.md](docs/reference/project-memory-model.md)
+- [docs/reference/sync-impact-model.md](docs/reference/sync-impact-model.md)
+- [docs/reference/adoption-registry.md](docs/reference/adoption-registry.md)
 
 ## Recommended Adoption Order
 
@@ -136,8 +179,14 @@ Versioning rules are in [docs/versioning.md](docs/versioning.md).
 ## References
 
 - [docs/philosophy.md](docs/philosophy.md)
+- [docs/README.md](docs/README.md)
 - [docs/adoption-playbook.md](docs/adoption-playbook.md)
+- [docs/release-process.md](docs/release-process.md)
 - [docs/versioning.md](docs/versioning.md)
+- [docs/reference/project-memory-model.md](docs/reference/project-memory-model.md)
+- [docs/reference/sync-impact-model.md](docs/reference/sync-impact-model.md)
+- [docs/reference/adoption-registry.md](docs/reference/adoption-registry.md)
 - [docs/reference/project-manifest.md](docs/reference/project-manifest.md)
 - [schema/project.schema.json](schema/project.schema.json)
 - [schema/project.example.toml](schema/project.example.toml)
+- [registry/adopted-projects.toml](registry/adopted-projects.toml)

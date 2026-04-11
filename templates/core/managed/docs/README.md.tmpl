@@ -16,6 +16,7 @@ Sula manages the cross-project operational layer so this repository can benefit 
 
 - [ops/team-operating-model.md](ops/team-operating-model.md): default request-to-delivery flow
 - [ops/request-template.md](ops/request-template.md): efficient request format
+- [ops/project-memory.md](ops/project-memory.md): how durable project memory is stored and updated
 - [ops/release-checklist.md](ops/release-checklist.md): pre-push and pre-release checks
 - [ops/smoke-test-checklist.md](ops/smoke-test-checklist.md): change validation checklist
 - [ops/architecture-exception-register.md](ops/architecture-exception-register.md): approved architecture exceptions
@@ -34,6 +35,9 @@ Sula manages the cross-project operational layer so this repository can benefit 
 - [{{STATUS_FILE}}](../{{STATUS_FILE}})
 - [{{CHANGE_RECORDS_FILE}}](../{{CHANGE_RECORDS_FILE}})
 - [change-records/](change-records)
+- [releases/](releases)
+- [incidents/](incidents)
+- [{{MEMORY_DIGEST_FILE}}](../{{MEMORY_DIGEST_FILE}}): generated summary if present
 
 ## Document Layers
 
@@ -43,7 +47,7 @@ Sula manages the cross-project operational layer so this repository can benefit 
 | Ops | Intake, execution, verification, release, exceptions |
 | Architecture | Durable structure and module boundaries |
 | Runbooks | High-risk operational knowledge |
-| Traceability | Status, change history, release reasoning |
+| Traceability | Status, decisions, release reasoning, incident context |
 
 ## Maintenance Rule
 

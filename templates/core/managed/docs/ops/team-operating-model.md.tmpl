@@ -32,8 +32,9 @@ Unless stated otherwise, {{DEFAULT_AGENT}} acts as:
 ### 3. Implement
 
 - prefer existing architectural lanes over new ones
-- keep primary integration logic centralized in [{{API_LAYER_PATH}}](../{{API_LAYER_PATH}})
-- keep shell concerns centered in [{{APP_SHELL_PATH}}](../{{APP_SHELL_PATH}})
+- keep primary orchestration logic centralized in [{{API_LAYER_PATH}}](../{{API_LAYER_PATH}})
+- keep shared state or durable coordination centered in [{{STATE_LAYER_PATH}}](../{{STATE_LAYER_PATH}})
+- keep the main project entry or operator-facing surface centered in [{{APP_SHELL_PATH}}](../{{APP_SHELL_PATH}})
 
 ### 4. Verify
 
@@ -53,9 +54,11 @@ Before recommending deployment, explicitly answer:
 
 ### 6. Trace
 
-- update `{{CHANGE_RECORDS_FILE}}`
-- add or update `docs/change-records/*`
 - update `{{STATUS_FILE}}`
+- update `{{CHANGE_RECORDS_FILE}}`
+- add or update `{{CHANGE_RECORD_DIRECTORY}}/*`
+- add release or incident records when risk history matters
+- regenerate `{{MEMORY_DIGEST_FILE}}` after non-trivial changes if the project uses it
 
 ## Definition Of Done
 

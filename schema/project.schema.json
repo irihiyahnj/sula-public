@@ -103,6 +103,24 @@
         }
       },
       "additionalProperties": false
+    },
+    "memory": {
+      "type": "object",
+      "required": [
+        "change_record_directory",
+        "release_record_directory",
+        "incident_record_directory",
+        "digest_file",
+        "status_max_age_days"
+      ],
+      "properties": {
+        "change_record_directory": {"type": "string", "minLength": 1},
+        "release_record_directory": {"type": "string", "minLength": 1},
+        "incident_record_directory": {"type": "string", "minLength": 1},
+        "digest_file": {"type": "string", "minLength": 1},
+        "status_max_age_days": {"type": "integer", "minimum": 1}
+      },
+      "additionalProperties": false
     }
   },
   "additionalProperties": false

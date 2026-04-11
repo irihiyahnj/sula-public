@@ -1,8 +1,8 @@
-# {{PROJECT_NAME}} Change Record Rules
+# {{PROJECT_NAME}} Change Records
 
-This file defines how non-trivial changes are recorded.
+This file is the index for non-trivial project changes.
 
-## Principle
+## Purpose
 
 Git records code differences. Change records explain:
 
@@ -12,28 +12,18 @@ Git records code differences. Change records explain:
 - how rollback works
 - what data or operational side-effects exist
 
-## File Layout
+## Rules
 
-- index and rules: `{{CHANGE_RECORDS_FILE}}`
-- detailed records: `docs/change-records/YYYY-MM-DD-short-topic.md`
+- keep this file short and index-oriented
+- put detailed records in `{{CHANGE_RECORD_DIRECTORY}}/`
+- use release records for rollout history that goes beyond a single code change
+- use incident records for outages, broken flows, or recovery work
 
-## Required Sections Per Record
+## Index
 
-1. title
-2. date
-3. executor
-4. branch
-5. related commit(s)
-6. background
-7. analysis
-8. chosen plan
-9. execution
-10. verification
-11. rollback
-12. data side-effects
-13. follow-up
-14. architecture-boundary check
+- _no records yet_
 
-## Current Records
+## Detailed Records
 
-- _add project records here_
+- directory: `{{CHANGE_RECORD_DIRECTORY}}/`
+- template: [{{CHANGE_RECORD_DIRECTORY}}/_template.md]({{CHANGE_RECORD_DIRECTORY}}/_template.md)

@@ -2,20 +2,34 @@
 
 - last updated: 2026-04-11
 
-## Recently Completed
+## Summary
 
-- Archived the old unrelated `sula` main history into `archive/pre-sula-rebuild-20260411`
-- Bootstrapped Sula as a clean standalone repository on `codex/bootstrap-sula`
-- Added Sula core docs, manifest schema, bootstrap scripts, managed templates, and the first reusable profile
-- Added an `OKOKTOTO` example manifest
+- Sula now manages itself as a first-class `sula-core` consumer while still acting as the source repository for reusable operating-system assets.
+- The repository has memory-aware governance, an in-repo canary, and a root self-adoption path that can be checked with `doctor --strict`.
 
-## In Progress
+## Health
 
-- Prepare the initial bootstrap commit and push the clean Sula foundation
-- Decide when to adopt Sula back into existing repositories such as `OKOKTOTO`
+- status: green
+- reason: root self-adoption, canary validation, and repository tests are all in place; the remaining work is release and rollout.
 
-## Next Steps
+## Current Focus
 
-- Tag the first stable Sula version after review
-- Add project adoption flow for real repositories
-- Introduce additional profiles only when backed by real project demand
+- tag and release the current governed Sula version
+- onboard the first external canary project beyond `examples/okoktoto`
+- keep `sula-core` and `react-frontend-erpnext` profiles aligned with real usage
+
+## Blockers
+
+- none
+
+## Recent Decisions
+
+- 2026-04-11: promoted `examples/okoktoto` into the in-repo memory canary
+- 2026-04-11: introduced durable project memory, strict memory doctor checks, and generated memory digests
+- 2026-04-11: added [Self-adopt Sula root under sula-core profile](docs/change-records/2026-04-11-self-adopt-sula-root-under-sula-core-profile.md)
+
+## Next Review
+
+- owner: Sula Core maintainers
+- date: 2026-04-18
+- trigger: review again before tagging the next Sula release or changing managed/scaffold memory contracts

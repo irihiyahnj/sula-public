@@ -40,3 +40,10 @@ workflow = ".github/workflows/deploy.yml"
 [auth]
 session_expiry_codes = ["401", "440"]
 permission_denied_codes = ["403"]
+
+[memory]
+change_record_directory = "docs/change-records"
+release_record_directory = "docs/releases"
+incident_record_directory = "docs/incidents"
+digest_file = ".sula/memory-digest.md"
+status_max_age_days = 30

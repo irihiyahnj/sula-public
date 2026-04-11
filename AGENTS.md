@@ -27,8 +27,9 @@ This file is the primary instruction source for AI coding agents working in the 
 
 - Core managed files
 - `react-frontend-erpnext` profile
+- `sula-core` profile
 - project manifest schema and example
-- `init`, `sync`, and `doctor` commands
+- `init`, `sync`, `doctor`, `record`, and `memory digest` commands
 
 ## Out Of Scope For Now
 
