@@ -133,6 +133,12 @@ The future public bootstrap site lives in this repository under `site/`:
 
 These assets are designed for eventual hosting at `https://sula.1stp.monster/`.
 
+Current deployment state:
+
+- live Fly preview: `https://sula.fly.dev/`
+- custom domain: `sula.1stp.monster`
+- remaining DNS step: point `sula.1stp.monster` to `CNAME sula. -> sula.fly.dev`
+
 ### Sync improvements into an existing project
 
 ```bash
