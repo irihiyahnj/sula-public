@@ -9,6 +9,7 @@ Sula is not a product template for one stack. It is a coordination layer with:
 - a reusable documentation and operations core
 - profile-specific templates for project families
 - a project manifest that captures each repository's facts
+- an inspect-report-approve adoption flow for one-sentence onboarding
 - scripts to initialize, sync, and audit project adoption
 - a governed rollout path for sync impact and release discipline
 - a single-project memory model for durable status, decisions, releases, and incidents
@@ -103,23 +104,24 @@ examples/
 
 ## Quick Start
 
-### Create a new project from Sula
+### Adopt Sula into a repository
 
-1. Create or choose a repository to adopt.
-2. Copy or clone this repository locally.
-3. Run:
+In a live agent session, the target request should be as short as:
 
-```bash
-python3 scripts/sula.py init \
-  --project-root /path/to/project \
-  --name "My Project" \
-  --slug "my-project" \
-  --description "Short project description" \
-  --profile react-frontend-erpnext
+```text
+Please adopt Sula into this repository.
 ```
 
-4. Review the generated scaffold files and fill in project-specific rules.
-5. Commit the adoption inside the target project.
+The CLI equivalent is:
+
+```bash
+python3 scripts/sula.py adopt --project-root /path/to/project
+python3 scripts/sula.py adopt --project-root /path/to/project --approve
+```
+
+The first command inspects the repository, detects the likely profile, and prints an approval-ready report. The second command applies the adoption, validates the result with `doctor --strict`, creates initial traceability, and prints the follow-up usage commands.
+
+Use `init` only when you need low-level manual control over manifest values before the approval-based adoption flow can infer them safely.
 
 ### Sync improvements into an existing project
 
@@ -146,7 +148,7 @@ This creates durable project memory without mixing managed operating-system file
 
 ## Current Version
 
-Sula version: `0.3.0`
+Sula version: `0.4.0`
 
 Versioning rules are in [docs/versioning.md](docs/versioning.md).
 
@@ -171,16 +173,17 @@ Release discipline and impact rules live in:
 ## Recommended Adoption Order
 
 1. Adopt Sula Core
-2. Add a profile manifest
-3. Review scaffold files
+2. Run `adopt` to inspect and report
+3. Approve the adoption and review scaffold files
 4. Commit the generated operating system to the project
-5. Use `sync` for future shared improvements
+5. Use `sync --dry-run` for future shared improvements
 
 ## References
 
 - [docs/philosophy.md](docs/philosophy.md)
 - [docs/README.md](docs/README.md)
 - [docs/adoption-playbook.md](docs/adoption-playbook.md)
+- [docs/reference/adoption-agent.md](docs/reference/adoption-agent.md)
 - [docs/release-process.md](docs/release-process.md)
 - [docs/versioning.md](docs/versioning.md)
 - [docs/reference/project-memory-model.md](docs/reference/project-memory-model.md)

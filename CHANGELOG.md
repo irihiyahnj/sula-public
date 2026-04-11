@@ -2,6 +2,28 @@
 
 All notable changes to Sula Core should be recorded here with explicit sync impact.
 
+## 0.4.0 - 2026-04-11
+
+### Added
+
+- `adopt` as the inspect-report-approve onboarding command for repositories that have not yet adopted Sula
+- automatic profile detection, manifest proposal, and planned managed/scaffold impact reporting during adoption
+- post-approval adoption traceability that creates the initial status and change record automatically
+- [docs/reference/adoption-agent.md](docs/reference/adoption-agent.md) to describe the one-sentence onboarding model
+- `scripts/sula-adopt` as a thin wrapper over the main CLI
+
+### Changed
+
+- README and adoption guidance now treat `adopt` as the default onboarding path instead of the manual `init` flow
+- root Sula traceability now records the adoption-agent model as a durable project decision
+- `sula-core` module documentation now includes the adoption wrapper in the CLI surface
+
+### Sync Impact
+
+- Existing adopted projects do not need to change anything to remain compatible
+- Repositories onboarding into Sula can now use a simpler approval-based flow without changing the underlying managed/scaffold contract
+- Canary projects and root self-adoption should be resynced to move lockfiles and managed docs to `0.4.0`
+
 ## 0.3.0 - 2026-04-11
 
 ### Added

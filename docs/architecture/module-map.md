@@ -7,7 +7,7 @@ This profile describes the durable modules inside Sula Core.
 ### CLI And Rendering
 
 - primary entry: [scripts/sula.py](../../scripts/sula.py)
-- wrappers: `scripts/sula-init`, `scripts/sula-sync`, `scripts/sula-doctor`, `scripts/sula-record`, `scripts/sula-memory`
+- wrappers: `scripts/sula-adopt`, `scripts/sula-init`, `scripts/sula-sync`, `scripts/sula-doctor`, `scripts/sula-record`, `scripts/sula-memory`
 
 ### Managed Template System
 

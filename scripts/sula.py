@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 from dataclasses import dataclass
 from datetime import date, datetime
+import json
 import os
 from pathlib import Path
 import re
@@ -152,6 +153,21 @@ class RenderAction:
 
 
 @dataclass
+class AdoptionReport:
+    project_root: Path
+    profile: str | None
+    config_data: dict | None
+    actions: list[RenderAction]
+    blockers: list[str]
+    warnings: list[str]
+    detection_notes: list[str]
+    managed_creates: list[RenderAction]
+    managed_updates: list[RenderAction]
+    scaffold_creates: list[RenderAction]
+    scaffold_preserved: list[RenderAction]
+
+
+@dataclass
 class ProjectConfig:
     root: Path
     data: dict
@@ -237,6 +253,14 @@ def parse_args() -> argparse.Namespace:
     add_project_root_arg(sync_cmd)
     sync_cmd.add_argument("--dry-run", action="store_true", help="Show the managed-file sync plan without writing")
 
+    adopt_cmd = sub.add_parser("adopt", help="Inspect, report, and apply Sula adoption for a repository")
+    add_project_root_arg(adopt_cmd)
+    adopt_cmd.add_argument("--profile", help="Profile to use when auto-detection is insufficient")
+    adopt_cmd.add_argument("--name", help="Override the detected project name")
+    adopt_cmd.add_argument("--slug", help="Override the detected project slug")
+    adopt_cmd.add_argument("--description", help="Override the detected project description")
+    adopt_cmd.add_argument("--approve", action="store_true", help="Apply the adoption plan after reporting it")
+
     doctor_cmd = sub.add_parser("doctor", help="Check manifest, lockfile, and managed files")
     add_project_root_arg(doctor_cmd)
     doctor_cmd.add_argument(
@@ -281,6 +305,9 @@ def main() -> int:
         write_lockfile(config)
         print(f"Initialized Sula for {config.data['project']['name']} at {project_root}")
         return 0
+
+    if args.command == "adopt":
+        return adopt(project_root, args)
 
     config = load_manifest(project_root)
     if args.command == "sync":
@@ -575,6 +602,643 @@ def validate_field(section: str, key: str, value, expected_kind: str, invalid: l
         return
     invalid.append(f"{label} uses unsupported schema kind: {expected_kind}")
 
+
+def adopt(project_root: Path, args: argparse.Namespace) -> int:
+    report = inspect_adoption(project_root, args)
+    print_adoption_report(report)
+    if not args.approve:
+        return 0
+    if report.blockers:
+        print("Adoption was not applied because blocking issues remain.")
+        return 1
+    return apply_adoption(report)
+
+
+def inspect_adoption(project_root: Path, args: argparse.Namespace) -> AdoptionReport:
+    blockers: list[str] = []
+    warnings: list[str] = []
+    detection_notes: list[str] = []
+
+    if not project_root.exists():
+        raise SystemExit(f"Project root does not exist: {project_root}")
+    if (project_root / MANIFEST_PATH).exists():
+        blockers.append("repository already has `.sula/project.toml`; use `sync` or edit the existing manifest instead")
+
+    package_data = read_package_json(project_root)
+    readme_text = read_text_if_exists(project_root / "README.md")
+    profile = detect_profile(project_root, args.profile, package_data, readme_text, detection_notes)
+    if profile is None:
+        blockers.append("could not determine a Sula profile automatically; rerun with `--profile`")
+
+    config_data = None
+    actions: list[RenderAction] = []
+    managed_creates: list[RenderAction] = []
+    managed_updates: list[RenderAction] = []
+    scaffold_creates: list[RenderAction] = []
+    scaffold_preserved: list[RenderAction] = []
+
+    if profile is not None:
+        config_data = build_adoption_manifest(project_root, profile, args, package_data, readme_text, detection_notes)
+        config = ProjectConfig(root=project_root, data=config_data)
+        actions = collect_render_actions(config, include_scaffold=True)
+        managed_creates = [action for action in actions if action.overwrite and action.status == "create"]
+        managed_updates = [action for action in actions if action.overwrite and action.status == "update"]
+        scaffold_creates = [action for action in actions if not action.overwrite and action.status == "create"]
+        scaffold_preserved = [action for action in actions if not action.overwrite and action.status == "skip"]
+        if managed_updates:
+            warnings.append(
+                "managed files already exist and will be overwritten after approval: "
+                + ", ".join(action.relative_path.as_posix() for action in managed_updates)
+            )
+        if scaffold_preserved:
+            warnings.append(
+                "project-owned scaffold files already exist and will be preserved: "
+                + ", ".join(action.relative_path.as_posix() for action in scaffold_preserved)
+            )
+
+    return AdoptionReport(
+        project_root=project_root,
+        profile=profile,
+        config_data=config_data,
+        actions=actions,
+        blockers=blockers,
+        warnings=warnings,
+        detection_notes=detection_notes,
+        managed_creates=managed_creates,
+        managed_updates=managed_updates,
+        scaffold_creates=scaffold_creates,
+        scaffold_preserved=scaffold_preserved,
+    )
+
+
+def print_adoption_report(report: AdoptionReport) -> None:
+    print(f"Sula adoption report for {report.project_root}")
+    if report.profile is not None:
+        print(f"Recommended profile: {report.profile}")
+    if report.config_data is not None:
+        project = report.config_data["project"]
+        repo = report.config_data["repository"]
+        print(f"Detected name: {project['name']}")
+        print(f"Detected slug: {project['slug']}")
+        print(f"Primary branch: {repo['primary_branch']}")
+        print(f"Deployment branch: {repo['deployment_branch']}")
+    if report.detection_notes:
+        print("Detection notes:")
+        for item in report.detection_notes:
+            print(f"  - {item}")
+    if report.blockers:
+        print("Blocking issues:")
+        for item in report.blockers:
+            print(f"  - {item}")
+    if report.warnings:
+        print("Warnings:")
+        for item in report.warnings:
+            print(f"  - {item}")
+
+    print("Planned changes after approval:")
+    print(f"  - managed create: {len(report.managed_creates)}")
+    print(f"  - managed update: {len(report.managed_updates)}")
+    print(f"  - scaffold create: {len(report.scaffold_creates)}")
+    print(f"  - scaffold preserve: {len(report.scaffold_preserved)}")
+    for action in report.managed_updates[:8]:
+        print(f"    overwrite: {action.relative_path.as_posix()} [{action.impact_level}]")
+    for action in report.scaffold_preserved[:8]:
+        print(f"    preserve: {action.relative_path.as_posix()}")
+    print("Approval flow:")
+    print("  1. Review this report.")
+    print("  2. Re-run the same command with `--approve` to apply the adoption.")
+
+
+def build_adoption_manifest(
+    project_root: Path,
+    profile: str,
+    args: argparse.Namespace,
+    package_data: dict | None,
+    readme_text: str,
+    detection_notes: list[str],
+) -> dict:
+    if profile == "sula-core":
+        return build_sula_core_manifest(project_root, args, detection_notes)
+    if profile == "react-frontend-erpnext":
+        return build_react_erpnext_manifest(project_root, args, package_data, readme_text, detection_notes)
+    raise SystemExit(f"Unsupported profile for adoption: {profile}")
+
+
+def build_sula_core_manifest(project_root: Path, args: argparse.Namespace, detection_notes: list[str]) -> dict:
+    name = args.name or extract_readme_title(read_text_if_exists(project_root / "README.md")) or project_root.name
+    slug = args.slug or sanitize_slug(name)
+    description = args.description or first_readme_paragraph(read_text_if_exists(project_root / "README.md")) or (
+        "Reusable project operating system"
+    )
+    primary_branch = detect_primary_branch(project_root)
+    detection_notes.append("detected `sula-core` from repository layout and local Sula modules")
+    return {
+        "project": {
+            "name": name,
+            "slug": slug,
+            "description": description,
+            "profile": "sula-core",
+            "default_agent": "Codex",
+        },
+        "repository": {
+            "primary_branch": primary_branch,
+            "working_branch_prefix": "codex/",
+            "deployment_branch": primary_branch,
+        },
+        "rules": {
+            "highest_rule": "Preserve the split between centrally managed operating-system files and project-owned business truth.",
+            "custom_backend_allowed": False,
+            "react_router_allowed": False,
+        },
+        "stack": {
+            "frontend": "Python 3 + Markdown + TOML + template-driven repository automation",
+            "backend": "GitHub repository state + local filesystem artifacts",
+        },
+        "paths": {
+            "api_layer": "scripts/sula.py",
+            "state_layer": "registry/adopted-projects.toml",
+            "app_shell": "README.md",
+            "status_file": "STATUS.md",
+            "change_records_file": "CHANGE-RECORDS.md",
+        },
+        "commands": {
+            "install": "python3 -m unittest discover -s tests -v",
+            "dev": "python3 scripts/sula.py --help",
+            "build": "python3 -m unittest discover -s tests -v",
+            "typecheck": "python3 -m py_compile scripts/sula.py tests/test_sula.py",
+        },
+        "deploy": {
+            "base_path": "/",
+            "production_url": detect_repository_url(project_root) or "https://github.com/example/example",
+            "workflow": detect_workflow_path(project_root) or ".github/workflows/ci.yml",
+        },
+        "auth": {
+            "session_expiry_codes": ["n/a"],
+            "permission_denied_codes": ["n/a"],
+        },
+        "memory": default_memory_config(),
+    }
+
+
+def build_react_erpnext_manifest(
+    project_root: Path,
+    args: argparse.Namespace,
+    package_data: dict | None,
+    readme_text: str,
+    detection_notes: list[str],
+) -> dict:
+    name = args.name or detect_project_name(project_root, package_data, readme_text)
+    slug = args.slug or sanitize_slug(package_slug_or_name(project_root, package_data, name))
+    description = args.description or detect_project_description(package_data, readme_text)
+    primary_branch = detect_primary_branch(project_root)
+    deployment_branch = primary_branch
+    api_layer = detect_first_existing_path(project_root, ["src/api/erpnext.ts", "src/api/frappe.ts", "src/api/client.ts"]) or (
+        "src/api/erpnext.ts"
+    )
+    state_layer = detect_first_existing_path(project_root, ["src/store/useStore.ts", "src/store/index.ts", "src/state/index.ts", "src/store.ts"]) or (
+        "src/store/useStore.ts"
+    )
+    app_shell = detect_first_existing_path(project_root, ["src/App.tsx", "src/main.tsx"]) or "src/App.tsx"
+    package_manager = detect_package_manager(project_root)
+    dev_command, build_command, typecheck_command = detect_node_commands(package_data, package_manager)
+    workflow = detect_workflow_path(project_root) or ".github/workflows/deploy.yml"
+    production_url = detect_production_url(package_data) or "https://example.com/"
+    base_path = detect_base_path(production_url)
+    detection_notes.append("detected `react-frontend-erpnext` from repository paths and ERPNext/Frappe markers")
+    return {
+        "project": {
+            "name": name,
+            "slug": slug,
+            "description": description,
+            "profile": "react-frontend-erpnext",
+            "default_agent": "Codex",
+        },
+        "repository": {
+            "primary_branch": primary_branch,
+            "working_branch_prefix": "codex/",
+            "deployment_branch": deployment_branch,
+        },
+        "rules": {
+            "highest_rule": detect_existing_highest_rule(project_root)
+            or "Frontend-only orchestration over ERPNext-native capabilities.",
+            "custom_backend_allowed": False,
+            "react_router_allowed": detect_react_router_allowed(package_data),
+        },
+        "stack": {
+            "frontend": detect_frontend_stack(package_data),
+            "backend": detect_backend_stack(readme_text),
+        },
+        "paths": {
+            "api_layer": api_layer,
+            "state_layer": state_layer,
+            "app_shell": app_shell,
+            "status_file": "STATUS.md",
+            "change_records_file": "CHANGE-RECORDS.md",
+        },
+        "commands": {
+            "install": install_command_for_package_manager(package_manager),
+            "dev": dev_command,
+            "build": build_command,
+            "typecheck": typecheck_command,
+        },
+        "deploy": {
+            "base_path": base_path,
+            "production_url": production_url,
+            "workflow": workflow,
+        },
+        "auth": {
+            "session_expiry_codes": ["401", "440"],
+            "permission_denied_codes": ["403"],
+        },
+        "memory": default_memory_config(),
+    }
+
+
+def default_memory_config() -> dict:
+    return {
+        "change_record_directory": "docs/change-records",
+        "release_record_directory": "docs/releases",
+        "incident_record_directory": "docs/incidents",
+        "digest_file": ".sula/memory-digest.md",
+        "status_max_age_days": 30,
+    }
+
+
+def read_package_json(project_root: Path) -> dict | None:
+    package_path = project_root / "package.json"
+    if not package_path.exists():
+        return None
+    try:
+        return json.loads(package_path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError:
+        return None
+
+
+def read_text_if_exists(path: Path) -> str:
+    return path.read_text(encoding="utf-8") if path.exists() else ""
+
+
+def detect_profile(
+    project_root: Path,
+    explicit_profile: str | None,
+    package_data: dict | None,
+    readme_text: str,
+    detection_notes: list[str],
+) -> str | None:
+    if explicit_profile:
+        detection_notes.append(f"profile forced by caller: {explicit_profile}")
+        return explicit_profile
+    if (project_root / "scripts" / "sula.py").exists() and (project_root / "templates").exists():
+        return "sula-core"
+
+    haystack = f"{readme_text}\n{json.dumps(package_data) if package_data else ''}".lower()
+    has_react_shape = package_data is not None or (project_root / "src" / "App.tsx").exists() or (project_root / "src" / "main.tsx").exists()
+    has_erpnext_marker = any(
+        (project_root / candidate).exists()
+        for candidate in ["src/api/erpnext.ts", "src/api/frappe.ts"]
+    ) or any(term in haystack for term in ["erpnext", "frappe"])
+    if has_react_shape and has_erpnext_marker:
+        return "react-frontend-erpnext"
+    return None
+
+
+def detect_project_name(project_root: Path, package_data: dict | None, readme_text: str) -> str:
+    if package_data is not None:
+        for key in ["displayName", "productName", "name"]:
+            value = package_data.get(key)
+            if isinstance(value, str) and value.strip():
+                return prettify_name(value)
+    title = extract_readme_title(readme_text)
+    if title:
+        return title
+    return prettify_name(project_root.name)
+
+
+def package_slug_or_name(project_root: Path, package_data: dict | None, fallback_name: str) -> str:
+    if package_data is not None:
+        value = package_data.get("name")
+        if isinstance(value, str) and value.strip():
+            return value
+    return fallback_name or project_root.name
+
+
+def detect_project_description(package_data: dict | None, readme_text: str) -> str:
+    if package_data is not None:
+        value = package_data.get("description")
+        if isinstance(value, str) and value.strip():
+            return value.strip()
+    return first_readme_paragraph(readme_text) or "Project adopted by Sula"
+
+
+def extract_readme_title(text: str) -> str:
+    for line in text.splitlines():
+        if line.startswith("# "):
+            return line[2:].strip()
+    return ""
+
+
+def first_readme_paragraph(text: str) -> str:
+    lines: list[str] = []
+    started = False
+    for raw_line in text.splitlines():
+        line = raw_line.strip()
+        if not line:
+            if started and lines:
+                break
+            continue
+        if line.startswith("#"):
+            continue
+        started = True
+        lines.append(line)
+    return " ".join(lines).strip()
+
+
+def prettify_name(value: str) -> str:
+    cleaned = value.replace("_", " ").replace("-", " ").strip()
+    return re.sub(r"\s+", " ", cleaned).title() if cleaned else value
+
+
+def detect_primary_branch(project_root: Path) -> str:
+    result = run_git(project_root, ["symbolic-ref", "refs/remotes/origin/HEAD"])
+    if result is not None and result.returncode == 0:
+        ref = result.stdout.strip()
+        if ref:
+            return ref.rsplit("/", 1)[-1]
+    for candidate in ["main", "master"]:
+        if (project_root / ".git" / "refs" / "heads" / candidate).exists():
+            return candidate
+    current_branch = detect_git_branch(project_root)
+    return current_branch if current_branch != "unknown" else "main"
+
+
+def run_git(project_root: Path, args: list[str]) -> subprocess.CompletedProcess[str] | None:
+    try:
+        return subprocess.run(
+            ["git", "-C", str(project_root), *args],
+            check=False,
+            capture_output=True,
+            text=True,
+        )
+    except OSError:
+        return None
+
+
+def detect_first_existing_path(project_root: Path, candidates: list[str]) -> str | None:
+    for candidate in candidates:
+        if (project_root / candidate).exists():
+            return candidate
+    return None
+
+
+def detect_package_manager(project_root: Path) -> str:
+    if (project_root / "pnpm-lock.yaml").exists():
+        return "pnpm"
+    if (project_root / "yarn.lock").exists():
+        return "yarn"
+    return "npm"
+
+
+def install_command_for_package_manager(package_manager: str) -> str:
+    if package_manager == "pnpm":
+        return "pnpm install"
+    if package_manager == "yarn":
+        return "yarn install"
+    return "npm install"
+
+
+def detect_node_commands(package_data: dict | None, package_manager: str) -> tuple[str, str, str]:
+    scripts = package_data.get("scripts", {}) if isinstance(package_data, dict) else {}
+    if package_manager == "pnpm":
+        runner_prefix = "pnpm"
+    elif package_manager == "yarn":
+        runner_prefix = "yarn"
+    else:
+        runner_prefix = "npm run"
+
+    def command_for(script_name: str, fallback: str) -> str:
+        if script_name in scripts:
+            if package_manager == "yarn":
+                return f"yarn {script_name}"
+            if package_manager == "pnpm":
+                return f"pnpm {script_name}"
+            return f"npm run {script_name}"
+        return fallback
+
+    dev = command_for("dev", f"{runner_prefix} dev")
+    build = command_for("build", f"{runner_prefix} build")
+    if "typecheck" in scripts:
+        typecheck = command_for("typecheck", f"{runner_prefix} typecheck")
+    else:
+        typecheck = "npx tsc --noEmit"
+    return dev, build, typecheck
+
+
+def detect_workflow_path(project_root: Path) -> str | None:
+    workflow_root = project_root / ".github" / "workflows"
+    if not workflow_root.exists():
+        return None
+    deploy_like = sorted(workflow_root.glob("deploy*.yml")) + sorted(workflow_root.glob("deploy*.yaml"))
+    if deploy_like:
+        return deploy_like[0].relative_to(project_root).as_posix()
+    any_workflow = sorted(workflow_root.glob("*.yml")) + sorted(workflow_root.glob("*.yaml"))
+    if any_workflow:
+        return any_workflow[0].relative_to(project_root).as_posix()
+    return None
+
+
+def detect_production_url(package_data: dict | None) -> str | None:
+    if not isinstance(package_data, dict):
+        return None
+    homepage = package_data.get("homepage")
+    if isinstance(homepage, str) and homepage.startswith("http"):
+        return homepage
+    return None
+
+
+def detect_base_path(production_url: str) -> str:
+    match = re.match(r"https?://[^/]+(/.*)$", production_url)
+    if match is None:
+        return "/"
+    path = match.group(1)
+    return path if path.endswith("/") else path + "/"
+
+
+def detect_existing_highest_rule(project_root: Path) -> str | None:
+    agents_path = project_root / "AGENTS.md"
+    if not agents_path.exists():
+        return None
+    text = agents_path.read_text(encoding="utf-8")
+    for raw_line in text.splitlines():
+        line = raw_line.strip()
+        if line.startswith("- `") and line.endswith("`"):
+            return line.strip("- ").strip("`")
+    return None
+
+
+def detect_react_router_allowed(package_data: dict | None) -> bool:
+    if not isinstance(package_data, dict):
+        return False
+    all_deps = {}
+    for key in ["dependencies", "devDependencies"]:
+        value = package_data.get(key, {})
+        if isinstance(value, dict):
+            all_deps.update(value)
+    return "react-router" in all_deps or "react-router-dom" in all_deps
+
+
+def detect_frontend_stack(package_data: dict | None) -> str:
+    if not isinstance(package_data, dict):
+        return "React + TypeScript + Vite"
+    deps = {}
+    for key in ["dependencies", "devDependencies"]:
+        value = package_data.get(key, {})
+        if isinstance(value, dict):
+            deps.update(value)
+    parts: list[str] = []
+    if "react" in deps:
+        parts.append("React")
+    if "typescript" in deps:
+        parts.append("TypeScript")
+    if "vite" in deps:
+        parts.append("Vite")
+    if "tailwindcss" in deps:
+        parts.append("Tailwind CSS")
+    if "zustand" in deps:
+        parts.append("Zustand")
+    return " + ".join(parts) if parts else "React + TypeScript + Vite"
+
+
+def detect_backend_stack(readme_text: str) -> str:
+    lowered = readme_text.lower()
+    if "erpnext" in lowered or "frappe" in lowered:
+        return "ERPNext / Frappe"
+    return "ERPNext / Frappe"
+
+
+def detect_repository_url(project_root: Path) -> str | None:
+    result = run_git(project_root, ["remote", "get-url", "origin"])
+    if result is None or result.returncode != 0:
+        return None
+    value = result.stdout.strip()
+    return value or None
+
+
+def apply_adoption(report: AdoptionReport) -> int:
+    assert report.config_data is not None
+    config = ProjectConfig(root=report.project_root, data=report.config_data)
+    manifest_path = config.root / MANIFEST_PATH
+    manifest_path.parent.mkdir(parents=True, exist_ok=True)
+    manifest_path.write_text(render_manifest(report.config_data), encoding="utf-8")
+    apply_actions(report.actions)
+    write_lockfile(config)
+    finalize_adoption_traceability(config)
+    generate_memory_digest(config, argparse.Namespace(output=None, stdout=False))
+    print("Post-adoption validation:")
+    doctor_exit = doctor(config, strict=True)
+    print_adoption_usage(config)
+    if doctor_exit == 0:
+        print(f"Sula adoption completed for {config.data['project']['name']}")
+    else:
+        print("Sula adoption completed with follow-up required before strict compliance is clean.")
+    return doctor_exit
+
+
+def finalize_adoption_traceability(config: ProjectConfig) -> None:
+    ensure_initial_status(config)
+    ensure_adoption_record(config)
+
+
+def ensure_initial_status(config: ProjectConfig) -> None:
+    status_path = config.root / config.data["paths"]["status_file"]
+    if status_path.exists():
+        text = status_path.read_text(encoding="utf-8")
+        if not any(placeholder in text for placeholder in STATUS_PLACEHOLDERS):
+            return
+    today = date.today().isoformat()
+    text = (
+        "# STATUS\n\n"
+        f"- last updated: {today}\n\n"
+        "## Summary\n\n"
+        f"- Initial Sula adoption is complete for this repository under the `{config.profile}` profile.\n"
+        "- The repository now has a managed operating-system layer and project-owned memory scaffolds.\n\n"
+        "## Health\n\n"
+        "- status: yellow\n"
+        "- reason: adoption is complete, but the team should review generated rules and preserved project-owned files.\n\n"
+        "## Current Focus\n\n"
+        "- review the first Sula adoption diff\n"
+        "- confirm manifest facts and project-owned scaffold content\n\n"
+        "## Blockers\n\n"
+        "- none\n\n"
+        "## Recent Decisions\n\n"
+        f"- {today}: approved initial Sula adoption under the `{config.profile}` profile\n\n"
+        "## Next Review\n\n"
+        "- owner: project maintainers\n"
+        f"- date: {today}\n"
+        "- trigger: review after the first managed-file sync or after tightening project-specific rules\n"
+    )
+    status_path.write_text(text, encoding="utf-8")
+
+
+def ensure_adoption_record(config: ProjectConfig) -> None:
+    today = date.today().isoformat()
+    title = "Adopt Sula operating system"
+    slug = sanitize_slug(title)
+    record_path = config.change_record_directory / f"{today}-{slug}.md"
+    if record_path.exists():
+        return
+    config.change_record_directory.mkdir(parents=True, exist_ok=True)
+    branch = detect_git_branch(config.root)
+    summary = f"Adopted Sula under the `{config.profile}` profile and generated the initial managed/scaffold operating-system layer."
+    content = (
+        f"# {title}\n\n"
+        "## Metadata\n\n"
+        f"- date: {today}\n"
+        f"- executor: {config.data['project']['default_agent']}\n"
+        f"- branch: {branch}\n"
+        "- related commit(s): pending review commit\n"
+        "- status: completed\n\n"
+        "## Background\n\n"
+        f"{summary}\n\n"
+        "## Analysis\n\n"
+        "- The repository needed a reusable operating-system layer instead of ad hoc rules.\n"
+        "- Existing project-owned truth should stay local, so scaffold files must remain reviewable and editable.\n\n"
+        "## Chosen Plan\n\n"
+        f"- initialize Sula with the `{config.profile}` profile\n"
+        "- render managed files and preserve project-owned scaffold files when they already exist\n"
+        "- add durable memory structures for status and change tracking\n\n"
+        "## Execution\n\n"
+        "- created the project manifest and version lock\n"
+        "- rendered managed rules, docs, and runbooks\n"
+        "- generated or preserved scaffold status and change-history files\n"
+        "- generated the first memory digest for fast recall\n\n"
+        "## Verification\n\n"
+        "- reviewed the adoption report before approval\n"
+        "- ran `sula doctor --strict` after applying adoption\n\n"
+        "## Rollback\n\n"
+        "- revert the adoption commit if the repository should not be managed by Sula\n"
+        "- keep project-owned truth and re-evaluate the profile fit before retrying\n\n"
+        "## Data Side-effects\n\n"
+        "- no runtime data side-effects\n"
+        "- repository docs and governance files were added or updated\n\n"
+        "## Follow-up\n\n"
+        "- review generated managed files and fill in any project-specific hard rules\n"
+        "- use `sula sync --dry-run` before future shared upgrades\n\n"
+        "## Architecture Boundary Check\n\n"
+        "- highest rule impact: the repository now adopts Sula as its reusable operating-system layer without changing its business truth\n"
+    )
+    record_path.write_text(content, encoding="utf-8")
+    update_change_records_index(config, record_path, today, title, summary)
+    update_status_for_new_record(config, "change", record_path, today, title)
+
+
+def print_adoption_usage(config: ProjectConfig) -> None:
+    sula_command = f"python3 {SULA_ROOT / 'scripts' / 'sula.py'}"
+    print("How to use Sula after adoption:")
+    print(f"  - inspect current rules: {config.root / 'AGENTS.md'}")
+    print(f"  - validate the repository: {sula_command} doctor --project-root {config.root} --strict")
+    print(f"  - preview future upgrades: {sula_command} sync --project-root {config.root} --dry-run")
+    print(f"  - add non-trivial history: {sula_command} record new --project-root {config.root} --title \"...\"")
+    print(f"  - regenerate recall summary: {sula_command} memory digest --project-root {config.root}")
 
 def collect_render_actions(config: ProjectConfig, *, include_scaffold: bool) -> list[RenderAction]:
     tokens = config.token_map()

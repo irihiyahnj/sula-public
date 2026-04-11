@@ -4,6 +4,7 @@ import subprocess
 import tempfile
 from pathlib import Path
 import unittest
+import json
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
@@ -21,6 +22,35 @@ def run_cli(*args: str, cwd: Path | None = None) -> subprocess.CompletedProcess[
 
 
 class SulaCliTests(unittest.TestCase):
+    def create_react_erpnext_repo(self, project_root: Path) -> None:
+        (project_root / "src" / "api").mkdir(parents=True, exist_ok=True)
+        (project_root / "src" / "store").mkdir(parents=True, exist_ok=True)
+        (project_root / ".github" / "workflows").mkdir(parents=True, exist_ok=True)
+        (project_root / "src" / "api" / "erpnext.ts").write_text("export const api = true;\n", encoding="utf-8")
+        (project_root / "src" / "store" / "useStore.ts").write_text("export const store = true;\n", encoding="utf-8")
+        (project_root / "src" / "App.tsx").write_text("export const App = () => null;\n", encoding="utf-8")
+        (project_root / ".github" / "workflows" / "deploy.yml").write_text(
+            "name: deploy\non: workflow_dispatch\n",
+            encoding="utf-8",
+        )
+        (project_root / "README.md").write_text(
+            "# OKOKTOTO\n\nReact frontend over ERPNext.\n",
+            encoding="utf-8",
+        )
+        (project_root / "package.json").write_text(
+            json.dumps(
+                {
+                    "name": "okoktoto-v5",
+                    "description": "React frontend over ERPNext",
+                    "homepage": "https://example.com/app/",
+                    "scripts": {"dev": "vite", "build": "vite build", "typecheck": "tsc --noEmit"},
+                    "dependencies": {"react": "^19.0.0", "react-router-dom": "^7.0.0"},
+                    "devDependencies": {"typescript": "^5.0.0", "vite": "^6.0.0"},
+                }
+            ),
+            encoding="utf-8",
+        )
+
     def write_valid_status(self, project_root: Path) -> None:
         (project_root / "STATUS.md").write_text(
             """# STATUS
@@ -84,6 +114,44 @@ class SulaCliTests(unittest.TestCase):
             self.assertTrue((project_root / "docs" / "change-records" / "_template.md").exists())
             self.assertTrue((project_root / "docs" / "releases" / "_template.md").exists())
             self.assertTrue((project_root / "docs" / "incidents" / "_template.md").exists())
+
+    def test_adopt_reports_plan_before_approval(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            project_root = Path(tmpdir)
+            self.create_react_erpnext_repo(project_root)
+
+            result = run_cli("adopt", "--project-root", str(project_root))
+
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertIn("Recommended profile: react-frontend-erpnext", result.stdout)
+            self.assertIn("Approval flow:", result.stdout)
+            self.assertFalse((project_root / ".sula" / "project.toml").exists())
+
+    def test_adopt_approve_applies_and_validates_repo(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            project_root = Path(tmpdir)
+            self.create_react_erpnext_repo(project_root)
+
+            result = run_cli("adopt", "--project-root", str(project_root), "--approve")
+
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertIn("Sula adoption completed", result.stdout)
+            self.assertIn("How to use Sula after adoption", result.stdout)
+            self.assertTrue((project_root / ".sula" / "project.toml").exists())
+            self.assertTrue((project_root / ".sula" / "version.lock").exists())
+            self.assertTrue((project_root / "CODEX.md").exists())
+            self.assertTrue((project_root / "docs" / "change-records").exists())
+
+    def test_adopt_reports_blocker_when_profile_is_unknown(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            project_root = Path(tmpdir)
+            (project_root / "README.md").write_text("# Unknown Project\n\nNo known stack markers.\n", encoding="utf-8")
+
+            result = run_cli("adopt", "--project-root", str(project_root))
+
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertIn("Blocking issues:", result.stdout)
+            self.assertIn("could not determine a Sula profile automatically", result.stdout)
 
     def test_init_supports_sula_core_profile(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:

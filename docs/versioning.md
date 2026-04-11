@@ -5,7 +5,7 @@ Sula uses semantic versioning for its reusable operating system.
 ## Rules
 
 - patch: wording improvements, typo fixes, low-risk managed-file changes
-- minor: new managed files, new profile docs, new doctor checks, backward-compatible script improvements, new memory tooling
+- minor: new managed files, new profile docs, new doctor checks, backward-compatible script improvements, new memory tooling, new adoption automation
 - major: manifest schema breakage, managed/scaffold contract changes, memory contract breakage, or migration-required sync behavior
 
 ## Project Locking
