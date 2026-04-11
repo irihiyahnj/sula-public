@@ -6,6 +6,7 @@
   "homepage_url": "https://sula.1stp.monster/",
   "bootstrap_url": "https://sula.1stp.monster/bootstrap/",
   "docs_url": "https://sula.1stp.monster/bootstrap/",
+  "source_repository_url": "https://github.com/irihiyahnj/sula",
   "default_flow": [
     "inspect",
     "report",
@@ -21,6 +22,16 @@
   "protocol": {
     "requires_explicit_approval": true,
     "preserve_project_owned_truth": true,
+    "already_adopted_behavior": [
+      "If .sula/project.toml already exists, classify the repository as an existing Sula consumer.",
+      "Report existing-consumer state explicitly instead of narrating a fresh adoption.",
+      "Prefer manifest review, doctor --strict, and sync --dry-run before proposing first-time adopt writes."
+    ],
+    "tool_resolution": [
+      "If local scripts/sula.py is missing, resolve the canonical Sula source from source_repository_url.",
+      "If the canonical source is reachable, continue by mapping the protocol to that source rather than stopping at CLI discovery.",
+      "If the source is unreachable, report that as a blocker after repository inspection."
+    ],
     "pre_approval_output": [
       "recommended profile",
       "detected project facts",
@@ -38,6 +49,10 @@
   "entrypoints": {
     "cli_inspect": "python3 scripts/sula.py adopt --project-root <repo>",
     "cli_apply": "python3 scripts/sula.py adopt --project-root <repo> --approve",
-    "cli_validate": "python3 scripts/sula.py doctor --project-root <repo> --strict"
+    "cli_validate": "python3 scripts/sula.py doctor --project-root <repo> --strict",
+    "cli_existing_consumer_review": [
+      "python3 scripts/sula.py doctor --project-root <repo> --strict",
+      "python3 scripts/sula.py sync --project-root <repo> --dry-run"
+    ]
   }
 }

@@ -23,6 +23,32 @@ The public-facing copies of this contract should live in:
 - `site/bootstrap/index.html`
 - `site/sula.json`
 
+## Existing Consumers
+
+If a target repository already has `.sula/project.toml`, Sula should treat it as an existing consumer instead of a fresh adoption target.
+
+That means the default review path becomes:
+
+1. inspect the existing manifest and lockfile
+2. run `doctor --strict`
+3. preview `sync --dry-run`
+4. report consumer state, blockers, warnings, and likely next steps
+
+The report should explicitly say that the repository is already under Sula management.
+
+## Tool Resolution
+
+If the target repository does not include a local `scripts/sula.py`, the adoption agent should not stop at “CLI missing”.
+
+Instead it should:
+
+1. read `site/sula.json` or the hosted `/sula.json`
+2. resolve the canonical Sula source from `source_repository_url`
+3. continue the protocol against that source when it is reachable
+4. report an explicit source-availability blocker only after repository inspection is complete
+
+This keeps the protocol anchored to a canonical source repository without requiring every target repository to vendor Sula locally.
+
 ## CLI Flow
 
 Inspect and report:

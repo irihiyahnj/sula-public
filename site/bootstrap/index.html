@@ -71,6 +71,33 @@
         <section class="panel dual-panel">
           <article>
             <div class="section-heading">
+              <p class="section-label">Existing Consumers</p>
+              <h2>Already-adopted repositories use a review path.</h2>
+            </div>
+            <ol class="contract-list compact-list">
+              <li>If <code>.sula/project.toml</code> already exists, treat the repository as an existing Sula consumer.</li>
+              <li>Say so explicitly in the report instead of narrating the repository as a fresh adoption target.</li>
+              <li>Prefer manifest review, <code>doctor --strict</code>, and <code>sync --dry-run</code> before proposing any new adoption writes.</li>
+              <li>Only propose a first-time adopt flow when the repository is clearly not yet under Sula management.</li>
+            </ol>
+          </article>
+
+          <article>
+            <div class="section-heading">
+              <p class="section-label">Tool Resolution</p>
+              <h2>Missing local tooling is not the end of the protocol.</h2>
+            </div>
+            <ol class="contract-list compact-list">
+              <li>If local <code>scripts/sula.py</code> is missing, read <code>/sula.json</code> and resolve the canonical Sula source from its declared repository URL.</li>
+              <li>If the canonical source is reachable, continue by mapping the protocol to that source instead of stopping at “CLI missing”.</li>
+              <li>If the source is not reachable, report that precisely as a blocker after completing repository inspection, rather than failing before analysis.</li>
+            </ol>
+          </article>
+        </section>
+
+        <section class="panel dual-panel">
+          <article>
+            <div class="section-heading">
               <p class="section-label">Expected Pre-approval Output</p>
               <h2>Adoption report</h2>
             </div>

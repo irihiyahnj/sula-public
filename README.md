@@ -109,7 +109,7 @@ examples/
 In a live agent session, the target request should be as short as:
 
 ```text
-Please adopt Sula into this repository.
+Please take over this repository using the Sula bootstrap protocol: first read https://sula.1stp.monster/, inspect the repo and produce an adoption report, wait for my approval, then adopt it and report the changes, risks, and how to use it.
 ```
 
 The CLI equivalent is:
@@ -125,7 +125,7 @@ Use `init` only when you need low-level manual control over manifest values befo
 
 ### Bootstrap site assets
 
-The future public bootstrap site lives in this repository under `site/`:
+The public bootstrap site lives in this repository under `site/`:
 
 - `site/index.html`: landing page with the canonical copyable bootstrap lines
 - `site/bootstrap/index.html`: behavioral contract for inspect, report, approve, adopt
@@ -136,8 +136,9 @@ These assets are designed for eventual hosting at `https://sula.1stp.monster/`.
 Current deployment state:
 
 - live Fly preview: `https://sula.fly.dev/`
-- custom domain: `sula.1stp.monster`
-- remaining DNS step: point `sula.1stp.monster` to `CNAME sula. -> sula.fly.dev`
+- live custom domain: `https://sula.1stp.monster/`
+- machine-readable descriptor: `https://sula.1stp.monster/sula.json`
+- custom domain routing: active through Fly-managed DNS targets
 
 ### Sync improvements into an existing project
 
