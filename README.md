@@ -184,6 +184,7 @@ Release discipline and impact rules live in:
 - [docs/README.md](docs/README.md)
 - [docs/adoption-playbook.md](docs/adoption-playbook.md)
 - [docs/reference/adoption-agent.md](docs/reference/adoption-agent.md)
+- [docs/reference/public-release-readiness.md](docs/reference/public-release-readiness.md)
 - [docs/release-process.md](docs/release-process.md)
 - [docs/versioning.md](docs/versioning.md)
 - [docs/reference/project-memory-model.md](docs/reference/project-memory-model.md)
@@ -193,3 +194,9 @@ Release discipline and impact rules live in:
 - [schema/project.schema.json](schema/project.schema.json)
 - [schema/project.example.toml](schema/project.example.toml)
 - [registry/adopted-projects.toml](registry/adopted-projects.toml)
+
+## Project Governance
+
+- [CONTRIBUTING.md](CONTRIBUTING.md)
+- [SECURITY.md](SECURITY.md)
+- [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md)

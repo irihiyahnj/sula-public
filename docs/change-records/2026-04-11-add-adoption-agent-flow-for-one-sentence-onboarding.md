@@ -5,7 +5,7 @@
 - date: 2026-04-11
 - executor: Codex
 - branch: codex/bootstrap-sula
-- related commit(s): pending local commit
+- related commit(s): bbc39aa
 - status: completed
 
 ## Background
