@@ -1,0 +1,42 @@
+[project]
+name = "Example Project"
+slug = "example-project"
+description = "Short description"
+profile = "react-frontend-erpnext"
+default_agent = "Codex"
+
+[repository]
+primary_branch = "main"
+working_branch_prefix = "codex/"
+deployment_branch = "main"
+
+[rules]
+highest_rule = "Frontend-only orchestration over ERPNext-native capabilities."
+custom_backend_allowed = false
+react_router_allowed = false
+
+[stack]
+frontend = "React + TypeScript + Vite"
+backend = "ERPNext / Frappe"
+
+[paths]
+api_layer = "src/api/erpnext.ts"
+state_layer = "src/store/useStore.ts"
+app_shell = "src/App.tsx"
+status_file = "STATUS.md"
+change_records_file = "CHANGE-RECORDS.md"
+
+[commands]
+install = "npm install"
+dev = "npm run dev"
+build = "npm run build"
+typecheck = "npx tsc --noEmit"
+
+[deploy]
+base_path = "/"
+production_url = "https://example.com/"
+workflow = ".github/workflows/deploy.yml"
+
+[auth]
+session_expiry_codes = ["401", "440"]
+permission_denied_codes = ["403"]

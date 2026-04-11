@@ -1,0 +1,23 @@
+# CODEX.md
+
+Primary repository instructions are in [AGENTS.md](AGENTS.md). Read that file first.
+
+If this file conflicts with `AGENTS.md`, `AGENTS.md` wins.
+
+## Codex Role
+
+- Codex is the default execution agent for this repository.
+- Treat user requests as end-to-end delivery requests unless the user explicitly asks only for analysis, brainstorming, or a plan.
+- Use [docs/README.md](docs/README.md) as the documentation map.
+- Follow [docs/ops/team-operating-model.md](docs/ops/team-operating-model.md) as the default execution flow.
+
+## Critical Reminders
+
+- Repository root = `{{PROJECT_NAME}}`.
+- Highest rule: `{{HIGHEST_RULE}}`
+- Keep durable documentation organized through [docs/README.md](docs/README.md).
+- Keep primary integration logic centralized in [{{API_LAYER_PATH}}]({{API_LAYER_PATH}}).
+- Keep app-shell behavior centered in [{{APP_SHELL_PATH}}]({{APP_SHELL_PATH}}).
+- Working branches use `{{WORKING_BRANCH_PREFIX}}*`.
+- Deployment branch = `{{DEPLOYMENT_BRANCH}}`.
+- Validate substantial changes with `{{BUILD_COMMAND}}`.

@@ -1,0 +1,39 @@
+# {{PROJECT_NAME}} Change Record Rules
+
+This file defines how non-trivial changes are recorded.
+
+## Principle
+
+Git records code differences. Change records explain:
+
+- why the change happened
+- how the decision was made
+- what was verified
+- how rollback works
+- what data or operational side-effects exist
+
+## File Layout
+
+- index and rules: `{{CHANGE_RECORDS_FILE}}`
+- detailed records: `docs/change-records/YYYY-MM-DD-short-topic.md`
+
+## Required Sections Per Record
+
+1. title
+2. date
+3. executor
+4. branch
+5. related commit(s)
+6. background
+7. analysis
+8. chosen plan
+9. execution
+10. verification
+11. rollback
+12. data side-effects
+13. follow-up
+14. architecture-boundary check
+
+## Current Records
+
+- _add project records here_

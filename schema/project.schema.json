@@ -1,0 +1,109 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Sula Project Manifest",
+  "type": "object",
+  "required": [
+    "project",
+    "repository",
+    "rules",
+    "stack",
+    "paths",
+    "commands",
+    "deploy",
+    "auth"
+  ],
+  "properties": {
+    "project": {
+      "type": "object",
+      "required": ["name", "slug", "description", "profile", "default_agent"],
+      "properties": {
+        "name": {"type": "string", "minLength": 1},
+        "slug": {"type": "string", "minLength": 1},
+        "description": {"type": "string", "minLength": 1},
+        "profile": {"type": "string", "minLength": 1},
+        "default_agent": {"type": "string", "minLength": 1}
+      },
+      "additionalProperties": false
+    },
+    "repository": {
+      "type": "object",
+      "required": ["primary_branch", "working_branch_prefix", "deployment_branch"],
+      "properties": {
+        "primary_branch": {"type": "string"},
+        "working_branch_prefix": {"type": "string"},
+        "deployment_branch": {"type": "string"}
+      },
+      "additionalProperties": false
+    },
+    "rules": {
+      "type": "object",
+      "required": ["highest_rule", "custom_backend_allowed", "react_router_allowed"],
+      "properties": {
+        "highest_rule": {"type": "string"},
+        "custom_backend_allowed": {"type": "boolean"},
+        "react_router_allowed": {"type": "boolean"}
+      },
+      "additionalProperties": false
+    },
+    "stack": {
+      "type": "object",
+      "required": ["frontend", "backend"],
+      "properties": {
+        "frontend": {"type": "string"},
+        "backend": {"type": "string"}
+      },
+      "additionalProperties": false
+    },
+    "paths": {
+      "type": "object",
+      "required": ["api_layer", "state_layer", "app_shell", "status_file", "change_records_file"],
+      "properties": {
+        "api_layer": {"type": "string"},
+        "state_layer": {"type": "string"},
+        "app_shell": {"type": "string"},
+        "status_file": {"type": "string"},
+        "change_records_file": {"type": "string"}
+      },
+      "additionalProperties": false
+    },
+    "commands": {
+      "type": "object",
+      "required": ["install", "dev", "build", "typecheck"],
+      "properties": {
+        "install": {"type": "string"},
+        "dev": {"type": "string"},
+        "build": {"type": "string"},
+        "typecheck": {"type": "string"}
+      },
+      "additionalProperties": false
+    },
+    "deploy": {
+      "type": "object",
+      "required": ["base_path", "production_url", "workflow"],
+      "properties": {
+        "base_path": {"type": "string"},
+        "production_url": {"type": "string"},
+        "workflow": {"type": "string"}
+      },
+      "additionalProperties": false
+    },
+    "auth": {
+      "type": "object",
+      "required": ["session_expiry_codes", "permission_denied_codes"],
+      "properties": {
+        "session_expiry_codes": {
+          "type": "array",
+          "items": {"type": "string"},
+          "minItems": 1
+        },
+        "permission_denied_codes": {
+          "type": "array",
+          "items": {"type": "string"},
+          "minItems": 1
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}
