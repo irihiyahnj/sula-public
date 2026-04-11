@@ -123,6 +123,16 @@ The first command inspects the repository, detects the likely profile, and print
 
 Use `init` only when you need low-level manual control over manifest values before the approval-based adoption flow can infer them safely.
 
+### Bootstrap site assets
+
+The future public bootstrap site lives in this repository under `site/`:
+
+- `site/index.html`: landing page with the canonical copyable bootstrap lines
+- `site/bootstrap/index.html`: behavioral contract for inspect, report, approve, adopt
+- `site/sula.json`: machine-readable bootstrap descriptor
+
+These assets are designed for eventual hosting at `https://sula.1stp.monster/`.
+
 ### Sync improvements into an existing project
 
 ```bash
@@ -194,6 +204,9 @@ Release discipline and impact rules live in:
 - [schema/project.schema.json](schema/project.schema.json)
 - [schema/project.example.toml](schema/project.example.toml)
 - [registry/adopted-projects.toml](registry/adopted-projects.toml)
+- [site/index.html](site/index.html)
+- [site/bootstrap/index.html](site/bootstrap/index.html)
+- [site/sula.json](site/sula.json)
 
 ## Project Governance
 

@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Sula | Bootstrap For Repositories</title>
+    <meta
+      name="description"
+      content="Sula is a project operating system for AI-native software teams. Inspect first, approve explicitly, then adopt."
+    />
+    <link rel="stylesheet" href="./styles.css" />
+    <script defer src="./app.js"></script>
+  </head>
+  <body>
+    <div class="page-shell">
+      <header class="hero">
+        <p class="eyebrow">Sula bootstrap is usable now. Public launch is still in progress.</p>
+        <h1>Sula is a project operating system for repositories that need durable rules, memory, and safe AI handoff.</h1>
+        <p class="lede">
+          This page is the canonical starting point for adopting Sula into an existing repository. The flow is always
+          inspect, report, approve, adopt, validate, and report the result.
+        </p>
+
+        <div class="copy-grid">
+          <section class="copy-card">
+            <div class="card-header">
+              <h2>Chinese Bootstrap Line</h2>
+              <button class="copy-button" data-copy-target="prompt-zh">Copy</button>
+            </div>
+            <pre id="prompt-zh" class="prompt-block"><code>请按 Sula bootstrap 协议接管当前仓库：先读取 https://sula.1stp.monster/ 的说明，inspect 并输出 adoption report，等我批准后再 adopt，完成后汇报变更、风险和使用方式。</code></pre>
+          </section>
+
+          <section class="copy-card">
+            <div class="card-header">
+              <h2>English Bootstrap Line</h2>
+              <button class="copy-button" data-copy-target="prompt-en">Copy</button>
+            </div>
+            <pre id="prompt-en" class="prompt-block"><code>Please take over this repository using the Sula bootstrap protocol: first read https://sula.1stp.monster/, inspect the repo and produce an adoption report, wait for my approval, then adopt it and report the changes, risks, and how to use it.</code></pre>
+          </section>
+        </div>
+
+        <div class="hero-actions">
+          <a class="primary-link" href="./bootstrap/">Read The Bootstrap Contract</a>
+          <a class="secondary-link" href="./sula.json">Open `sula.json`</a>
+          <a class="secondary-link" href="#what-you-get">Review The Benefits</a>
+        </div>
+      </header>
+
+      <main>
+        <section id="what-you-get" class="panel">
+          <div class="section-heading">
+            <p class="section-label">How It Works</p>
+            <h2>The actual usage flow should feel like this.</h2>
+          </div>
+
+          <div class="steps">
+            <article class="step-card">
+              <span class="step-index">01</span>
+              <h3>Inspect</h3>
+              <p>Read the bootstrap contract, inspect the repository, and infer the most likely Sula profile.</p>
+              <pre><code>read bootstrap
+inspect repository
+detect profile and project facts</code></pre>
+            </article>
+
+            <article class="step-card">
+              <span class="step-index">02</span>
+              <h3>Report</h3>
+              <p>Produce an adoption report before writing anything.</p>
+              <pre><code>recommended profile
+managed files: create / overwrite
+scaffold files: create / preserve
+blockers and warnings</code></pre>
+            </article>
+
+            <article class="step-card">
+              <span class="step-index">03</span>
+              <h3>Approve</h3>
+              <p>Wait for explicit user approval. No silent adoption.</p>
+              <pre><code>User says:
+批准接入
+
+or
+
+Approve adoption.</code></pre>
+            </article>
+
+            <article class="step-card">
+              <span class="step-index">04</span>
+              <h3>Adopt</h3>
+              <p>Apply the operating-system layer, validate the result, then explain what changed and how to use it.</p>
+              <pre><code>render manifest and lockfile
+apply managed files
+preserve project-owned truth
+run doctor --strict
+report result and usage</code></pre>
+            </article>
+          </div>
+        </section>
+
+        <section class="panel dual-panel">
+          <article>
+            <div class="section-heading">
+              <p class="section-label">Managed Boundary</p>
+              <h2>Sula should manage the operating system, not absorb project truth.</h2>
+            </div>
+            <ul class="check-list">
+              <li>Managed files can be synced later from Sula Core.</li>
+              <li>Scaffold files are starters and stay owned by the project after first generation.</li>
+              <li>Status, change history, release notes, and incident notes remain durable project memory.</li>
+              <li>Approval is always required before adoption writes into a repository.</li>
+            </ul>
+          </article>
+
+          <article class="status-card">
+            <div class="section-heading">
+              <p class="section-label">Current State</p>
+              <h2>The site is in development, but the bootstrap contract is already usable.</h2>
+            </div>
+            <ul class="check-list">
+              <li>The public domain can host this exact static page set.</li>
+              <li>The canonical bootstrap flow already exists in the Sula CLI.</li>
+              <li>The source repository is not ready for direct public release from current history yet.</li>
+              <li>The future public source should come from a clean Sula-only history.</li>
+            </ul>
+          </article>
+        </section>
+
+        <section class="panel">
+          <div class="section-heading">
+            <p class="section-label">What You Get</p>
+            <h2>Normal usage already delivers concrete operational benefits.</h2>
+          </div>
+          <div class="benefit-grid">
+            <article>
+              <h3>Faster session startup</h3>
+              <p>New agents stop behaving like empty-context contractors and start from explicit project rules.</p>
+            </article>
+            <article>
+              <h3>Durable project memory</h3>
+              <p>Rules, current status, decisions, releases, and incidents have fixed locations instead of chat-only history.</p>
+            </article>
+            <article>
+              <h3>Safer shared upgrades</h3>
+              <p>`sync --dry-run`, version locks, canaries, and strict doctor checks reduce blind rollout risk.</p>
+            </article>
+          </div>
+        </section>
+      </main>
+    </div>
+  </body>
+</html>

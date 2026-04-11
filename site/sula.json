@@ -1,0 +1,43 @@
+{
+  "name": "Sula",
+  "kind": "project-operating-system",
+  "version": "0.4.0",
+  "status": "development-bootstrap-usable",
+  "homepage_url": "https://sula.1stp.monster/",
+  "bootstrap_url": "https://sula.1stp.monster/bootstrap/",
+  "docs_url": "https://sula.1stp.monster/bootstrap/",
+  "default_flow": [
+    "inspect",
+    "report",
+    "approve",
+    "adopt",
+    "validate",
+    "report-result"
+  ],
+  "copy_prompts": {
+    "zh": "请按 Sula bootstrap 协议接管当前仓库：先读取 https://sula.1stp.monster/ 的说明，inspect 并输出 adoption report，等我批准后再 adopt，完成后汇报变更、风险和使用方式。",
+    "en": "Please take over this repository using the Sula bootstrap protocol: first read https://sula.1stp.monster/, inspect the repo and produce an adoption report, wait for my approval, then adopt it and report the changes, risks, and how to use it."
+  },
+  "protocol": {
+    "requires_explicit_approval": true,
+    "preserve_project_owned_truth": true,
+    "pre_approval_output": [
+      "recommended profile",
+      "detected project facts",
+      "managed creates and overwrites",
+      "scaffold creates and preserves",
+      "blockers and warnings"
+    ],
+    "post_approval_output": [
+      "validation result",
+      "changes applied",
+      "remaining risks",
+      "usage instructions"
+    ]
+  },
+  "entrypoints": {
+    "cli_inspect": "python3 scripts/sula.py adopt --project-root <repo>",
+    "cli_apply": "python3 scripts/sula.py adopt --project-root <repo> --approve",
+    "cli_validate": "python3 scripts/sula.py doctor --project-root <repo> --strict"
+  }
+}

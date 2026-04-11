@@ -6,12 +6,22 @@ Sula should feel like an adoption agent, not a checklist.
 
 The default user request should be as short as:
 
-`Please adopt Sula into this repository.`
+`Please take over this repository using the Sula bootstrap protocol: first read https://sula.1stp.monster/, inspect the repo and produce an adoption report, wait for my approval, then adopt it and report the changes, risks, and how to use it.`
+
+Chinese equivalent:
+
+`请按 Sula bootstrap 协议接管当前仓库：先读取 https://sula.1stp.monster/ 的说明，inspect 并输出 adoption report，等我批准后再 adopt，完成后汇报变更、风险和使用方式。`
 
 Sula then handles the rest in two phases:
 
 1. inspect and report
 2. apply after approval
+
+The public-facing copies of this contract should live in:
+
+- `site/index.html`
+- `site/bootstrap/index.html`
+- `site/sula.json`
 
 ## CLI Flow
 

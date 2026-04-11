@@ -15,6 +15,7 @@ Track why Sula changed, how sync impact was evaluated, what was verified, and ho
 
 ## Index
 
+- 2026-04-11 - [Add bootstrap site assets for the public Sula protocol](docs/change-records/2026-04-11-add-bootstrap-site-assets-for-the-public-sula-protocol.md) - Added a deployable static site with canonical Chinese and English bootstrap lines, the public behavioral contract page, and a machine-readable `sula.json` descriptor.
 - 2026-04-11 - [Prepare Sula for public release](docs/change-records/2026-04-11-prepare-sula-for-public-release.md) - Added public-project governance files, documented launch-readiness checks, and recorded the current git-history blocker for publishing this repository safely.
 - 2026-04-11 - [Add adoption-agent flow for one-sentence onboarding](docs/change-records/2026-04-11-add-adoption-agent-flow-for-one-sentence-onboarding.md) - Added an inspect-report-approve onboarding flow so new repositories can adopt Sula through a single approval-based entrypoint.
 - 2026-04-11 - [Self-adopt Sula root under sula-core profile](docs/change-records/2026-04-11-self-adopt-sula-root-under-sula-core-profile.md) - Promoted the Sula repository itself into a managed consumer so root governance, memory, and rollout checks use the same operating-system model.
