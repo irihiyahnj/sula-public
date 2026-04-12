@@ -2,6 +2,25 @@
 
 All notable changes to Sula Core should be recorded here with explicit sync impact.
 
+## 0.9.0 - 2026-04-12
+
+### Added
+
+- `/launch/` as the canonical site-launch contract for URL-first startup
+- `site/launch/bootstrap.py` as a canonical bootstrap shim that can resolve Sula source and route onboarding or existing-consumer review
+- launcher metadata in `site/sula.json`, including source ref, launcher URL, and no-global-lookup rules
+
+### Changed
+
+- homepage and bootstrap-site prompts now point to the shorter launch URL instead of relying on the older long-form bootstrap copy
+- the public site now defines startup as `read launch URL -> resolve launcher -> onboard or review`, not `guess local CLI`
+
+### Sync Impact
+
+- existing adopted projects remain compatible and only receive routine version-lock and kernel refresh updates
+- external sessions can now start from the site contract even when no local `sula` command or vendored source exists
+- the canonical startup path now has a stable site URL, a machine descriptor, and a bootstrap shim instead of a documentation-only contract
+
 ## 0.8.0 - 2026-04-12
 
 ### Added

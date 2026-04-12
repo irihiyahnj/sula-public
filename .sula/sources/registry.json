@@ -231,7 +231,7 @@
     "exists": true,
     "source_of_truth": true,
     "discovered": true,
-    "size_bytes": 1534,
+    "size_bytes": 1636,
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
@@ -247,7 +247,7 @@
     "exists": true,
     "source_of_truth": true,
     "discovered": true,
-    "size_bytes": 4400,
+    "size_bytes": 4738,
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
@@ -264,7 +264,7 @@
     "exists": true,
     "source_of_truth": true,
     "discovered": true,
-    "size_bytes": 9366,
+    "size_bytes": 10369,
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
@@ -361,7 +361,7 @@
     "exists": true,
     "source_of_truth": true,
     "discovered": true,
-    "size_bytes": 12089,
+    "size_bytes": 12698,
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
@@ -393,7 +393,7 @@
     "exists": true,
     "source_of_truth": true,
     "discovered": true,
-    "size_bytes": 5590,
+    "size_bytes": 5979,
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
@@ -426,7 +426,7 @@
     "exists": true,
     "source_of_truth": true,
     "discovered": true,
-    "size_bytes": 6007,
+    "size_bytes": 6277,
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
@@ -612,6 +612,23 @@
     "source_of_truth": true,
     "discovered": true,
     "size_bytes": 4117,
+    "anchor_strategy": "heading-or-line",
+    "adapters": [
+      "generic-project",
+      "local-fs",
+      "docs",
+      "memory",
+      "repo"
+    ]
+  },
+  {
+    "id": "source:docs-change-records-2026-04-12-add-site-launch-contract-and-canonical-bootstrap-shim-md",
+    "kind": "document",
+    "path": "docs/change-records/2026-04-12-add-site-launch-contract-and-canonical-bootstrap-shim.md",
+    "exists": true,
+    "source_of_truth": true,
+    "discovered": true,
+    "size_bytes": 3410,
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
@@ -860,7 +877,7 @@
     "exists": true,
     "source_of_truth": true,
     "discovered": true,
-    "size_bytes": 3168,
+    "size_bytes": 3308,
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
@@ -1690,7 +1707,7 @@
     "exists": true,
     "source_of_truth": true,
     "discovered": true,
-    "size_bytes": 231444,
+    "size_bytes": 233014,
     "anchor_strategy": "line",
     "adapters": [
       "generic-project",
@@ -1736,7 +1753,7 @@
     "exists": true,
     "source_of_truth": true,
     "discovered": true,
-    "size_bytes": 7441,
+    "size_bytes": 7409,
     "anchor_strategy": "line",
     "adapters": [
       "generic-project",
@@ -1752,7 +1769,38 @@
     "exists": true,
     "source_of_truth": true,
     "discovered": true,
-    "size_bytes": 6622,
+    "size_bytes": 7967,
+    "anchor_strategy": "line",
+    "adapters": [
+      "generic-project",
+      "local-fs",
+      "docs",
+      "repo"
+    ]
+  },
+  {
+    "id": "source:site-launch-bootstrap-py",
+    "kind": "code",
+    "path": "site/launch/bootstrap.py",
+    "exists": true,
+    "source_of_truth": true,
+    "discovered": true,
+    "size_bytes": 7120,
+    "anchor_strategy": "line",
+    "adapters": [
+      "generic-project",
+      "local-fs",
+      "repo"
+    ]
+  },
+  {
+    "id": "source:site-launch-index-html",
+    "kind": "interface",
+    "path": "site/launch/index.html",
+    "exists": true,
+    "source_of_truth": true,
+    "discovered": true,
+    "size_bytes": 5976,
     "anchor_strategy": "line",
     "adapters": [
       "generic-project",
@@ -1784,7 +1832,7 @@
     "exists": true,
     "source_of_truth": true,
     "discovered": true,
-    "size_bytes": 2578,
+    "size_bytes": 3502,
     "anchor_strategy": "line",
     "adapters": [
       "generic-project",
@@ -1799,7 +1847,7 @@
     "exists": true,
     "source_of_truth": true,
     "discovered": true,
-    "size_bytes": 40524,
+    "size_bytes": 44685,
     "anchor_strategy": "line",
     "adapters": [
       "generic-project",

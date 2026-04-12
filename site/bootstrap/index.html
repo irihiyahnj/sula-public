@@ -22,6 +22,7 @@
         </p>
         <div class="hero-actions">
           <a class="primary-link" href="../">Back To Home</a>
+          <a class="secondary-link" href="../launch/">Open Launch Contract</a>
           <a class="secondary-link" href="../sula.json">Open `sula.json`</a>
         </div>
       </header>
@@ -38,14 +39,14 @@
                 <h3>Chinese</h3>
                 <button class="copy-button" data-copy-target="bootstrap-zh">Copy</button>
               </div>
-              <pre id="bootstrap-zh" class="prompt-block"><code>请按 Sula bootstrap 协议接管当前仓库：先读取 https://sula.1stp.monster/ 的说明，inspect 并输出 adoption report，等我批准后再 adopt，完成后汇报变更、风险和使用方式。</code></pre>
+              <pre id="bootstrap-zh" class="prompt-block"><code>请按 https://sula.1stp.monster/launch/ 的启动协议接管当前项目；如需详细审批报告，请继续读取 https://sula.1stp.monster/bootstrap/ 。</code></pre>
             </section>
             <section class="copy-card">
               <div class="card-header">
                 <h3>English</h3>
                 <button class="copy-button" data-copy-target="bootstrap-en">Copy</button>
               </div>
-              <pre id="bootstrap-en" class="prompt-block"><code>Please take over this repository using the Sula bootstrap protocol: first read https://sula.1stp.monster/, inspect the repo and produce an adoption report, wait for my approval, then adopt it and report the changes, risks, and how to use it.</code></pre>
+              <pre id="bootstrap-en" class="prompt-block"><code>Please take over the current project using the launch contract at https://sula.1stp.monster/launch/; if detailed approval rules are needed, continue reading https://sula.1stp.monster/bootstrap/.</code></pre>
             </section>
           </div>
         </section>
@@ -88,9 +89,9 @@
               <h2>Missing local tooling is not the end of the protocol.</h2>
             </div>
             <ol class="contract-list compact-list">
-              <li>If local <code>scripts/sula.py</code> is missing, read <code>/sula.json</code> and resolve the canonical Sula source from its declared repository URL.</li>
-              <li>If the canonical source is reachable, continue by mapping the protocol to that source instead of stopping at “CLI missing”.</li>
-              <li>If the source is not reachable, report that precisely as a blocker after completing repository inspection, rather than failing before analysis.</li>
+              <li>If local <code>scripts/sula.py</code> is missing, read <code>/sula.json</code> and resolve the canonical Sula launcher or source from the declared URLs.</li>
+              <li>Prefer the launch shim at <code>/launch/bootstrap.py</code> over npm or global-command guessing.</li>
+              <li>If the canonical source or launcher is unreachable, report that precisely as a blocker after completing repository inspection, rather than failing before analysis.</li>
             </ol>
           </article>
         </section>
@@ -154,10 +155,10 @@ How to use Sula after adoption:
             <p class="section-label">CLI Mapping</p>
             <h2>This protocol already maps to real Sula commands.</h2>
           </div>
-          <pre class="report-block"><code>python3 scripts/sula.py adopt --project-root /path/to/project
-python3 scripts/sula.py adopt --project-root /path/to/project --approve
-python3 scripts/sula.py doctor --project-root /path/to/project --strict
-python3 scripts/sula.py sync --project-root /path/to/project --dry-run</code></pre>
+          <pre class="report-block"><code>python3 bootstrap.py --project-root /path/to/project
+python3 bootstrap.py --project-root /path/to/project --accept-suggested --approve
+python3 scripts/sula.py onboard --project-root /path/to/project
+python3 scripts/sula.py doctor --project-root /path/to/project --strict</code></pre>
         </section>
       </main>
     </div>

@@ -9,6 +9,7 @@ import json
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 SULA_SCRIPT = REPO_ROOT / "scripts" / "sula.py"
+SITE_BOOTSTRAP_SCRIPT = REPO_ROOT / "site" / "launch" / "bootstrap.py"
 
 
 def run_cli(*args: str, cwd: Path | None = None) -> subprocess.CompletedProcess[str]:
@@ -26,6 +27,16 @@ def run_cli_input(input_text: str, *args: str, cwd: Path | None = None) -> subpr
         ["python3", str(SULA_SCRIPT), *args],
         cwd=cwd or REPO_ROOT,
         input=input_text,
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+
+
+def run_site_bootstrap(*args: str, cwd: Path | None = None) -> subprocess.CompletedProcess[str]:
+    return subprocess.run(
+        ["python3", str(SITE_BOOTSTRAP_SCRIPT), *args],
+        cwd=cwd or REPO_ROOT,
         text=True,
         capture_output=True,
         check=False,
@@ -321,6 +332,50 @@ class SulaCliTests(unittest.TestCase):
             self.assertIn("What you will get:", result.stdout)
             self.assertIn("Sula was not applied.", result.stdout)
             self.assertFalse((project_root / ".sula" / "project.toml").exists())
+
+    def test_site_bootstrap_uses_local_source_to_onboard_project(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            project_root = Path(tmpdir)
+            self.create_generic_project(project_root)
+
+            result = run_site_bootstrap(
+                "--project-root",
+                str(project_root),
+                "--source-dir",
+                str(REPO_ROOT),
+                "--accept-suggested",
+                "--approve",
+                "--json",
+            )
+
+            self.assertEqual(result.returncode, 0, result.stderr)
+            payload = json.loads(result.stdout)
+            self.assertEqual(payload["command"], "site-launch")
+            self.assertEqual(payload["source"]["kind"], "explicit-source-dir")
+            self.assertEqual(payload["status"], "ok")
+            self.assertTrue((project_root / ".sula" / "project.toml").exists())
+
+    def test_site_bootstrap_reviews_existing_consumer(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            project_root = Path(tmpdir)
+            self.create_generic_project(project_root)
+            adopt_result = run_cli("adopt", "--project-root", str(project_root), "--approve")
+            self.assertEqual(adopt_result.returncode, 0, adopt_result.stderr)
+
+            result = run_site_bootstrap(
+                "--project-root",
+                str(project_root),
+                "--source-dir",
+                str(REPO_ROOT),
+                "--json",
+            )
+
+            self.assertEqual(result.returncode, 0, result.stderr)
+            payload = json.loads(result.stdout)
+            self.assertEqual(payload["command"], "site-launch")
+            self.assertEqual(payload["status"], "existing-consumer")
+            self.assertEqual(payload["doctor"]["command"], "doctor")
+            self.assertEqual(payload["sync_preview"]["command"], "sync")
 
     def test_adopt_approve_supports_non_git_generic_project(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:

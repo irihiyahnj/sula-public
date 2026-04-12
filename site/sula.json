@@ -1,58 +1,78 @@
 {
   "name": "Sula",
   "kind": "project-operating-system",
-  "version": "0.4.0",
-  "status": "development-bootstrap-usable",
+  "version": "0.8.0",
+  "status": "development-launch-usable",
   "homepage_url": "https://sula.1stp.monster/",
+  "launch_url": "https://sula.1stp.monster/launch/",
   "bootstrap_url": "https://sula.1stp.monster/bootstrap/",
-  "docs_url": "https://sula.1stp.monster/bootstrap/",
-  "source_repository_url": "https://github.com/irihiyahnj/sula",
+  "docs_url": "https://sula.1stp.monster/launch/",
+  "source_repository_url": "https://github.com/irihiyahnj/sula.git",
+  "source_ref": "codex/bootstrap-sula",
+  "source_script_path": "scripts/sula.py",
   "default_flow": [
-    "inspect",
-    "report",
-    "approve",
-    "adopt",
+    "read-launch-contract",
+    "resolve-launcher",
+    "inspect-project-state",
+    "route-onboard-or-review",
     "validate",
     "report-result"
   ],
   "copy_prompts": {
-    "zh": "请按 Sula bootstrap 协议接管当前仓库：先读取 https://sula.1stp.monster/ 的说明，inspect 并输出 adoption report，等我批准后再 adopt，完成后汇报变更、风险和使用方式。",
-    "en": "Please take over this repository using the Sula bootstrap protocol: first read https://sula.1stp.monster/, inspect the repo and produce an adoption report, wait for my approval, then adopt it and report the changes, risks, and how to use it."
+    "zh": "请按 https://sula.1stp.monster/launch/ 的启动协议接管当前项目。",
+    "en": "Please take over the current project using the launch contract at https://sula.1stp.monster/launch/."
   },
   "protocol": {
     "requires_explicit_approval": true,
     "preserve_project_owned_truth": true,
+    "no_global_lookup": true,
+    "startup_rule": [
+      "Do not search npm packages, global commands, or guessed local aliases when the project does not already vendor Sula.",
+      "Read launch_url and this descriptor first, then resolve the canonical launcher or source from the declared URLs.",
+      "If local scripts/sula.py is missing, prefer the launcher at launcher.bootstrap_python_url or clone source_repository_url at source_ref."
+    ],
     "already_adopted_behavior": [
       "If .sula/project.toml already exists, classify the repository as an existing Sula consumer.",
       "Report existing-consumer state explicitly instead of narrating a fresh adoption.",
-      "Prefer manifest review, doctor --strict, and sync --dry-run before proposing first-time adopt writes."
+      "Prefer doctor --strict and sync --dry-run before proposing first-time adopt writes."
     ],
-    "tool_resolution": [
-      "If local scripts/sula.py is missing, resolve the canonical Sula source from source_repository_url.",
-      "If the canonical source is reachable, continue by mapping the protocol to that source rather than stopping at CLI discovery.",
-      "If the source is unreachable, report that as a blocker after repository inspection."
-    ],
-    "pre_approval_output": [
-      "recommended profile",
-      "detected project facts",
-      "managed creates and overwrites",
-      "scaffold creates and preserves",
-      "blockers and warnings"
+    "new_project_behavior": [
+      "Prefer onboard as the first-touch flow for projects that are not yet adopted.",
+      "Ask only the minimum missing questions.",
+      "Explain what Sula will manage, where files will route, and which source was used."
     ],
     "post_approval_output": [
+      "source used",
       "validation result",
       "changes applied",
       "remaining risks",
       "usage instructions"
     ]
   },
+  "launcher": {
+    "preferred_entrypoint": "onboard",
+    "default_source_dir": "~/.sula/source",
+    "bootstrap_python_url": "https://sula.1stp.monster/launch/bootstrap.py",
+    "resolution_order": [
+      "vendored-project",
+      "explicit-local-source",
+      "cloned-canonical-source"
+    ],
+    "review_commands": [
+      "python3 scripts/sula.py doctor --project-root <project> --strict",
+      "python3 scripts/sula.py sync --project-root <project> --dry-run"
+    ]
+  },
   "entrypoints": {
-    "cli_inspect": "python3 scripts/sula.py adopt --project-root <repo>",
-    "cli_apply": "python3 scripts/sula.py adopt --project-root <repo> --approve",
-    "cli_validate": "python3 scripts/sula.py doctor --project-root <repo> --strict",
+    "url_launch_prompt_zh": "请按 https://sula.1stp.monster/launch/ 的启动协议接管当前项目。",
+    "url_launch_prompt_en": "Please take over the current project using the launch contract at https://sula.1stp.monster/launch/.",
+    "launcher_bootstrap": "python3 bootstrap.py --project-root <project>",
+    "launcher_bootstrap_apply": "python3 bootstrap.py --project-root <project> --accept-suggested --approve",
+    "cli_onboard": "python3 scripts/sula.py onboard --project-root <project>",
+    "cli_onboard_apply": "python3 scripts/sula.py onboard --project-root <project> --accept-suggested --approve",
     "cli_existing_consumer_review": [
-      "python3 scripts/sula.py doctor --project-root <repo> --strict",
-      "python3 scripts/sula.py sync --project-root <repo> --dry-run"
+      "python3 scripts/sula.py doctor --project-root <project> --strict",
+      "python3 scripts/sula.py sync --project-root <project> --dry-run"
     ]
   }
 }

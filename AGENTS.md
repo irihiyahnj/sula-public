@@ -32,6 +32,7 @@ This file is the primary instruction source for AI coding agents working in the 
 - project manifest schema and example
 - machine-readable CLI outputs for local software integration
 - `onboard`, `adopt`, `init`, `sync`, `doctor`, `remove`, `query`, `status`, `artifact`, `portfolio`, `record`, and `memory digest` commands
+- static launch-site assets under `site/`, including the canonical launch contract and bootstrap shim
 
 ## Out Of Scope For Now
 

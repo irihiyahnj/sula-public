@@ -20,6 +20,7 @@ Sula then handles the rest in two phases:
 The public-facing copies of this contract should live in:
 
 - `site/index.html`
+- `site/launch/index.html`
 - `site/bootstrap/index.html`
 - `site/sula.json`
 
@@ -45,8 +46,8 @@ If the target repository does not include a local `scripts/sula.py`, the adoptio
 Instead it should:
 
 1. read `site/sula.json` or the hosted `/sula.json`
-2. resolve the canonical Sula source from `source_repository_url`
-3. continue the protocol against that source when it is reachable
+2. resolve the canonical Sula launcher or source from the declared URLs
+3. prefer `site/launch/bootstrap.py` when no vendored local source exists
 4. report an explicit source-availability blocker only after repository inspection is complete
 
 This keeps the protocol anchored to a canonical source repository without requiring every target repository to vendor Sula locally.
@@ -57,6 +58,12 @@ Human-first guided onboarding:
 
 ```bash
 python3 scripts/sula.py onboard --project-root /path/to/project
+```
+
+URL-first launcher path:
+
+```bash
+python3 launch/bootstrap.py --project-root /path/to/project
 ```
 
 Low-level inspect and report:

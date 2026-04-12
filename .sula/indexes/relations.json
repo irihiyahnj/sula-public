@@ -1,5 +1,5 @@
 {
-  "version": "0.8.0",
+  "version": "0.9.0",
   "profile": "sula-core",
   "relations": [
     {
@@ -128,6 +128,11 @@
       "type": "derived-from"
     },
     {
+      "from": "decision:status:2026-04-12-added-add-site-launch-contract-and-canonical-bootstrap-shim-docs-change-records-2026-04-12-add-site-launch-contract-and-canonical-bootstrap-shim-md",
+      "to": "source:status-md",
+      "type": "derived-from"
+    },
+    {
       "from": "person:status:sula-core-maintainers",
       "to": "source:status-md",
       "type": "derived-from"
@@ -155,6 +160,16 @@
     {
       "from": "change:2026-04-12-add-sqlite-kernel-cache-richer-object-extraction-and-timeline-query-filters",
       "to": "source:docs-change-records-2026-04-12-add-sqlite-kernel-cache-richer-object-extraction-and-timeline-query-filters-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "change:2026-04-12-add-site-launch-contract-and-canonical-bootstrap-shim",
+      "to": "source:docs-change-records-2026-04-12-add-site-launch-contract-and-canonical-bootstrap-shim-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "agreement:2026-04-12-add-site-launch-contract-and-canonical-bootstrap-shim",
+      "to": "source:docs-change-records-2026-04-12-add-site-launch-contract-and-canonical-bootstrap-shim-md",
       "type": "derived-from"
     },
     {
@@ -263,7 +278,17 @@
       "type": "derived-from"
     },
     {
+      "from": "agreement:source:change-records-md",
+      "to": "source:change-records-md",
+      "type": "derived-from"
+    },
+    {
       "from": "object:source:changelog-md",
+      "to": "source:changelog-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "agreement:source:changelog-md",
       "to": "source:changelog-md",
       "type": "derived-from"
     },
@@ -314,6 +339,11 @@
     },
     {
       "from": "object:source:docs-adoption-playbook-md",
+      "to": "source:docs-adoption-playbook-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "agreement:source:docs-adoption-playbook-md",
       "to": "source:docs-adoption-playbook-md",
       "type": "derived-from"
     },
@@ -390,6 +420,16 @@
     {
       "from": "agreement:source:docs-change-records-2026-04-12-add-machine-json-interfaces-artifact-routing-portfolio-registry-and-google-drive-local-sync-contracts-md",
       "to": "source:docs-change-records-2026-04-12-add-machine-json-interfaces-artifact-routing-portfolio-registry-and-google-drive-local-sync-contracts-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "object:source:docs-change-records-2026-04-12-add-site-launch-contract-and-canonical-bootstrap-shim-md",
+      "to": "source:docs-change-records-2026-04-12-add-site-launch-contract-and-canonical-bootstrap-shim-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "agreement:source:docs-change-records-2026-04-12-add-site-launch-contract-and-canonical-bootstrap-shim-md",
+      "to": "source:docs-change-records-2026-04-12-add-site-launch-contract-and-canonical-bootstrap-shim-md",
       "type": "derived-from"
     },
     {
@@ -780,6 +820,16 @@
     {
       "from": "object:source:site-index-html",
       "to": "source:site-index-html",
+      "type": "derived-from"
+    },
+    {
+      "from": "object:source:site-launch-bootstrap-py",
+      "to": "source:site-launch-bootstrap-py",
+      "type": "derived-from"
+    },
+    {
+      "from": "object:source:site-launch-index-html",
+      "to": "source:site-launch-index-html",
       "type": "derived-from"
     },
     {

@@ -4,6 +4,18 @@ This playbook describes how to roll Sula into a repository cleanly.
 
 ## Fast Path
 
+The outermost startup path is now the site launch contract:
+
+```text
+请按 https://sula.1stp.monster/launch/ 的启动协议接管当前项目。
+```
+
+or
+
+```text
+Please take over the current project using the launch contract at https://sula.1stp.monster/launch/.
+```
+
 The default onboarding flow is guided onboarding first, low-level adoption second when needed:
 
 ```bash

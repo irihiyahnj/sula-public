@@ -1,13 +1,13 @@
 {
-  "version": "0.8.0",
+  "version": "0.9.0",
   "profile": "sula-core",
   "counts": {
-    "registered_sources": 114,
-    "discovered_sources": 103,
+    "registered_sources": 117,
+    "discovered_sources": 106,
     "adapters": 7,
     "artifacts": 0,
-    "objects": 158,
-    "source_adapter_links": 471
+    "objects": 168,
+    "source_adapter_links": 483
   },
   "adapter_catalog": ".sula/adapters/catalog.json",
   "indexes": [

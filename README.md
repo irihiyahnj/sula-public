@@ -10,6 +10,7 @@ Sula is not a product template for one stack. It is a coordination layer with:
 - profile-specific templates for project families
 - a project manifest that captures each repository's facts
 - a guided zero-memory onboarding flow for first-time setup
+- a site-launch contract with a canonical URL and downloadable bootstrap launcher
 - machine-readable CLI outputs for external tools and adapters
 - an inspect-report-approve adoption flow for one-sentence onboarding
 - scripts to initialize, sync, and audit project adoption
@@ -141,6 +142,26 @@ python3 scripts/sula.py onboard --project-root /path/to/project --accept-suggest
 
 `onboard` asks the missing questions, proposes workflow/storage/portfolio answers, explains what Sula will manage, and can apply adoption immediately after confirmation.
 
+### Launch From The Site Contract
+
+The final startup direction is a URL-first launch flow:
+
+```text
+请按 https://sula.1stp.monster/launch/ 的启动协议接管当前项目。
+```
+
+or
+
+```text
+Please take over the current project using the launch contract at https://sula.1stp.monster/launch/.
+```
+
+The site now exposes:
+
+- `/launch/` as the human-readable launch contract
+- `/sula.json` as the machine-readable launcher descriptor
+- `/launch/bootstrap.py` as the canonical bootstrap shim when local Sula tooling is missing
+
 ### Low-Level Adoption Report
 
 In a live agent session, the target request should be as short as:
@@ -260,7 +281,7 @@ This searches the local kernel object catalog, source registry, and event timeli
 
 ## Current Version
 
-Sula version: `0.8.0`
+Sula version: `0.9.0`
 
 Versioning rules are in [docs/versioning.md](docs/versioning.md).
 

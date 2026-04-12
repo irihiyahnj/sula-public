@@ -15,6 +15,7 @@ Track why Sula changed, how sync impact was evaluated, what was verified, and ho
 
 ## Index
 
+- 2026-04-12 - [Add site launch contract and canonical bootstrap shim](docs/change-records/2026-04-12-add-site-launch-contract-and-canonical-bootstrap-shim.md) - Added a URL-first launch contract, upgraded `site/sula.json`, and introduced `site/launch/bootstrap.py` so agents can start Sula from the site without guessing local commands.
 - 2026-04-12 - [Add guided onboarding and zero-memory setup flow](docs/change-records/2026-04-12-add-guided-onboarding-and-zero-memory-setup-flow.md) - Added the `onboard` interview flow, onboarding summaries, and a single-envelope JSON apply path so users do not need to remember Sula internals before adopting a project.
 - 2026-04-12 - [Add machine JSON interfaces, artifact routing, portfolio registry, and Google Drive local-sync contracts](docs/change-records/2026-04-12-add-machine-json-interfaces-artifact-routing-portfolio-registry-and-google-drive-local-sync-contracts.md) - Added machine-readable CLI envelopes, first-class artifacts, portfolio registry commands, and storage/workflow/portfolio manifest contracts for Drive-synced client projects.
 - 2026-04-12 - [Add SQLite kernel cache, richer object extraction, and timeline query filters](docs/change-records/2026-04-12-add-sqlite-kernel-cache-richer-object-extraction-and-timeline-query-filters.md) - Added a rebuildable SQLite retrieval cache, richer project object kinds, and stronger local query filters and timeline behavior.

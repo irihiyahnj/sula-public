@@ -1,5 +1,5 @@
 {
-  "version": "0.8.0",
+  "version": "0.9.0",
   "profile": "sula-core",
   "objects": [
     {
@@ -31,7 +31,7 @@
       "id": "state:current",
       "kind": "state",
       "title": "Current Project State",
-      "summary": "- Sula now manages itself as a first-class `sula-core` consumer while still acting as the source repository for reusable operating-system assets.\n- The repository has memory-aware governance, an in-repo canary, a root self-adoption path, and an approval-based adoption agent for bringing new repositories under Sula.\n- Public-release governance is now in place, and the remaining blocker is historical lineage cleanup rather than working-tree quality.\n- The future `sula.1stp.monster` landing page is now represented by real static site assets with canonical long-form bootstrap prompts and protocol pages.\n- The bootstrap site is now live on both `https://sula.fly.dev/` and `https://sula.1stp.monster/`, with the public bootstrap contract explicitly handling existing Sula consumers and canonical tool-source resolution.\n- Sula now has a recorded vNext architecture target for a `generic-project` kernel, adapter bundles, scientific retrieval, and first-class removal semantics.\n- The first milestone of that direction is now implemented: unknown and non-Git projects can adopt through `generic-project`, `.sula/` holds kernel artifacts, and removal has a report-first command.\n- The second milestone is now implemented as well: local retrieval can rebuild from SQLite, kernel objects cover task/decision/risk/person/agreement/milestone shapes, and query supports stronger filters plus timeline output.\n- The next operating milestone is now implemented too: machine-readable CLI responses, workflow/storage/portfolio manifest sections, artifact routing, and portfolio registration are available for non-code client projects.\n- Drive-synced projects can now describe `google-drive` as an adapter instead of pretending that storage provider is a project type, which keeps the kernel portable for future providers.\n- The next UX milestone is now implemented too: `onboard` provides a zero-memory interview flow that asks setup questions, explains what Sula will manage, and then applies adoption through the same kernel contract.",
+      "summary": "- Sula now manages itself as a first-class `sula-core` consumer while still acting as the source repository for reusable operating-system assets.\n- The repository has memory-aware governance, an in-repo canary, a root self-adoption path, and an approval-based adoption agent for bringing new repositories under Sula.\n- Public-release governance is now in place, and the remaining blocker is historical lineage cleanup rather than working-tree quality.\n- The future `sula.1stp.monster` landing page is now represented by real static site assets with canonical long-form bootstrap prompts and protocol pages.\n- The bootstrap site is now live on both `https://sula.fly.dev/` and `https://sula.1stp.monster/`, with the public bootstrap contract explicitly handling existing Sula consumers and canonical tool-source resolution.\n- Sula now has a recorded vNext architecture target for a `generic-project` kernel, adapter bundles, scientific retrieval, and first-class removal semantics.\n- The first milestone of that direction is now implemented: unknown and non-Git projects can adopt through `generic-project`, `.sula/` holds kernel artifacts, and removal has a report-first command.\n- The second milestone is now implemented as well: local retrieval can rebuild from SQLite, kernel objects cover task/decision/risk/person/agreement/milestone shapes, and query supports stronger filters plus timeline output.\n- The next operating milestone is now implemented too: machine-readable CLI responses, workflow/storage/portfolio manifest sections, artifact routing, and portfolio registration are available for non-code client projects.\n- Drive-synced projects can now describe `google-drive` as an adapter instead of pretending that storage provider is a project type, which keeps the kernel portable for future providers.\n- The next UX milestone is now implemented too: `onboard` provides a zero-memory interview flow that asks setup questions, explains what Sula will manage, and then applies adoption through the same kernel contract.\n- The next launch milestone is now implemented too: the public site exposes `/launch/`, a machine-readable launcher descriptor, and a downloadable `bootstrap.py` shim so startup no longer depends on guessing local commands.",
       "status": "current",
       "path": "STATUS.md",
       "source_paths": [
@@ -487,6 +487,26 @@
       "date": "2026-04-12"
     },
     {
+      "id": "decision:status:2026-04-12-added-add-site-launch-contract-and-canonical-bootstrap-shim-docs-change-records-2026-04-12-add-site-launch-contract-and-canonical-bootstrap-shim-md",
+      "kind": "decision",
+      "title": "2026-04-12: added [Add site launch contract and canonical bootstrap shim](doc...",
+      "summary": "2026-04-12: added [Add site launch contract and canonical bootstrap shim](docs/change-records/2026-04-12-add-site-launch-contract-and-canonical-bootstrap-shim.md)",
+      "status": "decided",
+      "path": "STATUS.md",
+      "source_paths": [
+        "STATUS.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "recent-decision",
+        "status"
+      ],
+      "date": "2026-04-12"
+    },
+    {
       "id": "person:status:sula-core-maintainers",
       "kind": "person",
       "title": "Sula Core maintainers",
@@ -600,6 +620,44 @@
       ],
       "tags": [
         "change"
+      ],
+      "date": "2026-04-12"
+    },
+    {
+      "id": "change:2026-04-12-add-site-launch-contract-and-canonical-bootstrap-shim",
+      "kind": "change",
+      "title": "Add site launch contract and canonical bootstrap shim",
+      "summary": "- date: 2026-04-12 - executor: Codex - branch: codex/bootstrap-sula - related commit(s): pending - status: completed",
+      "status": "recorded",
+      "path": "docs/change-records/2026-04-12-add-site-launch-contract-and-canonical-bootstrap-shim.md",
+      "source_paths": [
+        "docs/change-records/2026-04-12-add-site-launch-contract-and-canonical-bootstrap-shim.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "change"
+      ],
+      "date": "2026-04-12"
+    },
+    {
+      "id": "agreement:2026-04-12-add-site-launch-contract-and-canonical-bootstrap-shim",
+      "kind": "agreement",
+      "title": "Add site launch contract and canonical bootstrap shim",
+      "summary": "- date: 2026-04-12 - executor: Codex - branch: codex/bootstrap-sula - related commit(s): pending - status: completed",
+      "status": "active",
+      "path": "docs/change-records/2026-04-12-add-site-launch-contract-and-canonical-bootstrap-shim.md",
+      "source_paths": [
+        "docs/change-records/2026-04-12-add-site-launch-contract-and-canonical-bootstrap-shim.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "agreement"
       ],
       "date": "2026-04-12"
     },
@@ -1016,6 +1074,29 @@
       "date": null
     },
     {
+      "id": "agreement:source:change-records-md",
+      "kind": "agreement",
+      "title": "Sula Change Records",
+      "summary": "This file is the index for non-trivial Sula Core changes.",
+      "status": "active",
+      "path": "CHANGE-RECORDS.md",
+      "source_paths": [
+        "CHANGE-RECORDS.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "memory",
+        "repo"
+      ],
+      "tags": [
+        "agreement",
+        "source"
+      ],
+      "date": "2026-04-12"
+    },
+    {
       "id": "object:source:changelog-md",
       "kind": "document",
       "title": "CHANGELOG.md",
@@ -1036,6 +1117,29 @@
         "discovered-source"
       ],
       "date": null
+    },
+    {
+      "id": "agreement:source:changelog-md",
+      "kind": "agreement",
+      "title": "Changelog",
+      "summary": "All notable changes to Sula Core should be recorded here with explicit sync impact.",
+      "status": "active",
+      "path": "CHANGELOG.md",
+      "source_paths": [
+        "CHANGELOG.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo",
+        "release"
+      ],
+      "tags": [
+        "agreement",
+        "source"
+      ],
+      "date": "2026-04-12"
     },
     {
       "id": "object:source:claude-md",
@@ -1245,6 +1349,28 @@
       ],
       "tags": [
         "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "agreement:source:docs-adoption-playbook-md",
+      "kind": "agreement",
+      "title": "Sula Adoption Playbook",
+      "summary": "This playbook describes how to roll Sula into a repository cleanly.",
+      "status": "active",
+      "path": "docs/adoption-playbook.md",
+      "source_paths": [
+        "docs/adoption-playbook.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo"
+      ],
+      "tags": [
+        "agreement",
+        "source"
       ],
       "date": null
     },
@@ -1567,6 +1693,51 @@
       "path": "docs/change-records/2026-04-12-add-machine-json-interfaces-artifact-routing-portfolio-registry-and-google-drive-local-sync-contracts.md",
       "source_paths": [
         "docs/change-records/2026-04-12-add-machine-json-interfaces-artifact-routing-portfolio-registry-and-google-drive-local-sync-contracts.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "memory",
+        "repo"
+      ],
+      "tags": [
+        "agreement",
+        "source"
+      ],
+      "date": "2026-04-12"
+    },
+    {
+      "id": "object:source:docs-change-records-2026-04-12-add-site-launch-contract-and-canonical-bootstrap-shim-md",
+      "kind": "document",
+      "title": "2026-04-12-add-site-launch-contract-and-canonical-bootstrap-shim.md",
+      "summary": "- date: 2026-04-12 - executor: Codex - branch: codex/bootstrap-sula - related commit(s): pending - status: completed",
+      "status": "indexed",
+      "path": "docs/change-records/2026-04-12-add-site-launch-contract-and-canonical-bootstrap-shim.md",
+      "source_paths": [
+        "docs/change-records/2026-04-12-add-site-launch-contract-and-canonical-bootstrap-shim.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "memory",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": "2026-04-12"
+    },
+    {
+      "id": "agreement:source:docs-change-records-2026-04-12-add-site-launch-contract-and-canonical-bootstrap-shim-md",
+      "kind": "agreement",
+      "title": "Add site launch contract and canonical bootstrap shim",
+      "summary": "- date: 2026-04-12 - executor: Codex - branch: codex/bootstrap-sula - related commit(s): pending - status: completed",
+      "status": "active",
+      "path": "docs/change-records/2026-04-12-add-site-launch-contract-and-canonical-bootstrap-shim.md",
+      "source_paths": [
+        "docs/change-records/2026-04-12-add-site-launch-contract-and-canonical-bootstrap-shim.md"
       ],
       "adapters": [
         "generic-project",
@@ -3239,11 +3410,52 @@
       "id": "object:source:site-index-html",
       "kind": "interface",
       "title": "index.html",
-      "summary": "<!doctype html> <html lang=\"en\"> <head> <meta charset=\"utf-8\" /> <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\" /> <title>Sula | Bootstrap For Repositories</title> <meta name=\"description\" content=\"Sula is a project ope",
+      "summary": "<!doctype html> <html lang=\"en\"> <head> <meta charset=\"utf-8\" /> <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\" /> <title>Sula | URL Launch For Projects</title> <meta name=\"description\" content=\"Sula is a project operat",
       "status": "indexed",
       "path": "site/index.html",
       "source_paths": [
         "site/index.html"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:site-launch-bootstrap-py",
+      "kind": "code",
+      "title": "bootstrap.py",
+      "summary": "from __future__ import annotations",
+      "status": "indexed",
+      "path": "site/launch/bootstrap.py",
+      "source_paths": [
+        "site/launch/bootstrap.py"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:site-launch-index-html",
+      "kind": "interface",
+      "title": "index.html",
+      "summary": "<!doctype html> <html lang=\"en\"> <head> <meta charset=\"utf-8\" /> <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\" /> <title>Sula Launch Contract</title> <meta name=\"description\" content=\"Canonical launch contract for star",
+      "status": "indexed",
+      "path": "site/launch/index.html",
+      "source_paths": [
+        "site/launch/index.html"
       ],
       "adapters": [
         "generic-project",
@@ -3281,7 +3493,7 @@
       "id": "object:source:site-sula-json",
       "kind": "config",
       "title": "sula.json",
-      "summary": "{ \"name\": \"Sula\", \"kind\": \"project-operating-system\", \"version\": \"0.4.0\", \"status\": \"development-bootstrap-usable\", \"homepage_url\": \"https://sula.1stp.monster/\", \"bootstrap_url\": \"https://sula.1stp.monster/bootstrap/\", \"docs_url\": \"https://",
+      "summary": "{ \"name\": \"Sula\", \"kind\": \"project-operating-system\", \"version\": \"0.8.0\", \"status\": \"development-launch-usable\", \"homepage_url\": \"https://sula.1stp.monster/\", \"launch_url\": \"https://sula.1stp.monster/launch/\", \"bootstrap_url\": \"https://sula",
       "status": "indexed",
       "path": "site/sula.json",
       "source_paths": [
