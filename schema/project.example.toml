@@ -64,3 +64,8 @@ provider_root_id = "drive-folder-id"
 portfolio_id = "studio"
 workspace = "external-clients"
 owner = "Jing"
+
+[language]
+content_locale = "zh-CN"
+interaction_locale = "zh-CN"
+preserve_user_input_language = true

@@ -153,6 +153,16 @@
       "type": "derived-from"
     },
     {
+      "from": "change:2026-04-12-document-provider-backed-artifact-identity",
+      "to": "source:docs-change-records-2026-04-12-document-provider-backed-artifact-identity-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "agreement:2026-04-12-document-provider-backed-artifact-identity",
+      "to": "source:docs-change-records-2026-04-12-document-provider-backed-artifact-identity-md",
+      "type": "derived-from"
+    },
+    {
       "from": "change:2026-04-12-define-sula-vnext-project-kernel",
       "to": "source:docs-change-records-2026-04-12-define-sula-vnext-project-kernel-md",
       "type": "derived-from"
@@ -274,11 +284,6 @@
     },
     {
       "from": "object:source:change-records-md",
-      "to": "source:change-records-md",
-      "type": "derived-from"
-    },
-    {
-      "from": "agreement:source:change-records-md",
       "to": "source:change-records-md",
       "type": "derived-from"
     },
@@ -443,6 +448,16 @@
       "type": "derived-from"
     },
     {
+      "from": "object:source:docs-change-records-2026-04-12-document-provider-backed-artifact-identity-md",
+      "to": "source:docs-change-records-2026-04-12-document-provider-backed-artifact-identity-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "agreement:source:docs-change-records-2026-04-12-document-provider-backed-artifact-identity-md",
+      "to": "source:docs-change-records-2026-04-12-document-provider-backed-artifact-identity-md",
+      "type": "derived-from"
+    },
+    {
       "from": "object:source:docs-change-records-2026-04-12-implement-generic-project-kernel-and-removal-flow-md",
       "to": "source:docs-change-records-2026-04-12-implement-generic-project-kernel-and-removal-flow-md",
       "type": "derived-from"
@@ -513,6 +528,11 @@
       "type": "derived-from"
     },
     {
+      "from": "agreement:source:docs-reference-adoption-agent-md",
+      "to": "source:docs-reference-adoption-agent-md",
+      "type": "derived-from"
+    },
+    {
       "from": "object:source:docs-reference-adoption-registry-md",
       "to": "source:docs-reference-adoption-registry-md",
       "type": "derived-from"
@@ -535,6 +555,11 @@
     {
       "from": "object:source:docs-reference-project-memory-model-md",
       "to": "source:docs-reference-project-memory-model-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "object:source:docs-reference-provider-backed-artifact-identity-md",
+      "to": "source:docs-reference-provider-backed-artifact-identity-md",
       "type": "derived-from"
     },
     {

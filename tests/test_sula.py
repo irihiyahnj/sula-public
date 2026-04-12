@@ -82,6 +82,43 @@ class SulaCliTests(unittest.TestCase):
             encoding="utf-8",
         )
 
+    def create_chinese_project(self, project_root: Path) -> None:
+        (project_root / "docs").mkdir(parents=True, exist_ok=True)
+        (project_root / "README.md").write_text(
+            "# 医院短视频项目\n\n医院短视频拍摄合作项目，涉及合同、排期、报表与交付管理。\n",
+            encoding="utf-8",
+        )
+        (project_root / "docs" / "项目地图.md").write_text(
+            """# 项目地图
+
+## 任务
+
+- 整理医院合作合同
+- 确认拍摄排期
+
+## 决策
+
+- 2026-04-10: 用 Sula 作为项目记忆内核
+
+## 风险
+
+- 合同红线仍待法务确认
+
+## 人员
+
+- 张三
+
+## 协议
+
+- 医院短视频服务合同
+
+## 里程碑
+
+- 2026-04-20: 提交最终合同与排期
+""",
+            encoding="utf-8",
+        )
+
     def create_react_erpnext_repo(self, project_root: Path) -> None:
         (project_root / "src" / "api").mkdir(parents=True, exist_ok=True)
         (project_root / "src" / "store").mkdir(parents=True, exist_ok=True)
@@ -288,6 +325,7 @@ class SulaCliTests(unittest.TestCase):
             self.assertEqual(payload["command"], "onboard")
             self.assertEqual(payload["status"], "questions")
             question_ids = {item["id"] for item in payload["questions"]}
+            self.assertIn("content_locale", question_ids)
             self.assertIn("workflow_pack", question_ids)
             self.assertIn("storage_provider", question_ids)
             self.assertEqual(payload["summary"]["workflow"]["pack"], "client-service")
@@ -314,6 +352,9 @@ class SulaCliTests(unittest.TestCase):
             self.assertEqual(payload["status"], "ok")
             self.assertEqual(payload["summary"]["workflow"]["pack"], "client-service")
             self.assertTrue((project_root / ".sula" / "project.toml").exists())
+            manifest = (project_root / ".sula" / "project.toml").read_text(encoding="utf-8")
+            self.assertIn("[language]", manifest)
+            self.assertIn('content_locale = "en"', manifest)
 
     def test_onboard_interactive_uses_defaults_and_waits_for_apply_confirmation(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -321,7 +362,7 @@ class SulaCliTests(unittest.TestCase):
             self.create_generic_project(project_root)
 
             result = run_cli_input(
-                "\n\n\n\n\n\n\nn\n",
+                "\n\n\n\n\n\n\n\nn\n",
                 "onboard",
                 "--project-root",
                 str(project_root),
@@ -332,6 +373,112 @@ class SulaCliTests(unittest.TestCase):
             self.assertIn("What you will get:", result.stdout)
             self.assertIn("Sula was not applied.", result.stdout)
             self.assertFalse((project_root / ".sula" / "project.toml").exists())
+
+    def test_onboard_defaults_to_chinese_for_cjk_project(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            project_root = Path(tmpdir)
+            self.create_chinese_project(project_root)
+
+            result = run_cli("onboard", "--project-root", str(project_root), "--json")
+
+            self.assertEqual(result.returncode, 0, result.stderr)
+            payload = json.loads(result.stdout)
+            self.assertEqual(payload["suggested_answers"]["content_locale"], "zh-CN")
+            self.assertEqual(payload["summary"]["language"]["content_locale"], "zh-CN")
+
+    def test_chinese_locale_renders_localized_status_and_supports_doctor(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            project_root = Path(tmpdir)
+            self.create_chinese_project(project_root)
+
+            adopt_result = run_cli(
+                "onboard",
+                "--project-root",
+                str(project_root),
+                "--accept-suggested",
+                "--approve",
+                "--json",
+            )
+
+            self.assertEqual(adopt_result.returncode, 0, adopt_result.stderr)
+            status_text = (project_root / "STATUS.md").read_text(encoding="utf-8")
+            self.assertIn("# 项目状态", status_text)
+            self.assertIn("## 摘要", status_text)
+            self.assertIn("- 最后更新:", status_text)
+            change_index_text = (project_root / "CHANGE-RECORDS.md").read_text(encoding="utf-8")
+            self.assertIn("## 用途", change_index_text)
+            self.assertIn("## 索引", change_index_text)
+
+            doctor_result = run_cli("doctor", "--project-root", str(project_root), "--strict")
+            self.assertEqual(doctor_result.returncode, 0, doctor_result.stderr)
+
+    def test_chinese_locale_artifact_title_generates_stable_file_and_chinese_content(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            project_root = Path(tmpdir)
+            self.create_chinese_project(project_root)
+            adopt_result = run_cli(
+                "onboard",
+                "--project-root",
+                str(project_root),
+                "--accept-suggested",
+                "--approve",
+                "--json",
+            )
+            self.assertEqual(adopt_result.returncode, 0, adopt_result.stderr)
+
+            create_result = run_cli(
+                "artifact",
+                "create",
+                "--project-root",
+                str(project_root),
+                "--kind",
+                "agreement",
+                "--title",
+                "医院短视频合作合同",
+                "--date",
+                "2026-04-12",
+                "--json",
+            )
+            self.assertEqual(create_result.returncode, 0, create_result.stderr)
+            payload = json.loads(create_result.stdout)
+            artifact_path = project_root / payload["artifact"]["path"]
+            self.assertTrue(artifact_path.exists())
+            self.assertIn("item-", artifact_path.name)
+            artifact_text = artifact_path.read_text(encoding="utf-8")
+            self.assertIn("# 医院短视频合作合同", artifact_text)
+            self.assertIn("## 摘要", artifact_text)
+
+    def test_existing_project_can_switch_to_chinese_for_new_records_without_reseeding_templates(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            project_root = Path(tmpdir)
+            self.create_generic_project(project_root)
+            adopt_result = run_cli("adopt", "--project-root", str(project_root), "--approve")
+            self.assertEqual(adopt_result.returncode, 0, adopt_result.stderr)
+
+            manifest_path = project_root / ".sula" / "project.toml"
+            manifest_text = manifest_path.read_text(encoding="utf-8")
+            manifest_text = manifest_text.replace('content_locale = "en"', 'content_locale = "zh-CN"')
+            manifest_text = manifest_text.replace('interaction_locale = "en"', 'interaction_locale = "zh-CN"')
+            manifest_path.write_text(manifest_text, encoding="utf-8")
+
+            record_result = run_cli(
+                "record",
+                "new",
+                "--project-root",
+                str(project_root),
+                "--kind",
+                "change",
+                "--title",
+                "医院合同推进",
+                "--date",
+                "2026-04-12",
+                "--json",
+            )
+            self.assertEqual(record_result.returncode, 0, record_result.stderr)
+            payload = json.loads(record_result.stdout)
+            record_text = (project_root / payload["record"]["path"]).read_text(encoding="utf-8")
+            self.assertIn("## 元数据", record_text)
+            self.assertIn("## 背景", record_text)
 
     def test_site_bootstrap_uses_local_source_to_onboard_project(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -665,6 +812,8 @@ class SulaCliTests(unittest.TestCase):
             created = json.loads(create_result.stdout)
             self.assertTrue((project_root / created["artifact"]["path"]).exists())
             self.assertEqual(created["artifact"]["slot"], "contracts")
+            self.assertEqual(created["artifact"]["project_relative_path"], created["artifact"]["path"])
+            self.assertEqual(created["artifact"]["local_access_paths"], [created["artifact"]["path"]])
 
             existing_path = project_root / "finance-note.md"
             existing_path.write_text("# Finance Note\n", encoding="utf-8")
@@ -680,6 +829,10 @@ class SulaCliTests(unittest.TestCase):
                 "--json",
             )
             self.assertEqual(register_result.returncode, 0, register_result.stderr)
+            registered = json.loads(register_result.stdout)
+            self.assertEqual(registered["artifact"]["project_relative_path"], "finance-note.md")
+            self.assertEqual(registered["artifact"]["local_access_paths"], ["finance-note.md"])
+            self.assertEqual(registered["artifact"]["identity_key"], "path|finance-note.md")
 
             locate_result = run_cli(
                 "artifact",
@@ -694,6 +847,92 @@ class SulaCliTests(unittest.TestCase):
             located = json.loads(locate_result.stdout)
             self.assertTrue(located["results"])
             self.assertEqual(located["results"][0]["kind"], "agreement")
+            self.assertEqual(located["results"][0]["display_path"], located["results"][0]["path"])
+
+    def test_artifact_register_supports_provider_backed_identity_without_local_path(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            project_root = Path(tmpdir)
+            self.create_generic_project(project_root)
+            adopt_result = run_cli(
+                "adopt",
+                "--project-root",
+                str(project_root),
+                "--workflow-pack",
+                "client-service",
+                "--storage-provider",
+                "google-drive",
+                "--storage-sync-mode",
+                "local-sync",
+                "--storage-provider-root-url",
+                "https://drive.google.com/drive/folders/hospital-root",
+                "--storage-provider-root-id",
+                "hospital-root",
+                "--approve",
+            )
+            self.assertEqual(adopt_result.returncode, 0, adopt_result.stderr)
+
+            register_result = run_cli(
+                "artifact",
+                "register",
+                "--project-root",
+                str(project_root),
+                "--kind",
+                "report",
+                "--title",
+                "Hospital Intake Report",
+                "--date",
+                "2026-04-12",
+                "--project-relative-path",
+                "delivery/2026-04-12-hospital-intake-report-v1",
+                "--provider-item-id",
+                "doc-abc123",
+                "--provider-item-kind",
+                "google-doc",
+                "--provider-item-url",
+                "https://docs.google.com/document/d/doc-abc123/edit",
+                "--derived-from",
+                "artifact:intake-brief",
+                "--json",
+            )
+            self.assertEqual(register_result.returncode, 0, register_result.stderr)
+            registered = json.loads(register_result.stdout)
+            artifact = registered["artifact"]
+            self.assertEqual(artifact["path"], "delivery/2026-04-12-hospital-intake-report-v1")
+            self.assertEqual(artifact["project_relative_path"], "delivery/2026-04-12-hospital-intake-report-v1")
+            self.assertEqual(artifact["provider_item_id"], "doc-abc123")
+            self.assertEqual(artifact["provider_item_kind"], "google-doc")
+            self.assertEqual(artifact["provider_item_url"], "https://docs.google.com/document/d/doc-abc123/edit")
+            self.assertEqual(artifact["local_access_paths"], [])
+            self.assertEqual(artifact["derived_from"], ["artifact:intake-brief"])
+            self.assertIn("provider|google-drive|hospital-root|google-doc|doc-abc123", artifact["identity_key"])
+
+            locate_result = run_cli(
+                "artifact",
+                "locate",
+                "--project-root",
+                str(project_root),
+                "--q",
+                "doc-abc123",
+                "--json",
+            )
+            self.assertEqual(locate_result.returncode, 0, locate_result.stderr)
+            located = json.loads(locate_result.stdout)
+            self.assertEqual(len(located["results"]), 1)
+            self.assertEqual(located["results"][0]["display_path"], "delivery/2026-04-12-hospital-intake-report-v1")
+
+            query_result = run_cli(
+                "query",
+                "--project-root",
+                str(project_root),
+                "--q",
+                "doc-abc123",
+                "--json",
+            )
+            self.assertEqual(query_result.returncode, 0, query_result.stderr)
+            queried = json.loads(query_result.stdout)
+            artifact_result = next(item for item in queried["results"] if item["title"] == "Hospital Intake Report")
+            self.assertEqual(artifact_result["kind"], "report")
+            self.assertEqual(artifact_result["path"], "delivery/2026-04-12-hospital-intake-report-v1")
 
     def test_portfolio_register_list_and_query_json(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir, tempfile.TemporaryDirectory() as portfolio_tmpdir:

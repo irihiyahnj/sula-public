@@ -586,6 +586,44 @@
       "date": "2026-04-12"
     },
     {
+      "id": "change:2026-04-12-document-provider-backed-artifact-identity",
+      "kind": "change",
+      "title": "Document provider-backed artifact identity for cross-device project workspaces",
+      "summary": "- date: 2026-04-12 - executor: Codex - branch: codex/bootstrap-sula - related commit(s): pending - status: completed",
+      "status": "recorded",
+      "path": "docs/change-records/2026-04-12-document-provider-backed-artifact-identity.md",
+      "source_paths": [
+        "docs/change-records/2026-04-12-document-provider-backed-artifact-identity.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "change"
+      ],
+      "date": "2026-04-12"
+    },
+    {
+      "id": "agreement:2026-04-12-document-provider-backed-artifact-identity",
+      "kind": "agreement",
+      "title": "Document provider-backed artifact identity for cross-device project workspaces",
+      "summary": "- date: 2026-04-12 - executor: Codex - branch: codex/bootstrap-sula - related commit(s): pending - status: completed",
+      "status": "active",
+      "path": "docs/change-records/2026-04-12-document-provider-backed-artifact-identity.md",
+      "source_paths": [
+        "docs/change-records/2026-04-12-document-provider-backed-artifact-identity.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "agreement"
+      ],
+      "date": "2026-04-12"
+    },
+    {
       "id": "change:2026-04-12-define-sula-vnext-project-kernel",
       "kind": "change",
       "title": "Define Sula vNext project kernel",
@@ -1072,29 +1110,6 @@
         "discovered-source"
       ],
       "date": null
-    },
-    {
-      "id": "agreement:source:change-records-md",
-      "kind": "agreement",
-      "title": "Sula Change Records",
-      "summary": "This file is the index for non-trivial Sula Core changes.",
-      "status": "active",
-      "path": "CHANGE-RECORDS.md",
-      "source_paths": [
-        "CHANGE-RECORDS.md"
-      ],
-      "adapters": [
-        "generic-project",
-        "local-fs",
-        "docs",
-        "memory",
-        "repo"
-      ],
-      "tags": [
-        "agreement",
-        "source"
-      ],
-      "date": "2026-04-12"
     },
     {
       "id": "object:source:changelog-md",
@@ -1797,6 +1812,51 @@
       "date": "2026-04-12"
     },
     {
+      "id": "object:source:docs-change-records-2026-04-12-document-provider-backed-artifact-identity-md",
+      "kind": "document",
+      "title": "2026-04-12-document-provider-backed-artifact-identity.md",
+      "summary": "- date: 2026-04-12 - executor: Codex - branch: codex/bootstrap-sula - related commit(s): pending - status: completed",
+      "status": "indexed",
+      "path": "docs/change-records/2026-04-12-document-provider-backed-artifact-identity.md",
+      "source_paths": [
+        "docs/change-records/2026-04-12-document-provider-backed-artifact-identity.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "memory",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": "2026-04-12"
+    },
+    {
+      "id": "agreement:source:docs-change-records-2026-04-12-document-provider-backed-artifact-identity-md",
+      "kind": "agreement",
+      "title": "Document provider-backed artifact identity for cross-device project workspaces",
+      "summary": "- date: 2026-04-12 - executor: Codex - branch: codex/bootstrap-sula - related commit(s): pending - status: completed",
+      "status": "active",
+      "path": "docs/change-records/2026-04-12-document-provider-backed-artifact-identity.md",
+      "source_paths": [
+        "docs/change-records/2026-04-12-document-provider-backed-artifact-identity.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "memory",
+        "repo"
+      ],
+      "tags": [
+        "agreement",
+        "source"
+      ],
+      "date": "2026-04-12"
+    },
+    {
       "id": "object:source:docs-change-records-2026-04-12-implement-generic-project-kernel-and-removal-flow-md",
       "kind": "document",
       "title": "2026-04-12-implement-generic-project-kernel-and-removal-flow.md",
@@ -2098,6 +2158,28 @@
       "date": null
     },
     {
+      "id": "agreement:source:docs-reference-adoption-agent-md",
+      "kind": "agreement",
+      "title": "Sula Adoption Agent",
+      "summary": "Sula should feel like an adoption agent, not a checklist.",
+      "status": "active",
+      "path": "docs/reference/adoption-agent.md",
+      "source_paths": [
+        "docs/reference/adoption-agent.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo"
+      ],
+      "tags": [
+        "agreement",
+        "source"
+      ],
+      "date": null
+    },
+    {
       "id": "object:source:docs-reference-adoption-registry-md",
       "kind": "document",
       "title": "adoption-registry.md",
@@ -2191,6 +2273,27 @@
       "path": "docs/reference/project-memory-model.md",
       "source_paths": [
         "docs/reference/project-memory-model.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:docs-reference-provider-backed-artifact-identity-md",
+      "kind": "document",
+      "title": "provider-backed-artifact-identity.md",
+      "summary": "This document defines how Sula should identify, index, and query project artifacts when the storage provider is not just the local filesystem and the same project may be opened from different devices or through direct provider APIs.",
+      "status": "indexed",
+      "path": "docs/reference/provider-backed-artifact-identity.md",
+      "source_paths": [
+        "docs/reference/provider-backed-artifact-identity.md"
       ],
       "adapters": [
         "generic-project",

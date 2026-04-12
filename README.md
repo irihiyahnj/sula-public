@@ -140,7 +140,7 @@ python3 scripts/sula.py onboard --project-root /path/to/project
 python3 scripts/sula.py onboard --project-root /path/to/project --accept-suggested --approve
 ```
 
-`onboard` asks the missing questions, proposes workflow/storage/portfolio answers, explains what Sula will manage, and can apply adoption immediately after confirmation.
+`onboard` asks the missing questions, including the default language for generated docs and records, proposes workflow/storage/portfolio answers, explains what Sula will manage, and can apply adoption immediately after confirmation.
 
 ### Launch From The Site Contract
 
@@ -248,12 +248,23 @@ python3 scripts/sula.py artifact create \
   --kind agreement \
   --title "Hospital Service Contract"
 
+python3 scripts/sula.py artifact register \
+  --project-root /path/to/project \
+  --kind report \
+  --title "Hospital Intake Report" \
+  --project-relative-path delivery/2026-04-12-hospital-intake-report-v1 \
+  --provider-item-id doc-abc123 \
+  --provider-item-kind google-doc \
+  --provider-item-url https://docs.google.com/document/d/doc-abc123/edit
+
 python3 scripts/sula.py artifact locate \
   --project-root /path/to/project \
   --kind agreement --json
 ```
 
 Artifacts are routed through the active workflow pack and stored under the project's artifacts root, then registered in `.sula/artifacts/catalog.json`.
+
+Provider-backed artifacts can also be registered without a local materialized file path by supplying a stable project-relative path and provider item metadata. This lets Drive-synced and provider-native deliverables survive device-specific local path differences.
 
 ### Register projects in a portfolio
 

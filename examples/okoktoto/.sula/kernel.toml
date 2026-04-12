@@ -1,6 +1,8 @@
 [kernel]
 sula_version = "0.9.0"
 profile = "react-frontend-erpnext"
+content_locale = "en"
+interaction_locale = "en"
 adapters = ["generic-project", "docs", "memory", "repo", "local-fs", "deploy", "erpnext"]
 git_enabled = true
 adapter_catalog = ".sula/adapters/catalog.json"

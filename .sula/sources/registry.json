@@ -247,7 +247,7 @@
     "exists": true,
     "source_of_truth": true,
     "discovered": true,
-    "size_bytes": 4738,
+    "size_bytes": 5091,
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
@@ -361,7 +361,7 @@
     "exists": true,
     "source_of_truth": true,
     "discovered": true,
-    "size_bytes": 12698,
+    "size_bytes": 12761,
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
@@ -673,6 +673,23 @@
     ]
   },
   {
+    "id": "source:docs-change-records-2026-04-12-document-provider-backed-artifact-identity-md",
+    "kind": "document",
+    "path": "docs/change-records/2026-04-12-document-provider-backed-artifact-identity.md",
+    "exists": true,
+    "source_of_truth": true,
+    "discovered": true,
+    "size_bytes": 3306,
+    "anchor_strategy": "heading-or-line",
+    "adapters": [
+      "generic-project",
+      "local-fs",
+      "docs",
+      "memory",
+      "repo"
+    ]
+  },
+  {
     "id": "source:docs-change-records-2026-04-12-implement-generic-project-kernel-and-removal-flow-md",
     "kind": "document",
     "path": "docs/change-records/2026-04-12-implement-generic-project-kernel-and-removal-flow.md",
@@ -909,7 +926,7 @@
     "exists": true,
     "source_of_truth": true,
     "discovered": true,
-    "size_bytes": 3540,
+    "size_bytes": 3976,
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
@@ -925,7 +942,7 @@
     "exists": true,
     "source_of_truth": true,
     "discovered": true,
-    "size_bytes": 2369,
+    "size_bytes": 3012,
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
@@ -942,6 +959,22 @@
     "source_of_truth": true,
     "discovered": true,
     "size_bytes": 1371,
+    "anchor_strategy": "heading-or-line",
+    "adapters": [
+      "generic-project",
+      "local-fs",
+      "docs",
+      "repo"
+    ]
+  },
+  {
+    "id": "source:docs-reference-provider-backed-artifact-identity-md",
+    "kind": "document",
+    "path": "docs/reference/provider-backed-artifact-identity.md",
+    "exists": true,
+    "source_of_truth": true,
+    "discovered": true,
+    "size_bytes": 6604,
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
@@ -1677,7 +1710,7 @@
     "exists": true,
     "source_of_truth": true,
     "discovered": true,
-    "size_bytes": 1444,
+    "size_bytes": 1546,
     "anchor_strategy": "line",
     "adapters": [
       "generic-project",
@@ -1707,7 +1740,7 @@
     "exists": true,
     "source_of_truth": true,
     "discovered": true,
-    "size_bytes": 233014,
+    "size_bytes": 271792,
     "anchor_strategy": "line",
     "adapters": [
       "generic-project",
@@ -1847,7 +1880,7 @@
     "exists": true,
     "source_of_truth": true,
     "discovered": true,
-    "size_bytes": 44685,
+    "size_bytes": 48981,
     "anchor_strategy": "line",
     "adapters": [
       "generic-project",

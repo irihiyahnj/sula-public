@@ -5,9 +5,10 @@ from __future__ import annotations
 import argparse
 from dataclasses import dataclass
 from datetime import date, datetime
+import hashlib
 import json
 import os
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 import re
 import shutil
 import sqlite3
@@ -59,6 +60,7 @@ WORKFLOW_PACK_CHOICES = [
     "operating-system",
 ]
 STORAGE_PROVIDER_CHOICES = ["local-fs", "google-drive"]
+LANGUAGE_CHOICES = ["zh-CN", "en"]
 
 MANIFEST_SPEC = {
     "project": {
@@ -131,6 +133,11 @@ OPTIONAL_MANIFEST_SPEC = {
         "workspace": "string",
         "owner": "string",
     },
+    "language": {
+        "content_locale": "string",
+        "interaction_locale": "string",
+        "preserve_user_input_language": "bool",
+    },
 }
 
 EXISTENCE_WARNING_FIELDS = [
@@ -156,48 +163,118 @@ CHANGE_RECORDS_REQUIRED_SECTIONS = [
     "Detailed Records",
 ]
 
-CHANGE_RECORD_REQUIRED_HEADINGS = [
-    "# ",
-    "## Metadata",
-    "## Background",
-    "## Analysis",
-    "## Chosen Plan",
-    "## Execution",
-    "## Verification",
-    "## Rollback",
-    "## Data Side-effects",
-    "## Follow-up",
-    "## Architecture Boundary Check",
+CHANGE_RECORD_REQUIRED_SECTIONS = [
+    "Metadata",
+    "Background",
+    "Analysis",
+    "Chosen Plan",
+    "Execution",
+    "Verification",
+    "Rollback",
+    "Data Side-effects",
+    "Follow-up",
+    "Architecture Boundary Check",
 ]
 
-RELEASE_RECORD_REQUIRED_HEADINGS = [
-    "# ",
-    "## Metadata",
-    "## Scope",
-    "## Risks",
-    "## Verification",
-    "## Rollback",
-    "## Follow-up",
+RELEASE_RECORD_REQUIRED_SECTIONS = [
+    "Metadata",
+    "Scope",
+    "Risks",
+    "Verification",
+    "Rollback",
+    "Follow-up",
 ]
 
-INCIDENT_RECORD_REQUIRED_HEADINGS = [
-    "# ",
-    "## Metadata",
-    "## Summary",
-    "## Impact",
-    "## Timeline",
-    "## Root Cause",
-    "## Resolution",
-    "## Follow-up",
+INCIDENT_RECORD_REQUIRED_SECTIONS = [
+    "Metadata",
+    "Summary",
+    "Impact",
+    "Timeline",
+    "Root Cause",
+    "Resolution",
+    "Follow-up",
 ]
 
-STATUS_PLACEHOLDERS = ["YYYY-MM-DD", "_add ", "_write ", "_set "]
-INDEX_PLACEHOLDERS = ["_no records yet_", "_add project records here_"]
+STATUS_PLACEHOLDERS = ["YYYY-MM-DD", "_add ", "_write ", "_set ", "_补充", "_写下", "_填写"]
+INDEX_PLACEHOLDERS = ["_no records yet_", "_add project records here_", "_暂无记录_", "_在此补充项目记录_"]
 MEMORY_DATE_PATTERN = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 INLINE_DATE_PATTERN = re.compile(r"\b\d{4}-\d{2}-\d{2}\b")
 CHANGE_RECORD_FILENAME_PATTERN = re.compile(r"^\d{4}-\d{2}-\d{2}-[a-z0-9][a-z0-9-]*\.md$")
-STATUS_UPDATED_PATTERN = re.compile(r"^- last updated:\s*(.+?)\s*$", re.MULTILINE)
+STATUS_UPDATED_PATTERN = re.compile(r"^- (?:last updated|最后更新):\s*(.+?)\s*$", re.MULTILINE)
 MARKDOWN_LINK_PATTERN = re.compile(r"\[([^\]]+)\]\(([^)]+)\)")
+NON_ASCII_CJK_PATTERN = re.compile(r"[\u3400-\u9fff]")
+
+SECTION_LABELS = {
+    "Summary": {"en": "Summary", "zh": "摘要"},
+    "Health": {"en": "Health", "zh": "健康状态"},
+    "Current Focus": {"en": "Current Focus", "zh": "当前重点"},
+    "Blockers": {"en": "Blockers", "zh": "阻塞项"},
+    "Recent Decisions": {"en": "Recent Decisions", "zh": "近期决策"},
+    "Next Review": {"en": "Next Review", "zh": "下次复盘"},
+    "Purpose": {"en": "Purpose", "zh": "用途"},
+    "Rules": {"en": "Rules", "zh": "规则"},
+    "Index": {"en": "Index", "zh": "索引"},
+    "Detailed Records": {"en": "Detailed Records", "zh": "详细记录"},
+    "Metadata": {"en": "Metadata", "zh": "元数据"},
+    "Background": {"en": "Background", "zh": "背景"},
+    "Analysis": {"en": "Analysis", "zh": "分析"},
+    "Chosen Plan": {"en": "Chosen Plan", "zh": "选定方案"},
+    "Execution": {"en": "Execution", "zh": "执行"},
+    "Verification": {"en": "Verification", "zh": "验证"},
+    "Rollback": {"en": "Rollback", "zh": "回退"},
+    "Data Side-effects": {"en": "Data Side-effects", "zh": "数据副作用"},
+    "Follow-up": {"en": "Follow-up", "zh": "后续"},
+    "Architecture Boundary Check": {"en": "Architecture Boundary Check", "zh": "架构边界检查"},
+    "Scope": {"en": "Scope", "zh": "范围"},
+    "Risks": {"en": "Risks", "zh": "风险"},
+    "Impact": {"en": "Impact", "zh": "影响"},
+    "Timeline": {"en": "Timeline", "zh": "时间线"},
+    "Root Cause": {"en": "Root Cause", "zh": "根因"},
+    "Resolution": {"en": "Resolution", "zh": "解决"},
+    "Tasks": {"en": "Tasks", "zh": "任务"},
+    "Decisions": {"en": "Decisions", "zh": "决策"},
+    "People": {"en": "People", "zh": "人员"},
+    "Agreements": {"en": "Agreements", "zh": "协议"},
+    "Milestones": {"en": "Milestones", "zh": "里程碑"},
+    "Identity": {"en": "Identity", "zh": "项目标识"},
+    "Current State": {"en": "Current State", "zh": "当前状态"},
+    "Recent Change Records": {"en": "Recent Change Records", "zh": "近期变更记录"},
+    "Release History": {"en": "Release History", "zh": "发布历史"},
+    "Incident History": {"en": "Incident History", "zh": "事故历史"},
+    "Open Architecture Exceptions": {"en": "Open Architecture Exceptions", "zh": "开放的架构例外"},
+    "Key References": {"en": "Key References", "zh": "关键参考"},
+}
+
+FIELD_LABEL_ALIASES = {
+    "last updated": {"en": "last updated", "zh": "最后更新"},
+    "status": {"en": "status", "zh": "状态"},
+    "reason": {"en": "reason", "zh": "原因"},
+    "owner": {"en": "owner", "zh": "负责人"},
+    "date": {"en": "date", "zh": "日期"},
+    "trigger": {"en": "trigger", "zh": "触发条件"},
+    "executor": {"en": "executor", "zh": "执行者"},
+    "branch": {"en": "branch", "zh": "分支"},
+    "related commit(s)": {"en": "related commit(s)", "zh": "关联提交"},
+    "directory": {"en": "directory", "zh": "目录"},
+    "template": {"en": "template", "zh": "模板"},
+    "project": {"en": "project", "zh": "项目"},
+    "kind": {"en": "kind", "zh": "类型"},
+    "workflow pack": {"en": "workflow pack", "zh": "工作流包"},
+    "workflow slot": {"en": "workflow slot", "zh": "工作流槽位"},
+    "storage provider": {"en": "storage provider", "zh": "存储提供方"},
+    "generated on": {"en": "generated on", "zh": "生成于"},
+    "generated by": {"en": "generated by", "zh": "生成工具"},
+    "profile": {"en": "profile", "zh": "配置档"},
+    "description": {"en": "description", "zh": "说明"},
+    "highest rule": {"en": "highest rule", "zh": "最高规则"},
+}
+
+STRING_ALIASES = {
+    "_no records yet_": {"en": "_no records yet_", "zh": "_暂无记录_"},
+    "_add project records here_": {"en": "_add project records here_", "zh": "_在此补充项目记录_"},
+    "none": {"en": "none", "zh": "无"},
+    "_missing_": {"en": "_missing_", "zh": "_缺失_"},
+}
 
 
 @dataclass
@@ -279,6 +356,9 @@ class ProjectConfig:
     def portfolio_setting(self, key: str, default):
         return self.data.get("portfolio", {}).get(key, default)
 
+    def language_setting(self, key: str, default):
+        return self.data.get("language", {}).get(key, default)
+
     @property
     def workflow_pack(self) -> str:
         return str(self.workflow_setting("pack", default_workflow_pack(self.profile)))
@@ -312,9 +392,17 @@ class ProjectConfig:
     def provider_root_id(self) -> str:
         return str(self.storage_setting("provider_root_id", "n/a"))
 
+    @property
+    def content_locale(self) -> str:
+        return normalize_locale(str(self.language_setting("content_locale", "en")))
+
+    @property
+    def interaction_locale(self) -> str:
+        return normalize_locale(str(self.language_setting("interaction_locale", self.content_locale)))
+
     def token_map(self) -> dict[str, str]:
         auth = self.data["auth"]
-        return {
+        tokens = {
             "PROJECT_NAME": self.data["project"]["name"],
             "PROJECT_SLUG": self.data["project"]["slug"],
             "PROJECT_DESCRIPTION": self.data["project"]["description"],
@@ -354,11 +442,15 @@ class ProjectConfig:
             "STORAGE_SYNC_MODE": self.storage_sync_mode,
             "PORTFOLIO_ID": self.portfolio_setting("portfolio_id", "default"),
             "PORTFOLIO_WORKSPACE": self.portfolio_setting("workspace", "personal"),
+            "CONTENT_LOCALE": self.content_locale,
+            "INTERACTION_LOCALE": self.interaction_locale,
             "CURRENT_DATE": date.today().isoformat(),
             "KERNEL_ADAPTERS": ", ".join(self.kernel_adapters()),
             "GIT_MODE": "enabled" if is_git_repository(self.root) else "not-required",
             "SULA_VERSION": VERSION,
         }
+        tokens.update(template_locale_tokens(self.content_locale))
+        return tokens
 
     def kernel_adapters(self) -> list[str]:
         adapters = ["generic-project", "docs", "memory"]
@@ -374,6 +466,295 @@ class ProjectConfig:
         elif self.profile == "sula-core":
             adapters.extend(["registry", "release"])
         return adapters
+
+
+def normalize_locale(raw: str | None, default: str = "en") -> str:
+    value = (raw or default).strip()
+    lowered = value.lower()
+    if lowered in {"zh", "zh-cn", "zh-hans", "zh-sg"}:
+        return "zh-CN"
+    if lowered in {"en", "en-us", "en-gb"}:
+        return "en"
+    return value or default
+
+
+def locale_family(raw: str | None) -> str:
+    return "zh" if normalize_locale(raw).lower().startswith("zh") else "en"
+
+
+def contains_cjk(text: str) -> bool:
+    return bool(NON_ASCII_CJK_PATTERN.search(text))
+
+
+def localized_section_name(name: str, locale: str) -> str:
+    return SECTION_LABELS.get(name, {}).get(locale_family(locale), name)
+
+
+def build_section_aliases() -> dict[str, str]:
+    aliases: dict[str, str] = {}
+    for canonical, variants in SECTION_LABELS.items():
+        aliases[canonical.casefold()] = canonical
+        for variant in variants.values():
+            aliases[str(variant).casefold()] = canonical
+    return aliases
+
+
+SECTION_ALIASES = build_section_aliases()
+
+
+def canonical_section_name(name: str) -> str:
+    return SECTION_ALIASES.get(name.strip().casefold(), name.strip())
+
+
+def localized_field_label(name: str, locale: str) -> str:
+    return FIELD_LABEL_ALIASES.get(name, {}).get(locale_family(locale), name)
+
+
+def build_field_aliases() -> dict[str, str]:
+    aliases: dict[str, str] = {}
+    for canonical, variants in FIELD_LABEL_ALIASES.items():
+        aliases[canonical.casefold()] = canonical
+        for variant in variants.values():
+            aliases[str(variant).casefold()] = canonical
+    return aliases
+
+
+FIELD_ALIASES = build_field_aliases()
+
+
+def canonical_field_name(name: str) -> str:
+    return FIELD_ALIASES.get(name.strip().casefold(), name.strip().lower())
+
+
+def localized_string(key: str, locale: str) -> str:
+    variants = STRING_ALIASES.get(key)
+    if variants is None:
+        return key
+    return variants.get(locale_family(locale), key)
+
+
+def infer_content_locale(project_root: Path, readme_text: str) -> tuple[str, str]:
+    if contains_cjk(readme_text) or contains_cjk(project_root.as_posix()):
+        return ("zh-CN", "project text or path already contains Chinese, so Chinese is the safest default")
+    return ("en", "English is the safe fallback when no stronger project language signal exists yet")
+
+
+def template_locale_tokens(locale: str) -> dict[str, str]:
+    if locale_family(locale) == "zh":
+        return {
+            "STATUS_H1": "# 项目状态",
+            "STATUS_UPDATED_LINE": "- 最后更新: YYYY-MM-DD",
+            "STATUS_SUMMARY_HEADING": "## 摘要",
+            "STATUS_SUMMARY_PLACEHOLDER": "- _写一段简短的当前项目摘要_",
+            "STATUS_HEALTH_HEADING": "## 健康状态",
+            "STATUS_HEALTH_STATUS_LINE": "- 状态: _绿色 / 黄色 / 红色_",
+            "STATUS_HEALTH_REASON_LINE": "- 原因: _写下当前运行健康原因_",
+            "STATUS_CURRENT_FOCUS_HEADING": "## 当前重点",
+            "STATUS_CURRENT_FOCUS_PLACEHOLDER": "- _补充当前进行中的工作流_",
+            "STATUS_BLOCKERS_HEADING": "## 阻塞项",
+            "STATUS_BLOCKERS_PLACEHOLDER": "- _补充阻塞项，或写无_",
+            "STATUS_RECENT_DECISIONS_HEADING": "## 近期决策",
+            "STATUS_RECENT_DECISIONS_PLACEHOLDER": "- _补充近期决策_",
+            "STATUS_NEXT_REVIEW_HEADING": "## 下次复盘",
+            "STATUS_NEXT_REVIEW_OWNER_LINE": "- 负责人: _填写负责人_",
+            "STATUS_NEXT_REVIEW_DATE_LINE": "- 日期: YYYY-MM-DD",
+            "STATUS_NEXT_REVIEW_TRIGGER_LINE": "- 触发条件: _写下触发下次复盘的条件_",
+            "CHANGE_RECORDS_H1": "# {{PROJECT_NAME}} 变更记录",
+            "CHANGE_RECORDS_INTRO": "这个文件用于索引项目中的非琐碎变更。",
+            "CHANGE_RECORDS_PURPOSE_HEADING": "## 用途",
+            "CHANGE_RECORDS_RULES_HEADING": "## 规则",
+            "CHANGE_RECORDS_INDEX_HEADING": "## 索引",
+            "CHANGE_RECORDS_EMPTY_INDEX_LINE": "- _暂无记录_",
+            "CHANGE_RECORDS_DETAILS_HEADING": "## 详细记录",
+            "CHANGE_RECORDS_DIRECTORY_LINE": "- 目录: `{{CHANGE_RECORD_DIRECTORY}}/`",
+            "CHANGE_RECORDS_TEMPLATE_LINE": "- 模板: [{{CHANGE_RECORD_DIRECTORY}}/_template.md]({{CHANGE_RECORD_DIRECTORY}}/_template.md)",
+            "CHANGE_RECORDS_README_H1": "# 变更记录",
+            "CHANGE_RECORDS_README_TEMPLATE_LINE": "- [记录模板](_template.md)",
+            "RELEASE_RECORDS_README_H1": "# 发布记录",
+            "RELEASE_RECORDS_README_TEMPLATE_LINE": "- [发布模板](_template.md)",
+            "INCIDENT_RECORDS_README_H1": "# 事故记录",
+            "INCIDENT_RECORDS_README_TEMPLATE_LINE": "- [事故模板](_template.md)",
+            "RECORD_METADATA_HEADING": "## 元数据",
+            "RECORD_DATE_LINE": "- 日期: {{DATE}}",
+            "RECORD_EXECUTOR_LINE": "- 执行者: {{EXECUTOR}}",
+            "RECORD_BRANCH_LINE": "- 分支: {{BRANCH}}",
+            "RECORD_RELATED_COMMITS_LINE": "- 关联提交: {{RELATED_COMMITS}}",
+            "RECORD_STATUS_LINE": "- 状态: {{STATUS}}",
+            "CHANGE_RECORD_BACKGROUND_HEADING": "## 背景",
+            "CHANGE_RECORD_ANALYSIS_HEADING": "## 分析",
+            "CHANGE_RECORD_ANALYSIS_PLACEHOLDER": "- _补充背景与选项_",
+            "CHANGE_RECORD_CHOSEN_PLAN_HEADING": "## 选定方案",
+            "CHANGE_RECORD_CHOSEN_PLAN_PLACEHOLDER": "- _补充选定方案_",
+            "CHANGE_RECORD_EXECUTION_HEADING": "## 执行",
+            "CHANGE_RECORD_EXECUTION_PLACEHOLDER": "- _补充已执行的变更_",
+            "CHANGE_RECORD_VERIFICATION_HEADING": "## 验证",
+            "CHANGE_RECORD_VERIFICATION_PLACEHOLDER": "- _补充验证方式_",
+            "CHANGE_RECORD_ROLLBACK_HEADING": "## 回退",
+            "CHANGE_RECORD_ROLLBACK_PLACEHOLDER": "- _补充回退方式_",
+            "CHANGE_RECORD_DATA_SIDE_EFFECTS_HEADING": "## 数据副作用",
+            "CHANGE_RECORD_DATA_SIDE_EFFECTS_PLACEHOLDER": "- _补充数据或运行副作用_",
+            "CHANGE_RECORD_FOLLOW_UP_HEADING": "## 后续",
+            "CHANGE_RECORD_FOLLOW_UP_PLACEHOLDER": "- _补充后续事项_",
+            "CHANGE_RECORD_ARCHITECTURE_BOUNDARY_HEADING": "## 架构边界检查",
+            "CHANGE_RECORD_ARCHITECTURE_BOUNDARY_LINE": "- 最高规则影响: _补充说明_",
+            "RELEASE_RECORD_SCOPE_HEADING": "## 范围",
+            "RELEASE_RECORD_RISKS_HEADING": "## 风险",
+            "RELEASE_RECORD_RISKS_PLACEHOLDER": "- _补充风险_",
+            "INCIDENT_RECORD_SUMMARY_HEADING": "## 摘要",
+            "INCIDENT_RECORD_IMPACT_HEADING": "## 影响",
+            "INCIDENT_RECORD_IMPACT_PLACEHOLDER": "- _补充影响_",
+            "INCIDENT_RECORD_TIMELINE_HEADING": "## 时间线",
+            "INCIDENT_RECORD_TIMELINE_PLACEHOLDER": "- _补充时间线_",
+            "INCIDENT_RECORD_ROOT_CAUSE_HEADING": "## 根因",
+            "INCIDENT_RECORD_ROOT_CAUSE_PLACEHOLDER": "- _补充根因_",
+            "INCIDENT_RECORD_RESOLUTION_HEADING": "## 解决",
+            "INCIDENT_RECORD_RESOLUTION_PLACEHOLDER": "- _补充解决方式_",
+        }
+    return {
+        "STATUS_H1": "# STATUS",
+        "STATUS_UPDATED_LINE": "- last updated: YYYY-MM-DD",
+        "STATUS_SUMMARY_HEADING": "## Summary",
+        "STATUS_SUMMARY_PLACEHOLDER": "- _write a short current-project summary_",
+        "STATUS_HEALTH_HEADING": "## Health",
+        "STATUS_HEALTH_STATUS_LINE": "- status: _green / yellow / red_",
+        "STATUS_HEALTH_REASON_LINE": "- reason: _write the current operating health_",
+        "STATUS_CURRENT_FOCUS_HEADING": "## Current Focus",
+        "STATUS_CURRENT_FOCUS_PLACEHOLDER": "- _add active workstreams_",
+        "STATUS_BLOCKERS_HEADING": "## Blockers",
+        "STATUS_BLOCKERS_PLACEHOLDER": "- _add blockers or write none_",
+        "STATUS_RECENT_DECISIONS_HEADING": "## Recent Decisions",
+        "STATUS_RECENT_DECISIONS_PLACEHOLDER": "- _add recent decisions_",
+        "STATUS_NEXT_REVIEW_HEADING": "## Next Review",
+        "STATUS_NEXT_REVIEW_OWNER_LINE": "- owner: _set owner_",
+        "STATUS_NEXT_REVIEW_DATE_LINE": "- date: YYYY-MM-DD",
+        "STATUS_NEXT_REVIEW_TRIGGER_LINE": "- trigger: _write what should trigger the next review_",
+        "CHANGE_RECORDS_H1": "# {{PROJECT_NAME}} Change Records",
+        "CHANGE_RECORDS_INTRO": "This file is the index for non-trivial project changes.",
+        "CHANGE_RECORDS_PURPOSE_HEADING": "## Purpose",
+        "CHANGE_RECORDS_RULES_HEADING": "## Rules",
+        "CHANGE_RECORDS_INDEX_HEADING": "## Index",
+        "CHANGE_RECORDS_EMPTY_INDEX_LINE": "- _no records yet_",
+        "CHANGE_RECORDS_DETAILS_HEADING": "## Detailed Records",
+        "CHANGE_RECORDS_DIRECTORY_LINE": "- directory: `{{CHANGE_RECORD_DIRECTORY}}/`",
+        "CHANGE_RECORDS_TEMPLATE_LINE": "- template: [{{CHANGE_RECORD_DIRECTORY}}/_template.md]({{CHANGE_RECORD_DIRECTORY}}/_template.md)",
+        "CHANGE_RECORDS_README_H1": "# Change Records",
+        "CHANGE_RECORDS_README_TEMPLATE_LINE": "- [Record Template](_template.md)",
+        "RELEASE_RECORDS_README_H1": "# Release Records",
+        "RELEASE_RECORDS_README_TEMPLATE_LINE": "- [Release Template](_template.md)",
+        "INCIDENT_RECORDS_README_H1": "# Incident Records",
+        "INCIDENT_RECORDS_README_TEMPLATE_LINE": "- [Incident Template](_template.md)",
+        "RECORD_METADATA_HEADING": "## Metadata",
+        "RECORD_DATE_LINE": "- date: {{DATE}}",
+        "RECORD_EXECUTOR_LINE": "- executor: {{EXECUTOR}}",
+        "RECORD_BRANCH_LINE": "- branch: {{BRANCH}}",
+        "RECORD_RELATED_COMMITS_LINE": "- related commit(s): {{RELATED_COMMITS}}",
+        "RECORD_STATUS_LINE": "- status: {{STATUS}}",
+        "CHANGE_RECORD_BACKGROUND_HEADING": "## Background",
+        "CHANGE_RECORD_ANALYSIS_HEADING": "## Analysis",
+        "CHANGE_RECORD_ANALYSIS_PLACEHOLDER": "- _fill in context and options_",
+        "CHANGE_RECORD_CHOSEN_PLAN_HEADING": "## Chosen Plan",
+        "CHANGE_RECORD_CHOSEN_PLAN_PLACEHOLDER": "- _fill in chosen plan_",
+        "CHANGE_RECORD_EXECUTION_HEADING": "## Execution",
+        "CHANGE_RECORD_EXECUTION_PLACEHOLDER": "- _fill in what changed_",
+        "CHANGE_RECORD_VERIFICATION_HEADING": "## Verification",
+        "CHANGE_RECORD_VERIFICATION_PLACEHOLDER": "- _fill in verification_",
+        "CHANGE_RECORD_ROLLBACK_HEADING": "## Rollback",
+        "CHANGE_RECORD_ROLLBACK_PLACEHOLDER": "- _fill in rollback_",
+        "CHANGE_RECORD_DATA_SIDE_EFFECTS_HEADING": "## Data Side-effects",
+        "CHANGE_RECORD_DATA_SIDE_EFFECTS_PLACEHOLDER": "- _fill in data or operational side-effects_",
+        "CHANGE_RECORD_FOLLOW_UP_HEADING": "## Follow-up",
+        "CHANGE_RECORD_FOLLOW_UP_PLACEHOLDER": "- _fill in follow-up_",
+        "CHANGE_RECORD_ARCHITECTURE_BOUNDARY_HEADING": "## Architecture Boundary Check",
+        "CHANGE_RECORD_ARCHITECTURE_BOUNDARY_LINE": "- highest rule impact: _fill in_",
+        "RELEASE_RECORD_SCOPE_HEADING": "## Scope",
+        "RELEASE_RECORD_RISKS_HEADING": "## Risks",
+        "RELEASE_RECORD_RISKS_PLACEHOLDER": "- _fill in risks_",
+        "INCIDENT_RECORD_SUMMARY_HEADING": "## Summary",
+        "INCIDENT_RECORD_IMPACT_HEADING": "## Impact",
+        "INCIDENT_RECORD_IMPACT_PLACEHOLDER": "- _fill in impact_",
+        "INCIDENT_RECORD_TIMELINE_HEADING": "## Timeline",
+        "INCIDENT_RECORD_TIMELINE_PLACEHOLDER": "- _fill in timeline_",
+        "INCIDENT_RECORD_ROOT_CAUSE_HEADING": "## Root Cause",
+        "INCIDENT_RECORD_ROOT_CAUSE_PLACEHOLDER": "- _fill in root cause_",
+        "INCIDENT_RECORD_RESOLUTION_HEADING": "## Resolution",
+        "INCIDENT_RECORD_RESOLUTION_PLACEHOLDER": "- _fill in resolution_",
+    }
+
+
+TEMPLATE_LINE_TRANSLATIONS = {
+    "zh": {
+        "Track why the project changed, what was verified, how rollback should work, and which durable rules moved.": "记录项目为什么发生变化、验证了什么、如何回退，以及哪些长期规则被调整。",
+        "Git records code differences. Change records explain:": "Git 记录代码差异；变更记录需要解释：",
+        "- why the change happened": "- 变更为什么发生",
+        "- how the decision was made": "- 决策如何形成",
+        "- what was verified": "- 验证了什么",
+        "- how rollback works": "- 如何回退",
+        "- what data or operational side-effects exist": "- 有哪些数据或运行副作用",
+        "Track why Sula changed, how sync impact was evaluated, what was verified, and how rollback should work.": "记录 Sula 为什么变化、如何评估 sync 影响、验证了什么，以及如何回退。",
+        "- keep this file short and index-oriented": "- 保持这个文件简短，并以索引为主",
+        "- put detailed records in `{{CHANGE_RECORD_DIRECTORY}}/`": "- 详细记录放在 `{{CHANGE_RECORD_DIRECTORY}}/` 中",
+        "- use release records for rollout history beyond one change": "- 对超出单次变更的发布历史，使用发布记录",
+        "- use incident records for broken flows, outages, or recovery work": "- 对中断流程、故障或恢复工作，使用事故记录",
+        "- use release records for rollout history that goes beyond a single code change": "- 对超出单次代码变更的发布历史，使用发布记录",
+        "- mention sync impact explicitly in non-trivial records": "- 在非琐碎记录中显式写出 sync 影响",
+        "- use release records when the rollout itself needs durable history": "- 当发布过程本身需要长期留痕时，使用发布记录",
+        "Store detailed non-trivial change records in this directory.": "在这个目录中保存详细的非琐碎变更记录。",
+        "## Naming Rule": "## 命名规则",
+        "## When To Add One": "## 何时新增",
+        "- architecture-affecting change": "- 影响架构的变更",
+        "- non-trivial bug fix": "- 非琐碎缺陷修复",
+        "- deployment-risk change": "- 带发布风险的变更",
+        "- auth/session/permission change": "- 认证 / 会话 / 权限变更",
+        "- data-side-effect change": "- 带数据副作用的变更",
+        "## Template": "## 模板",
+        "Store release-specific rollout notes in this directory when deployment history matters.": "当发布历史需要长期保留时，在这个目录中记录发布过程说明。",
+        "Store incident or recovery history in this directory.": "在这个目录中记录事故或恢复历史。",
+        "## Metadata": "## 元数据",
+        "## Background": "## 背景",
+        "## Analysis": "## 分析",
+        "## Chosen Plan": "## 选定方案",
+        "## Execution": "## 执行",
+        "## Verification": "## 验证",
+        "## Rollback": "## 回退",
+        "## Data Side-effects": "## 数据副作用",
+        "## Follow-up": "## 后续",
+        "## Architecture Boundary Check": "## 架构边界检查",
+        "- date: {{DATE}}": "- 日期: {{DATE}}",
+        "- executor: {{EXECUTOR}}": "- 执行者: {{EXECUTOR}}",
+        "- branch: {{BRANCH}}": "- 分支: {{BRANCH}}",
+        "- related commit(s): {{RELATED_COMMITS}}": "- 关联提交: {{RELATED_COMMITS}}",
+        "- status: {{STATUS}}": "- 状态: {{STATUS}}",
+        "- _fill in context and options_": "- _补充背景与选项_",
+        "- _fill in chosen plan_": "- _补充选定方案_",
+        "- _fill in what changed_": "- _补充已执行的变更_",
+        "- _fill in verification_": "- _补充验证方式_",
+        "- _fill in rollback_": "- _补充回退方式_",
+        "- _fill in data or operational side-effects_": "- _补充数据或运行副作用_",
+        "- _fill in follow-up_": "- _补充后续事项_",
+        "- highest rule impact: _fill in_": "- 最高规则影响: _补充说明_",
+        "## Scope": "## 范围",
+        "## Risks": "## 风险",
+        "- _fill in risks_": "- _补充风险_",
+        "## Summary": "## 摘要",
+        "## Impact": "## 影响",
+        "- _fill in impact_": "- _补充影响_",
+        "## Timeline": "## 时间线",
+        "- _fill in timeline_": "- _补充时间线_",
+        "## Root Cause": "## 根因",
+        "- _fill in root cause_": "- _补充根因_",
+        "## Resolution": "## 解决",
+        "- _fill in resolution_": "- _补充解决方式_",
+    }
+}
+
+
+def localize_template_text(text: str, locale: str) -> str:
+    family = locale_family(locale)
+    replacements = TEMPLATE_LINE_TRANSLATIONS.get(family, {})
+    if not replacements:
+        return text
+    lines = [replacements.get(line, line) for line in text.splitlines()]
+    return "\n".join(lines) + ("\n" if text.endswith("\n") else "")
 
 
 def parse_args() -> argparse.Namespace:
@@ -465,11 +846,22 @@ def parse_args() -> argparse.Namespace:
 
     artifact_register_cmd = artifact_sub.add_parser("register", help="Register an existing project artifact path")
     add_project_root_arg(artifact_register_cmd)
-    artifact_register_cmd.add_argument("--path", required=True, help="Path to an existing artifact, relative to project root")
+    artifact_register_cmd.add_argument("--path", help="Existing artifact path relative to project root or absolute within project root")
     artifact_register_cmd.add_argument("--kind", required=True)
     artifact_register_cmd.add_argument("--title")
+    artifact_register_cmd.add_argument("--date")
     artifact_register_cmd.add_argument("--slot")
     artifact_register_cmd.add_argument("--summary", default="")
+    artifact_register_cmd.add_argument("--project-relative-path", help="Stable project-relative location for provider-backed artifacts")
+    artifact_register_cmd.add_argument("--provider-item-id", help="Stable provider item id such as a Google Doc or Sheet id")
+    artifact_register_cmd.add_argument("--provider-item-kind", help="Provider item kind such as google-doc, google-sheet, or drive-file")
+    artifact_register_cmd.add_argument("--provider-item-url", help="Stable provider URL for this artifact")
+    artifact_register_cmd.add_argument(
+        "--derived-from",
+        action="append",
+        default=[],
+        help="Artifact id this artifact derives from. Repeat for multiple source artifacts.",
+    )
     artifact_register_cmd.add_argument("--json", action="store_true", help="Print JSON instead of human-readable output")
 
     artifact_locate_cmd = artifact_sub.add_parser("locate", help="Locate registered artifacts")
@@ -537,6 +929,8 @@ def add_project_root_arg(parser: argparse.ArgumentParser) -> None:
 
 
 def add_onboarding_metadata_args(parser: argparse.ArgumentParser) -> None:
+    parser.add_argument("--content-locale")
+    parser.add_argument("--interaction-locale")
     parser.add_argument("--workflow-pack")
     parser.add_argument("--workflow-stage")
     parser.add_argument("--storage-provider")
@@ -572,6 +966,8 @@ def project_payload(config: ProjectConfig) -> dict[str, object]:
         "storage_provider": config.storage_provider,
         "storage_sync_mode": config.storage_sync_mode,
         "portfolio_id": config.portfolio_setting("portfolio_id", "default"),
+        "content_locale": config.content_locale,
+        "interaction_locale": config.interaction_locale,
     }
 
 
@@ -619,9 +1015,9 @@ def infer_workflow_pack(project_root: Path, profile: str, package_data: dict | N
         f"{readme_text} "
         f"{json.dumps(package_data, ensure_ascii=True) if package_data else ''}"
     ).lower()
-    if any(term in lowered for term in ["shot-list", "shoot", "filming", "footage", "storyboard", "post-production", "video production"]):
+    if any(term in lowered for term in ["shot-list", "shoot", "filming", "footage", "storyboard", "post-production", "video production", "拍摄", "镜头", "后期", "视频制作"]):
         return ("video-production", "project text looks like a media-production workflow")
-    if any(term in lowered for term in ["contract", "agreement", "invoice", "quote", "proposal", "staffing", "client", "supplier", "vendor", "service"]):
+    if any(term in lowered for term in ["contract", "agreement", "invoice", "quote", "proposal", "staffing", "client", "supplier", "vendor", "service", "合同", "协议", "发票", "报价", "客户", "供应商", "服务"]):
         return ("client-service", "project text looks like a client-service workflow")
     if looks_like_project_operating_system(readme_text):
         return ("generic-project", "project text looks like a file-oriented operating system instead of a software product")
@@ -659,6 +1055,8 @@ def suggest_onboarding_answers(
 ) -> dict[str, dict[str, object]]:
     workflow_pack, workflow_reason = infer_workflow_pack(project_root, profile, package_data, readme_text)
     storage_provider, storage_reason = infer_storage_provider(project_root)
+    content_locale, content_locale_reason = infer_content_locale(project_root, readme_text)
+    resolved_content_locale = normalize_locale(getattr(args, "content_locale", None) or content_locale)
     resolved_provider = getattr(args, "storage_provider", None) or storage_provider
     portfolio_workspace, workspace_reason = infer_portfolio_workspace(
         getattr(args, "workflow_pack", None) or workflow_pack,
@@ -674,6 +1072,14 @@ def suggest_onboarding_answers(
         "description": {
             "value": getattr(args, "description", None) or detect_project_description(package_data, readme_text),
             "reason": "description is suggested from package metadata or the first README paragraph",
+        },
+        "content_locale": {
+            "value": resolved_content_locale,
+            "reason": content_locale_reason,
+        },
+        "interaction_locale": {
+            "value": normalize_locale(getattr(args, "interaction_locale", None) or resolved_content_locale),
+            "reason": "interactive prompts default to the same language as generated docs and records",
         },
         "workflow_pack": {"value": getattr(args, "workflow_pack", None) or workflow_pack, "reason": workflow_reason},
         "workflow_stage": {
@@ -721,6 +1127,7 @@ def onboarding_questions(
 ) -> tuple[list[dict[str, object]], dict[str, dict[str, object]]]:
     suggestions = suggest_onboarding_answers(project_root, profile, args, package_data, readme_text)
     provider_value = str(suggestions["storage_provider"]["value"])
+    zh = locale_family(str(suggestions["interaction_locale"]["value"])) == "zh"
     questions: list[dict[str, object]] = []
 
     def add_question(
@@ -729,6 +1136,7 @@ def onboarding_questions(
         *,
         required: bool,
         choices: list[str] | None = None,
+        allow_custom: bool = False,
     ) -> None:
         if getattr(args, field, None):
             return
@@ -741,20 +1149,28 @@ def onboarding_questions(
                 "default": suggestion["value"],
                 "required": required,
                 "choices": choices or [],
+                "allow_custom": allow_custom,
                 "reason": suggestion["reason"],
             }
         )
 
-    add_question("name", "Project display name", required=True)
-    add_question("description", "One-line project description", required=True)
-    add_question("workflow_pack", "Workflow pack", required=True, choices=WORKFLOW_PACK_CHOICES)
-    add_question("storage_provider", "Storage provider", required=True, choices=STORAGE_PROVIDER_CHOICES)
+    add_question("name", "项目显示名称" if zh else "Project display name", required=True)
+    add_question("description", "项目一句话说明" if zh else "One-line project description", required=True)
+    add_question(
+        "content_locale",
+        "生成文档与记录的默认语言" if zh else "Generated docs and records language",
+        required=True,
+        choices=LANGUAGE_CHOICES,
+        allow_custom=True,
+    )
+    add_question("workflow_pack", "工作流包" if zh else "Workflow pack", required=True, choices=WORKFLOW_PACK_CHOICES)
+    add_question("storage_provider", "存储提供方" if zh else "Storage provider", required=True, choices=STORAGE_PROVIDER_CHOICES)
     if provider_value == "google-drive":
-        add_question("storage_sync_mode", "Storage sync mode", required=True, choices=["local-sync"])
-        add_question("storage_provider_root_url", "Google Drive folder URL", required=False)
-        add_question("storage_provider_root_id", "Google Drive folder ID", required=False)
-    add_question("portfolio_workspace", "Portfolio workspace label", required=False)
-    add_question("portfolio_owner", "Portfolio owner label", required=False)
+        add_question("storage_sync_mode", "存储同步模式" if zh else "Storage sync mode", required=True, choices=["local-sync"])
+        add_question("storage_provider_root_url", "Google Drive 文件夹 URL" if zh else "Google Drive folder URL", required=False)
+        add_question("storage_provider_root_id", "Google Drive 文件夹 ID" if zh else "Google Drive folder ID", required=False)
+    add_question("portfolio_workspace", "Portfolio 工作区标签" if zh else "Portfolio workspace label", required=False)
+    add_question("portfolio_owner", "Portfolio 负责人" if zh else "Portfolio owner label", required=False)
     add_question("portfolio_id", "Portfolio id", required=False)
     return questions, suggestions
 
@@ -778,7 +1194,9 @@ def fill_args_from_answers(
 
 def prompt_onboarding_question(question: dict[str, object]) -> str:
     choices = [str(item) for item in question.get("choices", []) if str(item)]
+    allow_custom = bool(question.get("allow_custom", False))
     prompt = str(question["prompt"])
+    zh = contains_cjk(prompt)
     default = str(question.get("default", ""))
     if choices:
         prompt += " [" + "/".join(choices) + "]"
@@ -793,9 +1211,9 @@ def prompt_onboarding_question(question: dict[str, object]) -> str:
         answer = raw.strip()
         if not answer:
             return default
-        if not choices or answer in choices:
+        if not choices or answer in choices or allow_custom:
             return answer
-        print("Please choose one of the listed values or press Enter to accept the default.")
+        print("请输入列出的值之一，或直接回车接受默认值。" if zh else "Please choose one of the listed values or press Enter to accept the default.")
 
 
 def prompt_yes_no(prompt: str, *, default: bool = False) -> bool:
@@ -826,6 +1244,8 @@ def onboarding_summary_payload(
     workflow = manifest["workflow"]
     storage = manifest["storage"]
     portfolio = manifest["portfolio"]
+    language = manifest["language"]
+    zh = locale_family(str(language["interaction_locale"])) == "zh"
     artifacts_root = str(workflow["artifacts_root"])
     workflow_definition = workflow_pack_definition(str(workflow["pack"]))
     slot_paths = {
@@ -834,14 +1254,34 @@ def onboarding_summary_payload(
         if isinstance(slot, str)
     }
     will_manage = [
-        f"{len(report.managed_creates) + len(report.managed_updates)} centrally managed operating files",
-        f"{len(report.scaffold_creates)} project-owned scaffold starters",
-        "kernel state under `.sula/` for status, objects, sources, events, and query indexes",
-        f"artifact routing under `{artifacts_root}` through the `{workflow['pack']}` workflow pack",
-        f"storage adapter metadata for `{storage['provider']}` without making the provider part of project truth",
+        (
+            f"{len(report.managed_creates) + len(report.managed_updates)} 个 centrally managed operating files"
+            if zh
+            else f"{len(report.managed_creates) + len(report.managed_updates)} centrally managed operating files"
+        ),
+        (
+            f"{len(report.scaffold_creates)} 个 project-owned scaffold starters"
+            if zh
+            else f"{len(report.scaffold_creates)} project-owned scaffold starters"
+        ),
+        "`.sula/` 下的 kernel 状态，用于状态、对象、来源、事件与查询索引" if zh else "kernel state under `.sula/` for status, objects, sources, events, and query indexes",
+        (
+            f"通过 `{workflow['pack']}` workflow pack 在 `{artifacts_root}` 下进行文件路由"
+            if zh
+            else f"artifact routing under `{artifacts_root}` through the `{workflow['pack']}` workflow pack"
+        ),
+        (
+            f"记录 `{storage['provider']}` 的 storage adapter 元数据，但不把 provider 本身写成项目真相"
+            if zh
+            else f"storage adapter metadata for `{storage['provider']}` without making the provider part of project truth"
+        ),
     ]
     if str(portfolio.get("workspace", "personal")) != "personal":
-        will_manage.append(f"portfolio registration metadata for workspace `{portfolio['workspace']}`")
+        will_manage.append(
+            f"为工作区 `{portfolio['workspace']}` 记录 portfolio 注册元数据"
+            if zh
+            else f"portfolio registration metadata for workspace `{portfolio['workspace']}`"
+        )
     next_commands = [
         "python3 scripts/sula.py status --project-root /path/to/project --json",
         "python3 scripts/sula.py query --project-root /path/to/project --q \"contract\" --json",
@@ -865,6 +1305,7 @@ def onboarding_summary_payload(
         },
         "storage": storage,
         "portfolio": portfolio,
+        "language": language,
         "questions": questions,
         "suggested_answers": {field: item["value"] for field, item in suggestions.items()},
         "what_you_get": will_manage,
@@ -878,18 +1319,30 @@ def print_onboarding_summary(summary: dict[str, object]) -> None:
     workflow = summary["workflow"]
     storage = summary["storage"]
     portfolio = summary["portfolio"]
-    print(f"Sula onboarding summary for {summary['project_root']}")
-    print(f"Project: {project['name']} [{summary['profile']}]")
-    print(f"Workflow pack: {workflow['pack']} (stage: {workflow['stage']})")
-    print(f"Storage provider: {storage['provider']} ({storage['sync_mode']})")
-    print(f"Portfolio workspace: {portfolio['workspace']} / owner: {portfolio['owner']}")
-    print("What you will get:")
+    language = summary["language"]
+    zh = locale_family(str(language["interaction_locale"])) == "zh"
+    if zh:
+        print(f"{summary['project_root']} 的 Sula 接入摘要")
+        print(f"项目: {project['name']} [{summary['profile']}]")
+        print(f"工作流包: {workflow['pack']} (阶段: {workflow['stage']})")
+        print(f"存储提供方: {storage['provider']} ({storage['sync_mode']})")
+        print(f"Portfolio 工作区: {portfolio['workspace']} / 负责人: {portfolio['owner']}")
+        print(f"文档语言: {language['content_locale']} / 交互语言: {language['interaction_locale']}")
+        print("接入后你会得到：")
+    else:
+        print(f"Sula onboarding summary for {summary['project_root']}")
+        print(f"Project: {project['name']} [{summary['profile']}]")
+        print(f"Workflow pack: {workflow['pack']} (stage: {workflow['stage']})")
+        print(f"Storage provider: {storage['provider']} ({storage['sync_mode']})")
+        print(f"Portfolio workspace: {portfolio['workspace']} / owner: {portfolio['owner']}")
+        print(f"Document language: {language['content_locale']} / interaction language: {language['interaction_locale']}")
+        print("What you will get:")
     for item in summary["what_you_get"]:
         print(f"  - {item}")
-    print("Artifact slots:")
+    print("文件槽位：" if zh else "Artifact slots:")
     for slot, path in summary["workflow"]["slot_paths"].items():
         print(f"  - {slot}: {path}")
-    print("Suggested next commands:")
+    print("建议下一步命令：" if zh else "Suggested next commands:")
     for item in summary["next_commands"]:
         print(f"  - {item}")
 
@@ -1132,6 +1585,7 @@ def build_manifest(args: argparse.Namespace) -> dict:
     workflow = manifest_workflow_config(args, profile)
     storage = manifest_storage_config(args)
     portfolio = manifest_portfolio_config(args)
+    language = manifest_language_config(args)
     if profile == "sula-core":
         return {
             "project": {
@@ -1181,6 +1635,7 @@ def build_manifest(args: argparse.Namespace) -> dict:
             "workflow": workflow,
             "storage": storage,
             "portfolio": portfolio,
+            "language": language,
         }
     if profile == "generic-project":
         return {
@@ -1231,6 +1686,7 @@ def build_manifest(args: argparse.Namespace) -> dict:
             "workflow": workflow,
             "storage": storage,
             "portfolio": portfolio,
+            "language": language,
         }
     return {
         "project": {
@@ -1280,6 +1736,7 @@ def build_manifest(args: argparse.Namespace) -> dict:
         "workflow": workflow,
         "storage": storage,
         "portfolio": portfolio,
+        "language": language,
     }
 
 
@@ -1298,6 +1755,7 @@ def render_manifest(manifest: dict) -> str:
         "workflow",
         "storage",
         "portfolio",
+        "language",
     ]:
         if section_name not in manifest:
             continue
@@ -1332,6 +1790,15 @@ def manifest_portfolio_config(args: argparse.Namespace) -> dict:
         "portfolio_id": getattr(args, "portfolio_id", None) or "default",
         "workspace": getattr(args, "portfolio_workspace", None) or "personal",
         "owner": getattr(args, "portfolio_owner", None) or "n/a",
+    }
+
+
+def manifest_language_config(args: argparse.Namespace) -> dict:
+    content_locale = normalize_locale(getattr(args, "content_locale", None) or "en")
+    return {
+        "content_locale": content_locale,
+        "interaction_locale": normalize_locale(getattr(args, "interaction_locale", None) or content_locale),
+        "preserve_user_input_language": True,
     }
 
 
@@ -1582,6 +2049,10 @@ def doctor_payload(
 def existing_consumer_payload(config: ProjectConfig) -> dict[str, object]:
     return {
         "project": project_payload(config),
+        "language": {
+            "content_locale": config.content_locale,
+            "interaction_locale": config.interaction_locale,
+        },
         "next_commands": [
             "python3 scripts/sula.py doctor --project-root /path/to/project --strict",
             "python3 scripts/sula.py sync --project-root /path/to/project --dry-run",
@@ -1597,8 +2068,12 @@ def onboard(project_root: Path, args: argparse.Namespace) -> int:
         if json_output_requested(args):
             emit_json(payload)
             return 0
-        print(f"{config.data['project']['name']} is already under Sula management.")
-        print("Use one of these commands instead:")
+        if locale_family(config.interaction_locale) == "zh":
+            print(f"{config.data['project']['name']} 已经由 Sula 管理。")
+            print("请改用以下命令：")
+        else:
+            print(f"{config.data['project']['name']} is already under Sula management.")
+            print("Use one of these commands instead:")
         for command in payload["next_commands"]:
             print(f"  - {command}")
         return 0
@@ -1627,7 +2102,8 @@ def onboard(project_root: Path, args: argparse.Namespace) -> int:
 
     resolved_args = fill_args_from_answers(args, {}, suggestions)
     if not json_output_requested(args) and questions and not getattr(args, "accept_suggested", False):
-        print("Sula onboarding questions:")
+        interaction_locale = normalize_locale(getattr(args, "interaction_locale", None) or suggestions["interaction_locale"]["value"])
+        print("Sula 接入问题：" if locale_family(interaction_locale) == "zh" else "Sula onboarding questions:")
         interactive_answers: dict[str, object] = {}
         for question in questions:
             if question["field"] in {"storage_sync_mode", "storage_provider_root_url", "storage_provider_root_id"}:
@@ -1681,12 +2157,19 @@ def onboard(project_root: Path, args: argparse.Namespace) -> int:
     print_onboarding_summary(summary)
     if report.blockers:
         print_adoption_report(report)
-        print("Sula onboarding cannot continue until the blocking issues are resolved.")
+        if locale_family(summary["language"]["interaction_locale"]) == "zh":
+            print("在阻塞问题解决之前，Sula 接入无法继续。")
+        else:
+            print("Sula onboarding cannot continue until the blocking issues are resolved.")
         return 1
     if not getattr(args, "approve", False):
-        if prompt_yes_no("Apply Sula now with these answers?", default=False):
+        prompt = "是否按这些答案立即应用 Sula？" if locale_family(summary["language"]["interaction_locale"]) == "zh" else "Apply Sula now with these answers?"
+        if prompt_yes_no(prompt, default=False):
             return apply_adoption(report, json_mode=False)
-        print("Sula was not applied. Re-run `python3 scripts/sula.py onboard --project-root /path/to/project --approve` to apply after review.")
+        if locale_family(summary["language"]["interaction_locale"]) == "zh":
+            print("Sula 尚未应用。复核后重新运行 `python3 scripts/sula.py onboard --project-root /path/to/project --approve` 即可应用。")
+        else:
+            print("Sula was not applied. Re-run `python3 scripts/sula.py onboard --project-root /path/to/project --approve` to apply after review.")
         return 0
     return apply_adoption(report, json_mode=False)
 
@@ -1845,6 +2328,7 @@ def build_generic_project_manifest(
     install_command, dev_command, build_command, typecheck_command = detect_generic_commands(project_root, package_data)
     production_url = detect_production_url(package_data) or "local-only"
     workflow = detect_workflow_path(project_root) or "n/a"
+    language = manifest_language_config(args)
     detection_notes.append("defaulted to `generic-project` because no narrower profile matched safely")
     if git_present:
         detection_notes.append("Git metadata detected; `repo` can act as an optional kernel adapter")
@@ -1899,6 +2383,7 @@ def build_generic_project_manifest(
         "workflow": manifest_workflow_config(args, "generic-project"),
         "storage": manifest_storage_config(args),
         "portfolio": manifest_portfolio_config(args),
+        "language": language,
     }
 
 
@@ -1909,6 +2394,7 @@ def build_sula_core_manifest(project_root: Path, args: argparse.Namespace, detec
         "Reusable project operating system"
     )
     primary_branch = detect_primary_branch(project_root)
+    language = manifest_language_config(args)
     detection_notes.append("detected `sula-core` from repository layout and local Sula modules")
     return {
         "project": {
@@ -1958,6 +2444,7 @@ def build_sula_core_manifest(project_root: Path, args: argparse.Namespace, detec
         "workflow": manifest_workflow_config(args, "sula-core"),
         "storage": manifest_storage_config(args),
         "portfolio": manifest_portfolio_config(args),
+        "language": language,
     }
 
 
@@ -1985,6 +2472,7 @@ def build_react_erpnext_manifest(
     workflow = detect_workflow_path(project_root) or ".github/workflows/deploy.yml"
     production_url = detect_production_url(package_data) or "https://example.com/"
     base_path = detect_base_path(production_url)
+    language = manifest_language_config(args)
     detection_notes.append("detected `react-frontend-erpnext` from repository paths and ERPNext/Frappe markers")
     return {
         "project": {
@@ -2035,6 +2523,7 @@ def build_react_erpnext_manifest(
         "workflow": manifest_workflow_config(args, "react-frontend-erpnext"),
         "storage": manifest_storage_config(args),
         "portfolio": manifest_portfolio_config(args),
+        "language": language,
     }
 
 
@@ -2413,7 +2902,7 @@ def apply_adoption(
     generate_memory_digest(config, argparse.Namespace(output=None, stdout=False, json=False), emit_output=not json_mode)
     refresh_kernel_state(config, event_type="adopt.approved", summary="Applied initial Sula adoption.")
     if not json_mode:
-        print("Post-adoption validation:")
+        print("接入后校验：" if locale_family(config.interaction_locale) == "zh" else "Post-adoption validation:")
     doctor_exit = doctor(config, strict=True, json_mode=json_mode, emit_output=not json_mode)
     if json_mode:
         payload = {
@@ -2428,9 +2917,15 @@ def apply_adoption(
         return doctor_exit
     print_adoption_usage(config)
     if doctor_exit == 0:
-        print(f"Sula adoption completed for {config.data['project']['name']}")
+        if locale_family(config.interaction_locale) == "zh":
+            print(f"{config.data['project']['name']} 的 Sula 接入已完成")
+        else:
+            print(f"Sula adoption completed for {config.data['project']['name']}")
     else:
-        print("Sula adoption completed with follow-up required before strict compliance is clean.")
+        if locale_family(config.interaction_locale) == "zh":
+            print("Sula 接入已完成，但在达到严格合规前仍需后续处理。")
+        else:
+            print("Sula adoption completed with follow-up required before strict compliance is clean.")
     return doctor_exit
 
 
@@ -2446,77 +2941,144 @@ def ensure_initial_status(config: ProjectConfig) -> None:
         if not any(placeholder in text for placeholder in STATUS_PLACEHOLDERS):
             return
     today = date.today().isoformat()
-    text = (
-        "# STATUS\n\n"
-        f"- last updated: {today}\n\n"
-        "## Summary\n\n"
-        f"- Initial Sula adoption is complete for this repository under the `{config.profile}` profile.\n"
-        "- The repository now has a managed operating-system layer and project-owned memory scaffolds.\n\n"
-        "## Health\n\n"
-        "- status: yellow\n"
-        "- reason: adoption is complete, but the team should review generated rules and preserved project-owned files.\n\n"
-        "## Current Focus\n\n"
-        "- review the first Sula adoption diff\n"
-        "- confirm manifest facts and project-owned scaffold content\n\n"
-        "## Blockers\n\n"
-        "- none\n\n"
-        "## Recent Decisions\n\n"
-        f"- {today}: approved initial Sula adoption under the `{config.profile}` profile\n\n"
-        "## Next Review\n\n"
-        "- owner: project maintainers\n"
-        f"- date: {today}\n"
-        "- trigger: review after the first managed-file sync or after tightening project-specific rules\n"
-    )
+    if locale_family(config.content_locale) == "zh":
+        text = (
+            "# 项目状态\n\n"
+            f"- 最后更新: {today}\n\n"
+            "## 摘要\n\n"
+            f"- 当前仓库已经以 `{config.profile}` 配置档完成了初始 Sula 接入。\n"
+            "- 仓库现在同时具备受管的操作系统层与项目自有的记忆脚手架。\n\n"
+            "## 健康状态\n\n"
+            "- 状态: yellow\n"
+            "- 原因: 接入已经完成，但团队仍应复核生成规则与被保留的项目自有文件。\n\n"
+            "## 当前重点\n\n"
+            "- 复核第一次 Sula 接入差异\n"
+            "- 确认 manifest 事实与项目自有脚手架内容\n\n"
+            "## 阻塞项\n\n"
+            "- 无\n\n"
+            "## 近期决策\n\n"
+            f"- {today}: 批准以 `{config.profile}` 配置档完成首次 Sula 接入\n\n"
+            "## 下次复盘\n\n"
+            "- 负责人: 项目维护者\n"
+            f"- 日期: {today}\n"
+            "- 触发条件: 第一次 managed-file sync 之后，或项目规则进一步收紧之后\n"
+        )
+    else:
+        text = (
+            "# STATUS\n\n"
+            f"- last updated: {today}\n\n"
+            "## Summary\n\n"
+            f"- Initial Sula adoption is complete for this repository under the `{config.profile}` profile.\n"
+            "- The repository now has a managed operating-system layer and project-owned memory scaffolds.\n\n"
+            "## Health\n\n"
+            "- status: yellow\n"
+            "- reason: adoption is complete, but the team should review generated rules and preserved project-owned files.\n\n"
+            "## Current Focus\n\n"
+            "- review the first Sula adoption diff\n"
+            "- confirm manifest facts and project-owned scaffold content\n\n"
+            "## Blockers\n\n"
+            "- none\n\n"
+            "## Recent Decisions\n\n"
+            f"- {today}: approved initial Sula adoption under the `{config.profile}` profile\n\n"
+            "## Next Review\n\n"
+            "- owner: project maintainers\n"
+            f"- date: {today}\n"
+            "- trigger: review after the first managed-file sync or after tightening project-specific rules\n"
+        )
     status_path.write_text(text, encoding="utf-8")
 
 
 def ensure_adoption_record(config: ProjectConfig) -> None:
     today = date.today().isoformat()
-    title = "Adopt Sula operating system"
-    slug = sanitize_slug(title)
+    zh = locale_family(config.content_locale) == "zh"
+    title = "接入 Sula 项目操作系统" if zh else "Adopt Sula operating system"
+    slug = "adopt-sula-operating-system"
     record_path = config.change_record_directory / f"{today}-{slug}.md"
     if record_path.exists():
         return
     config.change_record_directory.mkdir(parents=True, exist_ok=True)
     branch = detect_git_branch(config.root)
-    summary = f"Adopted Sula under the `{config.profile}` profile and generated the initial managed/scaffold operating-system layer."
-    content = (
-        f"# {title}\n\n"
-        "## Metadata\n\n"
-        f"- date: {today}\n"
-        f"- executor: {config.data['project']['default_agent']}\n"
-        f"- branch: {branch}\n"
-        "- related commit(s): pending review commit\n"
-        "- status: completed\n\n"
-        "## Background\n\n"
-        f"{summary}\n\n"
-        "## Analysis\n\n"
-        "- The repository needed a reusable operating-system layer instead of ad hoc rules.\n"
-        "- Existing project-owned truth should stay local, so scaffold files must remain reviewable and editable.\n\n"
-        "## Chosen Plan\n\n"
-        f"- initialize Sula with the `{config.profile}` profile\n"
-        "- render managed files and preserve project-owned scaffold files when they already exist\n"
-        "- add durable memory structures for status and change tracking\n\n"
-        "## Execution\n\n"
-        "- created the project manifest and version lock\n"
-        "- rendered managed rules, docs, and runbooks\n"
-        "- generated or preserved scaffold status and change-history files\n"
-        "- generated the first memory digest for fast recall\n\n"
-        "## Verification\n\n"
-        "- reviewed the adoption report before approval\n"
-        "- ran `sula doctor --strict` after applying adoption\n\n"
-        "## Rollback\n\n"
-        "- revert the adoption commit if the repository should not be managed by Sula\n"
-        "- keep project-owned truth and re-evaluate the profile fit before retrying\n\n"
-        "## Data Side-effects\n\n"
-        "- no runtime data side-effects\n"
-        "- repository docs and governance files were added or updated\n\n"
-        "## Follow-up\n\n"
-        "- review generated managed files and fill in any project-specific hard rules\n"
-        "- use `sula sync --dry-run` before future shared upgrades\n\n"
-        "## Architecture Boundary Check\n\n"
-        "- highest rule impact: the repository now adopts Sula as its reusable operating-system layer without changing its business truth\n"
+    summary = (
+        f"已按 `{config.profile}` 配置档接入 Sula，并生成初始的 managed/scaffold 操作系统层。"
+        if zh
+        else f"Adopted Sula under the `{config.profile}` profile and generated the initial managed/scaffold operating-system layer."
     )
+    if zh:
+        content = (
+            f"# {title}\n\n"
+            "## 元数据\n\n"
+            f"- 日期: {today}\n"
+            f"- 执行者: {config.data['project']['default_agent']}\n"
+            f"- 分支: {branch}\n"
+            "- 关联提交: 待补充 review commit\n"
+            "- 状态: completed\n\n"
+            "## 背景\n\n"
+            f"{summary}\n\n"
+            "## 分析\n\n"
+            "- 仓库需要一个可复用的操作系统层，而不是零散的临时规则。\n"
+            "- 项目自有真相必须保留在本地，因此脚手架文件必须可审阅且可编辑。\n\n"
+            "## 选定方案\n\n"
+            f"- 使用 `{config.profile}` 配置档初始化 Sula\n"
+            "- 渲染 managed 文件，并在已有项目自有脚手架存在时予以保留\n"
+            "- 为状态与变更跟踪增加持久记忆结构\n\n"
+            "## 执行\n\n"
+            "- 创建项目 manifest 与 version lock\n"
+            "- 渲染 managed 规则、文档与 runbook\n"
+            "- 生成或保留脚手架状态与变更历史文件\n"
+            "- 生成第一版 memory digest 以支持快速接管\n\n"
+            "## 验证\n\n"
+            "- 在批准前审阅 adoption report\n"
+            "- 在接入后运行 `sula doctor --strict`\n\n"
+            "## 回退\n\n"
+            "- 如果仓库不应由 Sula 管理，则回退接入提交\n"
+            "- 保留项目自有真相，并在重试前重新评估 profile 匹配度\n\n"
+            "## 数据副作用\n\n"
+            "- 无运行时数据副作用\n"
+            "- 仓库文档与治理文件被新增或更新\n\n"
+            "## 后续\n\n"
+            "- 审阅生成的 managed 文件，并补齐项目特有硬规则\n"
+            "- 后续共享升级前先运行 `sula sync --dry-run`\n\n"
+            "## 架构边界检查\n\n"
+            "- 最高规则影响: 仓库现在采用 Sula 作为可复用操作系统层，但未改写其业务真相\n"
+        )
+    else:
+        content = (
+            f"# {title}\n\n"
+            "## Metadata\n\n"
+            f"- date: {today}\n"
+            f"- executor: {config.data['project']['default_agent']}\n"
+            f"- branch: {branch}\n"
+            "- related commit(s): pending review commit\n"
+            "- status: completed\n\n"
+            "## Background\n\n"
+            f"{summary}\n\n"
+            "## Analysis\n\n"
+            "- The repository needed a reusable operating-system layer instead of ad hoc rules.\n"
+            "- Existing project-owned truth should stay local, so scaffold files must remain reviewable and editable.\n\n"
+            "## Chosen Plan\n\n"
+            f"- initialize Sula with the `{config.profile}` profile\n"
+            "- render managed files and preserve project-owned scaffold files when they already exist\n"
+            "- add durable memory structures for status and change tracking\n\n"
+            "## Execution\n\n"
+            "- created the project manifest and version lock\n"
+            "- rendered managed rules, docs, and runbooks\n"
+            "- generated or preserved scaffold status and change-history files\n"
+            "- generated the first memory digest for fast recall\n\n"
+            "## Verification\n\n"
+            "- reviewed the adoption report before approval\n"
+            "- ran `sula doctor --strict` after applying adoption\n\n"
+            "## Rollback\n\n"
+            "- revert the adoption commit if the repository should not be managed by Sula\n"
+            "- keep project-owned truth and re-evaluate the profile fit before retrying\n\n"
+            "## Data Side-effects\n\n"
+            "- no runtime data side-effects\n"
+            "- repository docs and governance files were added or updated\n\n"
+            "## Follow-up\n\n"
+            "- review generated managed files and fill in any project-specific hard rules\n"
+            "- use `sula sync --dry-run` before future shared upgrades\n\n"
+            "## Architecture Boundary Check\n\n"
+            "- highest rule impact: the repository now adopts Sula as its reusable operating-system layer without changing its business truth\n"
+        )
     record_path.write_text(content, encoding="utf-8")
     update_change_records_index(config, record_path, today, title, summary)
     update_status_for_new_record(config, "change", record_path, today, title)
@@ -2524,13 +3086,22 @@ def ensure_adoption_record(config: ProjectConfig) -> None:
 
 def print_adoption_usage(config: ProjectConfig) -> None:
     sula_command = f"python3 {SULA_ROOT / 'scripts' / 'sula.py'}"
-    print("How to use Sula after adoption:")
-    print(f"  - inspect current rules: {config.root / 'AGENTS.md'}")
-    print(f"  - validate the repository: {sula_command} doctor --project-root {config.root} --strict")
-    print(f"  - preview future upgrades: {sula_command} sync --project-root {config.root} --dry-run")
-    print(f"  - preview removal: {sula_command} remove --project-root {config.root}")
-    print(f"  - add non-trivial history: {sula_command} record new --project-root {config.root} --title \"...\"")
-    print(f"  - regenerate recall summary: {sula_command} memory digest --project-root {config.root}")
+    if locale_family(config.interaction_locale) == "zh":
+        print("接入后可以这样使用 Sula：")
+        print(f"  - 查看当前规则: {config.root / 'AGENTS.md'}")
+        print(f"  - 校验仓库: {sula_command} doctor --project-root {config.root} --strict")
+        print(f"  - 预览后续升级: {sula_command} sync --project-root {config.root} --dry-run")
+        print(f"  - 预览移除: {sula_command} remove --project-root {config.root}")
+        print(f"  - 添加非琐碎历史: {sula_command} record new --project-root {config.root} --title \"...\"")
+        print(f"  - 重新生成记忆摘要: {sula_command} memory digest --project-root {config.root}")
+    else:
+        print("How to use Sula after adoption:")
+        print(f"  - inspect current rules: {config.root / 'AGENTS.md'}")
+        print(f"  - validate the repository: {sula_command} doctor --project-root {config.root} --strict")
+        print(f"  - preview future upgrades: {sula_command} sync --project-root {config.root} --dry-run")
+        print(f"  - preview removal: {sula_command} remove --project-root {config.root}")
+        print(f"  - add non-trivial history: {sula_command} record new --project-root {config.root} --title \"...\"")
+        print(f"  - regenerate recall summary: {sula_command} memory digest --project-root {config.root}")
 
 def collect_render_actions(config: ProjectConfig, *, include_scaffold: bool) -> list[RenderAction]:
     tokens = config.token_map()
@@ -2610,9 +3181,14 @@ def plan_template_tree(
 
 def render_template(template: Path, tokens: dict[str, str]) -> str:
     text = template.read_text(encoding="utf-8")
-    for key, value in tokens.items():
-        text = text.replace(f"{{{{{key}}}}}", value)
-    return text
+    for _ in range(3):
+        updated = text
+        for key, value in tokens.items():
+            updated = updated.replace(f"{{{{{key}}}}}", value)
+        if updated == text:
+            break
+        text = updated
+    return localize_template_text(text, tokens.get("CONTENT_LOCALE", "en"))
 
 
 def apply_actions(actions: list[RenderAction]) -> None:
@@ -2684,7 +3260,10 @@ def create_record(config: ProjectConfig, args: argparse.Namespace) -> int:
         raise SystemExit(f"Record already exists: {output_path}")
 
     branch = args.branch or detect_git_branch(config.root)
-    summary = args.summary.strip() or "Fill in the key decision or delivery summary."
+    summary = (
+        args.summary.strip()
+        or ("补充这次决策或交付的关键信息。" if locale_family(config.content_locale) == "zh" else "Fill in the key decision or delivery summary.")
+    )
     template_context = {
         "TITLE": args.title,
         "DATE": record_date,
@@ -2719,7 +3298,10 @@ def create_record(config: ProjectConfig, args: argparse.Namespace) -> int:
             }
         )
         return 0
-    print(f"Created {args.kind} record at {output_path}")
+    if locale_family(config.interaction_locale) == "zh":
+        print(f"已在 {output_path} 创建 {args.kind} 记录")
+    else:
+        print(f"Created {args.kind} record at {output_path}")
     return 0
 
 
@@ -2736,7 +3318,8 @@ def sanitize_slug(value: str) -> str:
     lowered = re.sub(r"[^a-z0-9]+", "-", lowered)
     lowered = lowered.strip("-")
     if not lowered:
-        raise SystemExit("Could not derive a slug from the provided title")
+        digest = hashlib.md5(value.encode("utf-8")).hexdigest()[:10]
+        return f"item-{digest}"
     return lowered
 
 
@@ -2756,7 +3339,10 @@ def render_local_record_template(config: ProjectConfig, kind: str, context: dict
         text = template_path.read_text(encoding="utf-8")
     else:
         text = builtin_record_template(kind)
-    for key, value in context.items():
+    text = localize_template_text(text, config.content_locale)
+    merged_context = dict(template_locale_tokens(config.content_locale))
+    merged_context.update(context)
+    for key, value in merged_context.items():
         text = text.replace(f"{{{{{key}}}}}", value)
     return text
 
@@ -2769,113 +3355,113 @@ def builtin_record_template(kind: str) -> str:
     if kind == "change":
         return """# {{TITLE}}
 
-## Metadata
+{{RECORD_METADATA_HEADING}}
 
-- date: {{DATE}}
-- executor: {{EXECUTOR}}
-- branch: {{BRANCH}}
-- related commit(s): {{RELATED_COMMITS}}
-- status: {{STATUS}}
+{{RECORD_DATE_LINE}}
+{{RECORD_EXECUTOR_LINE}}
+{{RECORD_BRANCH_LINE}}
+{{RECORD_RELATED_COMMITS_LINE}}
+{{RECORD_STATUS_LINE}}
 
-## Background
+{{CHANGE_RECORD_BACKGROUND_HEADING}}
 
 {{SUMMARY}}
 
-## Analysis
+{{CHANGE_RECORD_ANALYSIS_HEADING}}
 
-- _fill in context and options_
+{{CHANGE_RECORD_ANALYSIS_PLACEHOLDER}}
 
-## Chosen Plan
+{{CHANGE_RECORD_CHOSEN_PLAN_HEADING}}
 
-- _fill in chosen plan_
+{{CHANGE_RECORD_CHOSEN_PLAN_PLACEHOLDER}}
 
-## Execution
+{{CHANGE_RECORD_EXECUTION_HEADING}}
 
-- _fill in what changed_
+{{CHANGE_RECORD_EXECUTION_PLACEHOLDER}}
 
-## Verification
+{{CHANGE_RECORD_VERIFICATION_HEADING}}
 
-- _fill in verification_
+{{CHANGE_RECORD_VERIFICATION_PLACEHOLDER}}
 
-## Rollback
+{{CHANGE_RECORD_ROLLBACK_HEADING}}
 
-- _fill in rollback_
+{{CHANGE_RECORD_ROLLBACK_PLACEHOLDER}}
 
-## Data Side-effects
+{{CHANGE_RECORD_DATA_SIDE_EFFECTS_HEADING}}
 
-- _fill in data or operational side-effects_
+{{CHANGE_RECORD_DATA_SIDE_EFFECTS_PLACEHOLDER}}
 
-## Follow-up
+{{CHANGE_RECORD_FOLLOW_UP_HEADING}}
 
-- _fill in follow-up_
+{{CHANGE_RECORD_FOLLOW_UP_PLACEHOLDER}}
 
-## Architecture Boundary Check
+{{CHANGE_RECORD_ARCHITECTURE_BOUNDARY_HEADING}}
 
-- highest rule impact: _fill in_
+{{CHANGE_RECORD_ARCHITECTURE_BOUNDARY_LINE}}
 """
     if kind == "release":
         return """# {{TITLE}}
 
-## Metadata
+{{RECORD_METADATA_HEADING}}
 
-- date: {{DATE}}
-- executor: {{EXECUTOR}}
-- branch: {{BRANCH}}
-- status: {{STATUS}}
+{{RECORD_DATE_LINE}}
+{{RECORD_EXECUTOR_LINE}}
+{{RECORD_BRANCH_LINE}}
+{{RECORD_STATUS_LINE}}
 
-## Scope
+{{RELEASE_RECORD_SCOPE_HEADING}}
 
 {{SUMMARY}}
 
-## Risks
+{{RELEASE_RECORD_RISKS_HEADING}}
 
-- _fill in risks_
+{{RELEASE_RECORD_RISKS_PLACEHOLDER}}
 
-## Verification
+{{CHANGE_RECORD_VERIFICATION_HEADING}}
 
-- _fill in verification_
+{{CHANGE_RECORD_VERIFICATION_PLACEHOLDER}}
 
-## Rollback
+{{CHANGE_RECORD_ROLLBACK_HEADING}}
 
-- _fill in rollback_
+{{CHANGE_RECORD_ROLLBACK_PLACEHOLDER}}
 
-## Follow-up
+{{CHANGE_RECORD_FOLLOW_UP_HEADING}}
 
-- _fill in follow-up_
+{{CHANGE_RECORD_FOLLOW_UP_PLACEHOLDER}}
 """
     if kind == "incident":
         return """# {{TITLE}}
 
-## Metadata
+{{RECORD_METADATA_HEADING}}
 
-- date: {{DATE}}
-- executor: {{EXECUTOR}}
-- branch: {{BRANCH}}
-- status: {{STATUS}}
+{{RECORD_DATE_LINE}}
+{{RECORD_EXECUTOR_LINE}}
+{{RECORD_BRANCH_LINE}}
+{{RECORD_STATUS_LINE}}
 
-## Summary
+{{INCIDENT_RECORD_SUMMARY_HEADING}}
 
 {{SUMMARY}}
 
-## Impact
+{{INCIDENT_RECORD_IMPACT_HEADING}}
 
-- _fill in impact_
+{{INCIDENT_RECORD_IMPACT_PLACEHOLDER}}
 
-## Timeline
+{{INCIDENT_RECORD_TIMELINE_HEADING}}
 
-- _fill in timeline_
+{{INCIDENT_RECORD_TIMELINE_PLACEHOLDER}}
 
-## Root Cause
+{{INCIDENT_RECORD_ROOT_CAUSE_HEADING}}
 
-- _fill in root cause_
+{{INCIDENT_RECORD_ROOT_CAUSE_PLACEHOLDER}}
 
-## Resolution
+{{INCIDENT_RECORD_RESOLUTION_HEADING}}
 
-- _fill in resolution_
+{{INCIDENT_RECORD_RESOLUTION_PLACEHOLDER}}
 
-## Follow-up
+{{CHANGE_RECORD_FOLLOW_UP_HEADING}}
 
-- _fill in follow-up_
+{{CHANGE_RECORD_FOLLOW_UP_PLACEHOLDER}}
 """
     raise SystemExit(f"Unsupported record kind: {kind}")
 
@@ -2903,34 +3489,44 @@ def update_change_records_index(
     summary: str,
 ) -> None:
     index_path = config.root / config.data["paths"]["change_records_file"]
+    locale = config.content_locale
     if index_path.exists():
         text = index_path.read_text(encoding="utf-8")
     else:
         text = default_change_records_index(config)
     relative_link_path = os.path.relpath(record_path, start=index_path.parent).replace(os.sep, "/")
-    entry = f"- {record_date} - [{title}]({relative_link_path}) - {summary}"
+    separator = " - "
+    entry = f"- {record_date}{separator}[{title}]({relative_link_path}){separator}{summary}"
 
-    if "_no records yet_" in text:
-        text = text.replace("- _no records yet_", entry)
+    if "- _no records yet_" in text or "- _暂无记录_" in text:
+        text = text.replace("- _no records yet_", entry).replace("- _暂无记录_", entry)
     else:
-        marker = "## Index"
-        if marker not in text:
-            text = text.rstrip() + "\n\n## Index\n\n" + entry + "\n"
+        span = markdown_section_span(text, "Index")
+        if span is None:
+            marker = f"## {localized_section_name('Index', locale)}"
+            text = text.rstrip() + f"\n\n{marker}\n\n" + entry + "\n"
         else:
-            insert_at = text.index(marker) + len(marker)
-            remainder = text[insert_at:]
-            first_heading_match = re.search(r"\n## ", remainder)
-            if first_heading_match:
-                index_block_end = insert_at + first_heading_match.start()
-                index_block = text[insert_at:index_block_end].rstrip()
-                new_block = index_block + "\n\n" + entry
-                text = text[:insert_at] + new_block + text[index_block_end:]
-            else:
-                text = text.rstrip() + "\n\n" + entry + "\n"
+            _, start, end = span
+            index_block = text[start:end].rstrip()
+            new_block = index_block + ("\n\n" if index_block.strip() else "\n\n") + entry + "\n"
+            text = text[:start] + new_block + text[end:]
     index_path.write_text(text.rstrip() + "\n", encoding="utf-8")
 
 
 def default_change_records_index(config: ProjectConfig) -> str:
+    if locale_family(config.content_locale) == "zh":
+        return (
+            f"# {config.data['project']['name']} 变更记录\n\n"
+            "## 用途\n\n"
+            "记录非琐碎变更、关键决策、验证方式与回退信息。\n\n"
+            "## 规则\n\n"
+            "- 保持索引简洁。\n"
+            "- 详细记录放在 docs/change-records/ 下。\n\n"
+            "## 索引\n\n"
+            "- _暂无记录_\n\n"
+            "## 详细记录\n\n"
+            f"- 目录: `{config.change_record_directory.relative_to(config.root).as_posix()}`\n"
+        )
     return (
         f"# {config.data['project']['name']} Change Records\n\n"
         "## Purpose\n\n"
@@ -2957,31 +3553,62 @@ def update_status_for_new_record(
         return
     text = status_path.read_text(encoding="utf-8")
     relative_link_path = os.path.relpath(record_path, start=status_path.parent).replace(os.sep, "/")
+    locale = config.content_locale
     if kind == "change":
-        bullet = f"- {record_date}: added [{title}]({relative_link_path})"
+        bullet = (
+            f"- {record_date}: 新增了 [{title}]({relative_link_path})"
+            if locale_family(locale) == "zh"
+            else f"- {record_date}: added [{title}]({relative_link_path})"
+        )
     elif kind == "release":
-        bullet = f"- {record_date}: added release record [{title}]({relative_link_path})"
+        bullet = (
+            f"- {record_date}: 新增了发布记录 [{title}]({relative_link_path})"
+            if locale_family(locale) == "zh"
+            else f"- {record_date}: added release record [{title}]({relative_link_path})"
+        )
     else:
-        bullet = f"- {record_date}: added incident record [{title}]({relative_link_path})"
-    text = STATUS_UPDATED_PATTERN.sub(f"- last updated: {record_date}", text, count=1)
+        bullet = (
+            f"- {record_date}: 新增了事故记录 [{title}]({relative_link_path})"
+            if locale_family(locale) == "zh"
+            else f"- {record_date}: added incident record [{title}]({relative_link_path})"
+        )
+    updated_label = localized_field_label("last updated", locale)
+    text = STATUS_UPDATED_PATTERN.sub(f"- {updated_label}: {record_date}", text, count=1)
     text = append_bullet_to_section(text, "Recent Decisions", bullet)
     status_path.write_text(text.rstrip() + "\n", encoding="utf-8")
 
 
 def append_bullet_to_section(text: str, section_name: str, bullet: str) -> str:
-    marker = f"## {section_name}"
-    if marker not in text:
+    span = markdown_section_span(text, section_name)
+    if span is None:
+        marker = f"## {section_name}"
         return text.rstrip() + f"\n\n{marker}\n\n{bullet}\n"
-    start = text.index(marker) + len(marker)
-    remainder = text[start:]
-    next_heading = re.search(r"\n## ", remainder)
-    end = start + next_heading.start() if next_heading else len(text)
+    _, start, end = span
     section_body = text[start:end]
     if bullet in section_body:
         return text
-    cleaned = section_body.replace("- _add recent decisions_", "").rstrip()
+    cleaned = section_body.replace("- _add recent decisions_", "").replace("- _补充近期决策_", "").rstrip()
     new_body = cleaned + ("\n\n" if cleaned.strip() else "\n\n") + bullet + "\n"
     return text[:start] + new_body + text[end:]
+
+
+def markdown_section_span(text: str, canonical_name: str) -> tuple[str, int, int] | None:
+    lines = text.splitlines(keepends=True)
+    offset = 0
+    current_heading: str | None = None
+    current_body_start = 0
+    current_heading_text = ""
+    for line in lines:
+        if line.startswith("## "):
+            if current_heading == canonical_name:
+                return current_heading_text, current_body_start, offset
+            current_heading_text = line.rstrip("\n")
+            current_heading = canonical_section_name(line[3:].strip())
+            current_body_start = offset + len(line)
+        offset += len(line)
+    if current_heading == canonical_name:
+        return current_heading_text, current_body_start, len(text)
+    return None
 
 
 def generate_memory_digest(config: ProjectConfig, args: argparse.Namespace, *, emit_output: bool = True) -> int:
@@ -3004,7 +3631,10 @@ def generate_memory_digest(config: ProjectConfig, args: argparse.Namespace, *, e
         )
         return 0
     if emit_output:
-        print(f"Wrote memory digest to {output_path}")
+        if locale_family(config.interaction_locale) == "zh":
+            print(f"已将记忆摘要写入 {output_path}")
+        else:
+            print(f"Wrote memory digest to {output_path}")
     return 0
 
 
@@ -3013,46 +3643,47 @@ def build_memory_digest(config: ProjectConfig, output_path: Path) -> str:
     change_index_path = config.root / config.data["paths"]["change_records_file"]
     status_text = status_path.read_text(encoding="utf-8") if status_path.exists() else ""
     status_sections = markdown_sections(status_text)
+    zh = locale_family(config.content_locale) == "zh"
 
     lines = [
-        f"# {config.data['project']['name']} Memory Digest",
+        f"# {config.data['project']['name']} {'记忆摘要' if zh else 'Memory Digest'}",
         "",
-        f"- generated on: {date.today().isoformat()}",
-        f"- generated by: Sula {VERSION}",
-        "- source of truth: project docs and records, not this generated digest",
+        f"- {localized_field_label('generated on', config.content_locale)}: {date.today().isoformat()}",
+        f"- {localized_field_label('generated by', config.content_locale)}: Sula {VERSION}",
+        "- 真相源是项目文档与记录，而不是这份生成摘要" if zh else "- source of truth: project docs and records, not this generated digest",
         "",
-        "## Identity",
+        f"## {localized_section_name('Identity', config.content_locale)}",
         "",
-        f"- project: {config.data['project']['name']}",
-        f"- profile: {config.profile}",
-        f"- description: {config.data['project']['description']}",
-        f"- highest rule: `{config.data['rules']['highest_rule']}`",
+        f"- {localized_field_label('project', config.content_locale)}: {config.data['project']['name']}",
+        f"- {localized_field_label('profile', config.content_locale)}: {config.profile}",
+        f"- {localized_field_label('description', config.content_locale)}: {config.data['project']['description']}",
+        f"- {localized_field_label('highest rule', config.content_locale)}: `{config.data['rules']['highest_rule']}`",
         "",
-        "## Current State",
+        f"## {localized_section_name('Current State', config.content_locale)}",
         "",
     ]
-    lines.extend(section_digest_lines("Summary", status_sections.get("Summary", "_missing_")))
-    lines.extend(section_digest_lines("Health", status_sections.get("Health", "_missing_")))
-    lines.extend(section_digest_lines("Current Focus", status_sections.get("Current Focus", "_missing_")))
-    lines.extend(section_digest_lines("Blockers", status_sections.get("Blockers", "_missing_")))
-    lines.extend(section_digest_lines("Recent Decisions", status_sections.get("Recent Decisions", "_missing_")))
-    lines.extend(section_digest_lines("Next Review", status_sections.get("Next Review", "_missing_")))
+    lines.extend(section_digest_lines("Summary", status_sections.get("Summary", localized_string("_missing_", config.content_locale)), locale=config.content_locale))
+    lines.extend(section_digest_lines("Health", status_sections.get("Health", localized_string("_missing_", config.content_locale)), locale=config.content_locale))
+    lines.extend(section_digest_lines("Current Focus", status_sections.get("Current Focus", localized_string("_missing_", config.content_locale)), locale=config.content_locale))
+    lines.extend(section_digest_lines("Blockers", status_sections.get("Blockers", localized_string("_missing_", config.content_locale)), locale=config.content_locale))
+    lines.extend(section_digest_lines("Recent Decisions", status_sections.get("Recent Decisions", localized_string("_missing_", config.content_locale)), locale=config.content_locale))
+    lines.extend(section_digest_lines("Next Review", status_sections.get("Next Review", localized_string("_missing_", config.content_locale)), locale=config.content_locale))
 
-    lines.extend(["## Recent Change Records", ""])
-    lines.extend(record_summary_lines(config.change_record_directory, output_path, limit=5))
+    lines.extend([f"## {localized_section_name('Recent Change Records', config.content_locale)}", ""])
+    lines.extend(record_summary_lines(config.change_record_directory, output_path, limit=5, locale=config.content_locale))
 
-    lines.extend(["## Release History", ""])
-    lines.extend(record_summary_lines(config.release_record_directory, output_path, limit=3))
+    lines.extend([f"## {localized_section_name('Release History', config.content_locale)}", ""])
+    lines.extend(record_summary_lines(config.release_record_directory, output_path, limit=3, locale=config.content_locale))
 
-    lines.extend(["## Incident History", ""])
-    lines.extend(record_summary_lines(config.incident_record_directory, output_path, limit=3))
+    lines.extend([f"## {localized_section_name('Incident History', config.content_locale)}", ""])
+    lines.extend(record_summary_lines(config.incident_record_directory, output_path, limit=3, locale=config.content_locale))
 
-    lines.extend(["## Open Architecture Exceptions", ""])
+    lines.extend([f"## {localized_section_name('Open Architecture Exceptions', config.content_locale)}", ""])
     lines.extend(exception_summary_lines(config, output_path))
 
     lines.extend(
         [
-            "## Key References",
+            f"## {localized_section_name('Key References', config.content_locale)}",
             "",
             f"- [Status]({relative_link(output_path, status_path)})",
             f"- [Change Record Index]({relative_link(output_path, change_index_path)})",
@@ -3063,15 +3694,15 @@ def build_memory_digest(config: ProjectConfig, output_path: Path) -> str:
     return "\n".join(lines).rstrip() + "\n"
 
 
-def section_digest_lines(title: str, body: str) -> list[str]:
-    cleaned = body.strip() or "_missing_"
-    return [f"### {title}", "", cleaned, ""]
+def section_digest_lines(title: str, body: str, *, locale: str) -> list[str]:
+    cleaned = body.strip() or localized_string("_missing_", locale)
+    return [f"### {localized_section_name(title, locale)}", "", cleaned, ""]
 
 
-def record_summary_lines(directory: Path, output_path: Path, *, limit: int) -> list[str]:
+def record_summary_lines(directory: Path, output_path: Path, *, limit: int, locale: str) -> list[str]:
     files = list_record_files(directory)
     if not files:
-        return ["- none", ""]
+        return [f"- {localized_string('none', locale)}", ""]
     lines: list[str] = []
     for path in files[:limit]:
         title = extract_markdown_title(path.read_text(encoding="utf-8")) or path.stem
@@ -3094,7 +3725,7 @@ def list_record_files(directory: Path) -> list[Path]:
 def exception_summary_lines(config: ProjectConfig, output_path: Path) -> list[str]:
     path = config.root / "docs/ops/architecture-exception-register.md"
     if not path.exists():
-        return ["- no register found", ""]
+        return ["- 未找到登记册" if locale_family(config.content_locale) == "zh" else "- no register found", ""]
     text = path.read_text(encoding="utf-8")
     rows = []
     for raw_line in text.splitlines():
@@ -3104,8 +3735,15 @@ def exception_summary_lines(config: ProjectConfig, output_path: Path) -> list[st
             continue
         rows.append(raw_line)
     if not rows:
-        return ["- none", ""]
-    lines = [f"- {len(rows)} open or historical entries in [exception register]({relative_link(output_path, path)})", ""]
+        return [f"- {localized_string('none', config.content_locale)}", ""]
+    lines = [
+        (
+            f"- [exception register]({relative_link(output_path, path)}) 中有 {len(rows)} 条开放或历史条目"
+            if locale_family(config.content_locale) == "zh"
+            else f"- {len(rows)} open or historical entries in [exception register]({relative_link(output_path, path)})"
+        ),
+        "",
+    ]
     return lines
 
 
@@ -3117,7 +3755,7 @@ def markdown_sections(text: str) -> dict[str, str]:
         if line.startswith("## "):
             if current_name is not None:
                 sections[current_name] = "\n".join(current_lines).strip()
-            current_name = line[3:].strip()
+            current_name = canonical_section_name(line[3:].strip())
             current_lines = []
             continue
         if current_name is not None:
@@ -3213,7 +3851,10 @@ def doctor(config: ProjectConfig, *, strict: bool, json_mode: bool = False, emit
         return 0 if passed else 1
     if passed:
         if emit_output:
-            print(f"Sula doctor passed for {config.data['project']['name']}")
+            if locale_family(config.interaction_locale) == "zh":
+                print(f"{config.data['project']['name']} 的 Sula doctor 校验通过")
+            else:
+                print(f"Sula doctor passed for {config.data['project']['name']}")
         return 0
     return 1
 
@@ -3426,19 +4067,19 @@ def collect_memory_doctor_report(config: ProjectConfig) -> tuple[list[str], list
     change_errors, change_warnings = validate_record_directory(
         config.change_record_directory,
         kind="change",
-        required_headings=CHANGE_RECORD_REQUIRED_HEADINGS,
+        required_sections=CHANGE_RECORD_REQUIRED_SECTIONS,
         required=True,
     )
     release_errors, release_warnings = validate_record_directory(
         config.release_record_directory,
         kind="release",
-        required_headings=RELEASE_RECORD_REQUIRED_HEADINGS,
+        required_sections=RELEASE_RECORD_REQUIRED_SECTIONS,
         required=False,
     )
     incident_errors, incident_warnings = validate_record_directory(
         config.incident_record_directory,
         kind="incident",
-        required_headings=INCIDENT_RECORD_REQUIRED_HEADINGS,
+        required_sections=INCIDENT_RECORD_REQUIRED_SECTIONS,
         required=False,
     )
     errors.extend(change_errors)
@@ -3514,7 +4155,7 @@ def validate_record_directory(
     directory: Path,
     *,
     kind: str,
-    required_headings: list[str],
+    required_sections: list[str],
     required: bool,
 ) -> tuple[list[str], list[str]]:
     errors: list[str] = []
@@ -3534,10 +4175,13 @@ def validate_record_directory(
         if not CHANGE_RECORD_FILENAME_PATTERN.fullmatch(path.name):
             errors.append(f"{path}: filename must match YYYY-MM-DD-slug.md")
         text = path.read_text(encoding="utf-8")
-        for heading in required_headings:
-            if heading not in text:
-                errors.append(f"{path}: missing required heading `{heading}`")
-        if "YYYY-MM-DD" in text or "_fill in" in text or "TBD" in text:
+        sections = markdown_sections(text)
+        if not extract_markdown_title(text):
+            errors.append(f"{path}: missing top-level title")
+        for section_name in required_sections:
+            if section_name not in sections:
+                errors.append(f"{path}: missing required section `## {section_name}`")
+        if "YYYY-MM-DD" in text or "_fill in" in text or "_补充" in text or "TBD" in text:
             warnings.append(f"{path}: placeholder content still present")
     return errors, warnings
 
@@ -3664,6 +4308,8 @@ def render_kernel_manifest(config: ProjectConfig) -> str:
         "[kernel]\n"
         f'sula_version = "{VERSION}"\n'
         f'profile = "{config.profile}"\n'
+        f'content_locale = "{config.content_locale}"\n'
+        f'interaction_locale = "{config.interaction_locale}"\n'
         f"adapters = [{adapters}]\n"
         f"git_enabled = {git_enabled}\n"
         'adapter_catalog = ".sula/adapters/catalog.json"\n'
@@ -3995,8 +4641,8 @@ def build_object_catalog(config: ProjectConfig) -> list[dict[str, object]]:
         {
             "id": "state:current",
             "kind": "state",
-            "title": "Current Project State",
-            "summary": status_sections.get("Summary", "_missing_"),
+            "title": "当前项目状态" if locale_family(config.content_locale) == "zh" else "Current Project State",
+            "summary": status_sections.get("Summary", localized_string("_missing_", config.content_locale)),
             "status": "current",
             "path": config.data["paths"]["status_file"],
             "source_paths": [config.data["paths"]["status_file"]],
@@ -4039,21 +4685,27 @@ def build_artifact_objects(config: ProjectConfig) -> list[dict[str, object]]:
     for artifact in catalog.get("artifacts", []):
         if not isinstance(artifact, dict):
             continue
-        source_paths = [str(artifact.get("path", ""))] if artifact.get("path") else []
+        source_paths = artifact_local_access_paths(config, artifact)
+        display_path = artifact_display_path(artifact)
         objects.append(
             {
                 "id": str(artifact.get("id", "")),
                 "kind": str(artifact.get("kind", "artifact")),
-                "title": str(artifact.get("title", Path(str(artifact.get("path", ""))).name)),
+                "title": str(artifact.get("title", Path(display_path).name if display_path else "artifact")),
                 "summary": str(artifact.get("summary", "")),
                 "status": str(artifact.get("status", "registered")),
-                "path": str(artifact.get("path", "")),
+                "path": display_path,
                 "source_paths": source_paths,
                 "adapters": dedupe_preserve_order(
                     [config.storage_provider, "generic-project", "docs"] + ([config.storage_provider] if config.storage_provider else [])
                 ),
-                "tags": ["artifact", str(artifact.get("slot", "delivery")), config.workflow_pack],
+                "tags": artifact_search_tags(artifact),
                 "date": normalize_optional_text(artifact.get("date", "")),
+                "identity_key": artifact_entry_identity_key(artifact),
+                "project_relative_path": normalize_optional_text(artifact.get("project_relative_path", "")),
+                "provider_item_id": normalize_optional_text(artifact.get("provider_item_id", "")),
+                "provider_item_kind": normalize_optional_text(artifact.get("provider_item_kind", "")),
+                "provider_item_url": normalize_optional_text(artifact.get("provider_item_url", "")),
             }
         )
     return objects
@@ -4086,7 +4738,7 @@ def build_record_objects(project_root: Path, directory: Path, kind: str, adapter
                     "id": f"milestone:{record_path.stem}",
                     "kind": "milestone",
                     "title": title,
-                    "summary": first_readme_paragraph(text) or "Recorded release milestone.",
+                    "summary": first_readme_paragraph(text) or ("记录的发布里程碑。" if contains_cjk(text) else "Recorded release milestone."),
                     "status": "shipped",
                     "path": relative_path,
                     "source_paths": [relative_path],
@@ -4101,7 +4753,7 @@ def build_record_objects(project_root: Path, directory: Path, kind: str, adapter
                     "id": f"risk:{record_path.stem}",
                     "kind": "risk",
                     "title": title,
-                    "summary": first_readme_paragraph(text) or "Recorded incident and follow-up risk.",
+                    "summary": first_readme_paragraph(text) or ("记录的事故与后续风险。" if contains_cjk(text) else "Recorded incident and follow-up risk."),
                     "status": "incident",
                     "path": relative_path,
                     "source_paths": [relative_path],
@@ -4195,7 +4847,11 @@ def build_status_objects(
                 "id": f"person:status:{sanitize_source_id(owner)}",
                 "kind": "person",
                 "title": owner,
-                "summary": f"Current review owner for {config.data['project']['name']}.",
+                "summary": (
+                    f"{config.data['project']['name']} 的当前复盘负责人。"
+                    if locale_family(config.content_locale) == "zh"
+                    else f"Current review owner for {config.data['project']['name']}."
+                ),
                 "status": "responsible",
                 "path": status_path,
                 "source_paths": [status_path],
@@ -4212,8 +4868,10 @@ def build_status_objects(
             {
                 "id": f"milestone:status:next-review:{sanitize_source_id(review_date)}",
                 "kind": "milestone",
-                "title": "Next Review",
-                "summary": milestone_summary or "Next review checkpoint.",
+                "title": "下次复盘" if locale_family(config.content_locale) == "zh" else "Next Review",
+                "summary": (
+                    milestone_summary or ("下次复盘检查点。" if locale_family(config.content_locale) == "zh" else "Next review checkpoint.")
+                ),
                 "status": "planned",
                 "path": status_path,
                 "source_paths": [status_path],
@@ -4230,8 +4888,8 @@ def build_status_objects(
             {
                 "id": f"risk:health:{sanitize_source_id(health_status + '-' + health_reason)}",
                 "kind": "risk",
-                "title": f"Project health is {health_status}",
-                "summary": health_reason or f"Health status reported as {health_status}.",
+                "title": f"项目健康状态为 {health_status}" if locale_family(config.content_locale) == "zh" else f"Project health is {health_status}",
+                "summary": health_reason or (f"健康状态被记录为 {health_status}。" if locale_family(config.content_locale) == "zh" else f"Health status reported as {health_status}."),
                 "status": "watch",
                 "path": status_path,
                 "source_paths": [status_path],
@@ -4365,13 +5023,13 @@ def markdown_key_values(text: str) -> dict[str, str]:
         if ":" not in item:
             continue
         key, value = item.split(":", 1)
-        fields[key.strip().lower()] = value.strip()
+        fields[canonical_field_name(key)] = value.strip()
     return fields
 
 
 def line_is_empty_placeholder(value: str) -> bool:
     lowered = value.strip().lower()
-    return lowered in {"none", "n/a", "none.", "_none_", "_missing_"}
+    return lowered in {"none", "n/a", "none.", "_none_", "_missing_", "无", "_缺失_"}
 
 
 def truncate_title(value: str, limit: int = 80) -> str:
@@ -4381,7 +5039,7 @@ def truncate_title(value: str, limit: int = 80) -> str:
 
 def looks_like_agreement(relative_path: str, title: str, text: str) -> bool:
     haystack = " ".join([relative_path.lower(), title.lower(), text[:500].lower()])
-    return any(term in haystack for term in ["contract", "agreement", "msa", "statement of work", "sow"])
+    return any(term in haystack for term in ["contract", "agreement", "msa", "statement of work", "sow", "合同", "协议"])
 
 
 def source_summary(path: Path) -> str:
@@ -4399,19 +5057,20 @@ def source_summary(path: Path) -> str:
 def render_kernel_current_state(config: ProjectConfig) -> str:
     status_path = config.root / config.data["paths"]["status_file"]
     status_sections = markdown_sections(status_path.read_text(encoding="utf-8")) if status_path.exists() else {}
+    zh = locale_family(config.content_locale) == "zh"
     lines = [
-        "# Current State Snapshot",
+        "# 当前状态快照" if zh else "# Current State Snapshot",
         "",
-        f"- generated on: {date.today().isoformat()}",
-        f"- project: {config.data['project']['name']}",
-        f"- profile: `{config.profile}`",
-        "- source priority: STATUS.md and project records override this generated snapshot",
+        f"- {localized_field_label('generated on', config.content_locale)}: {date.today().isoformat()}",
+        f"- {localized_field_label('project', config.content_locale)}: {config.data['project']['name']}",
+        f"- {localized_field_label('profile', config.content_locale)}: `{config.profile}`",
+        "- 真相优先级: STATUS.md 与项目记录高于这份生成快照" if zh else "- source priority: STATUS.md and project records override this generated snapshot",
         "",
     ]
     for section_name in ["Summary", "Health", "Current Focus", "Blockers", "Recent Decisions", "Next Review"]:
-        lines.append(f"## {section_name}")
+        lines.append(f"## {localized_section_name(section_name, config.content_locale)}")
         lines.append("")
-        lines.append((status_sections.get(section_name, "_missing_") or "_missing_").strip())
+        lines.append((status_sections.get(section_name, localized_string("_missing_", config.content_locale)) or localized_string("_missing_", config.content_locale)).strip())
         lines.append("")
     return "\n".join(lines).rstrip() + "\n"
 
@@ -4553,9 +5212,10 @@ def query_project_kernel(config: ProjectConfig, args: argparse.Namespace) -> int
             )
         )
         return 0
-    print(f"Sula query results for {config.data['project']['name']}: {args.q}")
+    zh = locale_family(config.interaction_locale) == "zh"
+    print(f"{config.data['project']['name']} 的 Sula 查询结果: {args.q}" if zh else f"Sula query results for {config.data['project']['name']}: {args.q}")
     if not results:
-        print("  No results.")
+        print("  没有结果。" if zh else "  No results.")
         return 0
     for result in results:
         date_prefix = f"{result['date']} " if result.get("date") else ""
@@ -5356,17 +6016,28 @@ def project_status(config: ProjectConfig, args: argparse.Namespace) -> int:
     if json_output_requested(args):
         emit_json({"command": "status", "status": "ok", "project": project_payload(config), "state": payload})
         return 0
-    print(f"Sula status for {config.data['project']['name']}")
-    print(f"  Profile: {config.profile}")
-    print(f"  Workflow: {config.workflow_pack} ({config.workflow_stage})")
-    print(f"  Storage: {config.storage_provider} [{config.storage_sync_mode}]")
-    print(f"  Summary: {payload['summary']}")
-    print(f"  Health: {payload['health']}")
-    print(f"  Open tasks: {payload['counts']['open_tasks']}")
-    print(f"  Open risks: {payload['counts']['open_risks']}")
-    print(f"  Artifacts: {payload['counts']['artifacts']}")
+    if locale_family(config.interaction_locale) == "zh":
+        print(f"{config.data['project']['name']} 的 Sula 状态")
+        print(f"  配置档: {config.profile}")
+        print(f"  工作流: {config.workflow_pack} ({config.workflow_stage})")
+        print(f"  存储: {config.storage_provider} [{config.storage_sync_mode}]")
+        print(f"  摘要: {payload['summary']}")
+        print(f"  健康状态: {payload['health']}")
+        print(f"  开放任务: {payload['counts']['open_tasks']}")
+        print(f"  开放风险: {payload['counts']['open_risks']}")
+        print(f"  文件产物: {payload['counts']['artifacts']}")
+    else:
+        print(f"Sula status for {config.data['project']['name']}")
+        print(f"  Profile: {config.profile}")
+        print(f"  Workflow: {config.workflow_pack} ({config.workflow_stage})")
+        print(f"  Storage: {config.storage_provider} [{config.storage_sync_mode}]")
+        print(f"  Summary: {payload['summary']}")
+        print(f"  Health: {payload['health']}")
+        print(f"  Open tasks: {payload['counts']['open_tasks']}")
+        print(f"  Open risks: {payload['counts']['open_risks']}")
+        print(f"  Artifacts: {payload['counts']['artifacts']}")
     if payload["recent_events"]:
-        print("  Recent events:")
+        print("  近期事件:" if locale_family(config.interaction_locale) == "zh" else "  Recent events:")
         for item in payload["recent_events"]:
             print(f"    - {item['timestamp']} {item['event_type']}: {item['summary']}")
     return 0
@@ -5415,6 +6086,164 @@ def project_status_payload(config: ProjectConfig) -> dict[str, object]:
     }
 
 
+def normalize_project_relative_path(raw: str | None) -> str:
+    if raw is None:
+        return ""
+    candidate = raw.strip().replace("\\", "/")
+    if not candidate:
+        return ""
+    path = PurePosixPath(candidate)
+    if path.is_absolute():
+        raise SystemExit(f"Project-relative artifact path must not be absolute: {raw}")
+    parts = [part for part in path.parts if part not in {"", "."}]
+    if not parts or any(part == ".." for part in parts):
+        raise SystemExit(f"Invalid project-relative artifact path: {raw}")
+    return PurePosixPath(*parts).as_posix()
+
+
+def resolve_artifact_registration_path(config: ProjectConfig, raw_path: str | None) -> tuple[Path | None, str]:
+    if raw_path is None or not raw_path.strip():
+        return (None, "")
+    candidate = Path(raw_path.strip()).expanduser()
+    path = candidate.resolve() if candidate.is_absolute() else (config.root / candidate).resolve()
+    if not path.exists():
+        raise SystemExit(f"Artifact path does not exist: {path}")
+    if not path.is_relative_to(config.root):
+        raise SystemExit(f"Artifact path must stay inside the project root: {path}")
+    return (path, path.relative_to(config.root).as_posix())
+
+
+def normalize_artifact_derived_from(values: list[str]) -> list[str]:
+    normalized: list[str] = []
+    seen: set[str] = set()
+    for value in values:
+        item = value.strip()
+        if not item or item in seen:
+            continue
+        seen.add(item)
+        normalized.append(item)
+    return normalized
+
+
+def default_provider_item_kind(config: ProjectConfig, *, has_local_path: bool) -> str:
+    if not has_local_path:
+        return ""
+    if config.storage_provider == "google-drive":
+        return "drive-file"
+    return ""
+
+
+def artifact_primary_path(
+    *,
+    path: str,
+    project_relative_path: str,
+    provider_item_id: str,
+    provider_item_kind: str,
+) -> str:
+    if path:
+        return path
+    if project_relative_path:
+        return project_relative_path
+    if provider_item_id:
+        kind = provider_item_kind or "provider-item"
+        return f"{kind}:{provider_item_id}"
+    return ""
+
+
+def artifact_identity_key_for_values(
+    *,
+    storage_provider: str,
+    provider_root_id: str,
+    path: str,
+    project_relative_path: str,
+    provider_item_id: str,
+    provider_item_kind: str,
+) -> str:
+    if provider_item_id:
+        kind = provider_item_kind or "provider-item"
+        root_id = provider_root_id or "unrecorded"
+        return f"provider|{storage_provider}|{root_id}|{kind}|{provider_item_id}"
+    if path:
+        return f"path|{path}"
+    if project_relative_path:
+        root_id = provider_root_id or "unrecorded"
+        return f"project|{storage_provider}|{root_id}|{project_relative_path}"
+    return f"ad-hoc|{storage_provider}|untitled"
+
+
+def artifact_entry_identity_key(entry: dict[str, object]) -> str:
+    return artifact_identity_key_for_values(
+        storage_provider=normalize_optional_text(entry.get("storage_provider", "")),
+        provider_root_id=normalize_optional_text(entry.get("provider_root_id", "")),
+        path=normalize_optional_text(entry.get("path", "")),
+        project_relative_path=normalize_optional_text(entry.get("project_relative_path", "")),
+        provider_item_id=normalize_optional_text(entry.get("provider_item_id", "")),
+        provider_item_kind=normalize_optional_text(entry.get("provider_item_kind", "")),
+    )
+
+
+def artifact_entries_match(existing: dict[str, object], incoming: dict[str, object]) -> bool:
+    existing_provider_id = normalize_optional_text(existing.get("provider_item_id", ""))
+    incoming_provider_id = normalize_optional_text(incoming.get("provider_item_id", ""))
+    if existing_provider_id and incoming_provider_id:
+        existing_provider = normalize_optional_text(existing.get("storage_provider", ""))
+        incoming_provider = normalize_optional_text(incoming.get("storage_provider", ""))
+        existing_root = normalize_optional_text(existing.get("provider_root_id", ""))
+        incoming_root = normalize_optional_text(incoming.get("provider_root_id", ""))
+        if existing_provider == incoming_provider and existing_root == incoming_root and existing_provider_id == incoming_provider_id:
+            return True
+    for key in ("path", "project_relative_path"):
+        existing_value = normalize_optional_text(existing.get(key, ""))
+        incoming_value = normalize_optional_text(incoming.get(key, ""))
+        if existing_value and incoming_value and existing_value == incoming_value:
+            return True
+    return artifact_entry_identity_key(existing) == artifact_entry_identity_key(incoming)
+
+
+def artifact_local_access_paths(config: ProjectConfig, entry: dict[str, object]) -> list[str]:
+    explicit_paths = entry.get("local_access_paths", [])
+    if isinstance(explicit_paths, list):
+        normalized = [normalize_project_relative_path(str(value)) for value in explicit_paths if str(value).strip()]
+        if normalized:
+            return normalized
+    path = normalize_optional_text(entry.get("path", ""))
+    if path:
+        candidate = config.root / path
+        if candidate.exists():
+            return [path]
+    return []
+
+
+def artifact_display_path(entry: dict[str, object]) -> str:
+    path = normalize_optional_text(entry.get("path", ""))
+    if path:
+        return path
+    project_relative_path = normalize_optional_text(entry.get("project_relative_path", ""))
+    if project_relative_path:
+        return project_relative_path
+    provider_item_id = normalize_optional_text(entry.get("provider_item_id", ""))
+    if provider_item_id:
+        kind = normalize_optional_text(entry.get("provider_item_kind", "")) or "provider-item"
+        return f"{kind}:{provider_item_id}"
+    return ""
+
+
+def artifact_search_tags(entry: dict[str, object]) -> list[str]:
+    tags = [
+        "artifact",
+        normalize_optional_text(entry.get("slot", "")),
+        normalize_optional_text(entry.get("workflow_pack", "")),
+        normalize_optional_text(entry.get("provider_item_kind", "")),
+        normalize_optional_text(entry.get("provider_item_id", "")),
+        normalize_optional_text(entry.get("project_relative_path", "")),
+        normalize_optional_text(entry.get("provider_item_url", "")),
+    ]
+    derived_from = entry.get("derived_from", [])
+    if isinstance(derived_from, list):
+        tags.extend(normalize_optional_text(value) for value in derived_from)
+    return [tag for tag in tags if tag]
+
+
 def handle_artifact_command(config: ProjectConfig, args: argparse.Namespace) -> int:
     if args.artifact_command == "create":
         return artifact_create(config, args)
@@ -5437,7 +6266,14 @@ def artifact_create(config: ProjectConfig, args: argparse.Namespace) -> int:
     output_path = target_dir / f"{record_date}-{slug}{extension}"
     if output_path.exists():
         raise SystemExit(f"Artifact already exists: {output_path}")
-    summary = args.summary.strip() or f"{artifact_kind} artifact for {config.data['project']['name']}"
+    summary = (
+        args.summary.strip()
+        or (
+            f"{config.data['project']['name']} 的 {artifact_kind} 文件"
+            if locale_family(config.content_locale) == "zh"
+            else f"{artifact_kind} artifact for {config.data['project']['name']}"
+        )
+    )
     output_path.write_text(render_artifact_template(config, artifact_kind, args.title, summary, record_date, slot), encoding="utf-8")
     entry = register_artifact_entry(
         config,
@@ -5447,36 +6283,73 @@ def artifact_create(config: ProjectConfig, args: argparse.Namespace) -> int:
         slot=slot,
         summary=summary,
         date_value=record_date,
+        project_relative_path=output_path.relative_to(config.root).as_posix(),
+        local_access_paths=[output_path.relative_to(config.root).as_posix()],
+        provider_item_id="",
+        provider_item_kind=default_provider_item_kind(config, has_local_path=True),
+        provider_item_url="",
+        derived_from=[],
     )
     refresh_kernel_state(config, event_type="artifact.create", summary=f"Created {artifact_kind} artifact `{args.title}`.")
     if json_output_requested(args):
         emit_json({"command": "artifact.create", "status": "ok", "project": project_payload(config), "artifact": entry})
         return 0
-    print(f"Created {artifact_kind} artifact at {output_path}")
+    if locale_family(config.interaction_locale) == "zh":
+        print(f"已在 {output_path} 创建 {artifact_kind} 文件")
+    else:
+        print(f"Created {artifact_kind} artifact at {output_path}")
     return 0
 
 
 def artifact_register(config: ProjectConfig, args: argparse.Namespace) -> int:
     ensure_artifact_catalog(config)
-    relative_path = args.path.strip()
-    path = config.root / relative_path
-    if not path.exists():
-        raise SystemExit(f"Artifact path does not exist: {path}")
+    path, relative_path = resolve_artifact_registration_path(config, args.path)
+    project_relative_path = normalize_project_relative_path(args.project_relative_path) or relative_path
+    provider_item_id = normalize_optional_text(args.provider_item_id).strip()
+    provider_item_kind = normalize_optional_text(args.provider_item_kind).strip()
+    provider_item_url = normalize_optional_text(args.provider_item_url).strip()
+    if not relative_path and not project_relative_path and not provider_item_id:
+        raise SystemExit("Artifact registration requires --path, --project-relative-path, or --provider-item-id.")
     slot = artifact_slot_for_kind(config, args.kind.lower(), args.slot)
+    summary_text = ""
+    date_value = ""
+    if path is not None:
+        summary_text = source_summary(path)
+        date_value = detect_source_date(path, summary_text) or ""
+    if args.summary.strip():
+        summary_text = args.summary.strip()
+    if args.date:
+        date_value = normalize_record_date(args.date)
+    display_path = artifact_primary_path(
+        path=relative_path,
+        project_relative_path=project_relative_path,
+        provider_item_id=provider_item_id,
+        provider_item_kind=provider_item_kind,
+    )
+    default_title = path.name if path is not None else (PurePosixPath(display_path).name if display_path else provider_item_id or args.kind.lower())
     entry = register_artifact_entry(
         config,
-        path=relative_path,
+        path=display_path,
         artifact_kind=args.kind.lower(),
-        title=args.title or path.name,
+        title=args.title or default_title,
         slot=slot,
-        summary=args.summary.strip() or source_summary(path),
-        date_value=detect_source_date(path, source_summary(path)),
+        summary=summary_text or f"{args.kind.lower()} artifact for {config.data['project']['name']}",
+        date_value=date_value,
+        project_relative_path=project_relative_path,
+        local_access_paths=[relative_path] if relative_path else [],
+        provider_item_id=provider_item_id,
+        provider_item_kind=provider_item_kind or default_provider_item_kind(config, has_local_path=path is not None),
+        provider_item_url=provider_item_url,
+        derived_from=normalize_artifact_derived_from(args.derived_from),
     )
     refresh_kernel_state(config, event_type="artifact.register", summary=f"Registered artifact `{entry['title']}`.")
     if json_output_requested(args):
         emit_json({"command": "artifact.register", "status": "ok", "project": project_payload(config), "artifact": entry})
         return 0
-    print(f"Registered artifact {relative_path}")
+    if locale_family(config.interaction_locale) == "zh":
+        print(f"已登记文件 {artifact_display_path(entry)}")
+    else:
+        print(f"Registered artifact {artifact_display_path(entry)}")
     return 0
 
 
@@ -5495,24 +6368,30 @@ def artifact_locate(config: ProjectConfig, args: argparse.Namespace) -> int:
                 str(item.get("kind", "")),
                 str(item.get("title", "")),
                 str(item.get("slot", "")),
-                str(item.get("path", "")),
+                artifact_display_path(item),
+                str(item.get("project_relative_path", "")),
+                str(item.get("provider_item_id", "")),
+                str(item.get("provider_item_kind", "")),
+                str(item.get("provider_item_url", "")),
                 str(item.get("summary", "")),
             ]
         ).lower()
         if query and query not in haystack:
             continue
-        results.append(item)
-    results.sort(key=lambda item: (str(item.get("date", "")), str(item.get("kind", "")), str(item.get("title", ""))), reverse=True)
+        result = dict(item)
+        result["display_path"] = artifact_display_path(item)
+        results.append(result)
+    results.sort(key=lambda item: (str(item.get("date", "")), str(item.get("kind", "")), str(item.get("display_path", ""))), reverse=True)
     results = results[: max(1, args.limit)]
     if json_output_requested(args):
         emit_json({"command": "artifact.locate", "status": "ok", "project": project_payload(config), "results": results})
         return 0
-    print(f"Artifacts for {config.data['project']['name']}:")
+    print(f"{config.data['project']['name']} 的文件产物：" if locale_family(config.interaction_locale) == "zh" else f"Artifacts for {config.data['project']['name']}:")
     if not results:
-        print("  No artifacts.")
+        print("  暂无文件。" if locale_family(config.interaction_locale) == "zh" else "  No artifacts.")
         return 0
     for item in results:
-        print(f"  - [{item['kind']}] {item['title']} :: {item['path']} ({item['slot']})")
+        print(f"  - [{item['kind']}] {item['title']} :: {item['display_path']} ({item['slot']})")
     return 0
 
 
@@ -5525,15 +6404,32 @@ def register_artifact_entry(
     slot: str,
     summary: str,
     date_value: str | None,
+    project_relative_path: str,
+    local_access_paths: list[str],
+    provider_item_id: str,
+    provider_item_kind: str,
+    provider_item_url: str,
+    derived_from: list[str],
 ) -> dict[str, object]:
     catalog = load_artifact_catalog(config)
-    artifact_id = f"artifact:{sanitize_source_id(path)}"
-    entry = {
+    project_relative = normalize_project_relative_path(project_relative_path) if project_relative_path else ""
+    normalized_local_access_paths = [normalize_project_relative_path(item) for item in local_access_paths if item]
+    normalized_path = path.strip()
+    identity_key = artifact_identity_key_for_values(
+        storage_provider=config.storage_provider,
+        provider_root_id=config.provider_root_id,
+        path=normalized_path,
+        project_relative_path=project_relative,
+        provider_item_id=provider_item_id.strip(),
+        provider_item_kind=provider_item_kind.strip(),
+    )
+    artifact_id = f"artifact:{sanitize_source_id(identity_key)}"
+    entry: dict[str, object] = {
         "id": artifact_id,
         "kind": artifact_kind,
         "title": title,
         "slot": slot,
-        "path": path,
+        "path": normalized_path,
         "summary": summary,
         "date": date_value or "",
         "status": "active",
@@ -5542,8 +6438,25 @@ def register_artifact_entry(
         "storage_sync_mode": config.storage_sync_mode,
         "provider_root_url": config.provider_root_url,
         "provider_root_id": config.provider_root_id,
+        "project_relative_path": project_relative,
+        "local_access_paths": normalized_local_access_paths,
+        "provider_item_id": provider_item_id.strip(),
+        "provider_item_kind": provider_item_kind.strip(),
+        "provider_item_url": provider_item_url.strip(),
+        "derived_from": derived_from,
+        "identity_key": identity_key,
     }
-    artifacts = [item for item in catalog.get("artifacts", []) if isinstance(item, dict) and item.get("id") != artifact_id]
+    artifacts: list[dict[str, object]] = []
+    matched_existing: dict[str, object] | None = None
+    for item in catalog.get("artifacts", []):
+        if not isinstance(item, dict):
+            continue
+        if matched_existing is None and artifact_entries_match(item, entry):
+            matched_existing = item
+            continue
+        artifacts.append(item)
+    if matched_existing is not None:
+        entry["id"] = str(matched_existing.get("id", artifact_id))
     artifacts.append(entry)
     artifacts.sort(key=lambda item: (str(item.get("date", "")), str(item.get("path", ""))))
     catalog["version"] = VERSION
@@ -5560,25 +6473,26 @@ def render_artifact_template(
     record_date: str,
     slot: str,
 ) -> str:
+    zh = locale_family(config.content_locale) == "zh"
     lines = [
         f"# {title}",
         "",
-        "## Metadata",
+        "## 元数据" if zh else "## Metadata",
         "",
-        f"- date: {record_date}",
-        f"- kind: {artifact_kind}",
-        f"- project: {config.data['project']['name']}",
-        f"- workflow pack: {config.workflow_pack}",
-        f"- workflow slot: {slot}",
-        f"- storage provider: {config.storage_provider}",
+        f"- {'日期' if zh else 'date'}: {record_date}",
+        f"- {'类型' if zh else 'kind'}: {artifact_kind}",
+        f"- {'项目' if zh else 'project'}: {config.data['project']['name']}",
+        f"- {'工作流包' if zh else 'workflow pack'}: {config.workflow_pack}",
+        f"- {'工作流槽位' if zh else 'workflow slot'}: {slot}",
+        f"- {'存储提供方' if zh else 'storage provider'}: {config.storage_provider}",
         "",
-        "## Summary",
+        "## 摘要" if zh else "## Summary",
         "",
         summary,
         "",
-        "## Details",
+        "## 详情" if zh else "## Details",
         "",
-        "- _fill in details_",
+        "- _补充详情_" if zh else "- _fill in details_",
         "",
     ]
     return "\n".join(lines)
