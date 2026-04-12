@@ -1,5 +1,5 @@
 {
-  "version": "0.6.0",
+  "version": "0.7.0",
   "profile": "react-frontend-erpnext",
   "bundles": [
     {
@@ -10,6 +10,7 @@
         "docs",
         "memory",
         "repo",
+        "local-fs",
         "deploy",
         "erpnext"
       ],

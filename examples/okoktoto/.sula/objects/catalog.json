@@ -1,5 +1,5 @@
 {
-  "version": "0.6.0",
+  "version": "0.7.0",
   "profile": "react-frontend-erpnext",
   "objects": [
     {
@@ -18,6 +18,7 @@
         "docs",
         "memory",
         "repo",
+        "local-fs",
         "deploy",
         "erpnext"
       ],
@@ -332,6 +333,7 @@
       ],
       "adapters": [
         "generic-project",
+        "local-fs",
         "docs",
         "repo"
       ],
@@ -352,6 +354,7 @@
       ],
       "adapters": [
         "generic-project",
+        "local-fs",
         "repo",
         "deploy"
       ],
@@ -372,6 +375,7 @@
       ],
       "adapters": [
         "generic-project",
+        "local-fs",
         "docs",
         "repo"
       ],
@@ -392,6 +396,7 @@
       ],
       "adapters": [
         "generic-project",
+        "local-fs",
         "docs",
         "memory",
         "repo"
@@ -413,6 +418,7 @@
       ],
       "adapters": [
         "generic-project",
+        "local-fs",
         "docs",
         "repo"
       ],
@@ -433,6 +439,7 @@
       ],
       "adapters": [
         "generic-project",
+        "local-fs",
         "docs",
         "repo"
       ],
@@ -453,6 +460,7 @@
       ],
       "adapters": [
         "generic-project",
+        "local-fs",
         "docs",
         "repo"
       ],
@@ -473,6 +481,7 @@
       ],
       "adapters": [
         "generic-project",
+        "local-fs",
         "docs",
         "repo"
       ],
@@ -493,6 +502,7 @@
       ],
       "adapters": [
         "generic-project",
+        "local-fs",
         "docs",
         "memory",
         "repo"
@@ -514,6 +524,7 @@
       ],
       "adapters": [
         "generic-project",
+        "local-fs",
         "docs",
         "repo"
       ],
@@ -534,6 +545,7 @@
       ],
       "adapters": [
         "generic-project",
+        "local-fs",
         "docs",
         "repo"
       ],
@@ -554,6 +566,7 @@
       ],
       "adapters": [
         "generic-project",
+        "local-fs",
         "docs",
         "repo"
       ],
@@ -574,6 +587,7 @@
       ],
       "adapters": [
         "generic-project",
+        "local-fs",
         "docs",
         "memory",
         "repo"
@@ -595,6 +609,7 @@
       ],
       "adapters": [
         "generic-project",
+        "local-fs",
         "docs",
         "memory",
         "repo"
@@ -616,6 +631,7 @@
       ],
       "adapters": [
         "generic-project",
+        "local-fs",
         "docs",
         "memory",
         "repo"
@@ -637,6 +653,7 @@
       ],
       "adapters": [
         "generic-project",
+        "local-fs",
         "docs",
         "memory",
         "repo"
@@ -658,6 +675,7 @@
       ],
       "adapters": [
         "generic-project",
+        "local-fs",
         "docs",
         "memory",
         "repo"
@@ -679,6 +697,7 @@
       ],
       "adapters": [
         "generic-project",
+        "local-fs",
         "docs",
         "memory",
         "repo"
@@ -700,6 +719,7 @@
       ],
       "adapters": [
         "generic-project",
+        "local-fs",
         "docs",
         "repo"
       ],
@@ -720,6 +740,7 @@
       ],
       "adapters": [
         "generic-project",
+        "local-fs",
         "docs",
         "repo"
       ],
@@ -740,6 +761,7 @@
       ],
       "adapters": [
         "generic-project",
+        "local-fs",
         "docs",
         "repo"
       ],
@@ -761,6 +783,7 @@
       ],
       "adapters": [
         "generic-project",
+        "local-fs",
         "docs",
         "repo"
       ],
@@ -781,6 +804,7 @@
       ],
       "adapters": [
         "generic-project",
+        "local-fs",
         "docs",
         "repo"
       ],
@@ -801,6 +825,7 @@
       ],
       "adapters": [
         "generic-project",
+        "local-fs",
         "docs",
         "repo"
       ],
@@ -821,6 +846,7 @@
       ],
       "adapters": [
         "generic-project",
+        "local-fs",
         "docs",
         "repo"
       ],
@@ -841,6 +867,7 @@
       ],
       "adapters": [
         "generic-project",
+        "local-fs",
         "docs",
         "memory",
         "repo"
@@ -862,6 +889,7 @@
       ],
       "adapters": [
         "generic-project",
+        "local-fs",
         "docs",
         "memory",
         "repo"
@@ -883,6 +911,7 @@
       ],
       "adapters": [
         "generic-project",
+        "local-fs",
         "docs",
         "memory",
         "repo"
@@ -904,6 +933,7 @@
       ],
       "adapters": [
         "generic-project",
+        "local-fs",
         "docs",
         "memory",
         "repo"
@@ -926,6 +956,7 @@
       ],
       "adapters": [
         "generic-project",
+        "local-fs",
         "docs",
         "repo"
       ],
@@ -946,6 +977,7 @@
       ],
       "adapters": [
         "generic-project",
+        "local-fs",
         "docs",
         "repo",
         "deploy"
@@ -967,6 +999,7 @@
       ],
       "adapters": [
         "generic-project",
+        "local-fs",
         "docs",
         "repo"
       ],
@@ -987,6 +1020,7 @@
       ],
       "adapters": [
         "generic-project",
+        "local-fs",
         "repo",
         "erpnext"
       ],
@@ -1007,6 +1041,7 @@
       ],
       "adapters": [
         "generic-project",
+        "local-fs",
         "repo",
         "erpnext"
       ],
@@ -1027,6 +1062,7 @@
       ],
       "adapters": [
         "generic-project",
+        "local-fs",
         "repo",
         "erpnext"
       ],

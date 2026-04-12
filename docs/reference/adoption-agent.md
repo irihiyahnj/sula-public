@@ -36,6 +36,8 @@ That means the default review path becomes:
 
 The report should explicitly say that the repository is already under Sula management.
 
+Software integrations should prefer the JSON form so they can consume adoption reports and apply results without scraping prose.
+
 ## Tool Resolution
 
 If the target repository does not include a local `scripts/sula.py`, the adoption agent should not stop at “CLI missing”.
@@ -55,12 +57,14 @@ Inspect and report:
 
 ```bash
 python3 scripts/sula.py adopt --project-root /path/to/project
+python3 scripts/sula.py adopt --project-root /path/to/project --json
 ```
 
 Apply after approval:
 
 ```bash
 python3 scripts/sula.py adopt --project-root /path/to/project --approve
+python3 scripts/sula.py adopt --project-root /path/to/project --approve --json
 ```
 
 ## What The Report Must Cover

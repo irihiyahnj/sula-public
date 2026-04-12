@@ -7,6 +7,7 @@
     "source_of_truth": false,
     "adapters": [
       "generic-project",
+      "local-fs",
       "memory"
     ]
   },
@@ -18,6 +19,7 @@
     "source_of_truth": true,
     "adapters": [
       "generic-project",
+      "local-fs",
       "memory",
       "repo"
     ]
@@ -30,6 +32,7 @@
     "source_of_truth": true,
     "adapters": [
       "generic-project",
+      "local-fs",
       "memory",
       "repo"
     ]
@@ -42,6 +45,7 @@
     "source_of_truth": true,
     "adapters": [
       "generic-project",
+      "local-fs",
       "repo"
     ]
   },
@@ -53,6 +57,7 @@
     "source_of_truth": true,
     "adapters": [
       "generic-project",
+      "local-fs",
       "docs",
       "repo"
     ]
@@ -65,6 +70,7 @@
     "source_of_truth": true,
     "adapters": [
       "generic-project",
+      "local-fs",
       "repo"
     ]
   },
@@ -76,6 +82,7 @@
     "source_of_truth": false,
     "adapters": [
       "generic-project",
+      "local-fs",
       "memory"
     ]
   },
@@ -87,6 +94,19 @@
     "source_of_truth": false,
     "adapters": [
       "generic-project",
+      "local-fs",
+      "memory"
+    ]
+  },
+  {
+    "id": "artifacts-catalog",
+    "kind": "artifact-index",
+    "path": ".sula/artifacts/catalog.json",
+    "exists": true,
+    "source_of_truth": false,
+    "adapters": [
+      "generic-project",
+      "local-fs",
       "memory"
     ]
   },
@@ -101,6 +121,18 @@
     ]
   },
   {
+    "id": "storage-workspace",
+    "kind": "storage-root",
+    "path": ".",
+    "exists": true,
+    "source_of_truth": true,
+    "adapters": [
+      "local-fs"
+    ],
+    "provider_root_url": "local-only",
+    "provider_root_id": "n/a"
+  },
+  {
     "id": "source:github-issue-template-bug-report-yml",
     "kind": "config",
     "path": ".github/ISSUE_TEMPLATE/bug-report.yml",
@@ -111,6 +143,7 @@
     "anchor_strategy": "line",
     "adapters": [
       "generic-project",
+      "local-fs",
       "repo"
     ]
   },
@@ -125,6 +158,7 @@
     "anchor_strategy": "line",
     "adapters": [
       "generic-project",
+      "local-fs",
       "repo"
     ]
   },
@@ -139,6 +173,7 @@
     "anchor_strategy": "line",
     "adapters": [
       "generic-project",
+      "local-fs",
       "repo"
     ]
   },
@@ -153,6 +188,7 @@
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
+      "local-fs",
       "docs",
       "repo"
     ]
@@ -168,6 +204,7 @@
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
+      "local-fs",
       "docs",
       "repo"
     ]
@@ -183,6 +220,7 @@
     "anchor_strategy": "line",
     "adapters": [
       "generic-project",
+      "local-fs",
       "repo"
     ]
   },
@@ -193,10 +231,11 @@
     "exists": true,
     "source_of_truth": true,
     "discovered": true,
-    "size_bytes": 1417,
+    "size_bytes": 1523,
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
+      "local-fs",
       "docs",
       "repo"
     ]
@@ -208,10 +247,11 @@
     "exists": true,
     "source_of_truth": true,
     "discovered": true,
-    "size_bytes": 3642,
+    "size_bytes": 4077,
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
+      "local-fs",
       "docs",
       "memory",
       "repo"
@@ -224,10 +264,11 @@
     "exists": true,
     "source_of_truth": true,
     "discovered": true,
-    "size_bytes": 6961,
+    "size_bytes": 8240,
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
+      "local-fs",
       "docs",
       "repo",
       "release"
@@ -244,6 +285,7 @@
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
+      "local-fs",
       "docs",
       "repo"
     ]
@@ -259,6 +301,7 @@
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
+      "local-fs",
       "docs",
       "repo"
     ]
@@ -274,6 +317,7 @@
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
+      "local-fs",
       "docs",
       "repo"
     ]
@@ -289,6 +333,7 @@
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
+      "local-fs",
       "docs",
       "repo"
     ]
@@ -304,6 +349,7 @@
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
+      "local-fs",
       "docs",
       "repo"
     ]
@@ -315,10 +361,11 @@
     "exists": true,
     "source_of_truth": true,
     "discovered": true,
-    "size_bytes": 9030,
+    "size_bytes": 10955,
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
+      "local-fs",
       "docs",
       "repo"
     ]
@@ -334,6 +381,7 @@
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
+      "local-fs",
       "docs",
       "repo"
     ]
@@ -345,10 +393,11 @@
     "exists": true,
     "source_of_truth": true,
     "discovered": true,
-    "size_bytes": 4407,
+    "size_bytes": 5220,
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
+      "local-fs",
       "docs",
       "memory",
       "repo"
@@ -365,6 +414,7 @@
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
+      "local-fs",
       "docs",
       "repo"
     ]
@@ -376,10 +426,11 @@
     "exists": true,
     "source_of_truth": true,
     "discovered": true,
-    "size_bytes": 3406,
+    "size_bytes": 5038,
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
+      "local-fs",
       "docs",
       "repo"
     ]
@@ -395,6 +446,7 @@
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
+      "local-fs",
       "docs",
       "repo"
     ]
@@ -410,6 +462,7 @@
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
+      "local-fs",
       "docs",
       "repo"
     ]
@@ -425,6 +478,7 @@
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
+      "local-fs",
       "docs",
       "memory",
       "repo"
@@ -441,6 +495,7 @@
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
+      "local-fs",
       "docs",
       "memory",
       "repo"
@@ -457,6 +512,7 @@
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
+      "local-fs",
       "docs",
       "memory",
       "repo"
@@ -473,6 +529,7 @@
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
+      "local-fs",
       "docs",
       "memory",
       "repo",
@@ -490,6 +547,7 @@
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
+      "local-fs",
       "docs",
       "memory",
       "repo"
@@ -506,6 +564,7 @@
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
+      "local-fs",
       "docs",
       "memory",
       "repo"
@@ -522,6 +581,24 @@
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
+      "local-fs",
+      "docs",
+      "memory",
+      "repo"
+    ]
+  },
+  {
+    "id": "source:docs-change-records-2026-04-12-add-machine-json-interfaces-artifact-routing-portfolio-registry-and-google-drive-local-sync-contracts-md",
+    "kind": "document",
+    "path": "docs/change-records/2026-04-12-add-machine-json-interfaces-artifact-routing-portfolio-registry-and-google-drive-local-sync-contracts.md",
+    "exists": true,
+    "source_of_truth": true,
+    "discovered": true,
+    "size_bytes": 4117,
+    "anchor_strategy": "heading-or-line",
+    "adapters": [
+      "generic-project",
+      "local-fs",
       "docs",
       "memory",
       "repo"
@@ -534,10 +611,11 @@
     "exists": true,
     "source_of_truth": true,
     "discovered": true,
-    "size_bytes": 3505,
+    "size_bytes": 3742,
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
+      "local-fs",
       "docs",
       "memory",
       "repo"
@@ -554,6 +632,7 @@
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
+      "local-fs",
       "docs",
       "memory",
       "repo"
@@ -570,6 +649,7 @@
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
+      "local-fs",
       "docs",
       "memory",
       "repo"
@@ -586,6 +666,7 @@
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
+      "local-fs",
       "docs",
       "memory",
       "repo"
@@ -602,6 +683,7 @@
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
+      "local-fs",
       "docs",
       "memory",
       "repo"
@@ -618,6 +700,7 @@
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
+      "local-fs",
       "docs",
       "memory",
       "repo"
@@ -634,6 +717,7 @@
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
+      "local-fs",
       "docs",
       "memory",
       "repo"
@@ -650,6 +734,7 @@
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
+      "local-fs",
       "docs",
       "repo"
     ]
@@ -665,6 +750,7 @@
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
+      "local-fs",
       "docs",
       "repo"
     ]
@@ -680,6 +766,7 @@
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
+      "local-fs",
       "docs",
       "repo",
       "release"
@@ -696,6 +783,7 @@
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
+      "local-fs",
       "docs",
       "repo"
     ]
@@ -711,6 +799,7 @@
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
+      "local-fs",
       "docs",
       "repo"
     ]
@@ -726,6 +815,7 @@
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
+      "local-fs",
       "docs",
       "repo"
     ]
@@ -741,6 +831,7 @@
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
+      "local-fs",
       "docs",
       "repo"
     ]
@@ -752,10 +843,11 @@
     "exists": true,
     "source_of_truth": true,
     "discovered": true,
-    "size_bytes": 2771,
+    "size_bytes": 3049,
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
+      "local-fs",
       "docs",
       "repo"
     ]
@@ -771,6 +863,23 @@
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
+      "local-fs",
+      "docs",
+      "repo"
+    ]
+  },
+  {
+    "id": "source:docs-reference-portfolio-adapter-workflow-contract-md",
+    "kind": "document",
+    "path": "docs/reference/portfolio-adapter-workflow-contract.md",
+    "exists": true,
+    "source_of_truth": true,
+    "discovered": true,
+    "size_bytes": 3044,
+    "anchor_strategy": "heading-or-line",
+    "adapters": [
+      "generic-project",
+      "local-fs",
       "docs",
       "repo"
     ]
@@ -782,10 +891,11 @@
     "exists": true,
     "source_of_truth": true,
     "discovered": true,
-    "size_bytes": 1642,
+    "size_bytes": 2369,
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
+      "local-fs",
       "docs",
       "repo"
     ]
@@ -801,6 +911,7 @@
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
+      "local-fs",
       "docs",
       "repo"
     ]
@@ -816,6 +927,7 @@
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
+      "local-fs",
       "docs",
       "repo",
       "release"
@@ -832,6 +944,7 @@
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
+      "local-fs",
       "docs",
       "repo"
     ]
@@ -847,6 +960,7 @@
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
+      "local-fs",
       "docs",
       "repo"
     ]
@@ -862,6 +976,7 @@
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
+      "local-fs",
       "docs",
       "repo",
       "release"
@@ -878,6 +993,7 @@
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
+      "local-fs",
       "docs",
       "memory",
       "repo",
@@ -895,6 +1011,7 @@
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
+      "local-fs",
       "docs",
       "memory",
       "repo",
@@ -912,6 +1029,7 @@
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
+      "local-fs",
       "docs",
       "repo",
       "release"
@@ -928,6 +1046,7 @@
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
+      "local-fs",
       "docs",
       "repo"
     ]
@@ -943,6 +1062,7 @@
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
+      "local-fs",
       "docs",
       "repo",
       "release"
@@ -959,6 +1079,7 @@
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
+      "local-fs",
       "docs",
       "repo"
     ]
@@ -974,6 +1095,7 @@
     "anchor_strategy": "line",
     "adapters": [
       "generic-project",
+      "local-fs",
       "repo"
     ]
   },
@@ -988,6 +1110,7 @@
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
+      "local-fs",
       "docs",
       "repo"
     ]
@@ -1003,6 +1126,7 @@
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
+      "local-fs",
       "docs",
       "repo"
     ]
@@ -1018,6 +1142,7 @@
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
+      "local-fs",
       "docs",
       "repo"
     ]
@@ -1033,6 +1158,7 @@
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
+      "local-fs",
       "docs",
       "repo"
     ]
@@ -1048,6 +1174,7 @@
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
+      "local-fs",
       "docs",
       "repo"
     ]
@@ -1063,6 +1190,7 @@
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
+      "local-fs",
       "docs",
       "repo"
     ]
@@ -1078,6 +1206,7 @@
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
+      "local-fs",
       "docs",
       "repo"
     ]
@@ -1093,6 +1222,7 @@
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
+      "local-fs",
       "docs",
       "repo"
     ]
@@ -1108,6 +1238,7 @@
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
+      "local-fs",
       "docs",
       "repo"
     ]
@@ -1123,6 +1254,7 @@
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
+      "local-fs",
       "docs",
       "repo"
     ]
@@ -1138,6 +1270,7 @@
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
+      "local-fs",
       "docs",
       "memory",
       "repo"
@@ -1154,6 +1287,7 @@
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
+      "local-fs",
       "docs",
       "memory",
       "repo"
@@ -1170,6 +1304,7 @@
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
+      "local-fs",
       "docs",
       "memory",
       "repo"
@@ -1186,6 +1321,7 @@
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
+      "local-fs",
       "docs",
       "memory",
       "repo"
@@ -1202,6 +1338,7 @@
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
+      "local-fs",
       "docs",
       "memory",
       "repo"
@@ -1218,6 +1355,7 @@
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
+      "local-fs",
       "docs",
       "memory",
       "repo"
@@ -1234,6 +1372,7 @@
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
+      "local-fs",
       "docs",
       "repo"
     ]
@@ -1249,6 +1388,7 @@
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
+      "local-fs",
       "docs",
       "repo"
     ]
@@ -1264,6 +1404,7 @@
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
+      "local-fs",
       "docs",
       "repo",
       "release"
@@ -1280,6 +1421,7 @@
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
+      "local-fs",
       "docs",
       "repo"
     ]
@@ -1295,6 +1437,7 @@
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
+      "local-fs",
       "docs",
       "repo"
     ]
@@ -1310,6 +1453,7 @@
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
+      "local-fs",
       "docs",
       "repo"
     ]
@@ -1325,6 +1469,7 @@
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
+      "local-fs",
       "docs",
       "memory",
       "repo",
@@ -1342,6 +1487,7 @@
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
+      "local-fs",
       "docs",
       "memory",
       "repo",
@@ -1359,6 +1505,7 @@
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
+      "local-fs",
       "docs",
       "memory",
       "repo",
@@ -1376,6 +1523,7 @@
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
+      "local-fs",
       "docs",
       "repo"
     ]
@@ -1391,6 +1539,7 @@
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
+      "local-fs",
       "docs",
       "repo"
     ]
@@ -1406,6 +1555,7 @@
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
+      "local-fs",
       "docs",
       "repo"
     ]
@@ -1421,6 +1571,7 @@
     "anchor_strategy": "line",
     "adapters": [
       "generic-project",
+      "local-fs",
       "repo"
     ]
   },
@@ -1435,6 +1586,7 @@
     "anchor_strategy": "line",
     "adapters": [
       "generic-project",
+      "local-fs",
       "repo"
     ]
   },
@@ -1449,6 +1601,7 @@
     "anchor_strategy": "line",
     "adapters": [
       "generic-project",
+      "local-fs",
       "repo"
     ]
   },
@@ -1463,6 +1616,7 @@
     "anchor_strategy": "line",
     "adapters": [
       "generic-project",
+      "local-fs",
       "repo"
     ]
   },
@@ -1477,6 +1631,7 @@
     "anchor_strategy": "line",
     "adapters": [
       "generic-project",
+      "local-fs",
       "repo",
       "registry"
     ]
@@ -1488,10 +1643,11 @@
     "exists": true,
     "source_of_truth": true,
     "discovered": true,
-    "size_bytes": 1090,
+    "size_bytes": 1444,
     "anchor_strategy": "line",
     "adapters": [
       "generic-project",
+      "local-fs",
       "repo"
     ]
   },
@@ -1506,6 +1662,7 @@
     "anchor_strategy": "line",
     "adapters": [
       "generic-project",
+      "local-fs",
       "repo"
     ]
   },
@@ -1516,10 +1673,11 @@
     "exists": true,
     "source_of_truth": true,
     "discovered": true,
-    "size_bytes": 158921,
+    "size_bytes": 211198,
     "anchor_strategy": "line",
     "adapters": [
       "generic-project",
+      "local-fs",
       "repo"
     ]
   },
@@ -1534,6 +1692,7 @@
     "anchor_strategy": "line",
     "adapters": [
       "generic-project",
+      "local-fs",
       "docs",
       "repo"
     ]
@@ -1549,6 +1708,7 @@
     "anchor_strategy": "line",
     "adapters": [
       "generic-project",
+      "local-fs",
       "repo"
     ]
   },
@@ -1563,6 +1723,7 @@
     "anchor_strategy": "line",
     "adapters": [
       "generic-project",
+      "local-fs",
       "docs",
       "repo"
     ]
@@ -1578,6 +1739,7 @@
     "anchor_strategy": "line",
     "adapters": [
       "generic-project",
+      "local-fs",
       "docs",
       "repo"
     ]
@@ -1593,6 +1755,7 @@
     "anchor_strategy": "line",
     "adapters": [
       "generic-project",
+      "local-fs",
       "docs",
       "repo"
     ]
@@ -1608,6 +1771,7 @@
     "anchor_strategy": "line",
     "adapters": [
       "generic-project",
+      "local-fs",
       "repo"
     ]
   },
@@ -1618,10 +1782,11 @@
     "exists": true,
     "source_of_truth": true,
     "discovered": true,
-    "size_bytes": 24108,
+    "size_bytes": 36985,
     "anchor_strategy": "line",
     "adapters": [
       "generic-project",
+      "local-fs",
       "repo"
     ]
   }

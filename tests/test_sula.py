@@ -192,6 +192,33 @@ class SulaCliTests(unittest.TestCase):
             self.assertIn("defaulted to `generic-project`", result.stdout)
             self.assertNotIn("Blocking issues:", result.stdout)
 
+    def test_adopt_json_reports_detected_workflow_and_storage(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            project_root = Path(tmpdir)
+            self.create_generic_project(project_root)
+
+            result = run_cli(
+                "adopt",
+                "--project-root",
+                str(project_root),
+                "--workflow-pack",
+                "video-production",
+                "--storage-provider",
+                "google-drive",
+                "--storage-sync-mode",
+                "local-sync",
+                "--json",
+            )
+
+            self.assertEqual(result.returncode, 0, result.stderr)
+            payload = json.loads(result.stdout)
+            self.assertEqual(payload["status"], "report")
+            self.assertEqual(payload["report"]["project"]["profile"], "generic-project")
+            self.assertEqual(payload["report"]["project"]["default_agent"], "Codex")
+            self.assertEqual(payload["report"]["manifest"]["workflow"]["pack"], "video-production")
+            self.assertEqual(payload["report"]["manifest"]["storage"]["provider"], "google-drive")
+            self.assertEqual(payload["report"]["project_root"], str(project_root.resolve()))
+
     def test_adopt_approve_supports_non_git_generic_project(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
             project_root = Path(tmpdir)
@@ -235,6 +262,34 @@ class SulaCliTests(unittest.TestCase):
             self.assertGreaterEqual(index_catalog["counts"]["objects"], 3)
             sqlite_indexes = {item["name"] for item in index_catalog["indexes"]}
             self.assertIn("sqlite-cache", sqlite_indexes)
+
+    def test_adopt_with_google_drive_storage_adds_google_drive_adapter(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            project_root = Path(tmpdir)
+            self.create_generic_project(project_root)
+
+            result = run_cli(
+                "adopt",
+                "--project-root",
+                str(project_root),
+                "--workflow-pack",
+                "video-production",
+                "--storage-provider",
+                "google-drive",
+                "--storage-sync-mode",
+                "local-sync",
+                "--storage-provider-root-url",
+                "https://drive.google.com/drive/folders/example",
+                "--approve",
+            )
+
+            self.assertEqual(result.returncode, 0, result.stderr)
+            manifest = (project_root / ".sula" / "project.toml").read_text(encoding="utf-8")
+            self.assertIn('[storage]', manifest)
+            self.assertIn('provider = "google-drive"', manifest)
+            adapter_catalog = json.loads((project_root / ".sula" / "adapters" / "catalog.json").read_text(encoding="utf-8"))
+            adapter_ids = {item["id"] for item in adapter_catalog["adapters"]}
+            self.assertIn("google-drive", adapter_ids)
 
     def test_query_returns_matching_object_results(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -392,6 +447,143 @@ class SulaCliTests(unittest.TestCase):
             self.assertTrue(payload["results"])
             self.assertTrue(all(item["kind"] == "change" for item in payload["results"]))
             self.assertTrue(all("related_kinds" not in item for item in payload["results"]))
+
+    def test_status_json_summarizes_project(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            project_root = Path(tmpdir)
+            self.create_generic_project(project_root)
+            adopt_result = run_cli("adopt", "--project-root", str(project_root), "--approve")
+            self.assertEqual(adopt_result.returncode, 0, adopt_result.stderr)
+
+            result = run_cli("status", "--project-root", str(project_root), "--json")
+
+            self.assertEqual(result.returncode, 0, result.stderr)
+            payload = json.loads(result.stdout)
+            self.assertEqual(payload["command"], "status")
+            self.assertEqual(payload["project"]["profile"], "generic-project")
+            self.assertIn("counts", payload["state"])
+
+    def test_artifact_create_register_and_locate_json(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            project_root = Path(tmpdir)
+            self.create_generic_project(project_root)
+            adopt_result = run_cli(
+                "adopt",
+                "--project-root",
+                str(project_root),
+                "--workflow-pack",
+                "client-service",
+                "--approve",
+            )
+            self.assertEqual(adopt_result.returncode, 0, adopt_result.stderr)
+
+            create_result = run_cli(
+                "artifact",
+                "create",
+                "--project-root",
+                str(project_root),
+                "--kind",
+                "agreement",
+                "--title",
+                "Hospital Service Contract",
+                "--date",
+                "2026-04-12",
+                "--json",
+            )
+            self.assertEqual(create_result.returncode, 0, create_result.stderr)
+            created = json.loads(create_result.stdout)
+            self.assertTrue((project_root / created["artifact"]["path"]).exists())
+            self.assertEqual(created["artifact"]["slot"], "contracts")
+
+            existing_path = project_root / "finance-note.md"
+            existing_path.write_text("# Finance Note\n", encoding="utf-8")
+            register_result = run_cli(
+                "artifact",
+                "register",
+                "--project-root",
+                str(project_root),
+                "--path",
+                "finance-note.md",
+                "--kind",
+                "report",
+                "--json",
+            )
+            self.assertEqual(register_result.returncode, 0, register_result.stderr)
+
+            locate_result = run_cli(
+                "artifact",
+                "locate",
+                "--project-root",
+                str(project_root),
+                "--kind",
+                "agreement",
+                "--json",
+            )
+            self.assertEqual(locate_result.returncode, 0, locate_result.stderr)
+            located = json.loads(locate_result.stdout)
+            self.assertTrue(located["results"])
+            self.assertEqual(located["results"][0]["kind"], "agreement")
+
+    def test_portfolio_register_list_and_query_json(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir, tempfile.TemporaryDirectory() as portfolio_tmpdir:
+            project_root = Path(tmpdir)
+            portfolio_root = Path(portfolio_tmpdir)
+            self.create_generic_project(project_root)
+            adopt_result = run_cli(
+                "adopt",
+                "--project-root",
+                str(project_root),
+                "--workflow-pack",
+                "client-service",
+                "--portfolio-workspace",
+                "studio",
+                "--portfolio-owner",
+                "Jing",
+                "--approve",
+            )
+            self.assertEqual(adopt_result.returncode, 0, adopt_result.stderr)
+            record_result = run_cli(
+                "record",
+                "new",
+                "--project-root",
+                str(project_root),
+                "--title",
+                "Hospital contract baseline",
+                "--summary",
+                "Captured the contract baseline.",
+                "--date",
+                "2026-04-12",
+            )
+            self.assertEqual(record_result.returncode, 0, record_result.stderr)
+
+            register_result = run_cli(
+                "portfolio",
+                "register",
+                "--project-root",
+                str(project_root),
+                "--portfolio-root",
+                str(portfolio_root),
+                "--json",
+            )
+            self.assertEqual(register_result.returncode, 0, register_result.stderr)
+
+            list_result = run_cli("portfolio", "list", "--portfolio-root", str(portfolio_root), "--json")
+            self.assertEqual(list_result.returncode, 0, list_result.stderr)
+            listed = json.loads(list_result.stdout)
+            self.assertEqual(len(listed["projects"]), 1)
+
+            query_result = run_cli(
+                "portfolio",
+                "query",
+                "--portfolio-root",
+                str(portfolio_root),
+                "--q",
+                "contract",
+                "--json",
+            )
+            self.assertEqual(query_result.returncode, 0, query_result.stderr)
+            queried = json.loads(query_result.stdout)
+            self.assertTrue(queried["results"])
 
     def test_object_catalog_extracts_richer_kernel_objects(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:

@@ -2,6 +2,29 @@
 
 All notable changes to Sula Core should be recorded here with explicit sync impact.
 
+## 0.7.0 - 2026-04-12
+
+### Added
+
+- `status --json` as a machine-readable project state summary
+- `artifact create/register/locate` for workflow-routed project files
+- `portfolio register/list/status/query` for multi-project workspaces
+- optional manifest sections for `workflow`, `storage`, and `portfolio`
+- `google-drive` local-sync adapter metadata alongside existing `repo` and `local-fs` behavior
+- a formal portfolio/adapter/workflow contract in [docs/reference/portfolio-adapter-workflow-contract.md](docs/reference/portfolio-adapter-workflow-contract.md)
+
+### Changed
+
+- `init`, `adopt`, `sync`, `doctor`, `remove`, `record new`, and `memory digest` now support machine-readable `--json` output
+- kernel state now persists a first-class artifact catalog under `.sula/artifacts/catalog.json`
+- generic projects can now describe workflow packs and storage adapters without pretending those concepts are profiles
+
+### Sync Impact
+
+- Existing adopted projects gain optional workflow/storage/portfolio metadata and artifact catalog support on the next sync or state refresh
+- External tools can now integrate with Sula without scraping human CLI output
+- Drive-synced non-Git client projects now have a first-class path toward artifact routing and portfolio-wide visibility
+
 ## 0.6.0 - 2026-04-12
 
 ### Added

@@ -15,6 +15,8 @@
 - Sula now has a recorded vNext architecture target for a `generic-project` kernel, adapter bundles, scientific retrieval, and first-class removal semantics.
 - The first milestone of that direction is now implemented: unknown and non-Git projects can adopt through `generic-project`, `.sula/` holds kernel artifacts, and removal has a report-first command.
 - The second milestone is now implemented as well: local retrieval can rebuild from SQLite, kernel objects cover task/decision/risk/person/agreement/milestone shapes, and query supports stronger filters plus timeline output.
+- The next operating milestone is now implemented too: machine-readable CLI responses, workflow/storage/portfolio manifest sections, artifact routing, and portfolio registration are available for non-code client projects.
+- Drive-synced projects can now describe `google-drive` as an adapter instead of pretending that storage provider is a project type, which keeps the kernel portable for future providers.
 
 ## Health
 
@@ -27,6 +29,7 @@
 - validate the new `adopt` flow against the first external repository
 - keep `sula-core` and `react-frontend-erpnext` profiles aligned with real usage
 - validate the new `generic-project` and `remove` flows against external canaries
+- validate portfolio registration, artifact routing, and `google-drive` local-sync behavior against the first real client-service workspace
 - turn the recorded vNext architecture into stronger adapter composition and better result quality over the new SQLite-backed retrieval path
 - maintain clear approval reporting so managed/scaffold boundaries remain obvious during onboarding
 - keep the public bootstrap contract aligned with real consumer behavior and protocol failures seen in live use
@@ -49,6 +52,7 @@
 - 2026-04-12: added [Implement generic-project kernel and removal flow](docs/change-records/2026-04-12-implement-generic-project-kernel-and-removal-flow.md)
 - 2026-04-12: added [Add kernel object, query, and bundle contracts](docs/change-records/2026-04-12-add-kernel-object-query-and-bundle-contracts.md)
 - 2026-04-12: added [Add SQLite kernel cache, richer object extraction, and timeline query filters](docs/change-records/2026-04-12-add-sqlite-kernel-cache-richer-object-extraction-and-timeline-query-filters.md)
+- 2026-04-12: added [Add machine JSON interfaces, artifact routing, portfolio registry, and Google Drive local-sync contracts](docs/change-records/2026-04-12-add-machine-json-interfaces-artifact-routing-portfolio-registry-and-google-drive-local-sync-contracts.md)
 
 ## Next Review
 

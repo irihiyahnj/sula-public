@@ -9,10 +9,12 @@ Sula is not a product template for one stack. It is a coordination layer with:
 - a reusable documentation and operations core
 - profile-specific templates for project families
 - a project manifest that captures each repository's facts
+- machine-readable CLI outputs for external tools and adapters
 - an inspect-report-approve adoption flow for one-sentence onboarding
 - scripts to initialize, sync, and audit project adoption
 - a governed rollout path for sync impact and release discipline
 - a single-project memory model for durable status, decisions, releases, and incidents
+- workflow packs, artifact routing, and portfolio registration for non-code client projects
 
 Long-term direction:
 
@@ -33,6 +35,16 @@ Without a system, every repository drifts:
 - improvements made in one project do not reach the others
 
 Sula makes those concerns portable.
+
+## User Experience Contract
+
+Sula should trend toward a zero-memory user model:
+
+- the user should not need to remember commands, paths, file slots, or project-state rules
+- onboarding should ask the missing questions, not expect the user to preload Sula's internal model
+- once onboarding answers are captured, Sula should tell the user what it will manage, where files will go, and which commands or automations become available
+
+This means adapters, workflow packs, and portfolio registration are not just technical metadata. They are the basis for a guided setup flow that turns a live project into an understandable operating system.
 
 ## Core Concepts
 
@@ -75,6 +87,7 @@ Each adopted project keeps a local `.sula/project.toml` that defines:
 - key source paths
 - deploy expectations
 - auth/session semantics
+- workflow pack, storage adapter, and portfolio registration metadata
 
 ### 4. Managed vs Scaffold Files
 
@@ -184,6 +197,44 @@ python3 scripts/sula.py memory digest --project-root /path/to/project
 
 This creates durable project memory without mixing managed operating-system files with project-owned history.
 
+### Read machine-usable project state
+
+```bash
+python3 scripts/sula.py status --project-root /path/to/project
+python3 scripts/sula.py status --project-root /path/to/project --json
+python3 scripts/sula.py doctor --project-root /path/to/project --strict --json
+```
+
+These commands expose the same project kernel to humans and to external software. When `--json` is used, Sula becomes a local machine protocol instead of a text-only CLI.
+
+### Create and track project artifacts
+
+```bash
+python3 scripts/sula.py artifact create \
+  --project-root /path/to/project \
+  --kind agreement \
+  --title "Hospital Service Contract"
+
+python3 scripts/sula.py artifact locate \
+  --project-root /path/to/project \
+  --kind agreement --json
+```
+
+Artifacts are routed through the active workflow pack and stored under the project's artifacts root, then registered in `.sula/artifacts/catalog.json`.
+
+### Register projects in a portfolio
+
+```bash
+python3 scripts/sula.py portfolio register \
+  --project-root /path/to/project \
+  --portfolio-root /path/to/portfolio
+
+python3 scripts/sula.py portfolio list --portfolio-root /path/to/portfolio --json
+python3 scripts/sula.py portfolio query --portfolio-root /path/to/portfolio --q "contract" --json
+```
+
+The portfolio registry lets one Sula workspace track many adopted projects, including non-Git client-service projects stored in Google Drive local-sync folders.
+
 ### Query the project kernel
 
 ```bash
@@ -197,7 +248,7 @@ This searches the local kernel object catalog, source registry, and event timeli
 
 ## Current Version
 
-Sula version: `0.6.0`
+Sula version: `0.7.0`
 
 Versioning rules are in [docs/versioning.md](docs/versioning.md).
 
@@ -232,6 +283,7 @@ Release discipline and impact rules live in:
 - [docs/philosophy.md](docs/philosophy.md)
 - [docs/README.md](docs/README.md)
 - [docs/reference/sula-vnext-project-kernel.md](docs/reference/sula-vnext-project-kernel.md)
+- [docs/reference/portfolio-adapter-workflow-contract.md](docs/reference/portfolio-adapter-workflow-contract.md)
 - [docs/adoption-playbook.md](docs/adoption-playbook.md)
 - [docs/reference/adoption-agent.md](docs/reference/adoption-agent.md)
 - [docs/reference/public-release-readiness.md](docs/reference/public-release-readiness.md)

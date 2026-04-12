@@ -7,6 +7,7 @@
     "source_of_truth": false,
     "adapters": [
       "generic-project",
+      "local-fs",
       "memory"
     ]
   },
@@ -18,6 +19,7 @@
     "source_of_truth": true,
     "adapters": [
       "generic-project",
+      "local-fs",
       "memory",
       "repo"
     ]
@@ -30,6 +32,7 @@
     "source_of_truth": true,
     "adapters": [
       "generic-project",
+      "local-fs",
       "memory",
       "repo"
     ]
@@ -42,6 +45,7 @@
     "source_of_truth": true,
     "adapters": [
       "generic-project",
+      "local-fs",
       "repo"
     ]
   },
@@ -53,6 +57,7 @@
     "source_of_truth": true,
     "adapters": [
       "generic-project",
+      "local-fs",
       "docs",
       "repo"
     ]
@@ -65,6 +70,7 @@
     "source_of_truth": true,
     "adapters": [
       "generic-project",
+      "local-fs",
       "repo"
     ]
   },
@@ -76,6 +82,7 @@
     "source_of_truth": true,
     "adapters": [
       "generic-project",
+      "local-fs",
       "repo"
     ]
   },
@@ -87,6 +94,7 @@
     "source_of_truth": false,
     "adapters": [
       "generic-project",
+      "local-fs",
       "memory"
     ]
   },
@@ -98,6 +106,19 @@
     "source_of_truth": false,
     "adapters": [
       "generic-project",
+      "local-fs",
+      "memory"
+    ]
+  },
+  {
+    "id": "artifacts-catalog",
+    "kind": "artifact-index",
+    "path": ".sula/artifacts/catalog.json",
+    "exists": true,
+    "source_of_truth": false,
+    "adapters": [
+      "generic-project",
+      "local-fs",
       "memory"
     ]
   },
@@ -112,6 +133,18 @@
     ]
   },
   {
+    "id": "storage-workspace",
+    "kind": "storage-root",
+    "path": ".",
+    "exists": true,
+    "source_of_truth": true,
+    "adapters": [
+      "local-fs"
+    ],
+    "provider_root_url": "local-only",
+    "provider_root_id": "n/a"
+  },
+  {
     "id": "source:github-copilot-instructions-md",
     "kind": "document",
     "path": ".github/copilot-instructions.md",
@@ -122,6 +155,7 @@
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
+      "local-fs",
       "docs",
       "repo"
     ]
@@ -137,6 +171,7 @@
     "anchor_strategy": "line",
     "adapters": [
       "generic-project",
+      "local-fs",
       "repo",
       "deploy"
     ]
@@ -152,6 +187,7 @@
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
+      "local-fs",
       "docs",
       "repo"
     ]
@@ -167,6 +203,7 @@
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
+      "local-fs",
       "docs",
       "memory",
       "repo"
@@ -183,6 +220,7 @@
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
+      "local-fs",
       "docs",
       "repo"
     ]
@@ -198,6 +236,7 @@
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
+      "local-fs",
       "docs",
       "repo"
     ]
@@ -213,6 +252,7 @@
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
+      "local-fs",
       "docs",
       "repo"
     ]
@@ -228,6 +268,7 @@
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
+      "local-fs",
       "docs",
       "repo"
     ]
@@ -243,6 +284,7 @@
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
+      "local-fs",
       "docs",
       "memory",
       "repo"
@@ -259,6 +301,7 @@
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
+      "local-fs",
       "docs",
       "repo"
     ]
@@ -274,6 +317,7 @@
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
+      "local-fs",
       "docs",
       "repo"
     ]
@@ -289,6 +333,7 @@
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
+      "local-fs",
       "docs",
       "repo"
     ]
@@ -304,6 +349,7 @@
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
+      "local-fs",
       "docs",
       "memory",
       "repo"
@@ -320,6 +366,7 @@
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
+      "local-fs",
       "docs",
       "memory",
       "repo"
@@ -336,6 +383,7 @@
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
+      "local-fs",
       "docs",
       "memory",
       "repo"
@@ -352,6 +400,7 @@
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
+      "local-fs",
       "docs",
       "memory",
       "repo"
@@ -368,6 +417,7 @@
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
+      "local-fs",
       "docs",
       "memory",
       "repo"
@@ -384,6 +434,7 @@
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
+      "local-fs",
       "docs",
       "memory",
       "repo"
@@ -400,6 +451,7 @@
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
+      "local-fs",
       "docs",
       "repo"
     ]
@@ -415,6 +467,7 @@
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
+      "local-fs",
       "docs",
       "repo"
     ]
@@ -430,6 +483,7 @@
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
+      "local-fs",
       "docs",
       "repo"
     ]
@@ -445,6 +499,7 @@
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
+      "local-fs",
       "docs",
       "repo"
     ]
@@ -460,6 +515,7 @@
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
+      "local-fs",
       "docs",
       "repo"
     ]
@@ -475,6 +531,7 @@
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
+      "local-fs",
       "docs",
       "repo"
     ]
@@ -490,6 +547,7 @@
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
+      "local-fs",
       "docs",
       "memory",
       "repo"
@@ -506,6 +564,7 @@
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
+      "local-fs",
       "docs",
       "memory",
       "repo"
@@ -522,6 +581,7 @@
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
+      "local-fs",
       "docs",
       "memory",
       "repo"
@@ -538,6 +598,7 @@
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
+      "local-fs",
       "docs",
       "repo"
     ]
@@ -553,6 +614,7 @@
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
+      "local-fs",
       "docs",
       "repo",
       "deploy"
@@ -569,6 +631,7 @@
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
+      "local-fs",
       "docs",
       "repo"
     ]
@@ -584,6 +647,7 @@
     "anchor_strategy": "line",
     "adapters": [
       "generic-project",
+      "local-fs",
       "repo",
       "erpnext"
     ]
@@ -599,6 +663,7 @@
     "anchor_strategy": "line",
     "adapters": [
       "generic-project",
+      "local-fs",
       "repo",
       "erpnext"
     ]
@@ -614,6 +679,7 @@
     "anchor_strategy": "line",
     "adapters": [
       "generic-project",
+      "local-fs",
       "repo",
       "erpnext"
     ]

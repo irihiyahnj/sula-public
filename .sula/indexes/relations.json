@@ -1,5 +1,5 @@
 {
-  "version": "0.6.0",
+  "version": "0.7.0",
   "profile": "sula-core",
   "relations": [
     {
@@ -34,6 +34,11 @@
     },
     {
       "from": "task:status:validate-the-new-generic-project-and-remove-flows-against-external-canaries",
+      "to": "source:status-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "task:status:validate-portfolio-registration-artifact-routing-and-google-drive-local-sync-behavior-against-the-first-real-client-service-workspace",
       "to": "source:status-md",
       "type": "derived-from"
     },
@@ -113,6 +118,11 @@
       "type": "derived-from"
     },
     {
+      "from": "decision:status:2026-04-12-added-add-machine-json-interfaces-artifact-routing-portfolio-registry-and-google-drive-local-sync-contracts-docs-change-records-2026-04-12-add-machine-json-interfaces-artifact-routing-portfolio-registry-and-google-drive-local-sync-contracts-md",
+      "to": "source:status-md",
+      "type": "derived-from"
+    },
+    {
       "from": "person:status:sula-core-maintainers",
       "to": "source:status-md",
       "type": "derived-from"
@@ -140,6 +150,16 @@
     {
       "from": "change:2026-04-12-add-sqlite-kernel-cache-richer-object-extraction-and-timeline-query-filters",
       "to": "source:docs-change-records-2026-04-12-add-sqlite-kernel-cache-richer-object-extraction-and-timeline-query-filters-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "change:2026-04-12-add-machine-json-interfaces-artifact-routing-portfolio-registry-and-google-drive-local-sync-contracts",
+      "to": "source:docs-change-records-2026-04-12-add-machine-json-interfaces-artifact-routing-portfolio-registry-and-google-drive-local-sync-contracts-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "agreement:2026-04-12-add-machine-json-interfaces-artifact-routing-portfolio-registry-and-google-drive-local-sync-contracts",
+      "to": "source:docs-change-records-2026-04-12-add-machine-json-interfaces-artifact-routing-portfolio-registry-and-google-drive-local-sync-contracts-md",
       "type": "derived-from"
     },
     {
@@ -234,11 +254,6 @@
     },
     {
       "from": "object:source:changelog-md",
-      "to": "source:changelog-md",
-      "type": "derived-from"
-    },
-    {
-      "from": "agreement:source:changelog-md",
       "to": "source:changelog-md",
       "type": "derived-from"
     },
@@ -353,6 +368,16 @@
       "type": "derived-from"
     },
     {
+      "from": "object:source:docs-change-records-2026-04-12-add-machine-json-interfaces-artifact-routing-portfolio-registry-and-google-drive-local-sync-contracts-md",
+      "to": "source:docs-change-records-2026-04-12-add-machine-json-interfaces-artifact-routing-portfolio-registry-and-google-drive-local-sync-contracts-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "agreement:source:docs-change-records-2026-04-12-add-machine-json-interfaces-artifact-routing-portfolio-registry-and-google-drive-local-sync-contracts-md",
+      "to": "source:docs-change-records-2026-04-12-add-machine-json-interfaces-artifact-routing-portfolio-registry-and-google-drive-local-sync-contracts-md",
+      "type": "derived-from"
+    },
+    {
       "from": "object:source:docs-change-records-2026-04-12-add-sqlite-kernel-cache-richer-object-extraction-and-timeline-query-filters-md",
       "to": "source:docs-change-records-2026-04-12-add-sqlite-kernel-cache-richer-object-extraction-and-timeline-query-filters-md",
       "type": "derived-from"
@@ -435,6 +460,16 @@
     {
       "from": "object:source:docs-reference-adoption-registry-md",
       "to": "source:docs-reference-adoption-registry-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "object:source:docs-reference-portfolio-adapter-workflow-contract-md",
+      "to": "source:docs-reference-portfolio-adapter-workflow-contract-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "agreement:source:docs-reference-portfolio-adapter-workflow-contract-md",
+      "to": "source:docs-reference-portfolio-adapter-workflow-contract-md",
       "type": "derived-from"
     },
     {

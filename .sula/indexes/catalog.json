@@ -1,12 +1,13 @@
 {
-  "version": "0.6.0",
+  "version": "0.7.0",
   "profile": "sula-core",
   "counts": {
-    "registered_sources": 109,
-    "discovered_sources": 100,
-    "adapters": 6,
-    "objects": 148,
-    "source_adapter_links": 345
+    "registered_sources": 113,
+    "discovered_sources": 102,
+    "adapters": 7,
+    "artifacts": 0,
+    "objects": 155,
+    "source_adapter_links": 466
   },
   "adapter_catalog": ".sula/adapters/catalog.json",
   "indexes": [
@@ -19,6 +20,11 @@
       "name": "adapter-catalog",
       "path": ".sula/adapters/catalog.json",
       "rebuildable": true
+    },
+    {
+      "name": "artifact-catalog",
+      "path": ".sula/artifacts/catalog.json",
+      "rebuildable": false
     },
     {
       "name": "object-catalog",

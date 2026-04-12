@@ -13,6 +13,20 @@ python3 scripts/sula.py adopt --project-root /path/to/project --approve
 
 Use `adopt` by default. Drop down to `init` only when you need manual control over fields that the adoption report cannot infer safely.
 
+Software integrations should prefer the same commands with `--json` so they can consume stable envelopes instead of scraping human text.
+
+## Zero-Memory Onboarding Rule
+
+Users should not have to remember Sula internals.
+
+The target experience is:
+
+1. connect a project
+2. answer the minimum missing questions
+3. review what Sula will manage, where files will go, and how the project will be queried later
+
+If an adoption flow requires the user to remember internal paths, slot names, or command sequences before the project is configured, the UX contract is still incomplete.
+
 ## Adopt A New Project
 
 1. Run `sula adopt --project-root /path/to/project`.
@@ -50,6 +64,29 @@ Use `adopt` by default. Drop down to `init` only when you need manual control ov
 
 If the project does not match a narrower profile safely, adopt it under `generic-project` first and refine later only when a more truthful reusable profile exists.
 
+## Adopt A Drive-Synced Client Project
+
+When the project lives in a Google Drive local-sync folder or another non-Git workspace, keep the project type and the storage provider separate:
+
+```bash
+python3 scripts/sula.py adopt \
+  --project-root /path/to/project \
+  --workflow-pack client-service \
+  --storage-provider google-drive \
+  --storage-sync-mode local-sync \
+  --portfolio-workspace external-clients
+```
+
+Then approve, register the project in a portfolio, and create artifacts through the workflow pack:
+
+```bash
+python3 scripts/sula.py adopt --project-root /path/to/project --approve
+python3 scripts/sula.py portfolio register --project-root /path/to/project --portfolio-root /path/to/portfolio
+python3 scripts/sula.py artifact create --project-root /path/to/project --kind agreement --title "Service Contract"
+```
+
+This keeps Google Drive in the storage adapter layer while letting the workflow pack route contracts, reports, invoices, and schedules into the right project folders.
+
 ## Adopt An Existing Project
 
 1. Run `sula adopt --project-root /path/to/project` in a working branch, not directly in the deployment branch.
@@ -71,7 +108,16 @@ If the project does not match a narrower profile safely, adopt it under `generic
    - release checklist changes
    - architecture exception rules
    - tool adapter changes
+   - new workflow, storage, or portfolio metadata if the project now participates in a broader workspace
 7. Commit as a discrete "Sula sync" batch.
+
+## Machine Consumers
+
+External tools should treat Sula as a local control protocol:
+
+1. call `adopt`, `sync`, `doctor`, `status`, `artifact`, `portfolio`, and `remove` with `--json`
+2. read `.sula/` kernel files only as supporting state, not as a replacement for project truth
+3. keep provider-specific details in storage adapter metadata instead of hard-coding them into prompts or workflows
 
 ## When Not To Adopt Immediately
 

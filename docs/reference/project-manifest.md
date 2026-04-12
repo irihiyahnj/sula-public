@@ -65,6 +65,26 @@ The safe baseline profile is `generic-project`. Narrower profiles can add more s
 - `digest_file`
 - `status_max_age_days`
 
+### `[workflow]` (optional but recommended)
+
+- `pack`
+- `stage`
+- `artifacts_root`
+
+### `[storage]` (optional but recommended)
+
+- `provider`
+- `sync_mode`
+- `workspace_root`
+- `provider_root_url`
+- `provider_root_id`
+
+### `[portfolio]` (optional)
+
+- `portfolio_id`
+- `workspace`
+- `owner`
+
 ## Example
 
 See [../../schema/project.example.toml](../../schema/project.example.toml).
@@ -75,4 +95,7 @@ See [../../schema/project.example.toml](../../schema/project.example.toml).
 - The manifest should capture stable project facts, not temporary task state.
 - Projects without Git may still adopt Sula; repository branch fields may use sentinel values such as `n/a` when Git metadata is intentionally absent.
 - The optional `[memory]` section configures durable memory paths and freshness expectations without turning project history into managed truth.
+- The optional `[workflow]` section tells Sula which workflow pack should drive artifact routing and stage semantics.
+- The optional `[storage]` section records which storage adapter owns the workspace. `google-drive` should be treated as an adapter, not as a core project type.
+- The optional `[portfolio]` section lets a project register itself into a broader multi-project workspace without hard-coding that workspace into Sula Core.
 - Project history stays in the project repository, not in the manifest.

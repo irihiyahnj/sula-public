@@ -47,3 +47,20 @@ release_record_directory = "docs/releases"
 incident_record_directory = "docs/incidents"
 digest_file = ".sula/memory-digest.md"
 status_max_age_days = 30
+
+[workflow]
+pack = "client-service"
+stage = "active"
+artifacts_root = "artifacts"
+
+[storage]
+provider = "google-drive"
+sync_mode = "local-sync"
+workspace_root = "."
+provider_root_url = "https://drive.google.com/drive/folders/example"
+provider_root_id = "drive-folder-id"
+
+[portfolio]
+portfolio_id = "studio"
+workspace = "external-clients"
+owner = "Jing"

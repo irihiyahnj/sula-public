@@ -1,5 +1,5 @@
 {
-  "version": "0.6.0",
+  "version": "0.7.0",
   "profile": "sula-core",
   "objects": [
     {
@@ -18,6 +18,7 @@
         "docs",
         "memory",
         "repo",
+        "local-fs",
         "registry",
         "release"
       ],
@@ -30,7 +31,7 @@
       "id": "state:current",
       "kind": "state",
       "title": "Current Project State",
-      "summary": "- Sula now manages itself as a first-class `sula-core` consumer while still acting as the source repository for reusable operating-system assets.\n- The repository has memory-aware governance, an in-repo canary, a root self-adoption path, and an approval-based adoption agent for bringing new repositories under Sula.\n- Public-release governance is now in place, and the remaining blocker is historical lineage cleanup rather than working-tree quality.\n- The future `sula.1stp.monster` landing page is now represented by real static site assets with canonical long-form bootstrap prompts and protocol pages.\n- The bootstrap site is now live on both `https://sula.fly.dev/` and `https://sula.1stp.monster/`, with the public bootstrap contract explicitly handling existing Sula consumers and canonical tool-source resolution.\n- Sula now has a recorded vNext architecture target for a `generic-project` kernel, adapter bundles, scientific retrieval, and first-class removal semantics.\n- The first milestone of that direction is now implemented: unknown and non-Git projects can adopt through `generic-project`, `.sula/` holds kernel artifacts, and removal has a report-first command.\n- The second milestone is now implemented as well: local retrieval can rebuild from SQLite, kernel objects cover task/decision/risk/person/agreement/milestone shapes, and query supports stronger filters plus timeline output.",
+      "summary": "- Sula now manages itself as a first-class `sula-core` consumer while still acting as the source repository for reusable operating-system assets.\n- The repository has memory-aware governance, an in-repo canary, a root self-adoption path, and an approval-based adoption agent for bringing new repositories under Sula.\n- Public-release governance is now in place, and the remaining blocker is historical lineage cleanup rather than working-tree quality.\n- The future `sula.1stp.monster` landing page is now represented by real static site assets with canonical long-form bootstrap prompts and protocol pages.\n- The bootstrap site is now live on both `https://sula.fly.dev/` and `https://sula.1stp.monster/`, with the public bootstrap contract explicitly handling existing Sula consumers and canonical tool-source resolution.\n- Sula now has a recorded vNext architecture target for a `generic-project` kernel, adapter bundles, scientific retrieval, and first-class removal semantics.\n- The first milestone of that direction is now implemented: unknown and non-Git projects can adopt through `generic-project`, `.sula/` holds kernel artifacts, and removal has a report-first command.\n- The second milestone is now implemented as well: local retrieval can rebuild from SQLite, kernel objects cover task/decision/risk/person/agreement/milestone shapes, and query supports stronger filters plus timeline output.\n- The next operating milestone is now implemented too: machine-readable CLI responses, workflow/storage/portfolio manifest sections, artifact routing, and portfolio registration are available for non-code client projects.\n- Drive-synced projects can now describe `google-drive` as an adapter instead of pretending that storage provider is a project type, which keeps the kernel portable for future providers.",
       "status": "current",
       "path": "STATUS.md",
       "source_paths": [
@@ -110,6 +111,26 @@
       "kind": "task",
       "title": "validate the new `generic-project` and `remove` flows against external canaries",
       "summary": "validate the new `generic-project` and `remove` flows against external canaries",
+      "status": "open",
+      "path": "STATUS.md",
+      "source_paths": [
+        "STATUS.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "current-focus",
+        "status"
+      ],
+      "date": "2026-04-12"
+    },
+    {
+      "id": "task:status:validate-portfolio-registration-artifact-routing-and-google-drive-local-sync-behavior-against-the-first-real-client-service-workspace",
+      "kind": "task",
+      "title": "validate portfolio registration, artifact routing, and `google-drive` local-s...",
+      "summary": "validate portfolio registration, artifact routing, and `google-drive` local-sync behavior against the first real client-service workspace",
       "status": "open",
       "path": "STATUS.md",
       "source_paths": [
@@ -426,6 +447,26 @@
       "date": "2026-04-12"
     },
     {
+      "id": "decision:status:2026-04-12-added-add-machine-json-interfaces-artifact-routing-portfolio-registry-and-google-drive-local-sync-contracts-docs-change-records-2026-04-12-add-machine-json-interfaces-artifact-routing-portfolio-registry-and-google-drive-local-sync-contracts-md",
+      "kind": "decision",
+      "title": "2026-04-12: added [Add machine JSON interfaces, artifact routing, portfolio r...",
+      "summary": "2026-04-12: added [Add machine JSON interfaces, artifact routing, portfolio registry, and Google Drive local-sync contracts](docs/change-records/2026-04-12-add-machine-json-interfaces-artifact-routing-portfolio-registry-and-google-drive-local-sync-contracts.md)",
+      "status": "decided",
+      "path": "STATUS.md",
+      "source_paths": [
+        "STATUS.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "recent-decision",
+        "status"
+      ],
+      "date": "2026-04-12"
+    },
+    {
       "id": "person:status:sula-core-maintainers",
       "kind": "person",
       "title": "Sula Core maintainers",
@@ -539,6 +580,44 @@
       ],
       "tags": [
         "change"
+      ],
+      "date": "2026-04-12"
+    },
+    {
+      "id": "change:2026-04-12-add-machine-json-interfaces-artifact-routing-portfolio-registry-and-google-drive-local-sync-contracts",
+      "kind": "change",
+      "title": "Add machine JSON interfaces, artifact routing, portfolio registry, and Google Drive local-sync contracts",
+      "summary": "- date: 2026-04-12 - executor: Codex - branch: codex/bootstrap-sula - related commit(s): pending - status: completed",
+      "status": "recorded",
+      "path": "docs/change-records/2026-04-12-add-machine-json-interfaces-artifact-routing-portfolio-registry-and-google-drive-local-sync-contracts.md",
+      "source_paths": [
+        "docs/change-records/2026-04-12-add-machine-json-interfaces-artifact-routing-portfolio-registry-and-google-drive-local-sync-contracts.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "change"
+      ],
+      "date": "2026-04-12"
+    },
+    {
+      "id": "agreement:2026-04-12-add-machine-json-interfaces-artifact-routing-portfolio-registry-and-google-drive-local-sync-contracts",
+      "kind": "agreement",
+      "title": "Add machine JSON interfaces, artifact routing, portfolio registry, and Google Drive local-sync contracts",
+      "summary": "- date: 2026-04-12 - executor: Codex - branch: codex/bootstrap-sula - related commit(s): pending - status: completed",
+      "status": "active",
+      "path": "docs/change-records/2026-04-12-add-machine-json-interfaces-artifact-routing-portfolio-registry-and-google-drive-local-sync-contracts.md",
+      "source_paths": [
+        "docs/change-records/2026-04-12-add-machine-json-interfaces-artifact-routing-portfolio-registry-and-google-drive-local-sync-contracts.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "agreement"
       ],
       "date": "2026-04-12"
     },
@@ -744,6 +823,7 @@
       ],
       "adapters": [
         "generic-project",
+        "local-fs",
         "repo"
       ],
       "tags": [
@@ -763,6 +843,7 @@
       ],
       "adapters": [
         "generic-project",
+        "local-fs",
         "repo"
       ],
       "tags": [
@@ -782,6 +863,7 @@
       ],
       "adapters": [
         "generic-project",
+        "local-fs",
         "repo"
       ],
       "tags": [
@@ -801,6 +883,7 @@
       ],
       "adapters": [
         "generic-project",
+        "local-fs",
         "docs",
         "repo"
       ],
@@ -821,6 +904,7 @@
       ],
       "adapters": [
         "generic-project",
+        "local-fs",
         "docs",
         "repo"
       ],
@@ -841,6 +925,7 @@
       ],
       "adapters": [
         "generic-project",
+        "local-fs",
         "repo"
       ],
       "tags": [
@@ -860,6 +945,7 @@
       ],
       "adapters": [
         "generic-project",
+        "local-fs",
         "docs",
         "repo"
       ],
@@ -880,6 +966,7 @@
       ],
       "adapters": [
         "generic-project",
+        "local-fs",
         "docs",
         "memory",
         "repo"
@@ -901,6 +988,7 @@
       ],
       "adapters": [
         "generic-project",
+        "local-fs",
         "docs",
         "repo",
         "release"
@@ -909,28 +997,6 @@
         "discovered-source"
       ],
       "date": null
-    },
-    {
-      "id": "agreement:source:changelog-md",
-      "kind": "agreement",
-      "title": "Changelog",
-      "summary": "All notable changes to Sula Core should be recorded here with explicit sync impact.",
-      "status": "active",
-      "path": "CHANGELOG.md",
-      "source_paths": [
-        "CHANGELOG.md"
-      ],
-      "adapters": [
-        "generic-project",
-        "docs",
-        "repo",
-        "release"
-      ],
-      "tags": [
-        "agreement",
-        "source"
-      ],
-      "date": "2026-04-12"
     },
     {
       "id": "object:source:claude-md",
@@ -944,6 +1010,7 @@
       ],
       "adapters": [
         "generic-project",
+        "local-fs",
         "docs",
         "repo"
       ],
@@ -964,6 +1031,7 @@
       ],
       "adapters": [
         "generic-project",
+        "local-fs",
         "docs",
         "repo"
       ],
@@ -984,6 +1052,7 @@
       ],
       "adapters": [
         "generic-project",
+        "local-fs",
         "docs",
         "repo"
       ],
@@ -1004,6 +1073,7 @@
       ],
       "adapters": [
         "generic-project",
+        "local-fs",
         "docs",
         "repo"
       ],
@@ -1024,6 +1094,7 @@
       ],
       "adapters": [
         "generic-project",
+        "local-fs",
         "docs",
         "repo"
       ],
@@ -1044,6 +1115,7 @@
       ],
       "adapters": [
         "generic-project",
+        "local-fs",
         "docs",
         "repo"
       ],
@@ -1064,6 +1136,7 @@
       ],
       "adapters": [
         "generic-project",
+        "local-fs",
         "docs",
         "repo"
       ],
@@ -1084,6 +1157,7 @@
       ],
       "adapters": [
         "generic-project",
+        "local-fs",
         "docs",
         "memory",
         "repo"
@@ -1105,6 +1179,7 @@
       ],
       "adapters": [
         "generic-project",
+        "local-fs",
         "docs",
         "repo"
       ],
@@ -1125,6 +1200,7 @@
       ],
       "adapters": [
         "generic-project",
+        "local-fs",
         "docs",
         "repo"
       ],
@@ -1145,6 +1221,7 @@
       ],
       "adapters": [
         "generic-project",
+        "local-fs",
         "docs",
         "repo"
       ],
@@ -1165,6 +1242,7 @@
       ],
       "adapters": [
         "generic-project",
+        "local-fs",
         "docs",
         "repo"
       ],
@@ -1185,6 +1263,7 @@
       ],
       "adapters": [
         "generic-project",
+        "local-fs",
         "docs",
         "memory",
         "repo"
@@ -1206,6 +1285,7 @@
       ],
       "adapters": [
         "generic-project",
+        "local-fs",
         "docs",
         "memory",
         "repo"
@@ -1227,6 +1307,7 @@
       ],
       "adapters": [
         "generic-project",
+        "local-fs",
         "docs",
         "memory",
         "repo"
@@ -1249,6 +1330,7 @@
       ],
       "adapters": [
         "generic-project",
+        "local-fs",
         "docs",
         "memory",
         "repo"
@@ -1270,6 +1352,7 @@
       ],
       "adapters": [
         "generic-project",
+        "local-fs",
         "docs",
         "memory",
         "repo",
@@ -1292,6 +1375,7 @@
       ],
       "adapters": [
         "generic-project",
+        "local-fs",
         "docs",
         "memory",
         "repo"
@@ -1313,6 +1397,7 @@
       ],
       "adapters": [
         "generic-project",
+        "local-fs",
         "docs",
         "memory",
         "repo"
@@ -1335,6 +1420,7 @@
       ],
       "adapters": [
         "generic-project",
+        "local-fs",
         "docs",
         "memory",
         "repo"
@@ -1356,6 +1442,7 @@
       ],
       "adapters": [
         "generic-project",
+        "local-fs",
         "docs",
         "memory",
         "repo"
@@ -1377,6 +1464,52 @@
       ],
       "adapters": [
         "generic-project",
+        "local-fs",
+        "docs",
+        "memory",
+        "repo"
+      ],
+      "tags": [
+        "agreement",
+        "source"
+      ],
+      "date": "2026-04-12"
+    },
+    {
+      "id": "object:source:docs-change-records-2026-04-12-add-machine-json-interfaces-artifact-routing-portfolio-registry-and-google-drive-local-sync-contracts-md",
+      "kind": "document",
+      "title": "2026-04-12-add-machine-json-interfaces-artifact-routing-portfolio-registry-and-google-drive-local-sync-contracts.md",
+      "summary": "- date: 2026-04-12 - executor: Codex - branch: codex/bootstrap-sula - related commit(s): pending - status: completed",
+      "status": "indexed",
+      "path": "docs/change-records/2026-04-12-add-machine-json-interfaces-artifact-routing-portfolio-registry-and-google-drive-local-sync-contracts.md",
+      "source_paths": [
+        "docs/change-records/2026-04-12-add-machine-json-interfaces-artifact-routing-portfolio-registry-and-google-drive-local-sync-contracts.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "memory",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": "2026-04-12"
+    },
+    {
+      "id": "agreement:source:docs-change-records-2026-04-12-add-machine-json-interfaces-artifact-routing-portfolio-registry-and-google-drive-local-sync-contracts-md",
+      "kind": "agreement",
+      "title": "Add machine JSON interfaces, artifact routing, portfolio registry, and Google Drive local-sync contracts",
+      "summary": "- date: 2026-04-12 - executor: Codex - branch: codex/bootstrap-sula - related commit(s): pending - status: completed",
+      "status": "active",
+      "path": "docs/change-records/2026-04-12-add-machine-json-interfaces-artifact-routing-portfolio-registry-and-google-drive-local-sync-contracts.md",
+      "source_paths": [
+        "docs/change-records/2026-04-12-add-machine-json-interfaces-artifact-routing-portfolio-registry-and-google-drive-local-sync-contracts.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
         "docs",
         "memory",
         "repo"
@@ -1399,6 +1532,7 @@
       ],
       "adapters": [
         "generic-project",
+        "local-fs",
         "docs",
         "memory",
         "repo"
@@ -1420,6 +1554,7 @@
       ],
       "adapters": [
         "generic-project",
+        "local-fs",
         "docs",
         "memory",
         "repo"
@@ -1441,6 +1576,7 @@
       ],
       "adapters": [
         "generic-project",
+        "local-fs",
         "docs",
         "memory",
         "repo"
@@ -1462,6 +1598,7 @@
       ],
       "adapters": [
         "generic-project",
+        "local-fs",
         "docs",
         "memory",
         "repo"
@@ -1483,6 +1620,7 @@
       ],
       "adapters": [
         "generic-project",
+        "local-fs",
         "docs",
         "memory",
         "repo"
@@ -1504,6 +1642,7 @@
       ],
       "adapters": [
         "generic-project",
+        "local-fs",
         "docs",
         "memory",
         "repo"
@@ -1525,6 +1664,7 @@
       ],
       "adapters": [
         "generic-project",
+        "local-fs",
         "docs",
         "memory",
         "repo"
@@ -1546,6 +1686,7 @@
       ],
       "adapters": [
         "generic-project",
+        "local-fs",
         "docs",
         "repo"
       ],
@@ -1566,6 +1707,7 @@
       ],
       "adapters": [
         "generic-project",
+        "local-fs",
         "docs",
         "repo"
       ],
@@ -1586,6 +1728,7 @@
       ],
       "adapters": [
         "generic-project",
+        "local-fs",
         "docs",
         "repo"
       ],
@@ -1607,6 +1750,7 @@
       ],
       "adapters": [
         "generic-project",
+        "local-fs",
         "docs",
         "repo",
         "release"
@@ -1628,6 +1772,7 @@
       ],
       "adapters": [
         "generic-project",
+        "local-fs",
         "docs",
         "repo"
       ],
@@ -1648,6 +1793,7 @@
       ],
       "adapters": [
         "generic-project",
+        "local-fs",
         "docs",
         "repo"
       ],
@@ -1668,6 +1814,7 @@
       ],
       "adapters": [
         "generic-project",
+        "local-fs",
         "docs",
         "repo"
       ],
@@ -1688,6 +1835,7 @@
       ],
       "adapters": [
         "generic-project",
+        "local-fs",
         "docs",
         "repo"
       ],
@@ -1708,6 +1856,7 @@
       ],
       "adapters": [
         "generic-project",
+        "local-fs",
         "docs",
         "repo"
       ],
@@ -1728,11 +1877,55 @@
       ],
       "adapters": [
         "generic-project",
+        "local-fs",
         "docs",
         "repo"
       ],
       "tags": [
         "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:docs-reference-portfolio-adapter-workflow-contract-md",
+      "kind": "document",
+      "title": "portfolio-adapter-workflow-contract.md",
+      "summary": "This document defines how Sula should scale from one adopted repository to a multi-project workspace that may mix code projects, Google Drive projects, and future providers such as Feishu.",
+      "status": "indexed",
+      "path": "docs/reference/portfolio-adapter-workflow-contract.md",
+      "source_paths": [
+        "docs/reference/portfolio-adapter-workflow-contract.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "agreement:source:docs-reference-portfolio-adapter-workflow-contract-md",
+      "kind": "agreement",
+      "title": "Sula Portfolio, Adapter, and Workflow Contract",
+      "summary": "This document defines how Sula should scale from one adopted repository to a multi-project workspace that may mix code projects, Google Drive projects, and future providers such as Feishu.",
+      "status": "active",
+      "path": "docs/reference/portfolio-adapter-workflow-contract.md",
+      "source_paths": [
+        "docs/reference/portfolio-adapter-workflow-contract.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo"
+      ],
+      "tags": [
+        "agreement",
+        "source"
       ],
       "date": null
     },
@@ -1748,6 +1941,7 @@
       ],
       "adapters": [
         "generic-project",
+        "local-fs",
         "docs",
         "repo"
       ],
@@ -1768,6 +1962,7 @@
       ],
       "adapters": [
         "generic-project",
+        "local-fs",
         "docs",
         "repo"
       ],
@@ -1788,6 +1983,7 @@
       ],
       "adapters": [
         "generic-project",
+        "local-fs",
         "docs",
         "repo",
         "release"
@@ -1809,6 +2005,7 @@
       ],
       "adapters": [
         "generic-project",
+        "local-fs",
         "docs",
         "repo"
       ],
@@ -1829,6 +2026,7 @@
       ],
       "adapters": [
         "generic-project",
+        "local-fs",
         "docs",
         "repo"
       ],
@@ -1849,6 +2047,7 @@
       ],
       "adapters": [
         "generic-project",
+        "local-fs",
         "docs",
         "repo",
         "release"
@@ -1870,6 +2069,7 @@
       ],
       "adapters": [
         "generic-project",
+        "local-fs",
         "docs",
         "memory",
         "repo",
@@ -1892,6 +2092,7 @@
       ],
       "adapters": [
         "generic-project",
+        "local-fs",
         "docs",
         "memory",
         "repo",
@@ -1914,6 +2115,7 @@
       ],
       "adapters": [
         "generic-project",
+        "local-fs",
         "docs",
         "memory",
         "repo",
@@ -1937,6 +2139,7 @@
       ],
       "adapters": [
         "generic-project",
+        "local-fs",
         "docs",
         "repo",
         "release"
@@ -1958,6 +2161,7 @@
       ],
       "adapters": [
         "generic-project",
+        "local-fs",
         "docs",
         "repo"
       ],
@@ -1978,6 +2182,7 @@
       ],
       "adapters": [
         "generic-project",
+        "local-fs",
         "docs",
         "repo",
         "release"
@@ -1999,6 +2204,7 @@
       ],
       "adapters": [
         "generic-project",
+        "local-fs",
         "docs",
         "repo",
         "release"
@@ -2021,6 +2227,7 @@
       ],
       "adapters": [
         "generic-project",
+        "local-fs",
         "docs",
         "repo"
       ],
@@ -2041,6 +2248,7 @@
       ],
       "adapters": [
         "generic-project",
+        "local-fs",
         "repo"
       ],
       "tags": [
@@ -2060,6 +2268,7 @@
       ],
       "adapters": [
         "generic-project",
+        "local-fs",
         "docs",
         "repo"
       ],
@@ -2080,6 +2289,7 @@
       ],
       "adapters": [
         "generic-project",
+        "local-fs",
         "docs",
         "repo"
       ],
@@ -2100,6 +2310,7 @@
       ],
       "adapters": [
         "generic-project",
+        "local-fs",
         "docs",
         "repo"
       ],
@@ -2120,6 +2331,7 @@
       ],
       "adapters": [
         "generic-project",
+        "local-fs",
         "docs",
         "repo"
       ],
@@ -2140,6 +2352,7 @@
       ],
       "adapters": [
         "generic-project",
+        "local-fs",
         "docs",
         "repo"
       ],
@@ -2160,6 +2373,7 @@
       ],
       "adapters": [
         "generic-project",
+        "local-fs",
         "docs",
         "repo"
       ],
@@ -2180,6 +2394,7 @@
       ],
       "adapters": [
         "generic-project",
+        "local-fs",
         "docs",
         "repo"
       ],
@@ -2200,6 +2415,7 @@
       ],
       "adapters": [
         "generic-project",
+        "local-fs",
         "docs",
         "repo"
       ],
@@ -2220,6 +2436,7 @@
       ],
       "adapters": [
         "generic-project",
+        "local-fs",
         "docs",
         "repo"
       ],
@@ -2240,6 +2457,7 @@
       ],
       "adapters": [
         "generic-project",
+        "local-fs",
         "docs",
         "repo"
       ],
@@ -2260,6 +2478,7 @@
       ],
       "adapters": [
         "generic-project",
+        "local-fs",
         "docs",
         "memory",
         "repo"
@@ -2281,6 +2500,7 @@
       ],
       "adapters": [
         "generic-project",
+        "local-fs",
         "docs",
         "memory",
         "repo"
@@ -2302,6 +2522,7 @@
       ],
       "adapters": [
         "generic-project",
+        "local-fs",
         "docs",
         "memory",
         "repo"
@@ -2323,6 +2544,7 @@
       ],
       "adapters": [
         "generic-project",
+        "local-fs",
         "docs",
         "memory",
         "repo"
@@ -2344,6 +2566,7 @@
       ],
       "adapters": [
         "generic-project",
+        "local-fs",
         "docs",
         "memory",
         "repo"
@@ -2365,6 +2588,7 @@
       ],
       "adapters": [
         "generic-project",
+        "local-fs",
         "docs",
         "memory",
         "repo"
@@ -2386,6 +2610,7 @@
       ],
       "adapters": [
         "generic-project",
+        "local-fs",
         "docs",
         "repo"
       ],
@@ -2406,6 +2631,7 @@
       ],
       "adapters": [
         "generic-project",
+        "local-fs",
         "docs",
         "repo"
       ],
@@ -2426,6 +2652,7 @@
       ],
       "adapters": [
         "generic-project",
+        "local-fs",
         "docs",
         "repo"
       ],
@@ -2447,6 +2674,7 @@
       ],
       "adapters": [
         "generic-project",
+        "local-fs",
         "docs",
         "repo",
         "release"
@@ -2468,6 +2696,7 @@
       ],
       "adapters": [
         "generic-project",
+        "local-fs",
         "docs",
         "repo"
       ],
@@ -2488,6 +2717,7 @@
       ],
       "adapters": [
         "generic-project",
+        "local-fs",
         "docs",
         "repo"
       ],
@@ -2508,6 +2738,7 @@
       ],
       "adapters": [
         "generic-project",
+        "local-fs",
         "docs",
         "repo"
       ],
@@ -2528,6 +2759,7 @@
       ],
       "adapters": [
         "generic-project",
+        "local-fs",
         "docs",
         "memory",
         "repo",
@@ -2550,6 +2782,7 @@
       ],
       "adapters": [
         "generic-project",
+        "local-fs",
         "docs",
         "memory",
         "repo",
@@ -2573,6 +2806,7 @@
       ],
       "adapters": [
         "generic-project",
+        "local-fs",
         "docs",
         "memory",
         "repo",
@@ -2596,6 +2830,7 @@
       ],
       "adapters": [
         "generic-project",
+        "local-fs",
         "docs",
         "memory",
         "repo",
@@ -2618,6 +2853,7 @@
       ],
       "adapters": [
         "generic-project",
+        "local-fs",
         "docs",
         "memory",
         "repo",
@@ -2640,6 +2876,7 @@
       ],
       "adapters": [
         "generic-project",
+        "local-fs",
         "docs",
         "memory",
         "repo",
@@ -2663,6 +2900,7 @@
       ],
       "adapters": [
         "generic-project",
+        "local-fs",
         "docs",
         "repo"
       ],
@@ -2683,6 +2921,7 @@
       ],
       "adapters": [
         "generic-project",
+        "local-fs",
         "docs",
         "repo"
       ],
@@ -2703,6 +2942,7 @@
       ],
       "adapters": [
         "generic-project",
+        "local-fs",
         "docs",
         "repo"
       ],
@@ -2723,6 +2963,7 @@
       ],
       "adapters": [
         "generic-project",
+        "local-fs",
         "repo"
       ],
       "tags": [
@@ -2742,6 +2983,7 @@
       ],
       "adapters": [
         "generic-project",
+        "local-fs",
         "repo"
       ],
       "tags": [
@@ -2761,6 +3003,7 @@
       ],
       "adapters": [
         "generic-project",
+        "local-fs",
         "repo"
       ],
       "tags": [
@@ -2780,6 +3023,7 @@
       ],
       "adapters": [
         "generic-project",
+        "local-fs",
         "repo"
       ],
       "tags": [
@@ -2799,6 +3043,7 @@
       ],
       "adapters": [
         "generic-project",
+        "local-fs",
         "repo",
         "registry"
       ],
@@ -2819,6 +3064,7 @@
       ],
       "adapters": [
         "generic-project",
+        "local-fs",
         "repo"
       ],
       "tags": [
@@ -2838,6 +3084,7 @@
       ],
       "adapters": [
         "generic-project",
+        "local-fs",
         "repo"
       ],
       "tags": [
@@ -2857,6 +3104,7 @@
       ],
       "adapters": [
         "generic-project",
+        "local-fs",
         "repo"
       ],
       "tags": [
@@ -2876,6 +3124,7 @@
       ],
       "adapters": [
         "generic-project",
+        "local-fs",
         "docs",
         "repo"
       ],
@@ -2896,6 +3145,7 @@
       ],
       "adapters": [
         "generic-project",
+        "local-fs",
         "repo"
       ],
       "tags": [
@@ -2915,6 +3165,7 @@
       ],
       "adapters": [
         "generic-project",
+        "local-fs",
         "docs",
         "repo"
       ],
@@ -2935,6 +3186,7 @@
       ],
       "adapters": [
         "generic-project",
+        "local-fs",
         "docs",
         "repo"
       ],
@@ -2955,6 +3207,7 @@
       ],
       "adapters": [
         "generic-project",
+        "local-fs",
         "docs",
         "repo"
       ],
@@ -2975,6 +3228,7 @@
       ],
       "adapters": [
         "generic-project",
+        "local-fs",
         "repo"
       ],
       "tags": [
@@ -2994,6 +3248,7 @@
       ],
       "adapters": [
         "generic-project",
+        "local-fs",
         "repo"
       ],
       "tags": [

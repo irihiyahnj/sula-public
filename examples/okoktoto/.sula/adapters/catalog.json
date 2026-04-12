@@ -1,5 +1,5 @@
 {
-  "version": "0.6.0",
+  "version": "0.7.0",
   "profile": "react-frontend-erpnext",
   "adapters": [
     {
@@ -54,6 +54,22 @@
         ".github/**",
         "*"
       ]
+    },
+    {
+      "id": "local-fs",
+      "kind": "core",
+      "required": false,
+      "enabled": true,
+      "git_required": false,
+      "description": "Local filesystem workspace adapter.",
+      "source_matchers": [
+        "*"
+      ],
+      "provider": "local-fs",
+      "sync_mode": "local-only",
+      "workspace_root": "/Users/jing/Library/CloudStorage/GoogleDrive-hr.rrrrrr@gmail.com/My Drive/workspace/projectdev/sula/examples/okoktoto",
+      "provider_root_url": "local-only",
+      "provider_root_id": "n/a"
     },
     {
       "id": "deploy",

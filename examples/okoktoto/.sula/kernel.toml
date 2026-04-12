@@ -1,10 +1,11 @@
 [kernel]
-sula_version = "0.6.0"
+sula_version = "0.7.0"
 profile = "react-frontend-erpnext"
-adapters = ["generic-project", "docs", "memory", "repo", "deploy", "erpnext"]
+adapters = ["generic-project", "docs", "memory", "repo", "local-fs", "deploy", "erpnext"]
 git_enabled = true
 adapter_catalog = ".sula/adapters/catalog.json"
 bundle_catalog = ".sula/adapters/bundles.json"
+artifact_catalog = ".sula/artifacts/catalog.json"
 object_catalog = ".sula/objects/catalog.json"
 state_snapshot = ".sula/state/current.md"
 source_registry = ".sula/sources/registry.json"

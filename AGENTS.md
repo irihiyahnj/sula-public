@@ -30,7 +30,8 @@ This file is the primary instruction source for AI coding agents working in the 
 - `react-frontend-erpnext` profile
 - `sula-core` profile
 - project manifest schema and example
-- `adopt`, `init`, `sync`, `doctor`, `remove`, `record`, and `memory digest` commands
+- machine-readable CLI outputs for local software integration
+- `adopt`, `init`, `sync`, `doctor`, `remove`, `query`, `status`, `artifact`, `portfolio`, `record`, and `memory digest` commands
 
 ## Out Of Scope For Now
 

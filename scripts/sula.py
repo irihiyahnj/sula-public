@@ -105,7 +105,24 @@ OPTIONAL_MANIFEST_SPEC = {
         "incident_record_directory": "string",
         "digest_file": "string",
         "status_max_age_days": "int",
-    }
+    },
+    "workflow": {
+        "pack": "string",
+        "stage": "string",
+        "artifacts_root": "string",
+    },
+    "storage": {
+        "provider": "string",
+        "sync_mode": "string",
+        "workspace_root": "string",
+        "provider_root_url": "string",
+        "provider_root_id": "string",
+    },
+    "portfolio": {
+        "portfolio_id": "string",
+        "workspace": "string",
+        "owner": "string",
+    },
 }
 
 EXISTENCE_WARNING_FIELDS = [
@@ -245,6 +262,48 @@ class ProjectConfig:
     def status_max_age_days(self) -> int:
         return int(self.memory_setting("status_max_age_days", 30))
 
+    def workflow_setting(self, key: str, default):
+        return self.data.get("workflow", {}).get(key, default)
+
+    def storage_setting(self, key: str, default):
+        return self.data.get("storage", {}).get(key, default)
+
+    def portfolio_setting(self, key: str, default):
+        return self.data.get("portfolio", {}).get(key, default)
+
+    @property
+    def workflow_pack(self) -> str:
+        return str(self.workflow_setting("pack", default_workflow_pack(self.profile)))
+
+    @property
+    def workflow_stage(self) -> str:
+        return str(self.workflow_setting("stage", "active"))
+
+    @property
+    def artifacts_root(self) -> Path:
+        return self.root / self.workflow_setting("artifacts_root", "artifacts")
+
+    @property
+    def storage_provider(self) -> str:
+        return str(self.storage_setting("provider", "local-fs"))
+
+    @property
+    def storage_sync_mode(self) -> str:
+        return str(self.storage_setting("sync_mode", "local-only"))
+
+    @property
+    def storage_workspace_root(self) -> Path:
+        raw = str(self.storage_setting("workspace_root", "."))
+        return (self.root / raw).resolve() if not Path(raw).is_absolute() else Path(raw)
+
+    @property
+    def provider_root_url(self) -> str:
+        return str(self.storage_setting("provider_root_url", "local-only"))
+
+    @property
+    def provider_root_id(self) -> str:
+        return str(self.storage_setting("provider_root_id", "n/a"))
+
     def token_map(self) -> dict[str, str]:
         auth = self.data["auth"]
         return {
@@ -280,6 +339,13 @@ class ProjectConfig:
             "DEPLOY_WORKFLOW": self.data["deploy"]["workflow"],
             "SESSION_EXPIRY_CODES": ", ".join(auth["session_expiry_codes"]),
             "PERMISSION_DENIED_CODES": ", ".join(auth["permission_denied_codes"]),
+            "WORKFLOW_PACK": self.workflow_pack,
+            "WORKFLOW_STAGE": self.workflow_stage,
+            "ARTIFACTS_ROOT": self.workflow_setting("artifacts_root", "artifacts"),
+            "STORAGE_PROVIDER": self.storage_provider,
+            "STORAGE_SYNC_MODE": self.storage_sync_mode,
+            "PORTFOLIO_ID": self.portfolio_setting("portfolio_id", "default"),
+            "PORTFOLIO_WORKSPACE": self.portfolio_setting("workspace", "personal"),
             "CURRENT_DATE": date.today().isoformat(),
             "KERNEL_ADAPTERS": ", ".join(self.kernel_adapters()),
             "GIT_MODE": "enabled" if is_git_repository(self.root) else "not-required",
@@ -290,6 +356,11 @@ class ProjectConfig:
         adapters = ["generic-project", "docs", "memory"]
         if is_git_repository(self.root):
             adapters.append("repo")
+        provider = self.storage_provider
+        if provider == "google-drive":
+            adapters.append("google-drive")
+        elif provider == "local-fs":
+            adapters.append("local-fs")
         if self.profile == "react-frontend-erpnext":
             adapters.extend(["deploy", "erpnext"])
         elif self.profile == "sula-core":
@@ -307,14 +378,27 @@ def parse_args() -> argparse.Namespace:
     init_cmd.add_argument("--slug")
     init_cmd.add_argument("--description")
     init_cmd.add_argument("--profile", default="react-frontend-erpnext")
+    init_cmd.add_argument("--workflow-pack")
+    init_cmd.add_argument("--workflow-stage")
+    init_cmd.add_argument("--storage-provider")
+    init_cmd.add_argument("--storage-sync-mode")
+    init_cmd.add_argument("--storage-workspace-root")
+    init_cmd.add_argument("--storage-provider-root-url")
+    init_cmd.add_argument("--storage-provider-root-id")
+    init_cmd.add_argument("--portfolio-id")
+    init_cmd.add_argument("--portfolio-workspace")
+    init_cmd.add_argument("--portfolio-owner")
+    init_cmd.add_argument("--json", action="store_true", help="Print JSON instead of human-readable output")
 
     sync_cmd = sub.add_parser("sync", help="Sync managed files from Sula into a project")
     add_project_root_arg(sync_cmd)
     sync_cmd.add_argument("--dry-run", action="store_true", help="Show the managed-file sync plan without writing")
+    sync_cmd.add_argument("--json", action="store_true", help="Print JSON instead of human-readable output")
 
     remove_cmd = sub.add_parser("remove", help="Inspect, report, and remove Sula from a project")
     add_project_root_arg(remove_cmd)
     remove_cmd.add_argument("--approve", action="store_true", help="Apply the removal plan after reporting it")
+    remove_cmd.add_argument("--json", action="store_true", help="Print JSON instead of human-readable output")
 
     query_cmd = sub.add_parser("query", help="Query project kernel state and sources")
     add_project_root_arg(query_cmd)
@@ -335,7 +419,18 @@ def parse_args() -> argparse.Namespace:
     adopt_cmd.add_argument("--name", help="Override the detected project name")
     adopt_cmd.add_argument("--slug", help="Override the detected project slug")
     adopt_cmd.add_argument("--description", help="Override the detected project description")
+    adopt_cmd.add_argument("--workflow-pack")
+    adopt_cmd.add_argument("--workflow-stage")
+    adopt_cmd.add_argument("--storage-provider")
+    adopt_cmd.add_argument("--storage-sync-mode")
+    adopt_cmd.add_argument("--storage-workspace-root")
+    adopt_cmd.add_argument("--storage-provider-root-url")
+    adopt_cmd.add_argument("--storage-provider-root-id")
+    adopt_cmd.add_argument("--portfolio-id")
+    adopt_cmd.add_argument("--portfolio-workspace")
+    adopt_cmd.add_argument("--portfolio-owner")
     adopt_cmd.add_argument("--approve", action="store_true", help="Apply the adoption plan after reporting it")
+    adopt_cmd.add_argument("--json", action="store_true", help="Print JSON instead of human-readable output")
 
     doctor_cmd = sub.add_parser("doctor", help="Check manifest, lockfile, and managed files")
     add_project_root_arg(doctor_cmd)
@@ -344,6 +439,40 @@ def parse_args() -> argparse.Namespace:
         action="store_true",
         help="Fail on warnings such as manifest references that do not exist in the project",
     )
+    doctor_cmd.add_argument("--json", action="store_true", help="Print JSON instead of human-readable output")
+
+    status_cmd = sub.add_parser("status", help="Summarize current project state")
+    add_project_root_arg(status_cmd)
+    status_cmd.add_argument("--json", action="store_true", help="Print JSON instead of human-readable output")
+
+    artifact_cmd = sub.add_parser("artifact", help="Create, register, and locate project artifacts")
+    artifact_sub = artifact_cmd.add_subparsers(dest="artifact_command", required=True)
+    artifact_create_cmd = artifact_sub.add_parser("create", help="Create a managed project artifact in the workflow slot")
+    add_project_root_arg(artifact_create_cmd)
+    artifact_create_cmd.add_argument("--kind", required=True, help="Artifact kind such as agreement, report, invoice, schedule")
+    artifact_create_cmd.add_argument("--title", required=True)
+    artifact_create_cmd.add_argument("--slug")
+    artifact_create_cmd.add_argument("--slot")
+    artifact_create_cmd.add_argument("--date")
+    artifact_create_cmd.add_argument("--summary", default="")
+    artifact_create_cmd.add_argument("--extension", default=".md")
+    artifact_create_cmd.add_argument("--json", action="store_true", help="Print JSON instead of human-readable output")
+
+    artifact_register_cmd = artifact_sub.add_parser("register", help="Register an existing project artifact path")
+    add_project_root_arg(artifact_register_cmd)
+    artifact_register_cmd.add_argument("--path", required=True, help="Path to an existing artifact, relative to project root")
+    artifact_register_cmd.add_argument("--kind", required=True)
+    artifact_register_cmd.add_argument("--title")
+    artifact_register_cmd.add_argument("--slot")
+    artifact_register_cmd.add_argument("--summary", default="")
+    artifact_register_cmd.add_argument("--json", action="store_true", help="Print JSON instead of human-readable output")
+
+    artifact_locate_cmd = artifact_sub.add_parser("locate", help="Locate registered artifacts")
+    add_project_root_arg(artifact_locate_cmd)
+    artifact_locate_cmd.add_argument("--kind")
+    artifact_locate_cmd.add_argument("--q", default="")
+    artifact_locate_cmd.add_argument("--limit", type=int, default=10)
+    artifact_locate_cmd.add_argument("--json", action="store_true", help="Print JSON instead of human-readable output")
 
     record_cmd = sub.add_parser("record", help="Create a memory record inside a project")
     record_sub = record_cmd.add_subparsers(dest="record_command", required=True)
@@ -356,6 +485,7 @@ def parse_args() -> argparse.Namespace:
     record_new_cmd.add_argument("--summary", default="")
     record_new_cmd.add_argument("--executor")
     record_new_cmd.add_argument("--branch")
+    record_new_cmd.add_argument("--json", action="store_true", help="Print JSON instead of human-readable output")
 
     memory_cmd = sub.add_parser("memory", help="Generate a single-project memory digest")
     memory_sub = memory_cmd.add_subparsers(dest="memory_command", required=True)
@@ -363,6 +493,36 @@ def parse_args() -> argparse.Namespace:
     add_project_root_arg(memory_digest_cmd)
     memory_digest_cmd.add_argument("--output", help="Optional output path relative to the project root")
     memory_digest_cmd.add_argument("--stdout", action="store_true", help="Print the digest instead of writing it")
+    memory_digest_cmd.add_argument("--json", action="store_true", help="Print JSON instead of human-readable output")
+
+    portfolio_cmd = sub.add_parser("portfolio", help="Manage and query a portfolio of adopted projects")
+    portfolio_sub = portfolio_cmd.add_subparsers(dest="portfolio_command", required=True)
+
+    portfolio_register_cmd = portfolio_sub.add_parser("register", help="Register a project in the portfolio registry")
+    add_project_root_arg(portfolio_register_cmd)
+    add_portfolio_root_arg(portfolio_register_cmd)
+    portfolio_register_cmd.add_argument("--json", action="store_true", help="Print JSON instead of human-readable output")
+
+    portfolio_list_cmd = portfolio_sub.add_parser("list", help="List registered portfolio projects")
+    add_portfolio_root_arg(portfolio_list_cmd)
+    portfolio_list_cmd.add_argument("--json", action="store_true", help="Print JSON instead of human-readable output")
+
+    portfolio_status_cmd = portfolio_sub.add_parser("status", help="Summarize portfolio health and activity")
+    add_portfolio_root_arg(portfolio_status_cmd)
+    portfolio_status_cmd.add_argument("--json", action="store_true", help="Print JSON instead of human-readable output")
+
+    portfolio_query_cmd = portfolio_sub.add_parser("query", help="Query across registered portfolio projects")
+    add_portfolio_root_arg(portfolio_query_cmd)
+    portfolio_query_cmd.add_argument("--q", required=True)
+    portfolio_query_cmd.add_argument("--kind")
+    portfolio_query_cmd.add_argument("--adapter")
+    portfolio_query_cmd.add_argument("--status")
+    portfolio_query_cmd.add_argument("--path-prefix")
+    portfolio_query_cmd.add_argument("--since")
+    portfolio_query_cmd.add_argument("--until")
+    portfolio_query_cmd.add_argument("--timeline", action="store_true")
+    portfolio_query_cmd.add_argument("--limit", type=int, default=20)
+    portfolio_query_cmd.add_argument("--json", action="store_true", help="Print JSON instead of human-readable output")
 
     return parser.parse_args()
 
@@ -371,38 +531,249 @@ def add_project_root_arg(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--project-root", required=True, help="Path to the target project root")
 
 
+def add_portfolio_root_arg(parser: argparse.ArgumentParser) -> None:
+    parser.add_argument("--portfolio-root", help="Optional portfolio registry root; defaults to ~/.sula/portfolio")
+
+
+def emit_json(payload: dict[str, object]) -> None:
+    print(json.dumps(payload, indent=2, ensure_ascii=True))
+
+
+def json_output_requested(args: argparse.Namespace) -> bool:
+    return bool(getattr(args, "json", False))
+
+
+def project_payload(config: ProjectConfig) -> dict[str, object]:
+    return {
+        "name": config.data["project"]["name"],
+        "slug": config.data["project"]["slug"],
+        "profile": config.profile,
+        "root": str(config.root),
+        "workflow_pack": config.workflow_pack,
+        "workflow_stage": config.workflow_stage,
+        "storage_provider": config.storage_provider,
+        "storage_sync_mode": config.storage_sync_mode,
+        "portfolio_id": config.portfolio_setting("portfolio_id", "default"),
+    }
+
+
+def sync_plan_payload(actions: list[RenderAction]) -> dict[str, object]:
+    return {
+        "summary": summarize_status_counts(actions),
+        "actions": [
+            {
+                "path": action.relative_path.as_posix(),
+                "status": action.status,
+                "impact_level": action.impact_level,
+                "impact_scope": action.impact_scope,
+                "origin": action.origin,
+                "managed": action.overwrite,
+            }
+            for action in actions
+        ],
+    }
+
+
+def default_portfolio_root() -> Path:
+    return Path.home() / ".sula" / "portfolio"
+
+
+def resolve_portfolio_root(raw: str | None) -> Path:
+    if raw:
+        return Path(raw).expanduser().resolve()
+    return default_portfolio_root().resolve()
+
+
+def portfolio_registry_path(portfolio_root: Path) -> Path:
+    return portfolio_root / "registry.json"
+
+
+def load_portfolio_registry(portfolio_root: Path) -> dict[str, object]:
+    path = portfolio_registry_path(portfolio_root)
+    if not path.exists():
+        return {"version": VERSION, "projects": []}
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError as exc:
+        raise SystemExit(f"Invalid portfolio registry JSON: {path} ({exc})")
+    if not isinstance(data, dict) or not isinstance(data.get("projects"), list):
+        raise SystemExit(f"Malformed portfolio registry: {path}")
+    return data
+
+
+def write_portfolio_registry(portfolio_root: Path, registry: dict[str, object]) -> None:
+    portfolio_root.mkdir(parents=True, exist_ok=True)
+    portfolio_registry_path(portfolio_root).write_text(
+        json.dumps(registry, indent=2, ensure_ascii=True) + "\n",
+        encoding="utf-8",
+    )
+
+
+def workflow_pack_definition(pack: str) -> dict[str, object]:
+    packs = {
+        "generic-project": {
+            "slots": ["intake", "contracts", "planning", "delivery", "finance", "archive"],
+            "artifact_slots": {
+                "agreement": "contracts",
+                "contract": "contracts",
+                "quote": "finance",
+                "invoice": "finance",
+                "report": "delivery",
+                "schedule": "planning",
+                "brief": "planning",
+                "deliverable": "delivery",
+                "note": "intake",
+            },
+        },
+        "client-service": {
+            "slots": ["intake", "contracts", "planning", "delivery", "finance", "archive"],
+            "artifact_slots": {
+                "agreement": "contracts",
+                "contract": "contracts",
+                "quote": "finance",
+                "invoice": "finance",
+                "report": "delivery",
+                "schedule": "planning",
+                "brief": "planning",
+                "deliverable": "delivery",
+                "progress": "delivery",
+                "note": "intake",
+            },
+        },
+        "video-production": {
+            "slots": ["intake", "contracts", "planning", "production", "delivery", "finance", "archive"],
+            "artifact_slots": {
+                "agreement": "contracts",
+                "contract": "contracts",
+                "quote": "finance",
+                "invoice": "finance",
+                "report": "delivery",
+                "schedule": "planning",
+                "brief": "planning",
+                "shot-list": "production",
+                "progress": "production",
+                "daily-log": "production",
+                "deliverable": "delivery",
+                "note": "intake",
+            },
+        },
+        "software-delivery": {
+            "slots": ["intake", "planning", "implementation", "delivery", "archive"],
+            "artifact_slots": {
+                "report": "delivery",
+                "schedule": "planning",
+                "brief": "planning",
+                "deliverable": "delivery",
+                "note": "intake",
+            },
+        },
+        "operating-system": {
+            "slots": ["design", "operations", "releases", "archive"],
+            "artifact_slots": {
+                "report": "operations",
+                "release": "releases",
+                "note": "design",
+            },
+        },
+    }
+    return packs.get(pack, packs["generic-project"])
+
+
+def artifact_slot_for_kind(config: ProjectConfig, artifact_kind: str, explicit_slot: str | None = None) -> str:
+    if explicit_slot:
+        return explicit_slot
+    mapping = workflow_pack_definition(config.workflow_pack).get("artifact_slots", {})
+    if isinstance(mapping, dict):
+        slot = mapping.get(artifact_kind.lower())
+        if isinstance(slot, str) and slot:
+            return slot
+    return "delivery"
+
+
+def artifact_catalog_path(config: ProjectConfig) -> Path:
+    return config.root / ".sula" / "artifacts" / "catalog.json"
+
+
+def ensure_artifact_catalog(config: ProjectConfig) -> None:
+    path = artifact_catalog_path(config)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    if path.exists():
+        return
+    path.write_text(json.dumps({"version": VERSION, "artifacts": []}, indent=2, ensure_ascii=True) + "\n", encoding="utf-8")
+
+
+def load_artifact_catalog(config: ProjectConfig) -> dict[str, object]:
+    ensure_artifact_catalog(config)
+    path = artifact_catalog_path(config)
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError as exc:
+        raise SystemExit(f"Invalid artifact catalog JSON: {path} ({exc})")
+    if not isinstance(data, dict) or not isinstance(data.get("artifacts"), list):
+        raise SystemExit(f"Malformed artifact catalog: {path}")
+    return data
+
+
+def write_artifact_catalog(config: ProjectConfig, catalog: dict[str, object]) -> None:
+    path = artifact_catalog_path(config)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(catalog, indent=2, ensure_ascii=True) + "\n", encoding="utf-8")
+
+
 def main() -> int:
     args = parse_args()
-    project_root = Path(args.project_root).expanduser().resolve()
+    project_root = Path(args.project_root).expanduser().resolve() if hasattr(args, "project_root") else None
 
     if args.command == "init":
+        assert project_root is not None
         config = ensure_manifest(project_root, args)
         apply_actions(collect_render_actions(config, include_scaffold=True))
         write_lockfile(config)
         refresh_kernel_state(config, event_type="init.applied", summary="Initialized Sula manifest and kernel state.")
+        if getattr(args, "json", False):
+            emit_json({"command": "init", "status": "ok", "project": project_payload(config)})
+            return 0
         print(f"Initialized Sula for {config.data['project']['name']} at {project_root}")
         return 0
 
     if args.command == "adopt":
+        assert project_root is not None
         return adopt(project_root, args)
 
     if args.command == "remove":
+        assert project_root is not None
         return remove_sula(project_root, args)
 
+    if args.command == "portfolio":
+        return handle_portfolio_command(args)
+
+    assert project_root is not None
     config = load_manifest(project_root)
     if args.command == "sync":
         actions = collect_render_actions(config, include_scaffold=False)
         if args.dry_run:
+            if getattr(args, "json", False):
+                emit_json({"command": "sync", "status": "dry-run", "project": project_payload(config), "plan": sync_plan_payload(actions)})
+                return 0
             print_sync_plan(config, actions)
             return 0
         apply_actions(actions)
         write_lockfile(config)
         refresh_kernel_state(config, event_type="sync.applied", summary="Synchronized managed Sula files.")
+        if getattr(args, "json", False):
+            emit_json({"command": "sync", "status": "ok", "project": project_payload(config), "plan": sync_plan_payload(actions)})
+            return 0
         print(f"Synchronized managed files for {config.data['project']['name']}")
         return 0
 
     if args.command == "doctor":
-        return doctor(config, strict=args.strict)
+        return doctor(config, strict=args.strict, json_mode=json_output_requested(args))
+
+    if args.command == "status":
+        return project_status(config, args)
+
+    if args.command == "artifact":
+        return handle_artifact_command(config, args)
 
     if args.command == "record":
         if args.record_command == "new":
@@ -434,6 +805,9 @@ def build_manifest(args: argparse.Namespace) -> dict:
     slug = args.slug or "example-project"
     description = args.description or "Project adopted by Sula"
     profile = args.profile
+    workflow = manifest_workflow_config(args, profile)
+    storage = manifest_storage_config(args)
+    portfolio = manifest_portfolio_config(args)
     if profile == "sula-core":
         return {
             "project": {
@@ -480,6 +854,9 @@ def build_manifest(args: argparse.Namespace) -> dict:
                 "permission_denied_codes": ["n/a"],
             },
             "memory": default_memory_config(),
+            "workflow": workflow,
+            "storage": storage,
+            "portfolio": portfolio,
         }
     if profile == "generic-project":
         return {
@@ -527,6 +904,9 @@ def build_manifest(args: argparse.Namespace) -> dict:
                 "permission_denied_codes": ["n/a"],
             },
             "memory": default_memory_config(),
+            "workflow": workflow,
+            "storage": storage,
+            "portfolio": portfolio,
         }
     return {
         "project": {
@@ -572,13 +952,10 @@ def build_manifest(args: argparse.Namespace) -> dict:
             "session_expiry_codes": ["401", "440"],
             "permission_denied_codes": ["403"],
         },
-        "memory": {
-            "change_record_directory": "docs/change-records",
-            "release_record_directory": "docs/releases",
-            "incident_record_directory": "docs/incidents",
-            "digest_file": ".sula/memory-digest.md",
-            "status_max_age_days": 30,
-        },
+        "memory": default_memory_config(),
+        "workflow": workflow,
+        "storage": storage,
+        "portfolio": portfolio,
     }
 
 
@@ -594,12 +971,43 @@ def render_manifest(manifest: dict) -> str:
         "deploy",
         "auth",
         "memory",
+        "workflow",
+        "storage",
+        "portfolio",
     ]:
+        if section_name not in manifest:
+            continue
         lines.append(f"[{section_name}]")
         for key, value in manifest[section_name].items():
             lines.append(f"{key} = {format_toml_value(value)}")
         lines.append("")
     return "\n".join(lines).rstrip() + "\n"
+
+
+def manifest_workflow_config(args: argparse.Namespace, profile: str) -> dict:
+    return {
+        "pack": getattr(args, "workflow_pack", None) or default_workflow_pack(profile),
+        "stage": getattr(args, "workflow_stage", None) or "active",
+        "artifacts_root": "artifacts",
+    }
+
+
+def manifest_storage_config(args: argparse.Namespace) -> dict:
+    return {
+        "provider": getattr(args, "storage_provider", None) or "local-fs",
+        "sync_mode": getattr(args, "storage_sync_mode", None) or "local-only",
+        "workspace_root": getattr(args, "storage_workspace_root", None) or ".",
+        "provider_root_url": getattr(args, "storage_provider_root_url", None) or "local-only",
+        "provider_root_id": getattr(args, "storage_provider_root_id", None) or "n/a",
+    }
+
+
+def manifest_portfolio_config(args: argparse.Namespace) -> dict:
+    return {
+        "portfolio_id": getattr(args, "portfolio_id", None) or "default",
+        "workspace": getattr(args, "portfolio_workspace", None) or "personal",
+        "owner": getattr(args, "portfolio_owner", None) or "n/a",
+    }
 
 
 def format_toml_value(value) -> str:
@@ -781,15 +1189,89 @@ def validate_field(section: str, key: str, value, expected_kind: str, invalid: l
     invalid.append(f"{label} uses unsupported schema kind: {expected_kind}")
 
 
+def render_action_payload(action: RenderAction) -> dict[str, object]:
+    return {
+        "path": action.relative_path.as_posix(),
+        "status": action.status,
+        "managed": action.overwrite,
+        "origin": action.origin,
+        "impact_level": action.impact_level,
+        "impact_scope": action.impact_scope,
+    }
+
+
+def adoption_report_payload(report: AdoptionReport) -> dict[str, object]:
+    return {
+        "project_root": str(report.project_root),
+        "profile": report.profile,
+        "manifest": report.config_data,
+        "project": report.config_data.get("project") if report.config_data else None,
+        "repository": report.config_data.get("repository") if report.config_data else None,
+        "warnings": report.warnings,
+        "blockers": report.blockers,
+        "detection_notes": report.detection_notes,
+        "managed_creates": [render_action_payload(action) for action in report.managed_creates],
+        "managed_updates": [render_action_payload(action) for action in report.managed_updates],
+        "scaffold_creates": [render_action_payload(action) for action in report.scaffold_creates],
+        "scaffold_preserved": [render_action_payload(action) for action in report.scaffold_preserved],
+    }
+
+
+def removal_report_payload(report: RemovalReport) -> dict[str, object]:
+    return {
+        "project_root": str(report.project_root),
+        "project": project_payload(report.config) if report.config else None,
+        "warnings": report.warnings,
+        "blockers": report.blockers,
+        "kernel_remove_paths": [path.as_posix() for path in report.kernel_remove_paths],
+        "managed_remove_paths": [path.as_posix() for path in report.managed_remove_paths],
+        "scaffold_preserve_paths": [path.as_posix() for path in report.scaffold_preserve_paths],
+    }
+
+
+def doctor_payload(
+    config: ProjectConfig,
+    *,
+    missing_files: list[str],
+    drifted_files: list[str],
+    placeholder_files: list[str],
+    memory_errors: list[str],
+    lock_issues: list[str],
+    kernel_errors: list[str],
+    warnings: list[str],
+    passed: bool,
+) -> dict[str, object]:
+    return {
+        "project": project_payload(config),
+        "passed": passed,
+        "missing_files": missing_files,
+        "drifted_files": drifted_files,
+        "placeholder_files": placeholder_files,
+        "memory_errors": memory_errors,
+        "lock_issues": lock_issues,
+        "kernel_errors": kernel_errors,
+        "warnings": warnings,
+    }
+
+
 def adopt(project_root: Path, args: argparse.Namespace) -> int:
     report = inspect_adoption(project_root, args)
+    if json_output_requested(args):
+        if not args.approve:
+            emit_json({"command": "adopt", "status": "report", "report": adoption_report_payload(report)})
+            return 0
+        if report.blockers:
+            emit_json({"command": "adopt", "status": "blocked", "report": adoption_report_payload(report)})
+            return 1
+        exit_code = apply_adoption(report, json_mode=True)
+        return exit_code
     print_adoption_report(report)
     if not args.approve:
         return 0
     if report.blockers:
         print("Adoption was not applied because blocking issues remain.")
         return 1
-    return apply_adoption(report)
+    return apply_adoption(report, json_mode=False)
 
 
 def inspect_adoption(project_root: Path, args: argparse.Namespace) -> AdoptionReport:
@@ -977,6 +1459,9 @@ def build_generic_project_manifest(
             "permission_denied_codes": ["n/a"],
         },
         "memory": default_memory_config(),
+        "workflow": manifest_workflow_config(args, "generic-project"),
+        "storage": manifest_storage_config(args),
+        "portfolio": manifest_portfolio_config(args),
     }
 
 
@@ -1033,6 +1518,9 @@ def build_sula_core_manifest(project_root: Path, args: argparse.Namespace, detec
             "permission_denied_codes": ["n/a"],
         },
         "memory": default_memory_config(),
+        "workflow": manifest_workflow_config(args, "sula-core"),
+        "storage": manifest_storage_config(args),
+        "portfolio": manifest_portfolio_config(args),
     }
 
 
@@ -1107,6 +1595,9 @@ def build_react_erpnext_manifest(
             "permission_denied_codes": ["403"],
         },
         "memory": default_memory_config(),
+        "workflow": manifest_workflow_config(args, "react-frontend-erpnext"),
+        "storage": manifest_storage_config(args),
+        "portfolio": manifest_portfolio_config(args),
     }
 
 
@@ -1118,6 +1609,15 @@ def default_memory_config() -> dict:
         "digest_file": ".sula/memory-digest.md",
         "status_max_age_days": 30,
     }
+
+
+def default_workflow_pack(profile: str) -> str:
+    defaults = {
+        "generic-project": "generic-project",
+        "react-frontend-erpnext": "software-delivery",
+        "sula-core": "operating-system",
+    }
+    return defaults.get(profile, "generic-project")
 
 
 def read_package_json(project_root: Path) -> dict | None:
@@ -1416,7 +1916,7 @@ def detect_repository_url(project_root: Path) -> str | None:
     return value or None
 
 
-def apply_adoption(report: AdoptionReport) -> int:
+def apply_adoption(report: AdoptionReport, *, json_mode: bool = False) -> int:
     assert report.config_data is not None
     config = ProjectConfig(root=report.project_root, data=report.config_data)
     manifest_path = config.root / MANIFEST_PATH
@@ -1425,10 +1925,21 @@ def apply_adoption(report: AdoptionReport) -> int:
     apply_actions(report.actions)
     write_lockfile(config)
     finalize_adoption_traceability(config)
-    generate_memory_digest(config, argparse.Namespace(output=None, stdout=False))
+    generate_memory_digest(config, argparse.Namespace(output=None, stdout=False, json=False))
     refresh_kernel_state(config, event_type="adopt.approved", summary="Applied initial Sula adoption.")
-    print("Post-adoption validation:")
-    doctor_exit = doctor(config, strict=True)
+    if not json_mode:
+        print("Post-adoption validation:")
+    doctor_exit = doctor(config, strict=True, json_mode=json_mode)
+    if json_mode:
+        emit_json(
+            {
+                "command": "adopt",
+                "status": "ok" if doctor_exit == 0 else "needs-follow-up",
+                "project": project_payload(config),
+                "report": adoption_report_payload(report),
+            }
+        )
+        return doctor_exit
     print_adoption_usage(config)
     if doctor_exit == 0:
         print(f"Sula adoption completed for {config.data['project']['name']}")
@@ -1706,6 +2217,22 @@ def create_record(config: ProjectConfig, args: argparse.Namespace) -> int:
         update_change_records_index(config, output_path, record_date, args.title, summary)
     update_status_for_new_record(config, args.kind, output_path, record_date, args.title)
     refresh_kernel_state(config, event_type=f"record.{args.kind}", summary=f"Added {args.kind} record `{args.title}`.")
+    if json_output_requested(args):
+        emit_json(
+            {
+                "command": "record.new",
+                "status": "ok",
+                "project": project_payload(config),
+                "record": {
+                    "kind": args.kind,
+                    "title": args.title,
+                    "date": record_date,
+                    "path": output_path.relative_to(config.root).as_posix(),
+                    "summary": summary,
+                },
+            }
+        )
+        return 0
     print(f"Created {args.kind} record at {output_path}")
     return 0
 
@@ -1980,6 +2507,16 @@ def generate_memory_digest(config: ProjectConfig, args: argparse.Namespace) -> i
     output_path.parent.mkdir(parents=True, exist_ok=True)
     output_path.write_text(digest, encoding="utf-8")
     refresh_kernel_state(config, event_type="memory.digest", summary=f"Regenerated memory digest at `{output_path.relative_to(config.root).as_posix()}`.")
+    if json_output_requested(args):
+        emit_json(
+            {
+                "command": "memory.digest",
+                "status": "ok",
+                "project": project_payload(config),
+                "output_path": output_path.relative_to(config.root).as_posix(),
+            }
+        )
+        return 0
     print(f"Wrote memory digest to {output_path}")
     return 0
 
@@ -2114,7 +2651,7 @@ def relative_link(from_path: Path, to_path: Path) -> str:
     return os.path.relpath(to_path, start=from_path.parent).replace(os.sep, "/")
 
 
-def doctor(config: ProjectConfig, *, strict: bool) -> int:
+def doctor(config: ProjectConfig, *, strict: bool, json_mode: bool = False) -> int:
     missing_files: list[str] = []
     drifted_files: list[str] = []
     placeholder_files: list[str] = []
@@ -2137,37 +2674,57 @@ def doctor(config: ProjectConfig, *, strict: bool) -> int:
 
     lock_issues.extend(check_lockfile(config))
 
-    if missing_files:
+    if not json_mode and missing_files:
         print("Missing managed files:")
         for item in missing_files:
             print(f"  - {item}")
-    if drifted_files:
+    if not json_mode and drifted_files:
         print("Managed files differ from the current Sula render:")
         for item in drifted_files:
             print(f"  - {item}")
-    if placeholder_files:
+    if not json_mode and placeholder_files:
         print("Files still contain unresolved placeholders:")
         for item in placeholder_files:
             print(f"  - {item}")
-    if memory_errors:
+    if not json_mode and memory_errors:
         print("Project memory issues:")
         for item in memory_errors:
             print(f"  - {item}")
-    if lock_issues:
+    if not json_mode and lock_issues:
         print("Lockfile issues:")
         for item in lock_issues:
             print(f"  - {item}")
-    if kernel_errors:
+    if not json_mode and kernel_errors:
         print("Kernel issues:")
         for item in kernel_errors:
             print(f"  - {item}")
-    if warnings:
+    if not json_mode and warnings:
         print("Warnings:")
         for item in warnings:
             print(f"  - {item}")
 
     has_errors = bool(missing_files or drifted_files or placeholder_files or memory_errors or lock_issues or kernel_errors)
-    if not has_errors and not (strict and warnings):
+    passed = not has_errors and not (strict and warnings)
+    if json_mode:
+        emit_json(
+            {
+                "command": "doctor",
+                "status": "ok" if passed else "failed",
+                **doctor_payload(
+                    config,
+                    missing_files=missing_files,
+                    drifted_files=drifted_files,
+                    placeholder_files=placeholder_files,
+                    memory_errors=memory_errors,
+                    lock_issues=lock_issues,
+                    kernel_errors=kernel_errors,
+                    warnings=warnings,
+                    passed=passed,
+                ),
+            }
+        )
+        return 0 if passed else 1
+    if passed:
         print(f"Sula doctor passed for {config.data['project']['name']}")
         return 0
     return 1
@@ -2193,6 +2750,7 @@ def collect_kernel_doctor_report(config: ProjectConfig) -> tuple[list[str], list
         kernel_root / "kernel.toml",
         kernel_root / "adapters" / "catalog.json",
         kernel_root / "adapters" / "bundles.json",
+        kernel_root / "artifacts" / "catalog.json",
         kernel_root / "objects" / "catalog.json",
         kernel_root / "state" / "current.md",
         kernel_root / "sources" / "registry.json",
@@ -2261,6 +2819,16 @@ def collect_kernel_doctor_report(config: ProjectConfig) -> tuple[list[str], list
                     if unknown:
                         errors.append(f"{bundle_catalog_path}: bundle references unknown adapters {unknown}")
                         break
+    artifact_catalog_path = kernel_root / "artifacts" / "catalog.json"
+    if artifact_catalog_path.exists():
+        try:
+            artifact_catalog = json.loads(artifact_catalog_path.read_text(encoding="utf-8"))
+        except json.JSONDecodeError as exc:
+            errors.append(f"invalid artifact catalog JSON: {artifact_catalog_path} ({exc})")
+        else:
+            artifacts = artifact_catalog.get("artifacts")
+            if not isinstance(artifacts, list):
+                errors.append(f"artifact catalog is malformed: {artifact_catalog_path}")
     object_catalog_path = kernel_root / "objects" / "catalog.json"
     object_ids: set[str] = set()
     if object_catalog_path.exists():
@@ -2560,7 +3128,7 @@ def write_lockfile(config: ProjectConfig) -> None:
 
 def refresh_kernel_state(config: ProjectConfig, *, event_type: str | None = None, summary: str | None = None) -> None:
     kernel_root = config.root / ".sula"
-    for relative in ["adapters", "objects", "sources", "state", "events", "indexes", "cache", "exports"]:
+    for relative in ["adapters", "artifacts", "objects", "sources", "state", "events", "indexes", "cache", "exports"]:
         (kernel_root / relative).mkdir(parents=True, exist_ok=True)
 
     event_log_path = kernel_root / "events" / "log.jsonl"
@@ -2572,6 +3140,7 @@ def refresh_kernel_state(config: ProjectConfig, *, event_type: str | None = None
     (kernel_root / "kernel.toml").write_text(render_kernel_manifest(config), encoding="utf-8")
     (kernel_root / "adapters" / "catalog.json").write_text(render_adapter_catalog(config), encoding="utf-8")
     (kernel_root / "adapters" / "bundles.json").write_text(render_bundle_catalog(config), encoding="utf-8")
+    ensure_artifact_catalog(config)
     (kernel_root / "sources" / "registry.json").write_text(render_source_registry(config), encoding="utf-8")
     (kernel_root / "objects" / "catalog.json").write_text(render_object_catalog(config), encoding="utf-8")
     (kernel_root / "state" / "current.md").write_text(render_kernel_current_state(config), encoding="utf-8")
@@ -2611,6 +3180,7 @@ def render_kernel_manifest(config: ProjectConfig) -> str:
         f"git_enabled = {git_enabled}\n"
         'adapter_catalog = ".sula/adapters/catalog.json"\n'
         'bundle_catalog = ".sula/adapters/bundles.json"\n'
+        'artifact_catalog = ".sula/artifacts/catalog.json"\n'
         'object_catalog = ".sula/objects/catalog.json"\n'
         'state_snapshot = ".sula/state/current.md"\n'
         'source_registry = ".sula/sources/registry.json"\n'
@@ -2691,17 +3261,22 @@ def render_query_cache(config: ProjectConfig) -> str:
 def build_adapter_catalog(config: ProjectConfig) -> list[dict[str, object]]:
     adapters: list[dict[str, object]] = []
     for adapter in config.kernel_adapters():
-        adapters.append(
-            {
-                "id": adapter,
-                "kind": adapter_kind(adapter),
-                "required": adapter in {"generic-project", "docs", "memory"},
-                "enabled": True,
-                "git_required": adapter == "repo",
-                "description": adapter_description(adapter),
-                "source_matchers": adapter_source_matchers(adapter),
-            }
-        )
+        item = {
+            "id": adapter,
+            "kind": adapter_kind(adapter),
+            "required": adapter in {"generic-project", "docs", "memory"},
+            "enabled": True,
+            "git_required": adapter == "repo",
+            "description": adapter_description(adapter),
+            "source_matchers": adapter_source_matchers(adapter),
+        }
+        if adapter in {"local-fs", "google-drive"}:
+            item["provider"] = config.storage_provider
+            item["sync_mode"] = config.storage_sync_mode
+            item["workspace_root"] = str(config.storage_workspace_root)
+            item["provider_root_url"] = config.provider_root_url
+            item["provider_root_id"] = config.provider_root_id
+        adapters.append(item)
     return adapters
 
 
@@ -2716,6 +3291,7 @@ def build_source_registry(config: ProjectConfig) -> list[dict[str, object]]:
         ("api-layer", "project-entry", config.data["paths"]["api_layer"]),
         ("kernel-state", "kernel-state", ".sula/state/current.md"),
         ("memory-digest", "derived-export", config.memory_setting("digest_file", ".sula/memory-digest.md")),
+        ("artifacts-catalog", "artifact-index", ".sula/artifacts/catalog.json"),
     ]
     seen: set[str] = set()
     entries: list[dict[str, object]] = []
@@ -2745,6 +3321,18 @@ def build_source_registry(config: ProjectConfig) -> list[dict[str, object]]:
                 "adapters": ["repo"],
             }
         )
+    entries.append(
+        {
+            "id": "storage-workspace",
+            "kind": "storage-root",
+            "path": os.path.relpath(config.storage_workspace_root, start=config.root) if config.storage_workspace_root != config.root else ".",
+            "exists": config.storage_workspace_root.exists(),
+            "source_of_truth": config.storage_provider == "local-fs",
+            "adapters": [config.storage_provider],
+            "provider_root_url": config.provider_root_url,
+            "provider_root_id": config.provider_root_id,
+        }
+    )
     for discovered in discover_project_sources(config):
         entries.append(discovered)
     return entries
@@ -2812,6 +3400,8 @@ def detect_anchor_strategy(relative_path: str) -> str:
 def adapters_for_source(config: ProjectConfig, relative_path: str, source_kind: str) -> list[str]:
     adapters: list[str] = ["generic-project"]
     lowered = relative_path.lower()
+    if config.storage_provider in {"google-drive", "local-fs"}:
+        adapters.append(config.storage_provider)
     if source_kind in {"document", "interface"} or lowered.endswith("readme.md"):
         adapters.append("docs")
     if lowered.startswith(".sula/") or lowered in {
@@ -2848,7 +3438,7 @@ def dedupe_preserve_order(values: list[str]) -> list[str]:
 def adapter_kind(adapter: str) -> str:
     if adapter == "generic-project":
         return "base"
-    if adapter in {"docs", "memory", "repo"}:
+    if adapter in {"docs", "memory", "repo", "local-fs", "google-drive"}:
         return "core"
     return "profile-extension"
 
@@ -2859,6 +3449,8 @@ def adapter_description(adapter: str) -> str:
         "docs": "Project documents and source anchors.",
         "memory": "State, change history, and recall views.",
         "repo": "Git-aware repository metadata and workflows.",
+        "local-fs": "Local filesystem workspace adapter.",
+        "google-drive": "Google Drive workspace adapter in local-sync mode or future direct mode.",
         "deploy": "Deployment-related sources and workflows.",
         "erpnext": "React frontend over ERPNext/Frappe integration surfaces.",
         "registry": "Registry and rollout metadata for operating-system repositories.",
@@ -2882,6 +3474,8 @@ def adapter_source_matchers(adapter: str) -> list[str]:
         "docs": ["README.md", "docs/**", "*.md"],
         "memory": [".sula/**", "STATUS.md", "CHANGE-RECORDS.md", "docs/change-records/**", "docs/releases/**", "docs/incidents/**"],
         "repo": [".git", ".github/**", "*"],
+        "local-fs": ["*"],
+        "google-drive": ["*"],
         "deploy": [".github/workflows/**", "*deploy*"],
         "erpnext": ["src/api/**", "src/App.tsx", "src/main.tsx"],
         "registry": ["registry/**"],
@@ -2927,6 +3521,7 @@ def build_object_catalog(config: ProjectConfig) -> list[dict[str, object]]:
     objects.extend(build_record_objects(config.root, config.change_record_directory, "change", ["generic-project", "memory"]))
     objects.extend(build_record_objects(config.root, config.release_record_directory, "release", ["generic-project", "memory"]))
     objects.extend(build_record_objects(config.root, config.incident_record_directory, "incident", ["generic-project", "memory"]))
+    objects.extend(build_artifact_objects(config))
     for source in build_source_registry(config):
         if not source.get("discovered"):
             continue
@@ -2948,6 +3543,32 @@ def build_object_catalog(config: ProjectConfig) -> list[dict[str, object]]:
         )
         objects.extend(build_discovered_source_objects(source_path, str(source["path"]), source.get("adapters", ["generic-project"])))
     return dedupe_objects(objects)
+
+
+def build_artifact_objects(config: ProjectConfig) -> list[dict[str, object]]:
+    objects: list[dict[str, object]] = []
+    catalog = load_artifact_catalog(config)
+    for artifact in catalog.get("artifacts", []):
+        if not isinstance(artifact, dict):
+            continue
+        source_paths = [str(artifact.get("path", ""))] if artifact.get("path") else []
+        objects.append(
+            {
+                "id": str(artifact.get("id", "")),
+                "kind": str(artifact.get("kind", "artifact")),
+                "title": str(artifact.get("title", Path(str(artifact.get("path", ""))).name)),
+                "summary": str(artifact.get("summary", "")),
+                "status": str(artifact.get("status", "registered")),
+                "path": str(artifact.get("path", "")),
+                "source_paths": source_paths,
+                "adapters": dedupe_preserve_order(
+                    [config.storage_provider, "generic-project", "docs"] + ([config.storage_provider] if config.storage_provider else [])
+                ),
+                "tags": ["artifact", str(artifact.get("slot", "delivery")), config.workflow_pack],
+                "date": normalize_optional_text(artifact.get("date", "")),
+            }
+        )
+    return objects
 
 
 def build_record_objects(project_root: Path, directory: Path, kind: str, adapters: list[str]) -> list[dict[str, object]]:
@@ -3311,6 +3932,7 @@ def render_index_catalog(config: ProjectConfig) -> str:
     registry = build_source_registry(config)
     adapters = build_adapter_catalog(config)
     objects = build_object_catalog(config)
+    artifacts = load_artifact_catalog(config).get("artifacts", [])
     discovered_sources = [item for item in registry if item.get("discovered")]
     catalog = {
         "version": VERSION,
@@ -3319,6 +3941,7 @@ def render_index_catalog(config: ProjectConfig) -> str:
             "registered_sources": len(registry),
             "discovered_sources": len(discovered_sources),
             "adapters": len(adapters),
+            "artifacts": len(artifacts) if isinstance(artifacts, list) else 0,
             "objects": len(objects),
             "source_adapter_links": sum(len(item.get("adapters", [])) for item in registry if isinstance(item, dict)),
         },
@@ -3326,6 +3949,7 @@ def render_index_catalog(config: ProjectConfig) -> str:
         "indexes": [
             {"name": "source-registry", "path": ".sula/sources/registry.json", "rebuildable": True},
             {"name": "adapter-catalog", "path": ".sula/adapters/catalog.json", "rebuildable": True},
+            {"name": "artifact-catalog", "path": ".sula/artifacts/catalog.json", "rebuildable": False},
             {"name": "object-catalog", "path": ".sula/objects/catalog.json", "rebuildable": True},
             {"name": "current-state", "path": ".sula/state/current.md", "rebuildable": True},
             {"name": "event-log", "path": ".sula/events/log.jsonl", "rebuildable": False},
@@ -4239,6 +4863,354 @@ def normalize_optional_text(value: object) -> str:
     return str(value)
 
 
+def project_status(config: ProjectConfig, args: argparse.Namespace) -> int:
+    payload = project_status_payload(config)
+    if json_output_requested(args):
+        emit_json({"command": "status", "status": "ok", "project": project_payload(config), "state": payload})
+        return 0
+    print(f"Sula status for {config.data['project']['name']}")
+    print(f"  Profile: {config.profile}")
+    print(f"  Workflow: {config.workflow_pack} ({config.workflow_stage})")
+    print(f"  Storage: {config.storage_provider} [{config.storage_sync_mode}]")
+    print(f"  Summary: {payload['summary']}")
+    print(f"  Health: {payload['health']}")
+    print(f"  Open tasks: {payload['counts']['open_tasks']}")
+    print(f"  Open risks: {payload['counts']['open_risks']}")
+    print(f"  Artifacts: {payload['counts']['artifacts']}")
+    if payload["recent_events"]:
+        print("  Recent events:")
+        for item in payload["recent_events"]:
+            print(f"    - {item['timestamp']} {item['event_type']}: {item['summary']}")
+    return 0
+
+
+def project_status_payload(config: ProjectConfig) -> dict[str, object]:
+    kernel_root = config.root / ".sula"
+    if not (kernel_root / "objects" / "catalog.json").exists():
+        refresh_kernel_state(config, event_type="status.rebuild", summary="Rebuilt kernel state for status command.")
+    state_path = kernel_root / "state" / "current.md"
+    state_sections = markdown_sections(state_path.read_text(encoding="utf-8")) if state_path.exists() else {}
+    object_catalog = load_json_file(kernel_root / "objects" / "catalog.json", default={"objects": []})
+    objects = object_catalog.get("objects", []) if isinstance(object_catalog, dict) else []
+    artifact_catalog = load_artifact_catalog(config)
+    recent_events = read_kernel_events(kernel_root / "events" / "log.jsonl")[-5:]
+    open_tasks = [item for item in objects if isinstance(item, dict) and item.get("kind") == "task" and item.get("status") in {"open", "planned"}]
+    open_risks = [item for item in objects if isinstance(item, dict) and item.get("kind") == "risk" and item.get("status") in {"open", "watch", "incident"}]
+    milestones = [item for item in objects if isinstance(item, dict) and item.get("kind") == "milestone"]
+    return {
+        "summary": state_sections.get("Summary", "_missing_"),
+        "health": state_sections.get("Health", "_missing_"),
+        "current_focus": markdown_bullet_items(state_sections.get("Current Focus", "")),
+        "blockers": markdown_bullet_items(state_sections.get("Blockers", "")),
+        "recent_decisions": markdown_bullet_items(state_sections.get("Recent Decisions", "")),
+        "next_review": markdown_key_values(state_sections.get("Next Review", "")),
+        "workflow": {
+            "pack": config.workflow_pack,
+            "stage": config.workflow_stage,
+            "artifacts_root": config.artifacts_root.relative_to(config.root).as_posix() if config.artifacts_root.is_relative_to(config.root) else str(config.artifacts_root),
+        },
+        "storage": {
+            "provider": config.storage_provider,
+            "sync_mode": config.storage_sync_mode,
+            "workspace_root": str(config.storage_workspace_root),
+            "provider_root_url": config.provider_root_url,
+            "provider_root_id": config.provider_root_id,
+        },
+        "counts": {
+            "open_tasks": len(open_tasks),
+            "open_risks": len(open_risks),
+            "milestones": len(milestones),
+            "artifacts": len(artifact_catalog.get("artifacts", [])),
+            "sources": len(load_json_file(kernel_root / "sources" / "registry.json", default=[])),
+        },
+        "recent_events": recent_events,
+    }
+
+
+def handle_artifact_command(config: ProjectConfig, args: argparse.Namespace) -> int:
+    if args.artifact_command == "create":
+        return artifact_create(config, args)
+    if args.artifact_command == "register":
+        return artifact_register(config, args)
+    if args.artifact_command == "locate":
+        return artifact_locate(config, args)
+    raise AssertionError("unreachable")
+
+
+def artifact_create(config: ProjectConfig, args: argparse.Namespace) -> int:
+    ensure_artifact_catalog(config)
+    record_date = normalize_record_date(args.date)
+    artifact_kind = args.kind.lower()
+    slot = artifact_slot_for_kind(config, artifact_kind, args.slot)
+    extension = args.extension if args.extension.startswith(".") else f".{args.extension}"
+    slug = sanitize_slug(args.slug or args.title)
+    target_dir = config.artifacts_root / slot
+    target_dir.mkdir(parents=True, exist_ok=True)
+    output_path = target_dir / f"{record_date}-{slug}{extension}"
+    if output_path.exists():
+        raise SystemExit(f"Artifact already exists: {output_path}")
+    summary = args.summary.strip() or f"{artifact_kind} artifact for {config.data['project']['name']}"
+    output_path.write_text(render_artifact_template(config, artifact_kind, args.title, summary, record_date, slot), encoding="utf-8")
+    entry = register_artifact_entry(
+        config,
+        path=output_path.relative_to(config.root).as_posix(),
+        artifact_kind=artifact_kind,
+        title=args.title,
+        slot=slot,
+        summary=summary,
+        date_value=record_date,
+    )
+    refresh_kernel_state(config, event_type="artifact.create", summary=f"Created {artifact_kind} artifact `{args.title}`.")
+    if json_output_requested(args):
+        emit_json({"command": "artifact.create", "status": "ok", "project": project_payload(config), "artifact": entry})
+        return 0
+    print(f"Created {artifact_kind} artifact at {output_path}")
+    return 0
+
+
+def artifact_register(config: ProjectConfig, args: argparse.Namespace) -> int:
+    ensure_artifact_catalog(config)
+    relative_path = args.path.strip()
+    path = config.root / relative_path
+    if not path.exists():
+        raise SystemExit(f"Artifact path does not exist: {path}")
+    slot = artifact_slot_for_kind(config, args.kind.lower(), args.slot)
+    entry = register_artifact_entry(
+        config,
+        path=relative_path,
+        artifact_kind=args.kind.lower(),
+        title=args.title or path.name,
+        slot=slot,
+        summary=args.summary.strip() or source_summary(path),
+        date_value=detect_source_date(path, source_summary(path)),
+    )
+    refresh_kernel_state(config, event_type="artifact.register", summary=f"Registered artifact `{entry['title']}`.")
+    if json_output_requested(args):
+        emit_json({"command": "artifact.register", "status": "ok", "project": project_payload(config), "artifact": entry})
+        return 0
+    print(f"Registered artifact {relative_path}")
+    return 0
+
+
+def artifact_locate(config: ProjectConfig, args: argparse.Namespace) -> int:
+    catalog = load_artifact_catalog(config)
+    results: list[dict[str, object]] = []
+    query = args.q.strip().lower()
+    for item in catalog.get("artifacts", []):
+        if not isinstance(item, dict):
+            continue
+        if args.kind and str(item.get("kind")) != args.kind:
+            continue
+        haystack = " ".join(
+            [
+                str(item.get("id", "")),
+                str(item.get("kind", "")),
+                str(item.get("title", "")),
+                str(item.get("slot", "")),
+                str(item.get("path", "")),
+                str(item.get("summary", "")),
+            ]
+        ).lower()
+        if query and query not in haystack:
+            continue
+        results.append(item)
+    results.sort(key=lambda item: (str(item.get("date", "")), str(item.get("kind", "")), str(item.get("title", ""))), reverse=True)
+    results = results[: max(1, args.limit)]
+    if json_output_requested(args):
+        emit_json({"command": "artifact.locate", "status": "ok", "project": project_payload(config), "results": results})
+        return 0
+    print(f"Artifacts for {config.data['project']['name']}:")
+    if not results:
+        print("  No artifacts.")
+        return 0
+    for item in results:
+        print(f"  - [{item['kind']}] {item['title']} :: {item['path']} ({item['slot']})")
+    return 0
+
+
+def register_artifact_entry(
+    config: ProjectConfig,
+    *,
+    path: str,
+    artifact_kind: str,
+    title: str,
+    slot: str,
+    summary: str,
+    date_value: str | None,
+) -> dict[str, object]:
+    catalog = load_artifact_catalog(config)
+    artifact_id = f"artifact:{sanitize_source_id(path)}"
+    entry = {
+        "id": artifact_id,
+        "kind": artifact_kind,
+        "title": title,
+        "slot": slot,
+        "path": path,
+        "summary": summary,
+        "date": date_value or "",
+        "status": "active",
+        "workflow_pack": config.workflow_pack,
+        "storage_provider": config.storage_provider,
+        "storage_sync_mode": config.storage_sync_mode,
+        "provider_root_url": config.provider_root_url,
+        "provider_root_id": config.provider_root_id,
+    }
+    artifacts = [item for item in catalog.get("artifacts", []) if isinstance(item, dict) and item.get("id") != artifact_id]
+    artifacts.append(entry)
+    artifacts.sort(key=lambda item: (str(item.get("date", "")), str(item.get("path", ""))))
+    catalog["version"] = VERSION
+    catalog["artifacts"] = artifacts
+    write_artifact_catalog(config, catalog)
+    return entry
+
+
+def render_artifact_template(
+    config: ProjectConfig,
+    artifact_kind: str,
+    title: str,
+    summary: str,
+    record_date: str,
+    slot: str,
+) -> str:
+    lines = [
+        f"# {title}",
+        "",
+        "## Metadata",
+        "",
+        f"- date: {record_date}",
+        f"- kind: {artifact_kind}",
+        f"- project: {config.data['project']['name']}",
+        f"- workflow pack: {config.workflow_pack}",
+        f"- workflow slot: {slot}",
+        f"- storage provider: {config.storage_provider}",
+        "",
+        "## Summary",
+        "",
+        summary,
+        "",
+        "## Details",
+        "",
+        "- _fill in details_",
+        "",
+    ]
+    return "\n".join(lines)
+
+
+def handle_portfolio_command(args: argparse.Namespace) -> int:
+    portfolio_root = resolve_portfolio_root(getattr(args, "portfolio_root", None))
+    if args.portfolio_command == "register":
+        assert hasattr(args, "project_root")
+        config = load_manifest(Path(args.project_root).expanduser().resolve())
+        registry = load_portfolio_registry(portfolio_root)
+        entry = summarize_project_for_portfolio(config)
+        projects = [item for item in registry.get("projects", []) if isinstance(item, dict) and item.get("root") != entry["root"]]
+        projects.append(entry)
+        projects.sort(key=lambda item: (str(item.get("workspace", "")), str(item.get("name", ""))))
+        registry["version"] = VERSION
+        registry["projects"] = projects
+        write_portfolio_registry(portfolio_root, registry)
+        if json_output_requested(args):
+            emit_json({"command": "portfolio.register", "status": "ok", "portfolio_root": str(portfolio_root), "project": entry})
+            return 0
+        print(f"Registered {entry['name']} in portfolio {portfolio_root}")
+        return 0
+    if args.portfolio_command == "list":
+        registry = load_portfolio_registry(portfolio_root)
+        if json_output_requested(args):
+            emit_json({"command": "portfolio.list", "status": "ok", "portfolio_root": str(portfolio_root), "projects": registry.get("projects", [])})
+            return 0
+        print(f"Sula portfolio at {portfolio_root}")
+        for item in registry.get("projects", []):
+            print(f"  - {item['name']} [{item['workflow_pack']}] :: {item['root']}")
+        return 0
+    if args.portfolio_command == "status":
+        registry = load_portfolio_registry(portfolio_root)
+        projects = registry.get("projects", [])
+        payload = {
+            "portfolio_root": str(portfolio_root),
+            "project_count": len(projects),
+            "providers": sorted({str(item.get('storage_provider', 'local-fs')) for item in projects if isinstance(item, dict)}),
+            "workspaces": sorted({str(item.get('workspace', 'personal')) for item in projects if isinstance(item, dict)}),
+            "projects": projects,
+        }
+        if json_output_requested(args):
+            emit_json({"command": "portfolio.status", "status": "ok", **payload})
+            return 0
+        print(f"Portfolio status for {portfolio_root}")
+        print(f"  Projects: {payload['project_count']}")
+        print(f"  Providers: {', '.join(payload['providers']) if payload['providers'] else 'none'}")
+        return 0
+    if args.portfolio_command == "query":
+        registry = load_portfolio_registry(portfolio_root)
+        results: list[dict[str, object]] = []
+        for item in registry.get("projects", []):
+            if not isinstance(item, dict) or not isinstance(item.get("root"), str):
+                continue
+            project_root = Path(item["root"])
+            manifest_path = project_root / MANIFEST_PATH
+            if not manifest_path.exists():
+                continue
+            config = load_manifest(project_root)
+            for result in search_kernel(
+                config,
+                args.q,
+                kind=args.kind,
+                adapter=args.adapter,
+                status=args.status,
+                path_prefix=args.path_prefix,
+                since=args.since,
+                until=args.until,
+                timeline=args.timeline,
+                limit=max(args.limit, 20),
+            ):
+                merged = dict(result)
+                merged["project_name"] = config.data["project"]["name"]
+                merged["project_slug"] = config.data["project"]["slug"]
+                merged["project_root"] = str(config.root)
+                results.append(merged)
+        results.sort(key=lambda item: (-int(item.get("score", 0)), str(item.get("project_name", "")), str(item.get("title", ""))))
+        results = results[: max(1, args.limit)]
+        if json_output_requested(args):
+            emit_json({"command": "portfolio.query", "status": "ok", "portfolio_root": str(portfolio_root), "results": results})
+            return 0
+        print(f"Portfolio query results for {portfolio_root}: {args.q}")
+        for item in results:
+            print(f"  - {item['project_name']} [{item['kind']}] {item['title']} :: {item['path']}")
+        if not results:
+            print("  No results.")
+        return 0
+    raise AssertionError("unreachable")
+
+
+def summarize_project_for_portfolio(config: ProjectConfig) -> dict[str, object]:
+    payload = project_status_payload(config)
+    return {
+        "name": config.data["project"]["name"],
+        "slug": config.data["project"]["slug"],
+        "root": str(config.root),
+        "profile": config.profile,
+        "workflow_pack": config.workflow_pack,
+        "workflow_stage": config.workflow_stage,
+        "storage_provider": config.storage_provider,
+        "storage_sync_mode": config.storage_sync_mode,
+        "workspace": config.portfolio_setting("workspace", "personal"),
+        "portfolio_id": config.portfolio_setting("portfolio_id", "default"),
+        "owner": config.portfolio_setting("owner", "n/a"),
+        "summary": payload["summary"],
+        "health": payload["health"],
+        "last_activity": payload["recent_events"][-1]["timestamp"] if payload["recent_events"] else "",
+    }
+
+
+def load_json_file(path: Path, *, default):
+    if not path.exists():
+        return default
+    try:
+        return json.loads(path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError:
+        return default
+
+
 def render_export_catalog(config: ProjectConfig) -> str:
     exports = {
         "version": VERSION,
@@ -4253,6 +5225,16 @@ def render_export_catalog(config: ProjectConfig) -> str:
 
 def remove_sula(project_root: Path, args: argparse.Namespace) -> int:
     report = inspect_removal(project_root)
+    if json_output_requested(args):
+        if not args.approve:
+            emit_json({"command": "remove", "status": "report", "report": removal_report_payload(report)})
+            return 0
+        if report.blockers:
+            emit_json({"command": "remove", "status": "blocked", "report": removal_report_payload(report)})
+            return 1
+        apply_removal(report)
+        emit_json({"command": "remove", "status": "ok", "report": removal_report_payload(report)})
+        return 0
     print_removal_report(report)
     if not args.approve:
         return 0
