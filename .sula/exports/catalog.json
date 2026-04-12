@@ -1,0 +1,20 @@
+{
+  "version": "0.6.0",
+  "exports": [
+    {
+      "path": "STATUS.md",
+      "kind": "status",
+      "project_owned": true
+    },
+    {
+      "path": "CHANGE-RECORDS.md",
+      "kind": "change-index",
+      "project_owned": true
+    },
+    {
+      "path": ".sula/memory-digest.md",
+      "kind": "memory-digest",
+      "project_owned": false
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+[kernel]
+sula_version = "0.6.0"
+profile = "sula-core"
+adapters = ["generic-project", "docs", "memory", "repo", "registry", "release"]
+git_enabled = true
+adapter_catalog = ".sula/adapters/catalog.json"
+bundle_catalog = ".sula/adapters/bundles.json"
+object_catalog = ".sula/objects/catalog.json"
+state_snapshot = ".sula/state/current.md"
+source_registry = ".sula/sources/registry.json"
+event_log = ".sula/events/log.jsonl"
+index_catalog = ".sula/indexes/catalog.json"
+relation_index = ".sula/indexes/relations.json"
+sqlite_cache = ".sula/cache/kernel.db"
+export_catalog = ".sula/exports/catalog.json"
+removal_mode = "explicit-remove-command"

@@ -2,6 +2,8 @@
 
 Sula uses `.sula/project.toml` as the local project manifest.
 
+The safe baseline profile is `generic-project`. Narrower profiles can add more specific managed docs when they express the project more truthfully.
+
 ## Required Sections
 
 ### `[project]`
@@ -71,5 +73,6 @@ See [../../schema/project.example.toml](../../schema/project.example.toml).
 
 - TOML is used instead of YAML to avoid external parser dependencies.
 - The manifest should capture stable project facts, not temporary task state.
+- Projects without Git may still adopt Sula; repository branch fields may use sentinel values such as `n/a` when Git metadata is intentionally absent.
 - The optional `[memory]` section configures durable memory paths and freshness expectations without turning project history into managed truth.
 - Project history stays in the project repository, not in the manifest.

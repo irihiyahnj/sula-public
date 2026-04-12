@@ -66,16 +66,19 @@ python3 scripts/sula.py adopt --project-root /path/to/project --approve
 ## What The Report Must Cover
 
 - recommended profile
+- whether `generic-project` was selected as a safe fallback
 - detected project facts
 - managed files that will be created
 - managed files that will be overwritten
 - scaffold files that will be created
 - scaffold files that will be preserved
+- kernel files that will be created under `.sula/`
 - blockers and warnings
 
 ## What Apply Must Do
 
 - create the manifest and lockfile
+- create or refresh the `.sula/` kernel state
 - render managed files
 - preserve existing scaffold truth where appropriate
 - create the initial adoption traceability

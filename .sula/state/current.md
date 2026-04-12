@@ -1,6 +1,10 @@
-# STATUS
+# Current State Snapshot
 
-- last updated: 2026-04-12
+- generated on: 2026-04-12
+- project: Sula
+- profile: `sula-core`
+- source priority: STATUS.md and project records override this generated snapshot
+
 ## Summary
 
 - Sula now manages itself as a first-class `sula-core` consumer while still acting as the source repository for reusable operating-system assets.

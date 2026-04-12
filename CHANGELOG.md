@@ -2,6 +2,57 @@
 
 All notable changes to Sula Core should be recorded here with explicit sync impact.
 
+## 0.6.0 - 2026-04-12
+
+### Added
+
+- `.sula/cache/kernel.db` as a rebuildable local SQLite cache for kernel retrieval
+- richer kernel object extraction for `task`, `decision`, `risk`, `person`, `agreement`, and `milestone`
+- structured query filters for adapter, status, path prefix, and date range
+- timeline query mode over dated objects and kernel events
+
+### Changed
+
+- `query` now prefers SQLite-backed local retrieval when the cache exists and falls back to JSON catalogs when needed
+- kernel doctor checks now validate the rebuildable SQLite cache structure
+- generated object catalogs now carry date metadata so timeline and date filters can work without reparsing project files on every query
+
+### Sync Impact
+
+- Existing adopted projects will gain `.sula/cache/kernel.db` on the next sync or adoption-related write
+- Query output can now recover richer project structure from existing status files, records, and markdown sources without changing project-owned truth
+- Teams can use local filters and timeline queries immediately after resyncing, even on non-Git projects
+
+## 0.5.0 - 2026-04-12
+
+### Added
+
+- `generic-project` as the safe baseline profile for unknown or in-progress projects
+- namespaced `.sula/` kernel artifacts for source registry, current-state snapshot, event log, index catalog, and export catalog
+- automatic text-source discovery for project files so the source registry reflects real project content
+- `.sula/adapters/catalog.json` as the explicit adapter contract for each adopted project
+- `.sula/adapters/bundles.json` as the profile bundle contract for each adopted project
+- `.sula/objects/catalog.json`, `.sula/indexes/relations.json`, and `query` for local object/source retrieval
+- `.sula/cache/query-index.json` as a rebuildable local retrieval cache
+- non-Git adoption support for projects that should not be blocked on repository metadata
+- `remove` as an inspect-report-approve exit path for detaching Sula cleanly from a project
+- automated CLI coverage for generic adoption and removal behavior
+
+### Changed
+
+- `adopt` now falls back to `generic-project` instead of treating unknown projects as an immediate blocker
+- generated project state now includes kernel metadata and append-only event tracking under `.sula/`
+- kernel doctor checks now validate source registry content and event log structure
+- source registry entries now declare which adapters own or interpret them
+- kernel doctor checks now validate object and relation catalogs as well
+- public docs now describe `generic-project` as the safe baseline and document the removal flow
+
+### Sync Impact
+
+- Existing adopted projects remain compatible but will gain new `.sula/` kernel artifacts on the next sync or adoption-related write
+- Teams can now adopt in-progress or non-Git projects without inventing a stack-specific profile first
+- Projects that later choose to leave Sula can use the new removal report before deleting managed files manually
+
 ## 0.4.0 - 2026-04-11
 
 ### Added

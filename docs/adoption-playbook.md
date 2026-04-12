@@ -18,9 +18,11 @@ Use `adopt` by default. Drop down to `init` only when you need manual control ov
 1. Run `sula adopt --project-root /path/to/project`.
 2. Review the adoption report:
    - recommended profile
+   - whether the report defaulted to `generic-project`
    - detected project facts
    - managed files that will be created or overwritten
    - scaffold files that will be created or preserved
+   - kernel files that will be created under `.sula/`
    - blockers and warnings
 3. Re-run with `--approve`.
 4. Review scaffold files:
@@ -45,6 +47,8 @@ Use `adopt` by default. Drop down to `init` only when you need manual control ov
 8. Generate the first project memory digest if the team wants a fast recall layer.
 9. Run `sula doctor --strict` if the apply phase did not already leave the repository clean.
 10. Commit the adoption in the target repository.
+
+If the project does not match a narrower profile safely, adopt it under `generic-project` first and refine later only when a more truthful reusable profile exists.
 
 ## Adopt An Existing Project
 
@@ -77,3 +81,13 @@ Pause adoption if:
 - its architecture is still unknown
 - the profile is a poor fit
 - the team is not ready to accept managed operational files
+
+## Remove A Project Cleanly
+
+1. Run `sula remove --project-root /path/to/project`.
+2. Review the report:
+   - `.sula/` kernel paths that will be removed
+   - managed files that will be removed
+   - scaffold files that will remain project-owned
+3. Re-run with `--approve`.
+4. Review the resulting diff before committing the removal.

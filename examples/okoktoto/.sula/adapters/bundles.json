@@ -1,0 +1,19 @@
+{
+  "version": "0.6.0",
+  "profile": "react-frontend-erpnext",
+  "bundles": [
+    {
+      "id": "bundle:react-frontend-erpnext",
+      "profile": "react-frontend-erpnext",
+      "adapters": [
+        "generic-project",
+        "docs",
+        "memory",
+        "repo",
+        "deploy",
+        "erpnext"
+      ],
+      "description": "Bundle for React frontends orchestrating ERPNext/Frappe systems."
+    }
+  ]
+}

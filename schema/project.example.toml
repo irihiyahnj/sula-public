@@ -2,40 +2,40 @@
 name = "Example Project"
 slug = "example-project"
 description = "Short description"
-profile = "react-frontend-erpnext"
+profile = "generic-project"
 default_agent = "Codex"
 
 [repository]
-primary_branch = "main"
+primary_branch = "n/a"
 working_branch_prefix = "codex/"
-deployment_branch = "main"
+deployment_branch = "n/a"
 
 [rules]
-highest_rule = "Frontend-only orchestration over ERPNext-native capabilities."
-custom_backend_allowed = false
+highest_rule = "Preserve project-owned truth while using Sula as a removable operating kernel."
+custom_backend_allowed = true
 react_router_allowed = false
 
 [stack]
-frontend = "React + TypeScript + Vite"
-backend = "ERPNext / Frappe"
+frontend = "Project-defined components"
+backend = "Project-defined systems"
 
 [paths]
-api_layer = "src/api/erpnext.ts"
-state_layer = "src/store/useStore.ts"
-app_shell = "src/App.tsx"
+api_layer = "README.md"
+state_layer = ".sula/state/current.md"
+app_shell = "README.md"
 status_file = "STATUS.md"
 change_records_file = "CHANGE-RECORDS.md"
 
 [commands]
-install = "npm install"
-dev = "npm run dev"
-build = "npm run build"
-typecheck = "npx tsc --noEmit"
+install = "n/a"
+dev = "n/a"
+build = "n/a"
+typecheck = "n/a"
 
 [deploy]
 base_path = "/"
-production_url = "https://example.com/"
-workflow = ".github/workflows/deploy.yml"
+production_url = "local-only"
+workflow = "n/a"
 
 [auth]
 session_expiry_codes = ["401", "440"]

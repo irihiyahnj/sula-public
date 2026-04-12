@@ -14,6 +14,14 @@ Sula is not a product template for one stack. It is a coordination layer with:
 - a governed rollout path for sync impact and release discipline
 - a single-project memory model for durable status, decisions, releases, and incidents
 
+Long-term direction:
+
+- a `generic-project` kernel that can attach to unknown project types first and specialize later through adapter bundles
+- removable, namespaced machine state so portability also means easy detachment
+- structured indexing and recall that stay reproducible instead of depending on prior chat context
+- explicit adapter contracts so kernel sources can be mapped to stable operating capabilities
+- rebuildable local SQLite cache layers so query quality can improve without turning the cache into project truth
+
 ## What Sula Solves
 
 Without a system, every repository drifts:
@@ -46,6 +54,7 @@ A profile is a reusable project-family layer.
 
 Current profiles:
 
+- `generic-project`
 - `react-frontend-erpnext`
 - `sula-core`
 
@@ -93,6 +102,9 @@ templates/
     managed/
     scaffold/
   profiles/
+    generic-project/
+      managed/
+      scaffold/
     react-frontend-erpnext/
       managed/
       scaffold/
@@ -119,7 +131,7 @@ python3 scripts/sula.py adopt --project-root /path/to/project
 python3 scripts/sula.py adopt --project-root /path/to/project --approve
 ```
 
-The first command inspects the repository, detects the likely profile, and prints an approval-ready report. The second command applies the adoption, validates the result with `doctor --strict`, creates initial traceability, and prints the follow-up usage commands.
+The first command inspects the repository, detects the likely profile, and prints an approval-ready report. Unknown project types now fall back to the safe `generic-project` baseline instead of blocking adoption. The second command applies the adoption, validates the result with `doctor --strict`, creates initial traceability, and prints the follow-up usage commands.
 
 Use `init` only when you need low-level manual control over manifest values before the approval-based adoption flow can infer them safely.
 
@@ -151,6 +163,15 @@ python3 scripts/sula.py doctor --project-root /path/to/project --strict
 
 Use `--dry-run` before every real sync so you can review which managed files would change and how risky they are.
 
+### Remove Sula from a project
+
+```bash
+python3 scripts/sula.py remove --project-root /path/to/project
+python3 scripts/sula.py remove --project-root /path/to/project --approve
+```
+
+The report shows which namespaced kernel files and managed docs will be removed, and which scaffold files will stay project-owned.
+
 ### Create durable project memory
 
 ```bash
@@ -163,9 +184,20 @@ python3 scripts/sula.py memory digest --project-root /path/to/project
 
 This creates durable project memory without mixing managed operating-system files with project-owned history.
 
+### Query the project kernel
+
+```bash
+python3 scripts/sula.py query --project-root /path/to/project --q "contract"
+python3 scripts/sula.py query --project-root /path/to/project --q "deploy" --kind change
+python3 scripts/sula.py query --project-root /path/to/project --q "review" --kind task --adapter memory
+python3 scripts/sula.py query --project-root /path/to/project --q "" --timeline --since 2026-04-01 --limit 20
+```
+
+This searches the local kernel object catalog, source registry, and event timeline using exact, structured, and lexical matching. Query now prefers the rebuildable `.sula/cache/kernel.db` cache when present, prefers richer object hits over lower-signal duplicate source/document hits, and by default compacts same-path family results into one primary hit plus `related_kinds`. If you pass `--kind`, that family compaction is skipped so the query stays literal to the requested kind.
+
 ## Current Version
 
-Sula version: `0.4.0`
+Sula version: `0.6.0`
 
 Versioning rules are in [docs/versioning.md](docs/versioning.md).
 
@@ -199,6 +231,7 @@ Release discipline and impact rules live in:
 
 - [docs/philosophy.md](docs/philosophy.md)
 - [docs/README.md](docs/README.md)
+- [docs/reference/sula-vnext-project-kernel.md](docs/reference/sula-vnext-project-kernel.md)
 - [docs/adoption-playbook.md](docs/adoption-playbook.md)
 - [docs/reference/adoption-agent.md](docs/reference/adoption-agent.md)
 - [docs/reference/public-release-readiness.md](docs/reference/public-release-readiness.md)

@@ -26,10 +26,11 @@ This file is the primary instruction source for AI coding agents working in the 
 ## Current Scope
 
 - Core managed files
+- `generic-project` profile
 - `react-frontend-erpnext` profile
 - `sula-core` profile
 - project manifest schema and example
-- `adopt`, `init`, `sync`, `doctor`, `record`, and `memory digest` commands
+- `adopt`, `init`, `sync`, `doctor`, `remove`, `record`, and `memory digest` commands
 
 ## Out Of Scope For Now
 

@@ -9,6 +9,8 @@ import json
 import os
 from pathlib import Path
 import re
+import shutil
+import sqlite3
 import subprocess
 import sys
 
@@ -17,6 +19,38 @@ SULA_ROOT = Path(__file__).resolve().parent.parent
 VERSION = (SULA_ROOT / "VERSION").read_text(encoding="utf-8").strip()
 MANIFEST_PATH = Path(".sula/project.toml")
 LOCK_PATH = Path(".sula/version.lock")
+KERNEL_PATH = Path(".sula/kernel.toml")
+NON_PATH_SENTINELS = {"n/a", "none", "local-only", "unknown"}
+KERNEL_SKIP_DIRS = {
+    ".git",
+    ".sula",
+    "node_modules",
+    ".venv",
+    "venv",
+    "__pycache__",
+    ".pytest_cache",
+    "dist",
+    "build",
+    "coverage",
+}
+DISCOVERABLE_SOURCE_SUFFIXES = {
+    ".md",
+    ".txt",
+    ".rst",
+    ".py",
+    ".sh",
+    ".js",
+    ".jsx",
+    ".ts",
+    ".tsx",
+    ".json",
+    ".toml",
+    ".yml",
+    ".yaml",
+    ".html",
+    ".css",
+}
+MAX_DISCOVERED_SOURCES = 200
 
 MANIFEST_SPEC = {
     "project": {
@@ -135,6 +169,7 @@ INCIDENT_RECORD_REQUIRED_HEADINGS = [
 STATUS_PLACEHOLDERS = ["YYYY-MM-DD", "_add ", "_write ", "_set "]
 INDEX_PLACEHOLDERS = ["_no records yet_", "_add project records here_"]
 MEMORY_DATE_PATTERN = re.compile(r"^\d{4}-\d{2}-\d{2}$")
+INLINE_DATE_PATTERN = re.compile(r"\b\d{4}-\d{2}-\d{2}\b")
 CHANGE_RECORD_FILENAME_PATTERN = re.compile(r"^\d{4}-\d{2}-\d{2}-[a-z0-9][a-z0-9-]*\.md$")
 STATUS_UPDATED_PATTERN = re.compile(r"^- last updated:\s*(.+?)\s*$", re.MULTILINE)
 MARKDOWN_LINK_PATTERN = re.compile(r"\[([^\]]+)\]\(([^)]+)\)")
@@ -165,6 +200,17 @@ class AdoptionReport:
     managed_updates: list[RenderAction]
     scaffold_creates: list[RenderAction]
     scaffold_preserved: list[RenderAction]
+
+
+@dataclass
+class RemovalReport:
+    project_root: Path
+    config: "ProjectConfig | None"
+    blockers: list[str]
+    warnings: list[str]
+    kernel_remove_paths: list[Path]
+    managed_remove_paths: list[Path]
+    scaffold_preserve_paths: list[Path]
 
 
 @dataclass
@@ -234,8 +280,21 @@ class ProjectConfig:
             "DEPLOY_WORKFLOW": self.data["deploy"]["workflow"],
             "SESSION_EXPIRY_CODES": ", ".join(auth["session_expiry_codes"]),
             "PERMISSION_DENIED_CODES": ", ".join(auth["permission_denied_codes"]),
+            "CURRENT_DATE": date.today().isoformat(),
+            "KERNEL_ADAPTERS": ", ".join(self.kernel_adapters()),
+            "GIT_MODE": "enabled" if is_git_repository(self.root) else "not-required",
             "SULA_VERSION": VERSION,
         }
+
+    def kernel_adapters(self) -> list[str]:
+        adapters = ["generic-project", "docs", "memory"]
+        if is_git_repository(self.root):
+            adapters.append("repo")
+        if self.profile == "react-frontend-erpnext":
+            adapters.extend(["deploy", "erpnext"])
+        elif self.profile == "sula-core":
+            adapters.extend(["registry", "release"])
+        return adapters
 
 
 def parse_args() -> argparse.Namespace:
@@ -252,6 +311,23 @@ def parse_args() -> argparse.Namespace:
     sync_cmd = sub.add_parser("sync", help="Sync managed files from Sula into a project")
     add_project_root_arg(sync_cmd)
     sync_cmd.add_argument("--dry-run", action="store_true", help="Show the managed-file sync plan without writing")
+
+    remove_cmd = sub.add_parser("remove", help="Inspect, report, and remove Sula from a project")
+    add_project_root_arg(remove_cmd)
+    remove_cmd.add_argument("--approve", action="store_true", help="Apply the removal plan after reporting it")
+
+    query_cmd = sub.add_parser("query", help="Query project kernel state and sources")
+    add_project_root_arg(query_cmd)
+    query_cmd.add_argument("--q", required=True, help="Search text")
+    query_cmd.add_argument("--kind", help="Optional result kind filter such as project, change, source, document")
+    query_cmd.add_argument("--adapter", help="Optional adapter filter such as memory, docs, repo, or deploy")
+    query_cmd.add_argument("--status", help="Optional status filter such as current, open, planned, or indexed")
+    query_cmd.add_argument("--path-prefix", help="Restrict results to paths under this relative prefix")
+    query_cmd.add_argument("--since", help="Only include results on or after this ISO date")
+    query_cmd.add_argument("--until", help="Only include results on or before this ISO date")
+    query_cmd.add_argument("--timeline", action="store_true", help="Sort time-bearing results newest-first")
+    query_cmd.add_argument("--limit", type=int, default=10, help="Maximum number of results to return")
+    query_cmd.add_argument("--json", action="store_true", help="Print JSON instead of human-readable output")
 
     adopt_cmd = sub.add_parser("adopt", help="Inspect, report, and apply Sula adoption for a repository")
     add_project_root_arg(adopt_cmd)
@@ -303,11 +379,15 @@ def main() -> int:
         config = ensure_manifest(project_root, args)
         apply_actions(collect_render_actions(config, include_scaffold=True))
         write_lockfile(config)
+        refresh_kernel_state(config, event_type="init.applied", summary="Initialized Sula manifest and kernel state.")
         print(f"Initialized Sula for {config.data['project']['name']} at {project_root}")
         return 0
 
     if args.command == "adopt":
         return adopt(project_root, args)
+
+    if args.command == "remove":
+        return remove_sula(project_root, args)
 
     config = load_manifest(project_root)
     if args.command == "sync":
@@ -317,6 +397,7 @@ def main() -> int:
             return 0
         apply_actions(actions)
         write_lockfile(config)
+        refresh_kernel_state(config, event_type="sync.applied", summary="Synchronized managed Sula files.")
         print(f"Synchronized managed files for {config.data['project']['name']}")
         return 0
 
@@ -332,6 +413,9 @@ def main() -> int:
         if args.memory_command == "digest":
             return generate_memory_digest(config, args)
         raise AssertionError("unreachable")
+
+    if args.command == "query":
+        return query_project_kernel(config, args)
 
     raise AssertionError("unreachable")
 
@@ -350,6 +434,100 @@ def build_manifest(args: argparse.Namespace) -> dict:
     slug = args.slug or "example-project"
     description = args.description or "Project adopted by Sula"
     profile = args.profile
+    if profile == "sula-core":
+        return {
+            "project": {
+                "name": name,
+                "slug": slug,
+                "description": description,
+                "profile": profile,
+                "default_agent": "Codex",
+            },
+            "repository": {
+                "primary_branch": "main",
+                "working_branch_prefix": "codex/",
+                "deployment_branch": "main",
+            },
+            "rules": {
+                "highest_rule": "Preserve the split between centrally managed operating-system files and project-owned business truth.",
+                "custom_backend_allowed": False,
+                "react_router_allowed": False,
+            },
+            "stack": {
+                "frontend": "Python 3 + Markdown + TOML + template-driven repository automation",
+                "backend": "GitHub repository state + local filesystem artifacts",
+            },
+            "paths": {
+                "api_layer": "scripts/sula.py",
+                "state_layer": "registry/adopted-projects.toml",
+                "app_shell": "README.md",
+                "status_file": "STATUS.md",
+                "change_records_file": "CHANGE-RECORDS.md",
+            },
+            "commands": {
+                "install": "python3 -m unittest discover -s tests -v",
+                "dev": "python3 scripts/sula.py --help",
+                "build": "python3 -m unittest discover -s tests -v",
+                "typecheck": "python3 -m py_compile scripts/sula.py tests/test_sula.py",
+            },
+            "deploy": {
+                "base_path": "/",
+                "production_url": "local-only",
+                "workflow": ".github/workflows/ci.yml",
+            },
+            "auth": {
+                "session_expiry_codes": ["n/a"],
+                "permission_denied_codes": ["n/a"],
+            },
+            "memory": default_memory_config(),
+        }
+    if profile == "generic-project":
+        return {
+            "project": {
+                "name": name,
+                "slug": slug,
+                "description": description,
+                "profile": profile,
+                "default_agent": "Codex",
+            },
+            "repository": {
+                "primary_branch": "n/a",
+                "working_branch_prefix": "codex/",
+                "deployment_branch": "n/a",
+            },
+            "rules": {
+                "highest_rule": "Preserve project-owned truth while using Sula as a removable operating kernel.",
+                "custom_backend_allowed": True,
+                "react_router_allowed": False,
+            },
+            "stack": {
+                "frontend": "Project-defined components",
+                "backend": "Project-defined systems",
+            },
+            "paths": {
+                "api_layer": "README.md",
+                "state_layer": ".sula/state/current.md",
+                "app_shell": "README.md",
+                "status_file": "STATUS.md",
+                "change_records_file": "CHANGE-RECORDS.md",
+            },
+            "commands": {
+                "install": "n/a",
+                "dev": "n/a",
+                "build": "n/a",
+                "typecheck": "n/a",
+            },
+            "deploy": {
+                "base_path": "/",
+                "production_url": "local-only",
+                "workflow": "n/a",
+            },
+            "auth": {
+                "session_expiry_codes": ["n/a"],
+                "permission_denied_codes": ["n/a"],
+            },
+            "memory": default_memory_config(),
+        }
     return {
         "project": {
             "name": name,
@@ -627,8 +805,6 @@ def inspect_adoption(project_root: Path, args: argparse.Namespace) -> AdoptionRe
     package_data = read_package_json(project_root)
     readme_text = read_text_if_exists(project_root / "README.md")
     profile = detect_profile(project_root, args.profile, package_data, readme_text, detection_notes)
-    if profile is None:
-        blockers.append("could not determine a Sula profile automatically; rerun with `--profile`")
 
     config_data = None
     actions: list[RenderAction] = []
@@ -721,7 +897,87 @@ def build_adoption_manifest(
         return build_sula_core_manifest(project_root, args, detection_notes)
     if profile == "react-frontend-erpnext":
         return build_react_erpnext_manifest(project_root, args, package_data, readme_text, detection_notes)
+    if profile == "generic-project":
+        return build_generic_project_manifest(project_root, args, package_data, readme_text, detection_notes)
     raise SystemExit(f"Unsupported profile for adoption: {profile}")
+
+
+def build_generic_project_manifest(
+    project_root: Path,
+    args: argparse.Namespace,
+    package_data: dict | None,
+    readme_text: str,
+    detection_notes: list[str],
+) -> dict:
+    name = args.name or detect_project_name(project_root, package_data, readme_text)
+    slug = args.slug or sanitize_slug(package_slug_or_name(project_root, package_data, name))
+    description = args.description or detect_project_description(package_data, readme_text)
+    git_present = is_git_repository(project_root)
+    primary_branch = detect_primary_branch(project_root) if git_present else "n/a"
+    deployment_branch = primary_branch if git_present else "n/a"
+    app_shell = detect_first_existing_path(
+        project_root,
+        ["README.md", "docs/README.md", "start.sh", "main.py", "app.py", "src/App.tsx", "src/main.tsx", "index.html"],
+    ) or "README.md"
+    api_layer = detect_first_existing_path(
+        project_root,
+        ["start.sh", "main.py", "app.py", "src/main.tsx", "src/App.tsx", "README.md"],
+    ) or app_shell
+    install_command, dev_command, build_command, typecheck_command = detect_generic_commands(project_root, package_data)
+    production_url = detect_production_url(package_data) or "local-only"
+    workflow = detect_workflow_path(project_root) or "n/a"
+    detection_notes.append("defaulted to `generic-project` because no narrower profile matched safely")
+    if git_present:
+        detection_notes.append("Git metadata detected; `repo` can act as an optional kernel adapter")
+    else:
+        detection_notes.append("Git metadata not detected; adoption will proceed without the optional `repo` adapter")
+    return {
+        "project": {
+            "name": name,
+            "slug": slug,
+            "description": description,
+            "profile": "generic-project",
+            "default_agent": "Codex",
+        },
+        "repository": {
+            "primary_branch": primary_branch,
+            "working_branch_prefix": "codex/",
+            "deployment_branch": deployment_branch,
+        },
+        "rules": {
+            "highest_rule": detect_existing_highest_rule(project_root)
+            or "Preserve project-owned truth while using Sula as a removable operating kernel.",
+            "custom_backend_allowed": True,
+            "react_router_allowed": detect_react_router_allowed(package_data),
+        },
+        "stack": {
+            "frontend": detect_generic_frontend_stack(project_root, package_data),
+            "backend": detect_generic_backend_stack(project_root, package_data, readme_text),
+        },
+        "paths": {
+            "api_layer": api_layer,
+            "state_layer": ".sula/state/current.md",
+            "app_shell": app_shell,
+            "status_file": "STATUS.md",
+            "change_records_file": "CHANGE-RECORDS.md",
+        },
+        "commands": {
+            "install": install_command,
+            "dev": dev_command,
+            "build": build_command,
+            "typecheck": typecheck_command,
+        },
+        "deploy": {
+            "base_path": detect_base_path(production_url) if production_url.startswith("http") else "/",
+            "production_url": production_url,
+            "workflow": workflow,
+        },
+        "auth": {
+            "session_expiry_codes": ["n/a"],
+            "permission_denied_codes": ["n/a"],
+        },
+        "memory": default_memory_config(),
+    }
 
 
 def build_sula_core_manifest(project_root: Path, args: argparse.Namespace, detection_notes: list[str]) -> dict:
@@ -899,7 +1155,7 @@ def detect_profile(
     ) or any(term in haystack for term in ["erpnext", "frappe"])
     if has_react_shape and has_erpnext_marker:
         return "react-frontend-erpnext"
-    return None
+    return "generic-project"
 
 
 def detect_project_name(project_root: Path, package_data: dict | None, readme_text: str) -> str:
@@ -971,6 +1227,11 @@ def detect_primary_branch(project_root: Path) -> str:
     return current_branch if current_branch != "unknown" else "main"
 
 
+def is_git_repository(project_root: Path) -> bool:
+    result = run_git(project_root, ["rev-parse", "--is-inside-work-tree"])
+    return result is not None and result.returncode == 0 and result.stdout.strip() == "true"
+
+
 def run_git(project_root: Path, args: list[str]) -> subprocess.CompletedProcess[str] | None:
     try:
         return subprocess.run(
@@ -1031,6 +1292,19 @@ def detect_node_commands(package_data: dict | None, package_manager: str) -> tup
     else:
         typecheck = "npx tsc --noEmit"
     return dev, build, typecheck
+
+
+def detect_generic_commands(project_root: Path, package_data: dict | None) -> tuple[str, str, str, str]:
+    if package_data is not None:
+        package_manager = detect_package_manager(project_root)
+        install = install_command_for_package_manager(package_manager)
+        dev, build, typecheck = detect_node_commands(package_data, package_manager)
+        return install, dev, build, typecheck
+    if (project_root / "requirements.txt").exists():
+        return ("python3 -m pip install -r requirements.txt", "n/a", "n/a", "python3 -m py_compile .")
+    if (project_root / "pyproject.toml").exists():
+        return ("python3 -m pip install -e .", "n/a", "n/a", "n/a")
+    return ("n/a", "n/a", "n/a", "n/a")
 
 
 def detect_workflow_path(project_root: Path) -> str | None:
@@ -1115,6 +1389,25 @@ def detect_backend_stack(readme_text: str) -> str:
     return "ERPNext / Frappe"
 
 
+def detect_generic_frontend_stack(project_root: Path, package_data: dict | None) -> str:
+    if package_data is not None:
+        return detect_frontend_stack(package_data)
+    if any((project_root / candidate).exists() for candidate in ["index.html", "src", "public"]):
+        return "Project-defined application or document interface"
+    return "Project-defined components"
+
+
+def detect_generic_backend_stack(project_root: Path, package_data: dict | None, readme_text: str) -> str:
+    lowered = readme_text.lower()
+    if package_data is not None and ("erpnext" in lowered or "frappe" in lowered):
+        return "ERPNext / Frappe"
+    if (project_root / "requirements.txt").exists() or (project_root / "pyproject.toml").exists():
+        return "Python-driven project systems"
+    if "contract" in lowered or "agreement" in lowered:
+        return "Project documents and external systems"
+    return "Project-defined systems"
+
+
 def detect_repository_url(project_root: Path) -> str | None:
     result = run_git(project_root, ["remote", "get-url", "origin"])
     if result is None or result.returncode != 0:
@@ -1133,6 +1426,7 @@ def apply_adoption(report: AdoptionReport) -> int:
     write_lockfile(config)
     finalize_adoption_traceability(config)
     generate_memory_digest(config, argparse.Namespace(output=None, stdout=False))
+    refresh_kernel_state(config, event_type="adopt.approved", summary="Applied initial Sula adoption.")
     print("Post-adoption validation:")
     doctor_exit = doctor(config, strict=True)
     print_adoption_usage(config)
@@ -1237,6 +1531,7 @@ def print_adoption_usage(config: ProjectConfig) -> None:
     print(f"  - inspect current rules: {config.root / 'AGENTS.md'}")
     print(f"  - validate the repository: {sula_command} doctor --project-root {config.root} --strict")
     print(f"  - preview future upgrades: {sula_command} sync --project-root {config.root} --dry-run")
+    print(f"  - preview removal: {sula_command} remove --project-root {config.root}")
     print(f"  - add non-trivial history: {sula_command} record new --project-root {config.root} --title \"...\"")
     print(f"  - regenerate recall summary: {sula_command} memory digest --project-root {config.root}")
 
@@ -1410,6 +1705,7 @@ def create_record(config: ProjectConfig, args: argparse.Namespace) -> int:
     if args.kind == "change":
         update_change_records_index(config, output_path, record_date, args.title, summary)
     update_status_for_new_record(config, args.kind, output_path, record_date, args.title)
+    refresh_kernel_state(config, event_type=f"record.{args.kind}", summary=f"Added {args.kind} record `{args.title}`.")
     print(f"Created {args.kind} record at {output_path}")
     return 0
 
@@ -1683,6 +1979,7 @@ def generate_memory_digest(config: ProjectConfig, args: argparse.Namespace) -> i
         return 0
     output_path.parent.mkdir(parents=True, exist_ok=True)
     output_path.write_text(digest, encoding="utf-8")
+    refresh_kernel_state(config, event_type="memory.digest", summary=f"Regenerated memory digest at `{output_path.relative_to(config.root).as_posix()}`.")
     print(f"Wrote memory digest to {output_path}")
     return 0
 
@@ -1825,6 +2122,8 @@ def doctor(config: ProjectConfig, *, strict: bool) -> int:
     warnings = collect_doctor_warnings(config)
     memory_errors, memory_warnings = collect_memory_doctor_report(config)
     warnings.extend(memory_warnings)
+    kernel_errors, kernel_warnings = collect_kernel_doctor_report(config)
+    warnings.extend(kernel_warnings)
 
     for action in collect_render_actions(config, include_scaffold=False):
         if not action.output_path.exists():
@@ -1858,12 +2157,16 @@ def doctor(config: ProjectConfig, *, strict: bool) -> int:
         print("Lockfile issues:")
         for item in lock_issues:
             print(f"  - {item}")
+    if kernel_errors:
+        print("Kernel issues:")
+        for item in kernel_errors:
+            print(f"  - {item}")
     if warnings:
         print("Warnings:")
         for item in warnings:
             print(f"  - {item}")
 
-    has_errors = bool(missing_files or drifted_files or placeholder_files or memory_errors or lock_issues)
+    has_errors = bool(missing_files or drifted_files or placeholder_files or memory_errors or lock_issues or kernel_errors)
     if not has_errors and not (strict and warnings):
         print(f"Sula doctor passed for {config.data['project']['name']}")
         return 0
@@ -1874,10 +2177,174 @@ def collect_doctor_warnings(config: ProjectConfig) -> list[str]:
     warnings: list[str] = []
     for section, key in EXISTENCE_WARNING_FIELDS:
         relative_value = config.data[section][key]
+        if relative_value.strip().lower() in NON_PATH_SENTINELS:
+            continue
         target = config.root / relative_value
         if not target.exists():
             warnings.append(f"manifest reference does not exist yet: {section}.{key} -> {relative_value}")
     return warnings
+
+
+def collect_kernel_doctor_report(config: ProjectConfig) -> tuple[list[str], list[str]]:
+    errors: list[str] = []
+    warnings: list[str] = []
+    kernel_root = config.root / ".sula"
+    required_files = [
+        kernel_root / "kernel.toml",
+        kernel_root / "adapters" / "catalog.json",
+        kernel_root / "adapters" / "bundles.json",
+        kernel_root / "objects" / "catalog.json",
+        kernel_root / "state" / "current.md",
+        kernel_root / "sources" / "registry.json",
+        kernel_root / "events" / "log.jsonl",
+        kernel_root / "indexes" / "catalog.json",
+        kernel_root / "indexes" / "relations.json",
+        kernel_root / "exports" / "catalog.json",
+    ]
+    for path in required_files:
+        if not path.exists():
+            errors.append(f"missing kernel artifact: {path}")
+    registry_path = kernel_root / "sources" / "registry.json"
+    if registry_path.exists():
+        try:
+            registry = json.loads(registry_path.read_text(encoding="utf-8"))
+        except json.JSONDecodeError as exc:
+            errors.append(f"invalid source registry JSON: {registry_path} ({exc})")
+        else:
+            if not isinstance(registry, list) or not registry:
+                errors.append(f"source registry is empty or malformed: {registry_path}")
+            else:
+                discovered_entries = [item for item in registry if isinstance(item, dict) and item.get("discovered")]
+                if not discovered_entries:
+                    warnings.append(f"{registry_path}: no discovered project sources were indexed")
+    adapter_catalog_path = kernel_root / "adapters" / "catalog.json"
+    adapter_ids: set[str] = set()
+    if adapter_catalog_path.exists():
+        try:
+            adapter_catalog = json.loads(adapter_catalog_path.read_text(encoding="utf-8"))
+        except json.JSONDecodeError as exc:
+            errors.append(f"invalid adapter catalog JSON: {adapter_catalog_path} ({exc})")
+        else:
+            adapters = adapter_catalog.get("adapters")
+            if not isinstance(adapters, list) or not adapters:
+                errors.append(f"adapter catalog is empty or malformed: {adapter_catalog_path}")
+            else:
+                for item in adapters:
+                    if not isinstance(item, dict) or not isinstance(item.get("id"), str):
+                        errors.append(f"adapter catalog entry is malformed: {adapter_catalog_path}")
+                        break
+                    adapter_ids.add(item["id"])
+                if "generic-project" not in adapter_ids:
+                    errors.append(f"{adapter_catalog_path}: missing required `generic-project` adapter")
+                if is_git_repository(config.root) and "repo" not in adapter_ids:
+                    warnings.append(f"{adapter_catalog_path}: git repository detected but `repo` adapter is absent")
+    bundle_catalog_path = kernel_root / "adapters" / "bundles.json"
+    if bundle_catalog_path.exists() and adapter_ids:
+        try:
+            bundle_catalog = json.loads(bundle_catalog_path.read_text(encoding="utf-8"))
+        except json.JSONDecodeError as exc:
+            errors.append(f"invalid bundle catalog JSON: {bundle_catalog_path} ({exc})")
+        else:
+            bundles = bundle_catalog.get("bundles")
+            if not isinstance(bundles, list) or not bundles:
+                errors.append(f"bundle catalog is empty or malformed: {bundle_catalog_path}")
+            else:
+                for bundle in bundles:
+                    if not isinstance(bundle, dict):
+                        errors.append(f"bundle catalog entry is malformed: {bundle_catalog_path}")
+                        break
+                    bundle_adapters = bundle.get("adapters", [])
+                    if not isinstance(bundle_adapters, list):
+                        errors.append(f"bundle catalog entry has invalid adapter list: {bundle_catalog_path}")
+                        break
+                    unknown = [adapter for adapter in bundle_adapters if adapter not in adapter_ids]
+                    if unknown:
+                        errors.append(f"{bundle_catalog_path}: bundle references unknown adapters {unknown}")
+                        break
+    object_catalog_path = kernel_root / "objects" / "catalog.json"
+    object_ids: set[str] = set()
+    if object_catalog_path.exists():
+        try:
+            object_catalog = json.loads(object_catalog_path.read_text(encoding="utf-8"))
+        except json.JSONDecodeError as exc:
+            errors.append(f"invalid object catalog JSON: {object_catalog_path} ({exc})")
+        else:
+            objects = object_catalog.get("objects")
+            if not isinstance(objects, list) or not objects:
+                errors.append(f"object catalog is empty or malformed: {object_catalog_path}")
+            else:
+                for item in objects:
+                    if not isinstance(item, dict) or not isinstance(item.get("id"), str):
+                        errors.append(f"object catalog entry is malformed: {object_catalog_path}")
+                        break
+                    object_ids.add(item["id"])
+                if not any(item.get("kind") == "project" for item in objects if isinstance(item, dict)):
+                    errors.append(f"{object_catalog_path}: missing required project object")
+    if registry_path.exists() and adapter_ids:
+        try:
+            registry = json.loads(registry_path.read_text(encoding="utf-8"))
+        except json.JSONDecodeError:
+            registry = []
+        if isinstance(registry, list):
+            for item in registry:
+                if not isinstance(item, dict):
+                    continue
+                adapters = item.get("adapters", [])
+                if not isinstance(adapters, list) or not adapters:
+                    warnings.append(f"{registry_path}: source `{item.get('path', 'unknown')}` is missing adapter bindings")
+                    continue
+                unknown = [adapter for adapter in adapters if adapter not in adapter_ids]
+                if unknown:
+                    errors.append(
+                        f"{registry_path}: source `{item.get('path', 'unknown')}` references unknown adapters {unknown}"
+                    )
+                    break
+    relation_index_path = kernel_root / "indexes" / "relations.json"
+    if relation_index_path.exists() and object_ids:
+        try:
+            relation_index = json.loads(relation_index_path.read_text(encoding="utf-8"))
+        except json.JSONDecodeError as exc:
+            errors.append(f"invalid relation index JSON: {relation_index_path} ({exc})")
+        else:
+            relations = relation_index.get("relations")
+            if not isinstance(relations, list):
+                errors.append(f"relation index is malformed: {relation_index_path}")
+            else:
+                for relation in relations:
+                    if not isinstance(relation, dict):
+                        errors.append(f"relation index entry is malformed: {relation_index_path}")
+                        break
+                    from_id = relation.get("from")
+                    if isinstance(from_id, str) and from_id not in object_ids:
+                        errors.append(f"{relation_index_path}: relation references unknown object `{from_id}`")
+                        break
+    event_log_path = kernel_root / "events" / "log.jsonl"
+    if event_log_path.exists():
+        for line_number, raw_line in enumerate(event_log_path.read_text(encoding="utf-8").splitlines(), start=1):
+            if not raw_line.strip():
+                continue
+            try:
+                json.loads(raw_line)
+            except json.JSONDecodeError as exc:
+                errors.append(f"invalid kernel event JSON at {event_log_path}:{line_number} ({exc})")
+                break
+    sqlite_cache_path = kernel_root / "cache" / "kernel.db"
+    if sqlite_cache_path.exists():
+        try:
+            with sqlite3.connect(sqlite_cache_path) as connection:
+                cursor = connection.execute(
+                    "SELECT name FROM sqlite_master WHERE type = 'table' AND name IN ('sources', 'objects', 'relations', 'events', 'documents')"
+                )
+                table_names = {row[0] for row in cursor.fetchall()}
+        except sqlite3.Error as exc:
+            errors.append(f"invalid sqlite kernel cache: {sqlite_cache_path} ({exc})")
+        else:
+            missing_tables = sorted({"sources", "objects", "relations", "events", "documents"} - table_names)
+            if missing_tables:
+                errors.append(f"{sqlite_cache_path}: missing required tables {missing_tables}")
+    else:
+        warnings.append(f"{sqlite_cache_path}: rebuildable SQLite cache is missing")
+    return errors, warnings
 
 
 def collect_memory_doctor_report(config: ProjectConfig) -> tuple[list[str], list[str]]:
@@ -2089,6 +2556,1800 @@ def write_lockfile(config: ProjectConfig) -> None:
         f'sula_version = "{VERSION}"\nprofile = "{config.profile}"\n',
         encoding="utf-8",
     )
+
+
+def refresh_kernel_state(config: ProjectConfig, *, event_type: str | None = None, summary: str | None = None) -> None:
+    kernel_root = config.root / ".sula"
+    for relative in ["adapters", "objects", "sources", "state", "events", "indexes", "cache", "exports"]:
+        (kernel_root / relative).mkdir(parents=True, exist_ok=True)
+
+    event_log_path = kernel_root / "events" / "log.jsonl"
+    if not event_log_path.exists():
+        event_log_path.write_text("", encoding="utf-8")
+    if event_type and summary:
+        append_kernel_event(config, event_log_path, event_type, summary)
+
+    (kernel_root / "kernel.toml").write_text(render_kernel_manifest(config), encoding="utf-8")
+    (kernel_root / "adapters" / "catalog.json").write_text(render_adapter_catalog(config), encoding="utf-8")
+    (kernel_root / "adapters" / "bundles.json").write_text(render_bundle_catalog(config), encoding="utf-8")
+    (kernel_root / "sources" / "registry.json").write_text(render_source_registry(config), encoding="utf-8")
+    (kernel_root / "objects" / "catalog.json").write_text(render_object_catalog(config), encoding="utf-8")
+    (kernel_root / "state" / "current.md").write_text(render_kernel_current_state(config), encoding="utf-8")
+    (kernel_root / "indexes" / "catalog.json").write_text(render_index_catalog(config), encoding="utf-8")
+    (kernel_root / "indexes" / "relations.json").write_text(render_relation_index(config), encoding="utf-8")
+    (kernel_root / "exports" / "catalog.json").write_text(render_export_catalog(config), encoding="utf-8")
+    (kernel_root / "cache" / "query-index.json").write_text(render_query_cache(config), encoding="utf-8")
+    rebuild_kernel_sqlite_cache(config)
+    cache_readme = kernel_root / "cache" / "README.md"
+    if not cache_readme.exists():
+        cache_readme.write_text(
+            "# Sula Cache\n\nThis directory stores disposable local caches. It is safe to delete and rebuild.\n",
+            encoding="utf-8",
+        )
+
+
+def append_kernel_event(config: ProjectConfig, event_log_path: Path, event_type: str, summary: str) -> None:
+    event = {
+        "timestamp": datetime.utcnow().replace(microsecond=0).isoformat() + "Z",
+        "event_type": event_type,
+        "summary": summary,
+        "profile": config.profile,
+        "project": config.data["project"]["slug"],
+    }
+    with event_log_path.open("a", encoding="utf-8") as handle:
+        handle.write(json.dumps(event, ensure_ascii=True) + "\n")
+
+
+def render_kernel_manifest(config: ProjectConfig) -> str:
+    adapters = ", ".join(format_toml_value(adapter) for adapter in config.kernel_adapters())
+    git_enabled = "true" if is_git_repository(config.root) else "false"
+    return (
+        "[kernel]\n"
+        f'sula_version = "{VERSION}"\n'
+        f'profile = "{config.profile}"\n'
+        f"adapters = [{adapters}]\n"
+        f"git_enabled = {git_enabled}\n"
+        'adapter_catalog = ".sula/adapters/catalog.json"\n'
+        'bundle_catalog = ".sula/adapters/bundles.json"\n'
+        'object_catalog = ".sula/objects/catalog.json"\n'
+        'state_snapshot = ".sula/state/current.md"\n'
+        'source_registry = ".sula/sources/registry.json"\n'
+        'event_log = ".sula/events/log.jsonl"\n'
+        'index_catalog = ".sula/indexes/catalog.json"\n'
+        'relation_index = ".sula/indexes/relations.json"\n'
+        'sqlite_cache = ".sula/cache/kernel.db"\n'
+        'export_catalog = ".sula/exports/catalog.json"\n'
+        'removal_mode = "explicit-remove-command"\n'
+    )
+
+
+def render_source_registry(config: ProjectConfig) -> str:
+    return json.dumps(build_source_registry(config), indent=2, ensure_ascii=True) + "\n"
+
+
+def render_adapter_catalog(config: ProjectConfig) -> str:
+    catalog = {
+        "version": VERSION,
+        "profile": config.profile,
+        "adapters": build_adapter_catalog(config),
+    }
+    return json.dumps(catalog, indent=2, ensure_ascii=True) + "\n"
+
+
+def render_bundle_catalog(config: ProjectConfig) -> str:
+    bundle_catalog = {
+        "version": VERSION,
+        "profile": config.profile,
+        "bundles": [
+            {
+                "id": f"bundle:{config.profile}",
+                "profile": config.profile,
+                "adapters": config.kernel_adapters(),
+                "description": profile_bundle_description(config.profile),
+            }
+        ],
+    }
+    return json.dumps(bundle_catalog, indent=2, ensure_ascii=True) + "\n"
+
+
+def render_object_catalog(config: ProjectConfig) -> str:
+    catalog = {
+        "version": VERSION,
+        "profile": config.profile,
+        "objects": build_object_catalog(config),
+    }
+    return json.dumps(catalog, indent=2, ensure_ascii=True) + "\n"
+
+
+def render_query_cache(config: ProjectConfig) -> str:
+    documents = build_query_documents(config)
+    postings: dict[str, list[str]] = {}
+    for document in documents:
+        for token in tokenize_text(
+            " ".join(
+                [
+                    document["title"],
+                    document["summary"],
+                    document["path"],
+                    " ".join(document["tags"]),
+                    " ".join(document.get("adapters", [])),
+                ]
+            )
+        ):
+            postings.setdefault(token, [])
+            if document["id"] not in postings[token]:
+                postings[token].append(document["id"])
+    cache = {
+        "version": VERSION,
+        "profile": config.profile,
+        "documents": documents,
+        "postings": postings,
+    }
+    return json.dumps(cache, indent=2, ensure_ascii=True) + "\n"
+
+
+def build_adapter_catalog(config: ProjectConfig) -> list[dict[str, object]]:
+    adapters: list[dict[str, object]] = []
+    for adapter in config.kernel_adapters():
+        adapters.append(
+            {
+                "id": adapter,
+                "kind": adapter_kind(adapter),
+                "required": adapter in {"generic-project", "docs", "memory"},
+                "enabled": True,
+                "git_required": adapter == "repo",
+                "description": adapter_description(adapter),
+                "source_matchers": adapter_source_matchers(adapter),
+            }
+        )
+    return adapters
+
+
+def build_source_registry(config: ProjectConfig) -> list[dict[str, object]]:
+    candidates = [
+        ("project-manifest", "sula-manifest", MANIFEST_PATH.as_posix()),
+        ("status", "state", config.data["paths"]["status_file"]),
+        ("change-records", "change-index", config.data["paths"]["change_records_file"]),
+        ("agents", "instructions", "AGENTS.md"),
+        ("readme", "overview", "README.md"),
+        ("app-shell", "project-entry", config.data["paths"]["app_shell"]),
+        ("api-layer", "project-entry", config.data["paths"]["api_layer"]),
+        ("kernel-state", "kernel-state", ".sula/state/current.md"),
+        ("memory-digest", "derived-export", config.memory_setting("digest_file", ".sula/memory-digest.md")),
+    ]
+    seen: set[str] = set()
+    entries: list[dict[str, object]] = []
+    for source_id, kind, relative_path in candidates:
+        if relative_path in seen:
+            continue
+        seen.add(relative_path)
+        path = config.root / relative_path
+        entries.append(
+            {
+                "id": source_id,
+                "kind": kind,
+                "path": relative_path,
+                "exists": path.exists(),
+                "source_of_truth": not relative_path.startswith(".sula/"),
+                "adapters": adapters_for_source(config, relative_path, kind),
+            }
+        )
+    if is_git_repository(config.root):
+        entries.append(
+            {
+                "id": "git-repository",
+                "kind": "repo",
+                "path": ".git",
+                "exists": True,
+                "source_of_truth": False,
+                "adapters": ["repo"],
+            }
+        )
+    for discovered in discover_project_sources(config):
+        entries.append(discovered)
+    return entries
+
+
+def discover_project_sources(config: ProjectConfig) -> list[dict[str, object]]:
+    entries: list[dict[str, object]] = []
+    for path in iter_discoverable_files(config.root):
+        relative_path = path.relative_to(config.root).as_posix()
+        entries.append(
+            {
+                "id": f"source:{sanitize_source_id(relative_path)}",
+                "kind": detect_source_kind(relative_path),
+                "path": relative_path,
+                "exists": True,
+                "source_of_truth": True,
+                "discovered": True,
+                "size_bytes": path.stat().st_size,
+                "anchor_strategy": detect_anchor_strategy(relative_path),
+                "adapters": adapters_for_source(config, relative_path, detect_source_kind(relative_path)),
+            }
+        )
+        if len(entries) >= MAX_DISCOVERED_SOURCES:
+            break
+    return entries
+
+
+def iter_discoverable_files(project_root: Path):
+    for path in sorted(project_root.rglob("*")):
+        if not path.is_file():
+            continue
+        relative_parts = path.relative_to(project_root).parts
+        if any(part in KERNEL_SKIP_DIRS for part in relative_parts[:-1]):
+            continue
+        if path.suffix.lower() not in DISCOVERABLE_SOURCE_SUFFIXES:
+            continue
+        yield path
+
+
+def sanitize_source_id(relative_path: str) -> str:
+    sanitized = re.sub(r"[^a-z0-9]+", "-", relative_path.lower()).strip("-")
+    return sanitized or "root"
+
+
+def detect_source_kind(relative_path: str) -> str:
+    suffix = Path(relative_path).suffix.lower()
+    if suffix in {".md", ".txt", ".rst"}:
+        return "document"
+    if suffix in {".py", ".sh", ".js", ".jsx", ".ts", ".tsx"}:
+        return "code"
+    if suffix in {".json", ".toml", ".yml", ".yaml"}:
+        return "config"
+    if suffix in {".html", ".css"}:
+        return "interface"
+    return "file"
+
+
+def detect_anchor_strategy(relative_path: str) -> str:
+    suffix = Path(relative_path).suffix.lower()
+    if suffix in {".md", ".txt", ".rst"}:
+        return "heading-or-line"
+    return "line"
+
+
+def adapters_for_source(config: ProjectConfig, relative_path: str, source_kind: str) -> list[str]:
+    adapters: list[str] = ["generic-project"]
+    lowered = relative_path.lower()
+    if source_kind in {"document", "interface"} or lowered.endswith("readme.md"):
+        adapters.append("docs")
+    if lowered.startswith(".sula/") or lowered in {
+        config.data["paths"]["status_file"].lower(),
+        config.data["paths"]["change_records_file"].lower(),
+    } or "change-records/" in lowered or "releases/" in lowered or "incidents/" in lowered:
+        adapters.append("memory")
+    if is_git_repository(config.root) and not lowered.startswith(".sula/"):
+        adapters.append("repo")
+    if config.profile == "react-frontend-erpnext":
+        if source_kind in {"code", "interface"}:
+            adapters.append("erpnext")
+        if lowered.startswith(".github/workflows/") or "deploy" in lowered:
+            adapters.append("deploy")
+    if config.profile == "sula-core":
+        if "registry/" in lowered:
+            adapters.append("registry")
+        if "release" in lowered or "version" in lowered or lowered == "changelog.md":
+            adapters.append("release")
+    return dedupe_preserve_order(adapters)
+
+
+def dedupe_preserve_order(values: list[str]) -> list[str]:
+    seen: set[str] = set()
+    ordered: list[str] = []
+    for value in values:
+        if value in seen:
+            continue
+        seen.add(value)
+        ordered.append(value)
+    return ordered
+
+
+def adapter_kind(adapter: str) -> str:
+    if adapter == "generic-project":
+        return "base"
+    if adapter in {"docs", "memory", "repo"}:
+        return "core"
+    return "profile-extension"
+
+
+def adapter_description(adapter: str) -> str:
+    descriptions = {
+        "generic-project": "Minimum removable project kernel.",
+        "docs": "Project documents and source anchors.",
+        "memory": "State, change history, and recall views.",
+        "repo": "Git-aware repository metadata and workflows.",
+        "deploy": "Deployment-related sources and workflows.",
+        "erpnext": "React frontend over ERPNext/Frappe integration surfaces.",
+        "registry": "Registry and rollout metadata for operating-system repositories.",
+        "release": "Release/versioning sources and rollout history.",
+    }
+    return descriptions.get(adapter, "Project adapter.")
+
+
+def profile_bundle_description(profile: str) -> str:
+    descriptions = {
+        "generic-project": "Baseline bundle for unknown, in-progress, or non-Git projects.",
+        "react-frontend-erpnext": "Bundle for React frontends orchestrating ERPNext/Frappe systems.",
+        "sula-core": "Bundle for repositories that are themselves reusable operating-system projects.",
+    }
+    return descriptions.get(profile, "Project bundle.")
+
+
+def adapter_source_matchers(adapter: str) -> list[str]:
+    matchers = {
+        "generic-project": ["*"],
+        "docs": ["README.md", "docs/**", "*.md"],
+        "memory": [".sula/**", "STATUS.md", "CHANGE-RECORDS.md", "docs/change-records/**", "docs/releases/**", "docs/incidents/**"],
+        "repo": [".git", ".github/**", "*"],
+        "deploy": [".github/workflows/**", "*deploy*"],
+        "erpnext": ["src/api/**", "src/App.tsx", "src/main.tsx"],
+        "registry": ["registry/**"],
+        "release": ["CHANGELOG.md", "VERSION", "docs/releases/**", "docs/versioning.md"],
+    }
+    return matchers.get(adapter, ["*"])
+
+
+def build_object_catalog(config: ProjectConfig) -> list[dict[str, object]]:
+    objects: list[dict[str, object]] = []
+    status_path = config.root / config.data["paths"]["status_file"]
+    status_sections = markdown_sections(status_path.read_text(encoding="utf-8")) if status_path.exists() else {}
+    status_updated = extract_status_updated_date(status_path.read_text(encoding="utf-8")) if status_path.exists() else None
+    objects.append(
+        {
+            "id": f"project:{config.data['project']['slug']}",
+            "kind": "project",
+            "title": config.data["project"]["name"],
+            "summary": config.data["project"]["description"],
+            "status": "active",
+            "path": MANIFEST_PATH.as_posix(),
+            "source_paths": [MANIFEST_PATH.as_posix(), config.data["paths"]["status_file"]],
+            "adapters": config.kernel_adapters(),
+            "tags": [config.profile],
+            "date": status_updated,
+        }
+    )
+    objects.append(
+        {
+            "id": "state:current",
+            "kind": "state",
+            "title": "Current Project State",
+            "summary": status_sections.get("Summary", "_missing_"),
+            "status": "current",
+            "path": config.data["paths"]["status_file"],
+            "source_paths": [config.data["paths"]["status_file"]],
+            "adapters": ["generic-project", "memory"],
+            "tags": ["state"],
+            "date": status_updated,
+        }
+    )
+    objects.extend(build_status_objects(config, status_sections, status_updated))
+    objects.extend(build_record_objects(config.root, config.change_record_directory, "change", ["generic-project", "memory"]))
+    objects.extend(build_record_objects(config.root, config.release_record_directory, "release", ["generic-project", "memory"]))
+    objects.extend(build_record_objects(config.root, config.incident_record_directory, "incident", ["generic-project", "memory"]))
+    for source in build_source_registry(config):
+        if not source.get("discovered"):
+            continue
+        source_path = config.root / str(source["path"])
+        source_summary_text = source_summary(source_path)
+        objects.append(
+            {
+                "id": f"object:{source['id']}",
+                "kind": source.get("kind", "source"),
+                "title": Path(str(source["path"])).name,
+                "summary": source_summary_text,
+                "status": "indexed",
+                "path": source["path"],
+                "source_paths": [source["path"]],
+                "adapters": source.get("adapters", ["generic-project"]),
+                "tags": ["discovered-source"],
+                "date": detect_source_date(source_path, source_summary_text),
+            }
+        )
+        objects.extend(build_discovered_source_objects(source_path, str(source["path"]), source.get("adapters", ["generic-project"])))
+    return dedupe_objects(objects)
+
+
+def build_record_objects(project_root: Path, directory: Path, kind: str, adapters: list[str]) -> list[dict[str, object]]:
+    objects: list[dict[str, object]] = []
+    for record_path in list_record_files(directory):
+        text = record_path.read_text(encoding="utf-8")
+        title = extract_markdown_title(text) or record_path.stem
+        relative_path = record_path.relative_to(project_root).as_posix()
+        record_date = detect_record_date(record_path, text)
+        objects.append(
+            {
+                "id": f"{kind}:{record_path.stem}",
+                "kind": kind,
+                "title": title,
+                "summary": first_readme_paragraph(text),
+                "status": "recorded",
+                "path": relative_path,
+                "source_paths": [relative_path],
+                "adapters": adapters,
+                "tags": [kind],
+                "date": record_date,
+            }
+        )
+        if kind == "release":
+            objects.append(
+                {
+                    "id": f"milestone:{record_path.stem}",
+                    "kind": "milestone",
+                    "title": title,
+                    "summary": first_readme_paragraph(text) or "Recorded release milestone.",
+                    "status": "shipped",
+                    "path": relative_path,
+                    "source_paths": [relative_path],
+                    "adapters": adapters,
+                    "tags": ["release-milestone"],
+                    "date": record_date,
+                }
+            )
+        if kind == "incident":
+            objects.append(
+                {
+                    "id": f"risk:{record_path.stem}",
+                    "kind": "risk",
+                    "title": title,
+                    "summary": first_readme_paragraph(text) or "Recorded incident and follow-up risk.",
+                    "status": "incident",
+                    "path": relative_path,
+                    "source_paths": [relative_path],
+                    "adapters": adapters,
+                    "tags": ["incident-risk"],
+                    "date": record_date,
+                }
+            )
+        objects.extend(build_section_objects(relative_path, text, adapters, default_date=record_date))
+        if looks_like_agreement(relative_path, title, text):
+            objects.append(
+                {
+                    "id": f"agreement:{record_path.stem}",
+                    "kind": "agreement",
+                    "title": title,
+                    "summary": first_readme_paragraph(text) or "Agreement-related record.",
+                    "status": "active",
+                    "path": relative_path,
+                    "source_paths": [relative_path],
+                    "adapters": adapters,
+                    "tags": ["agreement"],
+                    "date": record_date,
+                }
+            )
+    return objects
+
+
+def build_status_objects(
+    config: ProjectConfig,
+    status_sections: dict[str, str],
+    status_updated: str | None,
+) -> list[dict[str, object]]:
+    objects: list[dict[str, object]] = []
+    status_path = config.data["paths"]["status_file"]
+    adapters = ["generic-project", "memory"]
+    current_focus = markdown_bullet_items(status_sections.get("Current Focus", ""))
+    for item in current_focus:
+        objects.append(
+            {
+                "id": f"task:status:{sanitize_source_id(item)}",
+                "kind": "task",
+                "title": truncate_title(item),
+                "summary": item,
+                "status": "open",
+                "path": status_path,
+                "source_paths": [status_path],
+                "adapters": adapters,
+                "tags": ["current-focus", "status"],
+                "date": status_updated,
+            }
+        )
+    blockers = markdown_bullet_items(status_sections.get("Blockers", ""))
+    for item in blockers:
+        if line_is_empty_placeholder(item):
+            continue
+        objects.append(
+            {
+                "id": f"risk:status:{sanitize_source_id(item)}",
+                "kind": "risk",
+                "title": truncate_title(item),
+                "summary": item,
+                "status": "open",
+                "path": status_path,
+                "source_paths": [status_path],
+                "adapters": adapters,
+                "tags": ["blocker", "status"],
+                "date": status_updated,
+            }
+        )
+    decisions = markdown_bullet_items(status_sections.get("Recent Decisions", ""))
+    for item in decisions:
+        objects.append(
+            {
+                "id": f"decision:status:{sanitize_source_id(item)}",
+                "kind": "decision",
+                "title": truncate_title(item),
+                "summary": item,
+                "status": "decided",
+                "path": status_path,
+                "source_paths": [status_path],
+                "adapters": adapters,
+                "tags": ["recent-decision", "status"],
+                "date": extract_inline_date(item) or status_updated,
+            }
+        )
+    next_review_fields = markdown_key_values(status_sections.get("Next Review", ""))
+    owner = next_review_fields.get("owner")
+    if owner:
+        objects.append(
+            {
+                "id": f"person:status:{sanitize_source_id(owner)}",
+                "kind": "person",
+                "title": owner,
+                "summary": f"Current review owner for {config.data['project']['name']}.",
+                "status": "responsible",
+                "path": status_path,
+                "source_paths": [status_path],
+                "adapters": adapters,
+                "tags": ["next-review-owner", "status"],
+                "date": status_updated,
+            }
+        )
+    review_date = next_review_fields.get("date")
+    if review_date:
+        trigger = next_review_fields.get("trigger", "")
+        milestone_summary = " ".join(part for part in ["Next review checkpoint.", trigger] if part).strip()
+        objects.append(
+            {
+                "id": f"milestone:status:next-review:{sanitize_source_id(review_date)}",
+                "kind": "milestone",
+                "title": "Next Review",
+                "summary": milestone_summary or "Next review checkpoint.",
+                "status": "planned",
+                "path": status_path,
+                "source_paths": [status_path],
+                "adapters": adapters,
+                "tags": ["next-review", "status"],
+                "date": review_date,
+            }
+        )
+    health_fields = markdown_key_values(status_sections.get("Health", ""))
+    health_status = health_fields.get("status", "").lower()
+    health_reason = health_fields.get("reason", "")
+    if health_status and health_status not in {"green", "healthy", "stable"}:
+        objects.append(
+            {
+                "id": f"risk:health:{sanitize_source_id(health_status + '-' + health_reason)}",
+                "kind": "risk",
+                "title": f"Project health is {health_status}",
+                "summary": health_reason or f"Health status reported as {health_status}.",
+                "status": "watch",
+                "path": status_path,
+                "source_paths": [status_path],
+                "adapters": adapters,
+                "tags": ["health", "status"],
+                "date": status_updated,
+            }
+        )
+    return objects
+
+
+def build_discovered_source_objects(source_path: Path, relative_path: str, adapters: list[str]) -> list[dict[str, object]]:
+    if not source_path.exists() or source_path.is_dir():
+        return []
+    suffix = source_path.suffix.lower()
+    if suffix not in {".md", ".txt", ".rst"}:
+        return []
+    text = source_path.read_text(encoding="utf-8", errors="ignore")
+    objects = build_section_objects(relative_path, text, adapters, default_date=detect_source_date(source_path, text))
+    title = extract_markdown_title(text) or source_path.stem
+    if looks_like_agreement(relative_path, title, text):
+        objects.append(
+            {
+                "id": f"agreement:source:{sanitize_source_id(relative_path)}",
+                "kind": "agreement",
+                "title": title,
+                "summary": first_readme_paragraph(text) or "Agreement source document.",
+                "status": "active",
+                "path": relative_path,
+                "source_paths": [relative_path],
+                "adapters": adapters,
+                "tags": ["agreement", "source"],
+                "date": detect_source_date(source_path, text),
+            }
+        )
+    return objects
+
+
+def build_section_objects(
+    relative_path: str,
+    text: str,
+    adapters: list[str],
+    *,
+    default_date: str | None,
+) -> list[dict[str, object]]:
+    section_map = {
+        "Tasks": ("task", "open", ["task"]),
+        "Decisions": ("decision", "decided", ["decision"]),
+        "Risks": ("risk", "open", ["risk"]),
+        "People": ("person", "active", ["person"]),
+        "Agreements": ("agreement", "active", ["agreement"]),
+        "Milestones": ("milestone", "planned", ["milestone"]),
+    }
+    objects: list[dict[str, object]] = []
+    sections = markdown_sections(text)
+    for heading, (kind, status, tags) in section_map.items():
+        for item in markdown_bullet_items(sections.get(heading, "")):
+            objects.append(
+                {
+                    "id": f"{kind}:{sanitize_source_id(relative_path)}:{sanitize_source_id(item)}",
+                    "kind": kind,
+                    "title": truncate_title(item),
+                    "summary": item,
+                    "status": status,
+                    "path": relative_path,
+                    "source_paths": [relative_path],
+                    "adapters": adapters,
+                    "tags": tags + ["section-object"],
+                    "date": extract_inline_date(item) or default_date,
+                }
+            )
+    return objects
+
+
+def dedupe_objects(objects: list[dict[str, object]]) -> list[dict[str, object]]:
+    deduped: list[dict[str, object]] = []
+    seen: set[str] = set()
+    for item in objects:
+        object_id = str(item.get("id", ""))
+        if not object_id or object_id in seen:
+            continue
+        seen.add(object_id)
+        deduped.append(item)
+    return deduped
+
+
+def extract_status_updated_date(text: str) -> str | None:
+    match = STATUS_UPDATED_PATTERN.search(text)
+    if match is None:
+        return None
+    raw_date = match.group(1).strip()
+    return raw_date if MEMORY_DATE_PATTERN.fullmatch(raw_date) else None
+
+
+def detect_record_date(record_path: Path, text: str) -> str | None:
+    metadata = markdown_key_values(markdown_sections(text).get("Metadata", ""))
+    if metadata.get("date") and MEMORY_DATE_PATTERN.fullmatch(metadata["date"]):
+        return metadata["date"]
+    prefix = record_path.stem[:10]
+    if MEMORY_DATE_PATTERN.fullmatch(prefix):
+        return prefix
+    return extract_inline_date(text)
+
+
+def detect_source_date(path: Path, text: str) -> str | None:
+    prefix = path.stem[:10]
+    if MEMORY_DATE_PATTERN.fullmatch(prefix):
+        return prefix
+    return extract_inline_date(text)
+
+
+def extract_inline_date(text: str) -> str | None:
+    match = INLINE_DATE_PATTERN.search(text)
+    return match.group(0) if match else None
+
+
+def markdown_bullet_items(text: str) -> list[str]:
+    items: list[str] = []
+    for raw_line in text.splitlines():
+        line = raw_line.strip()
+        if line.startswith("- "):
+            value = line[2:].strip()
+            if value:
+                items.append(value)
+    return items
+
+
+def markdown_key_values(text: str) -> dict[str, str]:
+    fields: dict[str, str] = {}
+    for item in markdown_bullet_items(text):
+        if ":" not in item:
+            continue
+        key, value = item.split(":", 1)
+        fields[key.strip().lower()] = value.strip()
+    return fields
+
+
+def line_is_empty_placeholder(value: str) -> bool:
+    lowered = value.strip().lower()
+    return lowered in {"none", "n/a", "none.", "_none_", "_missing_"}
+
+
+def truncate_title(value: str, limit: int = 80) -> str:
+    collapsed = re.sub(r"\s+", " ", value).strip()
+    return collapsed if len(collapsed) <= limit else collapsed[: limit - 3].rstrip() + "..."
+
+
+def looks_like_agreement(relative_path: str, title: str, text: str) -> bool:
+    haystack = " ".join([relative_path.lower(), title.lower(), text[:500].lower()])
+    return any(term in haystack for term in ["contract", "agreement", "msa", "statement of work", "sow"])
+
+
+def source_summary(path: Path) -> str:
+    if not path.exists():
+        return "_missing_"
+    if path.is_dir():
+        return path.name
+    text = path.read_text(encoding="utf-8", errors="ignore")
+    summary = first_readme_paragraph(text)
+    if summary:
+        return summary[:240]
+    return extract_markdown_title(text) or path.name
+
+
+def render_kernel_current_state(config: ProjectConfig) -> str:
+    status_path = config.root / config.data["paths"]["status_file"]
+    status_sections = markdown_sections(status_path.read_text(encoding="utf-8")) if status_path.exists() else {}
+    lines = [
+        "# Current State Snapshot",
+        "",
+        f"- generated on: {date.today().isoformat()}",
+        f"- project: {config.data['project']['name']}",
+        f"- profile: `{config.profile}`",
+        "- source priority: STATUS.md and project records override this generated snapshot",
+        "",
+    ]
+    for section_name in ["Summary", "Health", "Current Focus", "Blockers", "Recent Decisions", "Next Review"]:
+        lines.append(f"## {section_name}")
+        lines.append("")
+        lines.append((status_sections.get(section_name, "_missing_") or "_missing_").strip())
+        lines.append("")
+    return "\n".join(lines).rstrip() + "\n"
+
+
+def render_index_catalog(config: ProjectConfig) -> str:
+    registry = build_source_registry(config)
+    adapters = build_adapter_catalog(config)
+    objects = build_object_catalog(config)
+    discovered_sources = [item for item in registry if item.get("discovered")]
+    catalog = {
+        "version": VERSION,
+        "profile": config.profile,
+        "counts": {
+            "registered_sources": len(registry),
+            "discovered_sources": len(discovered_sources),
+            "adapters": len(adapters),
+            "objects": len(objects),
+            "source_adapter_links": sum(len(item.get("adapters", [])) for item in registry if isinstance(item, dict)),
+        },
+        "adapter_catalog": ".sula/adapters/catalog.json",
+        "indexes": [
+            {"name": "source-registry", "path": ".sula/sources/registry.json", "rebuildable": True},
+            {"name": "adapter-catalog", "path": ".sula/adapters/catalog.json", "rebuildable": True},
+            {"name": "object-catalog", "path": ".sula/objects/catalog.json", "rebuildable": True},
+            {"name": "current-state", "path": ".sula/state/current.md", "rebuildable": True},
+            {"name": "event-log", "path": ".sula/events/log.jsonl", "rebuildable": False},
+            {"name": "relation-index", "path": ".sula/indexes/relations.json", "rebuildable": True},
+            {"name": "sqlite-cache", "path": ".sula/cache/kernel.db", "rebuildable": True},
+            {"name": "memory-digest", "path": config.memory_setting("digest_file", ".sula/memory-digest.md"), "rebuildable": True},
+        ],
+    }
+    return json.dumps(catalog, indent=2, ensure_ascii=True) + "\n"
+
+
+def render_relation_index(config: ProjectConfig) -> str:
+    registry = build_source_registry(config)
+    objects = build_object_catalog(config)
+    relation_index = {
+        "version": VERSION,
+        "profile": config.profile,
+        "relations": build_relation_entries(objects, registry),
+    }
+    return json.dumps(relation_index, indent=2, ensure_ascii=True) + "\n"
+
+
+def build_relation_entries(objects: list[dict[str, object]], registry: list[dict[str, object]]) -> list[dict[str, object]]:
+    source_ids_by_path = {
+        item["path"]: item["id"]
+        for item in registry
+        if isinstance(item, dict) and isinstance(item.get("path"), str) and isinstance(item.get("id"), str)
+    }
+    relations: list[dict[str, object]] = []
+    for obj in objects:
+        source_paths = obj.get("source_paths", [])
+        if not isinstance(source_paths, list):
+            continue
+        for source_path in source_paths:
+            if source_path not in source_ids_by_path:
+                continue
+            relations.append(
+                {
+                    "from": obj["id"],
+                    "to": source_ids_by_path[source_path],
+                    "type": "derived-from",
+                }
+            )
+    return relations
+
+
+def build_query_documents(config: ProjectConfig) -> list[dict[str, object]]:
+    documents: list[dict[str, object]] = []
+    object_catalog = build_object_catalog(config)
+    source_registry = build_source_registry(config)
+    for item in object_catalog:
+        documents.append(
+            {
+                "id": str(item.get("id")),
+                "entity_type": "object",
+                "kind": str(item.get("kind", "object")),
+                "title": str(item.get("title", "")),
+                "summary": str(item.get("summary", "")),
+                "path": str(item.get("path", "")),
+                "tags": [str(tag) for tag in item.get("tags", [])] if isinstance(item.get("tags", []), list) else [],
+                "adapters": [str(tag) for tag in item.get("adapters", [])] if isinstance(item.get("adapters", []), list) else [],
+                "status": normalize_optional_text(item.get("status", "")),
+                "date": normalize_optional_text(item.get("date", "")),
+            }
+        )
+    for item in source_registry:
+        documents.append(
+            {
+                "id": str(item.get("id")),
+                "entity_type": "source",
+                "kind": str(item.get("kind", "source")),
+                "title": Path(str(item.get("path", ""))).name,
+                "summary": source_summary(config.root / str(item.get("path", ""))) if item.get("exists") else "",
+                "path": str(item.get("path", "")),
+                "tags": [str(tag) for tag in item.get("adapters", [])] if isinstance(item.get("adapters", []), list) else [],
+                "adapters": [str(tag) for tag in item.get("adapters", [])] if isinstance(item.get("adapters", []), list) else [],
+                "status": "indexed" if item.get("exists") else "missing",
+                "date": "",
+            }
+        )
+    return documents
+
+
+def query_project_kernel(config: ProjectConfig, args: argparse.Namespace) -> int:
+    results = search_kernel(
+        config,
+        args.q,
+        kind=args.kind,
+        adapter=args.adapter,
+        status=args.status,
+        path_prefix=args.path_prefix,
+        since=args.since,
+        until=args.until,
+        timeline=args.timeline,
+        limit=args.limit,
+    )
+    if args.json:
+        print(
+            json.dumps(
+                {
+                    "query": args.q,
+                    "kind": args.kind,
+                    "adapter": args.adapter,
+                    "status": args.status,
+                    "path_prefix": args.path_prefix,
+                    "timeline": args.timeline,
+                    "since": args.since,
+                    "until": args.until,
+                    "results": results,
+                },
+                indent=2,
+                ensure_ascii=True,
+            )
+        )
+        return 0
+    print(f"Sula query results for {config.data['project']['name']}: {args.q}")
+    if not results:
+        print("  No results.")
+        return 0
+    for result in results:
+        date_prefix = f"{result['date']} " if result.get("date") else ""
+        status_suffix = f" status={result['status']}" if result.get("status") else ""
+        related_suffix = ""
+        if result.get("related_kinds"):
+            related_suffix = " related=" + ",".join(str(kind_name) for kind_name in result["related_kinds"])
+        print(
+            "  - "
+            f"{date_prefix}[{result['kind']}] score={result['score']}{status_suffix}{related_suffix} "
+            f"{result['title']} :: {result['path']}"
+        )
+    return 0
+
+
+def search_kernel(
+    config: ProjectConfig,
+    query: str,
+    *,
+    kind: str | None,
+    adapter: str | None,
+    status: str | None,
+    path_prefix: str | None,
+    since: str | None,
+    until: str | None,
+    timeline: bool,
+    limit: int,
+) -> list[dict[str, object]]:
+    normalized_query = query.strip().lower()
+    query_tokens = tokenize_text(normalized_query)
+    object_catalog_path = config.root / ".sula" / "objects" / "catalog.json"
+    source_registry_path = config.root / ".sula" / "sources" / "registry.json"
+    query_cache_path = config.root / ".sula" / "cache" / "query-index.json"
+    sqlite_cache_path = config.root / ".sula" / "cache" / "kernel.db"
+    if not object_catalog_path.exists() or not source_registry_path.exists():
+        refresh_kernel_state(config, event_type="query.rebuild", summary="Rebuilt kernel state before query.")
+    if not query_cache_path.exists():
+        refresh_kernel_state(config, event_type="query.cache", summary="Built query cache for local retrieval.")
+    if sqlite_cache_path.exists():
+        sqlite_results = search_kernel_sqlite(
+            sqlite_cache_path,
+            normalized_query,
+            query_tokens,
+            kind=kind,
+            adapter=adapter,
+            status=status,
+            path_prefix=path_prefix,
+            since=since,
+            until=until,
+            timeline=timeline,
+            limit=limit,
+        )
+        if sqlite_results:
+            return sqlite_results
+    object_catalog = json.loads(object_catalog_path.read_text(encoding="utf-8"))
+    source_registry = json.loads(source_registry_path.read_text(encoding="utf-8"))
+    query_cache = json.loads(query_cache_path.read_text(encoding="utf-8"))
+    shortlisted_ids = shortlist_candidate_ids(query_cache, query_tokens)
+    candidates: list[dict[str, object]] = []
+    for item in object_catalog.get("objects", []):
+        if shortlisted_ids and str(item.get("id")) not in shortlisted_ids:
+            continue
+        result = score_candidate(
+            item,
+            normalized_query,
+            query_tokens,
+            kind=kind,
+            adapter=adapter,
+            status=status,
+            path_prefix=path_prefix,
+            since=since,
+            until=until,
+            allow_empty=timeline,
+        )
+        if result is not None:
+            candidates.append(result)
+    for item in source_registry:
+        if shortlisted_ids and str(item.get("id")) not in shortlisted_ids:
+            continue
+        source_candidate = {
+            "id": item.get("id"),
+            "entity_type": "source",
+            "kind": item.get("kind", "source"),
+            "title": Path(str(item.get("path", "source"))).name,
+            "summary": "",
+            "path": item.get("path", ""),
+            "tags": item.get("adapters", []),
+            "adapters": item.get("adapters", []),
+            "status": "indexed" if item.get("exists") else "missing",
+            "date": "",
+        }
+        result = score_candidate(
+            source_candidate,
+            normalized_query,
+            query_tokens,
+            kind=kind,
+            adapter=adapter,
+            status=status,
+            path_prefix=path_prefix,
+            since=since,
+            until=until,
+            allow_empty=timeline,
+        )
+        if result is not None:
+            candidates.append(result)
+    return finalize_query_results(
+        candidates,
+        timeline=timeline,
+        limit=limit,
+        explicit_kind=kind,
+        normalized_query=normalized_query,
+        query_tokens=query_tokens,
+    )
+
+
+def shortlist_candidate_ids(query_cache: dict[str, object], query_tokens: list[str]) -> set[str]:
+    postings = query_cache.get("postings", {})
+    if not isinstance(postings, dict) or not query_tokens:
+        return set()
+    shortlist: set[str] = set()
+    for token in query_tokens:
+        values = postings.get(token, [])
+        if not isinstance(values, list):
+            continue
+        shortlist.update(str(value) for value in values)
+    return shortlist
+
+
+def score_candidate(
+    item: dict[str, object],
+    normalized_query: str,
+    query_tokens: list[str],
+    *,
+    kind: str | None,
+    adapter: str | None,
+    status: str | None,
+    path_prefix: str | None,
+    since: str | None,
+    until: str | None,
+    allow_empty: bool,
+) -> dict[str, object] | None:
+    candidate_kind = str(item.get("kind", "unknown"))
+    if kind and candidate_kind != kind:
+        return None
+    path = str(item.get("path", ""))
+    title = str(item.get("title", path or item.get("id", "unknown")))
+    summary = str(item.get("summary", ""))
+    tags = [str(value) for value in item.get("tags", [])] if isinstance(item.get("tags", []), list) else []
+    adapters = [str(value) for value in item.get("adapters", [])] if isinstance(item.get("adapters", []), list) else []
+    candidate_status = normalize_optional_text(item.get("status", ""))
+    candidate_date = normalize_optional_text(item.get("date", ""))
+    entity_type = normalize_optional_text(item.get("entity_type", "object")) or "object"
+    if adapter and adapter not in adapters:
+        return None
+    if status and candidate_status != status:
+        return None
+    if path_prefix and not path.startswith(path_prefix):
+        return None
+    if since and (not candidate_date or candidate_date < since):
+        return None
+    if until and (not candidate_date or candidate_date > until):
+        return None
+    haystack = " ".join(
+        [str(item.get("id", "")), candidate_kind, title, summary, path, " ".join(tags), " ".join(adapters), candidate_status]
+    ).lower()
+    score = 0
+    if normalized_query == str(item.get("id", "")).lower():
+        score += 100
+    if normalized_query == path.lower():
+        score += 90
+    if normalized_query and normalized_query in title.lower():
+        score += 60
+    if normalized_query and normalized_query in path.lower():
+        score += 50
+    if normalized_query and normalized_query in summary.lower():
+        score += 40
+    score += entity_type_score_bonus(entity_type)
+    score += kind_score_bonus(candidate_kind)
+    haystack_tokens = set(tokenize_text(haystack))
+    for token in query_tokens:
+        if token in haystack_tokens:
+            score += 10
+    if score <= 0 and not allow_empty:
+        return None
+    if allow_empty and not normalized_query:
+        score = max(score, 1)
+    return {
+        "id": item.get("id"),
+        "kind": candidate_kind,
+        "title": title,
+        "path": path,
+        "summary": summary,
+        "score": score,
+        "status": candidate_status,
+        "date": candidate_date,
+        "entity_type": entity_type,
+        "family": kind_family(candidate_kind),
+    }
+
+
+def candidate_sort_key(item: dict[str, object], timeline: bool) -> tuple[object, ...]:
+    if timeline:
+        return (
+            str(item.get("date", "")),
+            int(item.get("score", 0)),
+            entity_type_preference(str(item.get("entity_type", "object"))),
+            kind_sort_priority(str(item.get("kind", ""))),
+            str(item.get("title", "")),
+        )
+    return (
+        -int(item.get("score", 0)),
+        -entity_type_preference(str(item.get("entity_type", "object"))),
+        kind_sort_priority(str(item.get("kind", ""))),
+        str(item.get("title", "")),
+    )
+
+
+def finalize_query_results(
+    candidates: list[dict[str, object]],
+    *,
+    timeline: bool,
+    limit: int,
+    explicit_kind: str | None,
+    normalized_query: str,
+    query_tokens: list[str],
+) -> list[dict[str, object]]:
+    ordered = sorted(candidates, key=lambda item: candidate_sort_key(item, timeline), reverse=timeline)
+    deduped: list[dict[str, object]] = []
+    seen: set[str] = set()
+    richer_paths: set[str] = set()
+    for item in ordered:
+        dedupe_key = query_result_dedupe_key(item)
+        if dedupe_key in seen:
+            continue
+        path = normalize_optional_text(item.get("path", "")).lower()
+        kind = normalize_optional_text(item.get("kind", "")).lower()
+        if path and path in richer_paths and is_low_signal_kind(kind):
+            continue
+        seen.add(dedupe_key)
+        deduped.append(item)
+        if path and not is_low_signal_kind(kind):
+            richer_paths.add(path)
+    if explicit_kind:
+        return deduped[: max(1, limit)]
+    return compact_query_result_families(
+        deduped,
+        timeline=timeline,
+        limit=limit,
+        normalized_query=normalized_query,
+        query_tokens=query_tokens,
+    )
+
+
+def query_result_dedupe_key(item: dict[str, object]) -> str:
+    path = normalize_optional_text(item.get("path", "")).lower()
+    kind = normalize_optional_text(item.get("kind", "")).lower()
+    title = normalize_query_text(normalize_optional_text(item.get("title", "")))
+    date_value = normalize_optional_text(item.get("date", ""))
+    if kind == "event":
+        return f"{kind}|{date_value}|{title}|{path}"
+    return f"{kind}|{path}|{title}"
+
+
+def normalize_query_text(value: str) -> str:
+    return re.sub(r"\s+", " ", value.strip().lower())
+
+
+def compact_query_result_families(
+    candidates: list[dict[str, object]],
+    *,
+    timeline: bool,
+    limit: int,
+    normalized_query: str,
+    query_tokens: list[str],
+) -> list[dict[str, object]]:
+    intent_weights = family_intent_weights(normalized_query, query_tokens)
+    grouped: dict[str, list[dict[str, object]]] = {}
+    passthrough: list[dict[str, object]] = []
+    for item in candidates:
+        path = normalize_optional_text(item.get("path", ""))
+        kind = normalize_optional_text(item.get("kind", ""))
+        if not path or kind == "event":
+            passthrough.append(item)
+            continue
+        grouped.setdefault(path, []).append(item)
+
+    compacted: list[dict[str, object]] = []
+    for path, items in grouped.items():
+        if len(items) == 1:
+            compacted.append(items[0])
+            continue
+        representatives = choose_family_representatives(items, intent_weights=intent_weights, timeline=timeline)
+        primary = choose_path_primary(representatives, intent_weights=intent_weights, timeline=timeline)
+        related_kinds = sorted(
+            {
+                normalize_optional_text(item.get("kind", ""))
+                for item in representatives
+                if item is not primary and normalize_optional_text(item.get("kind", ""))
+            }
+        )
+        if related_kinds:
+            primary = dict(primary)
+            primary["related_kinds"] = related_kinds
+            primary["related_count"] = len(related_kinds)
+        compacted.append(primary)
+
+    combined = passthrough + compacted
+    combined.sort(key=lambda item: candidate_sort_key(item, timeline), reverse=timeline)
+    return combined[: max(1, limit)]
+
+
+def choose_family_representatives(
+    items: list[dict[str, object]],
+    *,
+    intent_weights: dict[str, int],
+    timeline: bool,
+) -> list[dict[str, object]]:
+    best_by_family: dict[str, dict[str, object]] = {}
+    for item in items:
+        family = normalize_optional_text(item.get("family", kind_family(normalize_optional_text(item.get("kind", "")))))
+        current = best_by_family.get(family)
+        if current is None or path_primary_sort_key(item, intent_weights=intent_weights, timeline=timeline) > path_primary_sort_key(
+            current,
+            intent_weights=intent_weights,
+            timeline=timeline,
+        ):
+            best_by_family[family] = item
+    return list(best_by_family.values())
+
+
+def choose_path_primary(
+    items: list[dict[str, object]],
+    *,
+    intent_weights: dict[str, int],
+    timeline: bool,
+) -> dict[str, object]:
+    return max(items, key=lambda item: path_primary_sort_key(item, intent_weights=intent_weights, timeline=timeline))
+
+
+def path_primary_sort_key(
+    item: dict[str, object],
+    *,
+    intent_weights: dict[str, int],
+    timeline: bool,
+) -> tuple[object, ...]:
+    family = normalize_optional_text(item.get("family", kind_family(normalize_optional_text(item.get("kind", "")))))
+    return (
+        intent_weights.get(family, 0),
+        int(item.get("score", 0)),
+        entity_type_preference(normalize_optional_text(item.get("entity_type", "object"))),
+        -kind_sort_priority(normalize_optional_text(item.get("kind", ""))),
+        normalize_optional_text(item.get("date", "")) if timeline else "",
+        normalize_optional_text(item.get("title", "")),
+    )
+
+
+def family_intent_weights(normalized_query: str, query_tokens: list[str]) -> dict[str, int]:
+    weights = {
+        "state": 1,
+        "execution": 1,
+        "governance": 1,
+        "business": 1,
+        "record": 1,
+        "source": 0,
+        "event": 0,
+    }
+    token_set = set(query_tokens)
+    lowered = normalized_query.lower()
+    if token_set & {"contract", "agreement", "msa", "sow", "legal", "vendor", "supplier", "staffing", "people", "person"}:
+        weights["business"] += 6
+    if token_set & {"decision", "decide", "why", "risk", "blocker", "policy"}:
+        weights["governance"] += 6
+    if token_set & {"task", "todo", "next", "milestone", "review", "deliver"}:
+        weights["execution"] += 6
+    if token_set & {"change", "release", "incident", "history", "record", "rollback", "deploy"}:
+        weights["record"] += 6
+    if token_set & {"status", "state", "summary", "health", "progress"}:
+        weights["state"] += 6
+    if token_set & {"readme", "document", "docs", "code", "config", "file"}:
+        weights["source"] += 4
+    if "contract" in lowered and "change" not in lowered:
+        weights["business"] += 2
+    return weights
+
+
+def entity_type_score_bonus(entity_type: str) -> int:
+    bonuses = {
+        "object": 6,
+        "event": 4,
+        "source": 0,
+    }
+    return bonuses.get(entity_type, 0)
+
+
+def kind_family(kind: str) -> str:
+    families = {
+        "project": "state",
+        "state": "state",
+        "task": "execution",
+        "milestone": "execution",
+        "decision": "governance",
+        "risk": "governance",
+        "agreement": "business",
+        "person": "business",
+        "change": "record",
+        "release": "record",
+        "incident": "record",
+        "event": "event",
+        "document": "source",
+        "code": "source",
+        "config": "source",
+        "interface": "source",
+        "file": "source",
+        "repo": "source",
+        "source": "source",
+    }
+    return families.get(kind, "source")
+
+
+def kind_score_bonus(kind: str) -> int:
+    bonuses = {
+        "project": 8,
+        "state": 7,
+        "task": 6,
+        "decision": 6,
+        "risk": 6,
+        "person": 5,
+        "agreement": 5,
+        "milestone": 5,
+        "change": 4,
+        "release": 4,
+        "incident": 4,
+        "event": 3,
+        "document": 1,
+        "code": 1,
+        "config": 1,
+    }
+    return bonuses.get(kind, 0)
+
+
+def entity_type_preference(entity_type: str) -> int:
+    preferences = {
+        "object": 3,
+        "event": 2,
+        "source": 1,
+    }
+    return preferences.get(entity_type, 0)
+
+
+def kind_sort_priority(kind: str) -> int:
+    priorities = {
+        "project": 0,
+        "state": 1,
+        "task": 2,
+        "decision": 3,
+        "risk": 4,
+        "agreement": 5,
+        "milestone": 6,
+        "person": 7,
+        "change": 8,
+        "release": 9,
+        "incident": 10,
+        "event": 11,
+        "document": 12,
+        "code": 13,
+        "config": 14,
+    }
+    return priorities.get(kind, 99)
+
+
+def is_low_signal_kind(kind: str) -> bool:
+    return kind in {"document", "code", "config", "interface", "file", "repo", "source"}
+
+
+def rebuild_kernel_sqlite_cache(config: ProjectConfig) -> None:
+    kernel_root = config.root / ".sula"
+    object_catalog = json.loads((kernel_root / "objects" / "catalog.json").read_text(encoding="utf-8"))
+    source_registry = json.loads((kernel_root / "sources" / "registry.json").read_text(encoding="utf-8"))
+    relation_index = json.loads((kernel_root / "indexes" / "relations.json").read_text(encoding="utf-8"))
+    documents = build_query_documents(config)
+    events = read_kernel_events(kernel_root / "events" / "log.jsonl")
+    db_path = kernel_root / "cache" / "kernel.db"
+    with sqlite3.connect(db_path) as connection:
+        cursor = connection.cursor()
+        cursor.executescript(
+            """
+            DROP TABLE IF EXISTS sources;
+            DROP TABLE IF EXISTS objects;
+            DROP TABLE IF EXISTS relations;
+            DROP TABLE IF EXISTS events;
+            DROP TABLE IF EXISTS documents;
+            CREATE TABLE sources (
+                id TEXT PRIMARY KEY,
+                kind TEXT NOT NULL,
+                path TEXT NOT NULL,
+                exists_flag INTEGER NOT NULL,
+                source_of_truth INTEGER NOT NULL,
+                discovered INTEGER NOT NULL,
+                summary TEXT,
+                adapters_json TEXT,
+                anchor_strategy TEXT,
+                size_bytes INTEGER
+            );
+            CREATE TABLE objects (
+                id TEXT PRIMARY KEY,
+                kind TEXT NOT NULL,
+                title TEXT NOT NULL,
+                summary TEXT,
+                status TEXT,
+                path TEXT,
+                date_value TEXT,
+                adapters_json TEXT,
+                tags_json TEXT,
+                source_paths_json TEXT
+            );
+            CREATE TABLE relations (
+                source_id TEXT NOT NULL,
+                target_id TEXT NOT NULL,
+                relation_type TEXT NOT NULL
+            );
+            CREATE TABLE events (
+                seq INTEGER PRIMARY KEY AUTOINCREMENT,
+                timestamp TEXT NOT NULL,
+                event_type TEXT NOT NULL,
+                summary TEXT NOT NULL,
+                profile TEXT,
+                project TEXT
+            );
+            CREATE TABLE documents (
+                doc_id TEXT PRIMARY KEY,
+                entity_type TEXT NOT NULL,
+                kind TEXT NOT NULL,
+                title TEXT NOT NULL,
+                summary TEXT,
+                path TEXT,
+                status TEXT,
+                date_value TEXT,
+                tags_text TEXT,
+                adapters_text TEXT,
+                searchable_text TEXT NOT NULL
+            );
+            CREATE INDEX idx_sources_kind_path ON sources(kind, path);
+            CREATE INDEX idx_objects_kind_status_path ON objects(kind, status, path);
+            CREATE INDEX idx_objects_date ON objects(date_value);
+            CREATE INDEX idx_relations_source ON relations(source_id);
+            CREATE INDEX idx_relations_target ON relations(target_id);
+            CREATE INDEX idx_events_timestamp ON events(timestamp);
+            CREATE INDEX idx_documents_kind_status_path ON documents(kind, status, path);
+            CREATE INDEX idx_documents_date ON documents(date_value);
+            """
+        )
+        for item in source_registry:
+            cursor.execute(
+                """
+                INSERT INTO sources (
+                    id, kind, path, exists_flag, source_of_truth, discovered, summary, adapters_json, anchor_strategy, size_bytes
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    str(item.get("id", "")),
+                    str(item.get("kind", "source")),
+                    str(item.get("path", "")),
+                    1 if item.get("exists") else 0,
+                    1 if item.get("source_of_truth") else 0,
+                    1 if item.get("discovered") else 0,
+                    source_summary(config.root / str(item.get("path", ""))) if item.get("exists") else "",
+                    json.dumps(item.get("adapters", []), ensure_ascii=True),
+                    str(item.get("anchor_strategy", "")),
+                    int(item.get("size_bytes", 0) or 0),
+                ),
+            )
+        for item in object_catalog.get("objects", []):
+            cursor.execute(
+                """
+                INSERT INTO objects (
+                    id, kind, title, summary, status, path, date_value, adapters_json, tags_json, source_paths_json
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    str(item.get("id", "")),
+                    str(item.get("kind", "object")),
+                    str(item.get("title", "")),
+                    str(item.get("summary", "")),
+                    str(item.get("status", "")),
+                    str(item.get("path", "")),
+                    str(item.get("date", "") or ""),
+                    json.dumps(item.get("adapters", []), ensure_ascii=True),
+                    json.dumps(item.get("tags", []), ensure_ascii=True),
+                    json.dumps(item.get("source_paths", []), ensure_ascii=True),
+                ),
+            )
+        for item in relation_index.get("relations", []):
+            cursor.execute(
+                "INSERT INTO relations (source_id, target_id, relation_type) VALUES (?, ?, ?)",
+                (str(item.get("from", "")), str(item.get("to", "")), str(item.get("type", ""))),
+            )
+        for item in events:
+            cursor.execute(
+                "INSERT INTO events (timestamp, event_type, summary, profile, project) VALUES (?, ?, ?, ?, ?)",
+                (
+                    str(item.get("timestamp", "")),
+                    str(item.get("event_type", "")),
+                    str(item.get("summary", "")),
+                    str(item.get("profile", "")),
+                    str(item.get("project", "")),
+                ),
+            )
+        for item in documents:
+            cursor.execute(
+                """
+                INSERT INTO documents (
+                    doc_id, entity_type, kind, title, summary, path, status, date_value, tags_text, adapters_text, searchable_text
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    str(item.get("id", "")),
+                    str(item.get("entity_type", "object")),
+                    str(item.get("kind", "object")),
+                    str(item.get("title", "")),
+                    str(item.get("summary", "")),
+                    str(item.get("path", "")),
+                    str(item.get("status", "")),
+                    str(item.get("date", "") or ""),
+                    " ".join(str(tag) for tag in item.get("tags", [])),
+                    " ".join(str(adapter) for adapter in item.get("adapters", [])),
+                    " ".join(
+                        [
+                            str(item.get("id", "")),
+                            str(item.get("kind", "")),
+                            str(item.get("title", "")),
+                            str(item.get("summary", "")),
+                            str(item.get("path", "")),
+                            " ".join(str(tag) for tag in item.get("tags", [])),
+                            " ".join(str(adapter) for adapter in item.get("adapters", [])),
+                            str(item.get("status", "")),
+                            str(item.get("date", "")),
+                        ]
+                    ).lower(),
+                ),
+            )
+        for item in events:
+            cursor.execute(
+                """
+                INSERT INTO documents (
+                    doc_id, entity_type, kind, title, summary, path, status, date_value, tags_text, adapters_text, searchable_text
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    f"event:{item.get('timestamp', '')}:{item.get('event_type', '')}",
+                    "event",
+                    "event",
+                    str(item.get("event_type", "")),
+                    str(item.get("summary", "")),
+                    ".sula/events/log.jsonl",
+                    "recorded",
+                    str(item.get("timestamp", "")),
+                    "event kernel",
+                    "generic-project memory",
+                    " ".join(
+                        [
+                            str(item.get("event_type", "")),
+                            str(item.get("summary", "")),
+                            str(item.get("profile", "")),
+                            str(item.get("project", "")),
+                        ]
+                    ).lower(),
+                ),
+            )
+        connection.commit()
+
+
+def read_kernel_events(event_log_path: Path) -> list[dict[str, object]]:
+    events: list[dict[str, object]] = []
+    if not event_log_path.exists():
+        return events
+    for raw_line in event_log_path.read_text(encoding="utf-8").splitlines():
+        if not raw_line.strip():
+            continue
+        try:
+            event = json.loads(raw_line)
+        except json.JSONDecodeError:
+            continue
+        if isinstance(event, dict):
+            events.append(event)
+    return events
+
+
+def detect_document_entity_type(document_id: str) -> str:
+    if document_id.startswith("source:") or document_id in {"project-manifest", "status", "change-records", "agents", "readme", "app-shell", "api-layer", "kernel-state", "memory-digest", "git-repository"}:
+        return "source"
+    return "object"
+
+
+def search_kernel_sqlite(
+    db_path: Path,
+    normalized_query: str,
+    query_tokens: list[str],
+    *,
+    kind: str | None,
+    adapter: str | None,
+    status: str | None,
+    path_prefix: str | None,
+    since: str | None,
+    until: str | None,
+    timeline: bool,
+    limit: int,
+) -> list[dict[str, object]]:
+    where_clauses = ["1 = 1"]
+    parameters: list[object] = []
+    if kind:
+        where_clauses.append("kind = ?")
+        parameters.append(kind)
+    if adapter:
+        where_clauses.append("instr(adapters_text, ?) > 0")
+        parameters.append(adapter)
+    if status:
+        where_clauses.append("status = ?")
+        parameters.append(status)
+    if path_prefix:
+        where_clauses.append("path LIKE ?")
+        parameters.append(f"{path_prefix}%")
+    if since:
+        where_clauses.append("date_value >= ?")
+        parameters.append(since)
+    if until:
+        where_clauses.append("date_value <= ?")
+        parameters.append(until)
+    if timeline:
+        where_clauses.append("date_value != ''")
+    if normalized_query:
+        search_terms = [normalized_query] + [token for token in query_tokens if token != normalized_query]
+        search_clauses = []
+        for term in search_terms:
+            search_clauses.append("searchable_text LIKE ?")
+            parameters.append(f"%{term}%")
+        where_clauses.append("(" + " OR ".join(search_clauses) + ")")
+    sql = (
+        "SELECT doc_id, entity_type, kind, title, summary, path, status, date_value "
+        "FROM documents WHERE "
+        + " AND ".join(where_clauses)
+    )
+    if timeline:
+        sql += " ORDER BY date_value DESC, kind ASC, title ASC LIMIT ?"
+    else:
+        sql += " LIMIT ?"
+    parameters.append(max(limit * 8, 40))
+    results: list[dict[str, object]] = []
+    with sqlite3.connect(db_path) as connection:
+        for row in connection.execute(sql, parameters):
+            candidate = {
+                "id": row[0],
+                "entity_type": row[1],
+                "kind": row[2],
+                "title": row[3],
+                "summary": row[4],
+                "path": row[5],
+                "status": row[6],
+                "date": row[7],
+                "tags": [],
+                "adapters": [],
+            }
+            result = score_candidate(
+                candidate,
+                normalized_query,
+                query_tokens,
+                kind=kind,
+                adapter=None,
+                status=None,
+                path_prefix=None,
+                since=None,
+                until=None,
+                allow_empty=timeline,
+            )
+            if result is not None:
+                results.append(result)
+    return finalize_query_results(
+        results,
+        timeline=timeline,
+        limit=limit,
+        explicit_kind=kind,
+        normalized_query=normalized_query,
+        query_tokens=query_tokens,
+    )
+
+
+def tokenize_text(text: str) -> list[str]:
+    return [token for token in re.split(r"[^a-z0-9]+", text.lower()) if token]
+
+
+def normalize_optional_text(value: object) -> str:
+    if value is None:
+        return ""
+    return str(value)
+
+
+def render_export_catalog(config: ProjectConfig) -> str:
+    exports = {
+        "version": VERSION,
+        "exports": [
+            {"path": config.data["paths"]["status_file"], "kind": "status", "project_owned": True},
+            {"path": config.data["paths"]["change_records_file"], "kind": "change-index", "project_owned": True},
+            {"path": config.memory_setting("digest_file", ".sula/memory-digest.md"), "kind": "memory-digest", "project_owned": False},
+        ],
+    }
+    return json.dumps(exports, indent=2, ensure_ascii=True) + "\n"
+
+
+def remove_sula(project_root: Path, args: argparse.Namespace) -> int:
+    report = inspect_removal(project_root)
+    print_removal_report(report)
+    if not args.approve:
+        return 0
+    if report.blockers:
+        print("Removal was not applied because blocking issues remain.")
+        return 1
+    apply_removal(report)
+    print(f"Sula removal completed for {project_root}")
+    return 0
+
+
+def inspect_removal(project_root: Path) -> RemovalReport:
+    blockers: list[str] = []
+    warnings: list[str] = []
+    if not project_root.exists():
+        raise SystemExit(f"Project root does not exist: {project_root}")
+    manifest_path = project_root / MANIFEST_PATH
+    if not manifest_path.exists():
+        blockers.append("repository does not have `.sula/project.toml`; nothing to remove")
+        return RemovalReport(project_root, None, blockers, warnings, [], [], [])
+
+    config = load_manifest(project_root)
+    managed_paths = sorted(
+        {
+            action.output_path
+            for action in collect_render_actions(config, include_scaffold=False)
+            if action.output_path.exists() and not action.output_path.is_relative_to(project_root / ".sula")
+        },
+        key=lambda path: path.as_posix(),
+    )
+    scaffold_paths = sorted(
+        {
+            action.output_path
+            for action in collect_render_actions(config, include_scaffold=True)
+            if not action.overwrite and action.output_path.exists()
+        },
+        key=lambda path: path.as_posix(),
+    )
+    kernel_root = project_root / ".sula"
+    if not kernel_root.exists():
+        warnings.append("`.sula/` is already missing; only managed files can be removed")
+    return RemovalReport(
+        project_root=project_root,
+        config=config,
+        blockers=blockers,
+        warnings=warnings,
+        kernel_remove_paths=[kernel_root] if kernel_root.exists() else [],
+        managed_remove_paths=managed_paths,
+        scaffold_preserve_paths=scaffold_paths,
+    )
+
+
+def print_removal_report(report: RemovalReport) -> None:
+    print(f"Sula removal report for {report.project_root}")
+    if report.config is not None:
+        print(f"Active profile: {report.config.profile}")
+    if report.blockers:
+        print("Blocking issues:")
+        for item in report.blockers:
+            print(f"  - {item}")
+    if report.warnings:
+        print("Warnings:")
+        for item in report.warnings:
+            print(f"  - {item}")
+    print("Planned changes after approval:")
+    print(f"  - kernel remove: {len(report.kernel_remove_paths)}")
+    print(f"  - managed remove: {len(report.managed_remove_paths)}")
+    print(f"  - scaffold preserve: {len(report.scaffold_preserve_paths)}")
+    for path in report.kernel_remove_paths[:4]:
+        print(f"    remove kernel: {path.relative_to(report.project_root).as_posix()}")
+    for path in report.managed_remove_paths[:8]:
+        print(f"    remove managed: {path.relative_to(report.project_root).as_posix()}")
+    for path in report.scaffold_preserve_paths[:8]:
+        print(f"    preserve scaffold: {path.relative_to(report.project_root).as_posix()}")
+    print("Approval flow:")
+    print("  1. Review this report.")
+    print("  2. Re-run the same command with `--approve` to apply the removal.")
+
+
+def apply_removal(report: RemovalReport) -> None:
+    for path in report.managed_remove_paths:
+        if path.exists():
+            path.unlink()
+            remove_empty_parent_dirs(path.parent, report.project_root)
+    for path in report.kernel_remove_paths:
+        if path.exists():
+            shutil.rmtree(path)
+
+
+def remove_empty_parent_dirs(start: Path, stop_root: Path) -> None:
+    current = start
+    while current != stop_root:
+        try:
+            current.rmdir()
+        except OSError:
+            break
+        current = current.parent
 
 
 def core_managed_dir() -> Path:

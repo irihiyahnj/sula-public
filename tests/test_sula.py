@@ -22,6 +22,44 @@ def run_cli(*args: str, cwd: Path | None = None) -> subprocess.CompletedProcess[
 
 
 class SulaCliTests(unittest.TestCase):
+    def create_generic_project(self, project_root: Path) -> None:
+        (project_root / "docs").mkdir(parents=True, exist_ok=True)
+        (project_root / "README.md").write_text(
+            "# Field Ops\n\nContract review and staffing coordination project.\n",
+            encoding="utf-8",
+        )
+        (project_root / "docs" / "notes.md").write_text("Initial notes.\n", encoding="utf-8")
+        (project_root / "docs" / "project-map.md").write_text(
+            """# Project Map
+
+## Tasks
+
+- Review supplier onboarding contract
+- Finalize staffing shortlist
+
+## Decisions
+
+- 2026-04-10: Use Sula as the durable project kernel
+
+## Risks
+
+- Contract redlines are still pending legal review
+
+## People
+
+- Alice Chen
+
+## Agreements
+
+- Master Services Agreement with Supplier Northwind
+
+## Milestones
+
+- 2026-04-20: Send final contract package
+""",
+            encoding="utf-8",
+        )
+
     def create_react_erpnext_repo(self, project_root: Path) -> None:
         (project_root / "src" / "api").mkdir(parents=True, exist_ok=True)
         (project_root / "src" / "store").mkdir(parents=True, exist_ok=True)
@@ -142,16 +180,234 @@ class SulaCliTests(unittest.TestCase):
             self.assertTrue((project_root / "CODEX.md").exists())
             self.assertTrue((project_root / "docs" / "change-records").exists())
 
-    def test_adopt_reports_blocker_when_profile_is_unknown(self) -> None:
+    def test_adopt_falls_back_to_generic_project_profile(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
             project_root = Path(tmpdir)
-            (project_root / "README.md").write_text("# Unknown Project\n\nNo known stack markers.\n", encoding="utf-8")
+            self.create_generic_project(project_root)
 
             result = run_cli("adopt", "--project-root", str(project_root))
 
             self.assertEqual(result.returncode, 0, result.stderr)
-            self.assertIn("Blocking issues:", result.stdout)
-            self.assertIn("could not determine a Sula profile automatically", result.stdout)
+            self.assertIn("Recommended profile: generic-project", result.stdout)
+            self.assertIn("defaulted to `generic-project`", result.stdout)
+            self.assertNotIn("Blocking issues:", result.stdout)
+
+    def test_adopt_approve_supports_non_git_generic_project(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            project_root = Path(tmpdir)
+            self.create_generic_project(project_root)
+
+            result = run_cli("adopt", "--project-root", str(project_root), "--approve")
+
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertTrue((project_root / ".sula" / "project.toml").exists())
+            self.assertTrue((project_root / ".sula" / "kernel.toml").exists())
+            self.assertTrue((project_root / ".sula" / "adapters" / "catalog.json").exists())
+            self.assertTrue((project_root / ".sula" / "adapters" / "bundles.json").exists())
+            self.assertTrue((project_root / ".sula" / "objects" / "catalog.json").exists())
+            self.assertTrue((project_root / ".sula" / "sources" / "registry.json").exists())
+            self.assertTrue((project_root / ".sula" / "cache" / "kernel.db").exists())
+            manifest = (project_root / ".sula" / "project.toml").read_text(encoding="utf-8")
+            self.assertIn('profile = "generic-project"', manifest)
+            self.assertIn('primary_branch = "n/a"', manifest)
+            self.assertTrue((project_root / "docs" / "runbooks" / "project-operations.md").exists())
+            adapter_catalog = json.loads((project_root / ".sula" / "adapters" / "catalog.json").read_text(encoding="utf-8"))
+            adapter_ids = {item["id"] for item in adapter_catalog["adapters"]}
+            self.assertIn("generic-project", adapter_ids)
+            self.assertIn("docs", adapter_ids)
+            self.assertIn("memory", adapter_ids)
+            bundle_catalog = json.loads((project_root / ".sula" / "adapters" / "bundles.json").read_text(encoding="utf-8"))
+            self.assertEqual(bundle_catalog["bundles"][0]["profile"], "generic-project")
+            registry = json.loads((project_root / ".sula" / "sources" / "registry.json").read_text(encoding="utf-8"))
+            paths = {item["path"] for item in registry}
+            self.assertIn("README.md", paths)
+            self.assertIn("docs/notes.md", paths)
+            discovered = [item for item in registry if item.get("discovered")]
+            self.assertTrue(discovered)
+            readme_entry = next(item for item in registry if item["path"] == "README.md")
+            self.assertIn("generic-project", readme_entry["adapters"])
+            self.assertIn("docs", readme_entry["adapters"])
+            query_cache = json.loads((project_root / ".sula" / "cache" / "query-index.json").read_text(encoding="utf-8"))
+            self.assertTrue(query_cache["documents"])
+            index_catalog = json.loads((project_root / ".sula" / "indexes" / "catalog.json").read_text(encoding="utf-8"))
+            self.assertGreaterEqual(index_catalog["counts"]["discovered_sources"], 2)
+            self.assertGreaterEqual(index_catalog["counts"]["source_adapter_links"], 2)
+            self.assertGreaterEqual(index_catalog["counts"]["objects"], 3)
+            sqlite_indexes = {item["name"] for item in index_catalog["indexes"]}
+            self.assertIn("sqlite-cache", sqlite_indexes)
+
+    def test_query_returns_matching_object_results(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            project_root = Path(tmpdir)
+            self.create_generic_project(project_root)
+            adopt_result = run_cli("adopt", "--project-root", str(project_root), "--approve")
+            self.assertEqual(adopt_result.returncode, 0, adopt_result.stderr)
+
+            result = run_cli("query", "--project-root", str(project_root), "--q", "contract", "--kind", "document")
+
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertIn("Sula query results", result.stdout)
+            self.assertIn("README.md", result.stdout)
+
+    def test_query_supports_filters_and_timeline_json(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            project_root = Path(tmpdir)
+            self.create_generic_project(project_root)
+            adopt_result = run_cli("adopt", "--project-root", str(project_root), "--approve")
+            self.assertEqual(adopt_result.returncode, 0, adopt_result.stderr)
+
+            result = run_cli(
+                "query",
+                "--project-root",
+                str(project_root),
+                "--q",
+                "contract",
+                "--kind",
+                "agreement",
+                "--adapter",
+                "docs",
+                "--path-prefix",
+                "docs/",
+                "--timeline",
+                "--json",
+            )
+
+            self.assertEqual(result.returncode, 0, result.stderr)
+            payload = json.loads(result.stdout)
+            self.assertTrue(payload["results"])
+            self.assertEqual(payload["results"][0]["kind"], "agreement")
+            self.assertTrue(payload["results"][0]["path"].startswith("docs/"))
+
+    def test_query_dedupes_same_path_kind_title_results(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            project_root = Path(tmpdir)
+            self.create_generic_project(project_root)
+            adopt_result = run_cli("adopt", "--project-root", str(project_root), "--approve")
+            self.assertEqual(adopt_result.returncode, 0, adopt_result.stderr)
+
+            result = run_cli(
+                "query",
+                "--project-root",
+                str(project_root),
+                "--q",
+                "contract",
+                "--json",
+            )
+
+            self.assertEqual(result.returncode, 0, result.stderr)
+            payload = json.loads(result.stdout)
+            dedupe_keys = {
+                (item["kind"], item["path"], item["title"])
+                for item in payload["results"]
+            }
+            self.assertEqual(len(payload["results"]), len(dedupe_keys))
+
+    def test_query_suppresses_low_signal_document_when_richer_same_path_exists(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            project_root = Path(tmpdir)
+            self.create_generic_project(project_root)
+            adopt_result = run_cli("adopt", "--project-root", str(project_root), "--approve")
+            self.assertEqual(adopt_result.returncode, 0, adopt_result.stderr)
+
+            result = run_cli(
+                "query",
+                "--project-root",
+                str(project_root),
+                "--q",
+                "contract",
+                "--json",
+            )
+
+            self.assertEqual(result.returncode, 0, result.stderr)
+            payload = json.loads(result.stdout)
+            richer_paths = {
+                item["path"]
+                for item in payload["results"]
+                if item["kind"] in {"agreement", "change", "task", "decision", "risk", "person", "milestone"}
+            }
+            low_signal_paths = {
+                item["path"]
+                for item in payload["results"]
+                if item["kind"] in {"document", "code", "config"}
+            }
+            self.assertFalse(richer_paths & low_signal_paths)
+
+    def test_query_compacts_same_path_families_and_exposes_related_kinds(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            project_root = Path(tmpdir)
+            self.create_generic_project(project_root)
+            adopt_result = run_cli("adopt", "--project-root", str(project_root), "--approve")
+            self.assertEqual(adopt_result.returncode, 0, adopt_result.stderr)
+            self.write_valid_status(project_root)
+            record_result = run_cli(
+                "record",
+                "new",
+                "--project-root",
+                str(project_root),
+                "--title",
+                "Contract review baseline",
+                "--summary",
+                "Captured the first contract review change record.",
+                "--date",
+                "2026-04-12",
+            )
+            self.assertEqual(record_result.returncode, 0, record_result.stderr)
+
+            result = run_cli("query", "--project-root", str(project_root), "--q", "contract", "--json")
+
+            self.assertEqual(result.returncode, 0, result.stderr)
+            payload = json.loads(result.stdout)
+            change_record = next(
+                item for item in payload["results"]
+                if item["path"].endswith("2026-04-12-contract-review-baseline.md")
+            )
+            self.assertEqual(change_record["kind"], "agreement")
+            self.assertIn("change", change_record["related_kinds"])
+
+    def test_query_kind_filter_bypasses_family_compaction(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            project_root = Path(tmpdir)
+            self.create_generic_project(project_root)
+            adopt_result = run_cli("adopt", "--project-root", str(project_root), "--approve")
+            self.assertEqual(adopt_result.returncode, 0, adopt_result.stderr)
+            self.write_valid_status(project_root)
+            record_result = run_cli(
+                "record",
+                "new",
+                "--project-root",
+                str(project_root),
+                "--title",
+                "Contract review baseline",
+                "--summary",
+                "Captured the first contract review change record.",
+                "--date",
+                "2026-04-12",
+            )
+            self.assertEqual(record_result.returncode, 0, record_result.stderr)
+
+            result = run_cli("query", "--project-root", str(project_root), "--q", "contract", "--kind", "change", "--json")
+
+            self.assertEqual(result.returncode, 0, result.stderr)
+            payload = json.loads(result.stdout)
+            self.assertTrue(payload["results"])
+            self.assertTrue(all(item["kind"] == "change" for item in payload["results"]))
+            self.assertTrue(all("related_kinds" not in item for item in payload["results"]))
+
+    def test_object_catalog_extracts_richer_kernel_objects(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            project_root = Path(tmpdir)
+            self.create_generic_project(project_root)
+            adopt_result = run_cli("adopt", "--project-root", str(project_root), "--approve")
+            self.assertEqual(adopt_result.returncode, 0, adopt_result.stderr)
+
+            catalog = json.loads((project_root / ".sula" / "objects" / "catalog.json").read_text(encoding="utf-8"))
+            kinds = {item["kind"] for item in catalog["objects"]}
+            self.assertIn("task", kinds)
+            self.assertIn("decision", kinds)
+            self.assertIn("risk", kinds)
+            self.assertIn("person", kinds)
+            self.assertIn("agreement", kinds)
+            self.assertIn("milestone", kinds)
 
     def test_init_supports_sula_core_profile(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -233,6 +489,57 @@ class SulaCliTests(unittest.TestCase):
             self.assertIn("Managed files differ from the current Sula render", result.stdout)
             self.assertIn("lockfile sula_version", result.stdout)
 
+    def test_doctor_reports_invalid_kernel_event_log(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            project_root = Path(tmpdir)
+            self.create_generic_project(project_root)
+            adopt_result = run_cli("adopt", "--project-root", str(project_root), "--approve")
+            self.assertEqual(adopt_result.returncode, 0, adopt_result.stderr)
+
+            (project_root / ".sula" / "events" / "log.jsonl").write_text("{bad json}\n", encoding="utf-8")
+
+            result = run_cli("doctor", "--project-root", str(project_root), "--strict")
+
+            self.assertNotEqual(result.returncode, 0)
+            self.assertIn("Kernel issues:", result.stdout)
+            self.assertIn("invalid kernel event JSON", result.stdout)
+
+    def test_doctor_reports_unknown_adapter_reference_in_source_registry(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            project_root = Path(tmpdir)
+            self.create_generic_project(project_root)
+            adopt_result = run_cli("adopt", "--project-root", str(project_root), "--approve")
+            self.assertEqual(adopt_result.returncode, 0, adopt_result.stderr)
+
+            registry_path = project_root / ".sula" / "sources" / "registry.json"
+            registry = json.loads(registry_path.read_text(encoding="utf-8"))
+            registry[0]["adapters"] = ["does-not-exist"]
+            registry_path.write_text(json.dumps(registry, indent=2), encoding="utf-8")
+
+            result = run_cli("doctor", "--project-root", str(project_root), "--strict")
+
+            self.assertNotEqual(result.returncode, 0)
+            self.assertIn("Kernel issues:", result.stdout)
+            self.assertIn("references unknown adapters", result.stdout)
+
+    def test_doctor_reports_invalid_relation_index(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            project_root = Path(tmpdir)
+            self.create_generic_project(project_root)
+            adopt_result = run_cli("adopt", "--project-root", str(project_root), "--approve")
+            self.assertEqual(adopt_result.returncode, 0, adopt_result.stderr)
+
+            relation_path = project_root / ".sula" / "indexes" / "relations.json"
+            relation_index = json.loads(relation_path.read_text(encoding="utf-8"))
+            relation_index["relations"][0]["from"] = "missing-object"
+            relation_path.write_text(json.dumps(relation_index, indent=2), encoding="utf-8")
+
+            result = run_cli("doctor", "--project-root", str(project_root), "--strict")
+
+            self.assertNotEqual(result.returncode, 0)
+            self.assertIn("Kernel issues:", result.stdout)
+            self.assertIn("relation references unknown object", result.stdout)
+
     def test_doctor_strict_fails_on_missing_manifest_paths(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
             project_root = Path(tmpdir)
@@ -300,6 +607,36 @@ class SulaCliTests(unittest.TestCase):
             digest = digest_path.read_text(encoding="utf-8")
             self.assertIn("Current State", digest)
             self.assertIn("Capture memory baseline", digest)
+
+    def test_remove_reports_and_preserves_scaffold_files(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            project_root = Path(tmpdir)
+            self.create_generic_project(project_root)
+            adopt_result = run_cli("adopt", "--project-root", str(project_root), "--approve")
+            self.assertEqual(adopt_result.returncode, 0, adopt_result.stderr)
+
+            result = run_cli("remove", "--project-root", str(project_root))
+
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertIn("Sula removal report", result.stdout)
+            self.assertIn("preserve scaffold: README.md", result.stdout)
+            self.assertTrue((project_root / ".sula" / "project.toml").exists())
+
+    def test_remove_approve_deletes_kernel_and_managed_files(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            project_root = Path(tmpdir)
+            self.create_generic_project(project_root)
+            adopt_result = run_cli("adopt", "--project-root", str(project_root), "--approve")
+            self.assertEqual(adopt_result.returncode, 0, adopt_result.stderr)
+
+            result = run_cli("remove", "--project-root", str(project_root), "--approve")
+
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertFalse((project_root / ".sula").exists())
+            self.assertFalse((project_root / "CODEX.md").exists())
+            self.assertFalse((project_root / "docs" / "ops").exists())
+            self.assertTrue((project_root / "README.md").exists())
+            self.assertTrue((project_root / "STATUS.md").exists())
 
 
 if __name__ == "__main__":

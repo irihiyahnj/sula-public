@@ -1,0 +1,19 @@
+{
+  "version": "0.6.0",
+  "profile": "sula-core",
+  "bundles": [
+    {
+      "id": "bundle:sula-core",
+      "profile": "sula-core",
+      "adapters": [
+        "generic-project",
+        "docs",
+        "memory",
+        "repo",
+        "registry",
+        "release"
+      ],
+      "description": "Bundle for repositories that are themselves reusable operating-system projects."
+    }
+  ]
+}
