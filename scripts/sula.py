@@ -623,6 +623,8 @@ def infer_workflow_pack(project_root: Path, profile: str, package_data: dict | N
         return ("video-production", "project text looks like a media-production workflow")
     if any(term in lowered for term in ["contract", "agreement", "invoice", "quote", "proposal", "staffing", "client", "supplier", "vendor", "service"]):
         return ("client-service", "project text looks like a client-service workflow")
+    if looks_like_project_operating_system(readme_text):
+        return ("generic-project", "project text looks like a file-oriented operating system instead of a software product")
     if package_data is not None or any((project_root / candidate).exists() for candidate in ["src", "pyproject.toml", "requirements.txt"]):
         return ("software-delivery", "project layout looks like a software delivery workspace")
     return (default_workflow_pack(profile), "no narrower workflow pack was detected safely, so the generic default is suggested")
@@ -1865,10 +1867,10 @@ def build_generic_project_manifest(
             "highest_rule": detect_existing_highest_rule(project_root)
             or "Preserve project-owned truth while using Sula as a removable operating kernel.",
             "custom_backend_allowed": True,
-            "react_router_allowed": detect_react_router_allowed(package_data),
+            "react_router_allowed": detect_generic_react_router_allowed(package_data, readme_text),
         },
         "stack": {
-            "frontend": detect_generic_frontend_stack(project_root, package_data),
+            "frontend": detect_generic_frontend_stack(project_root, package_data, readme_text),
             "backend": detect_generic_backend_stack(project_root, package_data, readme_text),
         },
         "paths": {
@@ -2295,6 +2297,42 @@ def detect_react_router_allowed(package_data: dict | None) -> bool:
     return "react-router" in all_deps or "react-router-dom" in all_deps
 
 
+def looks_like_project_operating_system(readme_text: str) -> bool:
+    lowered = readme_text.lower()
+    keywords = [
+        "project operating system",
+        "operating system",
+        "workspace",
+        "files",
+        "documents",
+        "records",
+        "portfolio",
+        "artifacts",
+        "knowledge",
+        "memory",
+        "google drive",
+        "drive-synced",
+        "agent",
+        "llm",
+        "system for managing",
+        "文件",
+        "文档",
+        "记录",
+        "工作区",
+        "归档",
+        "系统",
+        "接入",
+    ]
+    score = sum(1 for term in keywords if term in lowered)
+    return score >= 2
+
+
+def detect_generic_react_router_allowed(package_data: dict | None, readme_text: str) -> bool:
+    if looks_like_project_operating_system(readme_text):
+        return False
+    return detect_react_router_allowed(package_data)
+
+
 def detect_frontend_stack(package_data: dict | None) -> str:
     if not isinstance(package_data, dict):
         return "React + TypeScript + Vite"
@@ -2324,9 +2362,13 @@ def detect_backend_stack(readme_text: str) -> str:
     return "ERPNext / Frappe"
 
 
-def detect_generic_frontend_stack(project_root: Path, package_data: dict | None) -> str:
+def detect_generic_frontend_stack(project_root: Path, package_data: dict | None, readme_text: str) -> str:
+    if looks_like_project_operating_system(readme_text):
+        if package_data is not None or any((project_root / candidate).exists() for candidate in ["index.html", "src", "public"]):
+            return "Project operating interface over files and records"
+        return "Document and file operating interface"
     if package_data is not None:
-        return detect_frontend_stack(package_data)
+        return "Project-defined application interface"
     if any((project_root / candidate).exists() for candidate in ["index.html", "src", "public"]):
         return "Project-defined application or document interface"
     return "Project-defined components"
@@ -2334,6 +2376,8 @@ def detect_generic_frontend_stack(project_root: Path, package_data: dict | None)
 
 def detect_generic_backend_stack(project_root: Path, package_data: dict | None, readme_text: str) -> str:
     lowered = readme_text.lower()
+    if looks_like_project_operating_system(readme_text):
+        return "Project files, documents, and external systems"
     if package_data is not None and ("erpnext" in lowered or "frappe" in lowered):
         return "ERPNext / Frappe"
     if (project_root / "requirements.txt").exists() or (project_root / "pyproject.toml").exists():

@@ -100,6 +100,25 @@ class SulaCliTests(unittest.TestCase):
             encoding="utf-8",
         )
 
+    def create_file_system_project_with_frontend_tooling(self, project_root: Path) -> None:
+        (project_root / "src").mkdir(parents=True, exist_ok=True)
+        (project_root / "README.md").write_text(
+            "# File Ops System\n\nAI system for managing project files, documents, records, and workspace state.\n",
+            encoding="utf-8",
+        )
+        (project_root / "package.json").write_text(
+            json.dumps(
+                {
+                    "name": "file-ops-system",
+                    "description": "AI system for managing project files",
+                    "scripts": {"dev": "vite", "build": "vite build", "typecheck": "tsc --noEmit"},
+                    "dependencies": {"react": "^19.0.0", "react-router-dom": "^7.0.0"},
+                    "devDependencies": {"typescript": "^5.0.0", "vite": "^6.0.0"},
+                }
+            ),
+            encoding="utf-8",
+        )
+
     def write_valid_status(self, project_root: Path) -> None:
         (project_root / "STATUS.md").write_text(
             """# STATUS
@@ -229,6 +248,22 @@ class SulaCliTests(unittest.TestCase):
             self.assertEqual(payload["report"]["manifest"]["workflow"]["pack"], "video-production")
             self.assertEqual(payload["report"]["manifest"]["storage"]["provider"], "google-drive")
             self.assertEqual(payload["report"]["project_root"], str(project_root.resolve()))
+
+    def test_adopt_json_keeps_file_system_projects_generic_even_with_react_tooling(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            project_root = Path(tmpdir)
+            self.create_file_system_project_with_frontend_tooling(project_root)
+
+            result = run_cli("adopt", "--project-root", str(project_root), "--json")
+
+            self.assertEqual(result.returncode, 0, result.stderr)
+            payload = json.loads(result.stdout)
+            manifest = payload["report"]["manifest"]
+            self.assertEqual(manifest["project"]["profile"], "generic-project")
+            self.assertEqual(manifest["workflow"]["pack"], "generic-project")
+            self.assertEqual(manifest["stack"]["frontend"], "Project operating interface over files and records")
+            self.assertEqual(manifest["stack"]["backend"], "Project files, documents, and external systems")
+            self.assertFalse(manifest["rules"]["react_router_allowed"])
 
     def test_onboard_json_returns_questions_and_summary(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
