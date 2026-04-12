@@ -1,5 +1,5 @@
 {
-  "version": "0.9.0",
+  "version": "0.10.0",
   "profile": "sula-core",
   "relations": [
     {
@@ -183,6 +183,21 @@
       "type": "derived-from"
     },
     {
+      "from": "change:2026-04-12-add-provider-import-plans-for-google-docs-and-sheets",
+      "to": "source:docs-change-records-2026-04-12-add-provider-import-plans-for-google-docs-and-sheets-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "change:2026-04-12-add-provider-backed-artifact-registration-identity",
+      "to": "source:docs-change-records-2026-04-12-add-provider-backed-artifact-registration-identity-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "change:2026-04-12-add-project-language-policy-for-generated-docs",
+      "to": "source:docs-change-records-2026-04-12-add-project-language-policy-for-generated-docs-md",
+      "type": "derived-from"
+    },
+    {
       "from": "change:2026-04-12-add-machine-json-interfaces-artifact-routing-portfolio-registry-and-google-drive-local-sync-contracts",
       "to": "source:docs-change-records-2026-04-12-add-machine-json-interfaces-artifact-routing-portfolio-registry-and-google-drive-local-sync-contracts-md",
       "type": "derived-from"
@@ -205,6 +220,11 @@
     {
       "from": "change:2026-04-12-add-guided-onboarding-and-zero-memory-setup-flow",
       "to": "source:docs-change-records-2026-04-12-add-guided-onboarding-and-zero-memory-setup-flow-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "change:2026-04-12-add-artifact-materialization-for-docs-and-sheets",
+      "to": "source:docs-change-records-2026-04-12-add-artifact-materialization-for-docs-and-sheets-md",
       "type": "derived-from"
     },
     {
@@ -289,11 +309,6 @@
     },
     {
       "from": "object:source:changelog-md",
-      "to": "source:changelog-md",
-      "type": "derived-from"
-    },
-    {
-      "from": "agreement:source:changelog-md",
       "to": "source:changelog-md",
       "type": "derived-from"
     },
@@ -403,6 +418,11 @@
       "type": "derived-from"
     },
     {
+      "from": "object:source:docs-change-records-2026-04-12-add-artifact-materialization-for-docs-and-sheets-md",
+      "to": "source:docs-change-records-2026-04-12-add-artifact-materialization-for-docs-and-sheets-md",
+      "type": "derived-from"
+    },
+    {
       "from": "object:source:docs-change-records-2026-04-12-add-guided-onboarding-and-zero-memory-setup-flow-md",
       "to": "source:docs-change-records-2026-04-12-add-guided-onboarding-and-zero-memory-setup-flow-md",
       "type": "derived-from"
@@ -425,6 +445,21 @@
     {
       "from": "agreement:source:docs-change-records-2026-04-12-add-machine-json-interfaces-artifact-routing-portfolio-registry-and-google-drive-local-sync-contracts-md",
       "to": "source:docs-change-records-2026-04-12-add-machine-json-interfaces-artifact-routing-portfolio-registry-and-google-drive-local-sync-contracts-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "object:source:docs-change-records-2026-04-12-add-project-language-policy-for-generated-docs-md",
+      "to": "source:docs-change-records-2026-04-12-add-project-language-policy-for-generated-docs-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "object:source:docs-change-records-2026-04-12-add-provider-backed-artifact-registration-identity-md",
+      "to": "source:docs-change-records-2026-04-12-add-provider-backed-artifact-registration-identity-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "object:source:docs-change-records-2026-04-12-add-provider-import-plans-for-google-docs-and-sheets-md",
+      "to": "source:docs-change-records-2026-04-12-add-provider-import-plans-for-google-docs-and-sheets-md",
       "type": "derived-from"
     },
     {

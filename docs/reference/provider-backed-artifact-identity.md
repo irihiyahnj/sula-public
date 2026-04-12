@@ -27,6 +27,7 @@ Sula can already:
 - discover files under the adopted project root
 - register artifacts in `.sula/artifacts/catalog.json`
 - index local sources and artifacts into `.sula/objects/`, `.sula/indexes/`, and `.sula/cache/kernel.db`
+- emit provider import plans under `.sula/exports/provider-imports/` for external software or future direct adapters
 
 The current artifact registration flow can also persist provider-backed identity metadata:
 
@@ -38,6 +39,14 @@ The current artifact registration flow can also persist provider-backed identity
 - `identity_key`
 
 Today Sula does not yet treat a native Google Doc or Google Sheet as a first-class provider object unless it is materialized into the local workspace or explicitly registered as an artifact.
+
+Today the preferred bridge is:
+
+1. keep the project-owned source file in the workspace
+2. materialize `.docx`, `.html`, or `.xlsx` only when needed
+3. ask `artifact import-plan` for a provider-specific import contract
+4. let external software or a future adapter perform the real provider import
+5. register the resulting provider-native item back into the artifact catalog
 
 ## Identity Layers
 
@@ -137,6 +146,8 @@ As a practical bridge before direct provider APIs exist everywhere, Sula may als
 - Markdown to HTML or DOCX for Google Docs import
 - CSV, TSV, or JSON tables to XLSX for Google Sheets import
 
+Sula can now also write a machine-readable import plan that tells another tool exactly which bridge file to import, which provider item kind to create, and which `artifact register` metadata to persist afterward.
+
 ## Cross-Device Examples
 
 ### Example 1: Same Drive project on two machines
@@ -183,8 +194,9 @@ These should be additive fields in Sula-managed metadata, not project-owned busi
 1. Keep `google-drive` local-sync as the safe baseline.
 2. Continue indexing local files under the adopted project root exactly as project files.
 3. Extend artifact registration so provider-native documents can be registered without pretending they are ordinary local files.
-4. Teach query dedupe to prefer provider identity plus project-relative location over absolute path.
-5. Add direct provider adapters only after the local-sync contract is stable in real projects.
+4. Emit explicit provider import plans so external software does not need to guess how `.docx` or `.xlsx` bridge files map back to project artifacts.
+5. Teach query dedupe to prefer provider identity plus project-relative location over absolute path.
+6. Add direct provider adapters only after the local-sync contract is stable in real projects.
 
 ## Boundary Check
 

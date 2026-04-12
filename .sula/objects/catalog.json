@@ -1,5 +1,5 @@
 {
-  "version": "0.9.0",
+  "version": "0.10.0",
   "profile": "sula-core",
   "objects": [
     {
@@ -700,6 +700,63 @@
       "date": "2026-04-12"
     },
     {
+      "id": "change:2026-04-12-add-provider-import-plans-for-google-docs-and-sheets",
+      "kind": "change",
+      "title": "Add provider import plans for Google Docs and Google Sheets",
+      "summary": "- date: 2026-04-12 - executor: Codex - branch: codex/bootstrap-sula - related commit(s): pending - status: completed",
+      "status": "recorded",
+      "path": "docs/change-records/2026-04-12-add-provider-import-plans-for-google-docs-and-sheets.md",
+      "source_paths": [
+        "docs/change-records/2026-04-12-add-provider-import-plans-for-google-docs-and-sheets.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "change"
+      ],
+      "date": "2026-04-12"
+    },
+    {
+      "id": "change:2026-04-12-add-provider-backed-artifact-registration-identity",
+      "kind": "change",
+      "title": "Add provider-backed artifact registration identity",
+      "summary": "- date: 2026-04-12 - executor: Codex - branch: codex/bootstrap-sula - related commit(s): pending - status: completed",
+      "status": "recorded",
+      "path": "docs/change-records/2026-04-12-add-provider-backed-artifact-registration-identity.md",
+      "source_paths": [
+        "docs/change-records/2026-04-12-add-provider-backed-artifact-registration-identity.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "change"
+      ],
+      "date": "2026-04-12"
+    },
+    {
+      "id": "change:2026-04-12-add-project-language-policy-for-generated-docs",
+      "kind": "change",
+      "title": "Add project language policy for generated docs and records",
+      "summary": "- date: 2026-04-12 - executor: Codex - branch: codex/bootstrap-sula - related commit(s): pending - status: completed",
+      "status": "recorded",
+      "path": "docs/change-records/2026-04-12-add-project-language-policy-for-generated-docs.md",
+      "source_paths": [
+        "docs/change-records/2026-04-12-add-project-language-policy-for-generated-docs.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "change"
+      ],
+      "date": "2026-04-12"
+    },
+    {
       "id": "change:2026-04-12-add-machine-json-interfaces-artifact-routing-portfolio-registry-and-google-drive-local-sync-contracts",
       "kind": "change",
       "title": "Add machine JSON interfaces, artifact routing, portfolio registry, and Google Drive local-sync contracts",
@@ -784,6 +841,25 @@
       "path": "docs/change-records/2026-04-12-add-guided-onboarding-and-zero-memory-setup-flow.md",
       "source_paths": [
         "docs/change-records/2026-04-12-add-guided-onboarding-and-zero-memory-setup-flow.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "change"
+      ],
+      "date": "2026-04-12"
+    },
+    {
+      "id": "change:2026-04-12-add-artifact-materialization-for-docs-and-sheets",
+      "kind": "change",
+      "title": "Add artifact materialization for docs and sheets",
+      "summary": "- date: 2026-04-12 - executor: Codex - branch: codex/bootstrap-sula - related commit(s): pending - status: completed",
+      "status": "recorded",
+      "path": "docs/change-records/2026-04-12-add-artifact-materialization-for-docs-and-sheets.md",
+      "source_paths": [
+        "docs/change-records/2026-04-12-add-artifact-materialization-for-docs-and-sheets.md"
       ],
       "adapters": [
         "generic-project",
@@ -1132,29 +1208,6 @@
         "discovered-source"
       ],
       "date": null
-    },
-    {
-      "id": "agreement:source:changelog-md",
-      "kind": "agreement",
-      "title": "Changelog",
-      "summary": "All notable changes to Sula Core should be recorded here with explicit sync impact.",
-      "status": "active",
-      "path": "CHANGELOG.md",
-      "source_paths": [
-        "CHANGELOG.md"
-      ],
-      "adapters": [
-        "generic-project",
-        "local-fs",
-        "docs",
-        "repo",
-        "release"
-      ],
-      "tags": [
-        "agreement",
-        "source"
-      ],
-      "date": "2026-04-12"
     },
     {
       "id": "object:source:claude-md",
@@ -1611,6 +1664,28 @@
       "date": "2026-04-11"
     },
     {
+      "id": "object:source:docs-change-records-2026-04-12-add-artifact-materialization-for-docs-and-sheets-md",
+      "kind": "document",
+      "title": "2026-04-12-add-artifact-materialization-for-docs-and-sheets.md",
+      "summary": "- date: 2026-04-12 - executor: Codex - branch: codex/bootstrap-sula - related commit(s): pending - status: completed",
+      "status": "indexed",
+      "path": "docs/change-records/2026-04-12-add-artifact-materialization-for-docs-and-sheets.md",
+      "source_paths": [
+        "docs/change-records/2026-04-12-add-artifact-materialization-for-docs-and-sheets.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "memory",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": "2026-04-12"
+    },
+    {
       "id": "object:source:docs-change-records-2026-04-12-add-guided-onboarding-and-zero-memory-setup-flow-md",
       "kind": "document",
       "title": "2026-04-12-add-guided-onboarding-and-zero-memory-setup-flow.md",
@@ -1719,6 +1794,72 @@
       "tags": [
         "agreement",
         "source"
+      ],
+      "date": "2026-04-12"
+    },
+    {
+      "id": "object:source:docs-change-records-2026-04-12-add-project-language-policy-for-generated-docs-md",
+      "kind": "document",
+      "title": "2026-04-12-add-project-language-policy-for-generated-docs.md",
+      "summary": "- date: 2026-04-12 - executor: Codex - branch: codex/bootstrap-sula - related commit(s): pending - status: completed",
+      "status": "indexed",
+      "path": "docs/change-records/2026-04-12-add-project-language-policy-for-generated-docs.md",
+      "source_paths": [
+        "docs/change-records/2026-04-12-add-project-language-policy-for-generated-docs.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "memory",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": "2026-04-12"
+    },
+    {
+      "id": "object:source:docs-change-records-2026-04-12-add-provider-backed-artifact-registration-identity-md",
+      "kind": "document",
+      "title": "2026-04-12-add-provider-backed-artifact-registration-identity.md",
+      "summary": "- date: 2026-04-12 - executor: Codex - branch: codex/bootstrap-sula - related commit(s): pending - status: completed",
+      "status": "indexed",
+      "path": "docs/change-records/2026-04-12-add-provider-backed-artifact-registration-identity.md",
+      "source_paths": [
+        "docs/change-records/2026-04-12-add-provider-backed-artifact-registration-identity.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "memory",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": "2026-04-12"
+    },
+    {
+      "id": "object:source:docs-change-records-2026-04-12-add-provider-import-plans-for-google-docs-and-sheets-md",
+      "kind": "document",
+      "title": "2026-04-12-add-provider-import-plans-for-google-docs-and-sheets.md",
+      "summary": "- date: 2026-04-12 - executor: Codex - branch: codex/bootstrap-sula - related commit(s): pending - status: completed",
+      "status": "indexed",
+      "path": "docs/change-records/2026-04-12-add-provider-import-plans-for-google-docs-and-sheets.md",
+      "source_paths": [
+        "docs/change-records/2026-04-12-add-provider-import-plans-for-google-docs-and-sheets.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "memory",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
       ],
       "date": "2026-04-12"
     },

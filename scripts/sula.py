@@ -65,6 +65,29 @@ WORKFLOW_PACK_CHOICES = [
 ]
 STORAGE_PROVIDER_CHOICES = ["local-fs", "google-drive"]
 LANGUAGE_CHOICES = ["zh-CN", "en"]
+PROVIDER_IMPORT_KIND_SPECS = {
+    "google-doc": {
+        "provider": "google-drive",
+        "default_target_format": "docx",
+        "allowed_target_formats": ("docx", "html"),
+        "mime_types": {
+            "docx": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            "html": "text/html",
+        },
+        "existing_suffixes": {".docx", ".html"},
+        "source_suffixes": {".docx", ".html", ".md", ".txt"},
+    },
+    "google-sheet": {
+        "provider": "google-drive",
+        "default_target_format": "xlsx",
+        "allowed_target_formats": ("xlsx",),
+        "mime_types": {
+            "xlsx": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        },
+        "existing_suffixes": {".xlsx"},
+        "source_suffixes": {".xlsx", ".csv", ".tsv", ".json"},
+    },
+}
 
 MANIFEST_SPEC = {
     "project": {
@@ -374,6 +397,10 @@ class ProjectConfig:
     @property
     def artifacts_root(self) -> Path:
         return self.root / self.workflow_setting("artifacts_root", "artifacts")
+
+    @property
+    def provider_import_root(self) -> Path:
+        return self.root / ".sula" / "exports" / "provider-imports"
 
     @property
     def storage_provider(self) -> str:
@@ -883,6 +910,27 @@ def parse_args() -> argparse.Namespace:
     artifact_materialize_cmd.add_argument("--summary", default="")
     artifact_materialize_cmd.add_argument("--sheet-name", default="Sheet1")
     artifact_materialize_cmd.add_argument("--json", action="store_true", help="Print JSON instead of human-readable output")
+
+    artifact_import_plan_cmd = artifact_sub.add_parser(
+        "import-plan",
+        help="Prepare a machine-readable provider import plan and any required bridge artifact",
+    )
+    add_project_root_arg(artifact_import_plan_cmd)
+    artifact_import_plan_group = artifact_import_plan_cmd.add_mutually_exclusive_group(required=True)
+    artifact_import_plan_group.add_argument("--source-path", help="Source file relative to project root")
+    artifact_import_plan_group.add_argument("--artifact-id", help="Existing artifact id to use as the import source")
+    artifact_import_plan_cmd.add_argument("--provider", help="Target provider, defaults from the provider item kind")
+    artifact_import_plan_cmd.add_argument("--provider-item-kind", required=True, choices=sorted(PROVIDER_IMPORT_KIND_SPECS))
+    artifact_import_plan_cmd.add_argument("--target-format", choices=["html", "docx", "xlsx"], help="Optional bridge format override")
+    artifact_import_plan_cmd.add_argument("--kind", help="Artifact kind for routing, defaults to the source artifact kind when known")
+    artifact_import_plan_cmd.add_argument("--title", help="Import title, defaults to the source title or filename")
+    artifact_import_plan_cmd.add_argument("--slug")
+    artifact_import_plan_cmd.add_argument("--slot")
+    artifact_import_plan_cmd.add_argument("--date")
+    artifact_import_plan_cmd.add_argument("--project-relative-path", help="Stable provider-backed project-relative path after import")
+    artifact_import_plan_cmd.add_argument("--summary", default="")
+    artifact_import_plan_cmd.add_argument("--sheet-name", default="Sheet1")
+    artifact_import_plan_cmd.add_argument("--json", action="store_true", help="Print JSON instead of human-readable output")
 
     artifact_locate_cmd = artifact_sub.add_parser("locate", help="Locate registered artifacts")
     add_project_root_arg(artifact_locate_cmd)
@@ -6289,6 +6337,141 @@ def find_registered_artifact_by_source_path(config: ProjectConfig, relative_path
     return None
 
 
+def find_registered_artifact_by_id(config: ProjectConfig, artifact_id: str) -> dict[str, object] | None:
+    normalized_id = normalize_optional_text(artifact_id)
+    if not normalized_id:
+        return None
+    catalog = load_artifact_catalog(config)
+    for item in catalog.get("artifacts", []):
+        if not isinstance(item, dict):
+            continue
+        if normalize_optional_text(item.get("id", "")) == normalized_id:
+            return item
+    return None
+
+
+def provider_import_spec(provider_item_kind: str) -> dict[str, object]:
+    spec = PROVIDER_IMPORT_KIND_SPECS.get(provider_item_kind.lower())
+    if spec is None:
+        raise SystemExit(f"Unsupported provider import kind: {provider_item_kind}")
+    return spec
+
+
+def provider_import_target_format(provider_item_kind: str, explicit_target_format: str | None) -> str:
+    spec = provider_import_spec(provider_item_kind)
+    requested = normalize_optional_text(explicit_target_format).lower()
+    if requested:
+        if requested not in spec["allowed_target_formats"]:
+            allowed = ", ".join(spec["allowed_target_formats"])
+            raise SystemExit(f"{provider_item_kind} import only supports bridge formats: {allowed}")
+        return requested
+    return str(spec["default_target_format"])
+
+
+def provider_import_mime_type(provider_item_kind: str, target_format: str) -> str:
+    spec = provider_import_spec(provider_item_kind)
+    mime_types = spec.get("mime_types", {})
+    if isinstance(mime_types, dict):
+        value = mime_types.get(target_format)
+        if isinstance(value, str) and value:
+            return value
+    return "application/octet-stream"
+
+
+def provider_import_plan_path(config: ProjectConfig, *, record_date: str, slug: str, provider_item_kind: str) -> Path:
+    provider_slug = sanitize_slug(provider_item_kind) or "provider-item"
+    target_dir = config.provider_import_root
+    target_dir.mkdir(parents=True, exist_ok=True)
+    return target_dir / f"{record_date}-{slug}-{provider_slug}-import.json"
+
+
+def artifact_provider_relative_path(
+    entry: dict[str, object] | None,
+    *,
+    fallback_path: str,
+    explicit_project_relative_path: str = "",
+) -> str:
+    explicit = normalize_project_relative_path(explicit_project_relative_path)
+    if explicit:
+        return explicit
+    candidate = ""
+    if isinstance(entry, dict):
+        candidate = normalize_optional_text(entry.get("project_relative_path", "")) or normalize_optional_text(entry.get("path", ""))
+    if not candidate:
+        candidate = normalize_project_relative_path(fallback_path)
+    if not candidate:
+        return ""
+    pure = PurePosixPath(candidate)
+    if pure.suffix:
+        return pure.with_suffix("").as_posix()
+    return pure.as_posix()
+
+
+def artifact_register_command_preview(
+    config: ProjectConfig,
+    *,
+    artifact_kind: str,
+    title: str,
+    slot: str,
+    date_value: str,
+    summary: str,
+    project_relative_path: str,
+    provider_item_kind: str,
+    derived_from: list[str],
+) -> str:
+    command: list[str] = [
+        "python3",
+        "scripts/sula.py",
+        "artifact",
+        "register",
+        "--project-root",
+        str(config.root),
+        "--kind",
+        artifact_kind,
+        "--title",
+        title,
+        "--slot",
+        slot,
+        "--project-relative-path",
+        project_relative_path,
+        "--provider-item-id",
+        "<provider-item-id>",
+        "--provider-item-kind",
+        provider_item_kind,
+        "--provider-item-url",
+        "<provider-item-url>",
+    ]
+    if date_value:
+        command.extend(["--date", date_value])
+    if summary.strip():
+        command.extend(["--summary", summary.strip()])
+    for derived in derived_from:
+        if derived:
+            command.extend(["--derived-from", derived])
+    return " ".join(command)
+
+
+def resolve_artifact_import_source(
+    config: ProjectConfig,
+    *,
+    source_path: str | None,
+    artifact_id: str | None,
+) -> tuple[Path, str, dict[str, object] | None]:
+    if bool(source_path) == bool(artifact_id):
+        raise SystemExit("Provider import planning requires exactly one of --source-path or --artifact-id.")
+    if source_path:
+        path, relative_path = resolve_required_project_source_path(config, source_path)
+        return (path, relative_path, find_registered_artifact_by_source_path(config, relative_path))
+    artifact = find_registered_artifact_by_id(config, str(artifact_id))
+    if artifact is None:
+        raise SystemExit(f"Unknown artifact id: {artifact_id}")
+    local_paths = artifact_local_access_paths(config, artifact)
+    if not local_paths:
+        raise SystemExit(f"Artifact `{artifact_id}` does not have a local project file that can be imported.")
+    relative_path = local_paths[0]
+    return (config.root / relative_path, relative_path, artifact)
+
+
 def markdown_inline_html(text: str) -> str:
     escaped = html.escape(text, quote=False)
     escaped = re.sub(r"`([^`]+)`", lambda match: f"<code>{match.group(1)}</code>", escaped)
@@ -6614,6 +6797,60 @@ def materialized_artifact_summary(
     return f"Materialized {target_format} artifact derived from `{source_relative_path}`."
 
 
+def materialize_or_register_bridge_artifact(
+    config: ProjectConfig,
+    *,
+    source_path: Path,
+    source_relative_path: str,
+    source_entry: dict[str, object] | None,
+    target_format: str,
+    artifact_kind: str,
+    title: str,
+    slug: str,
+    slot: str,
+    record_date: str,
+    summary: str,
+    sheet_name: str,
+    allow_existing_output: bool,
+) -> tuple[dict[str, object], Path, bool]:
+    target_dir = config.artifacts_root / slot
+    target_dir.mkdir(parents=True, exist_ok=True)
+    output_path = target_dir / f"{record_date}-{slug}.{target_format}"
+    output_relative = output_path.relative_to(config.root).as_posix()
+    existing_registered = find_registered_artifact_by_source_path(config, output_relative)
+    if output_path.exists() and not allow_existing_output:
+        raise SystemExit(f"Materialized artifact already exists: {output_path}")
+    created = False
+    if not output_path.exists():
+        materialize_source_file(
+            source_path,
+            target_format=target_format,
+            output_path=output_path,
+            title=title,
+            sheet_name=sheet_name,
+        )
+        created = True
+    if existing_registered is not None:
+        return (existing_registered, output_path, created)
+    derived_from = [normalize_optional_text(source_entry.get("id", ""))] if isinstance(source_entry, dict) and source_entry.get("id") else []
+    entry = register_artifact_entry(
+        config,
+        path=output_relative,
+        artifact_kind=artifact_kind,
+        title=title,
+        slot=slot,
+        summary=summary,
+        date_value=record_date,
+        project_relative_path=output_relative,
+        local_access_paths=[output_relative],
+        provider_item_id="",
+        provider_item_kind=default_provider_item_kind(config, has_local_path=True),
+        provider_item_url="",
+        derived_from=derived_from,
+    )
+    return (entry, output_path, created)
+
+
 def artifact_materialize(config: ProjectConfig, args: argparse.Namespace) -> int:
     ensure_artifact_catalog(config)
     source_path, source_relative_path = resolve_required_project_source_path(config, args.source_path)
@@ -6626,39 +6863,26 @@ def artifact_materialize(config: ProjectConfig, args: argparse.Namespace) -> int
     record_date = normalize_record_date(args.date) if args.date else source_entry_date or date.today().isoformat()
     title = args.title or (normalize_optional_text(source_entry.get("title", "")) if isinstance(source_entry, dict) else "") or source_path.stem
     slug = sanitize_slug(args.slug or title)
-    target_dir = config.artifacts_root / slot
-    target_dir.mkdir(parents=True, exist_ok=True)
-    output_path = target_dir / f"{record_date}-{slug}.{target_format}"
-    if output_path.exists():
-        raise SystemExit(f"Materialized artifact already exists: {output_path}")
-    materialize_source_file(
-        source_path,
-        target_format=target_format,
-        output_path=output_path,
-        title=title,
-        sheet_name=args.sheet_name,
-    )
-    derived_from = [normalize_optional_text(source_entry.get("id", ""))] if isinstance(source_entry, dict) and source_entry.get("id") else []
     summary = materialized_artifact_summary(
         config,
         target_format=target_format,
         source_relative_path=source_relative_path,
         explicit_summary=args.summary,
     )
-    entry = register_artifact_entry(
+    entry, output_path, _created = materialize_or_register_bridge_artifact(
         config,
-        path=output_path.relative_to(config.root).as_posix(),
+        source_path=source_path,
+        source_relative_path=source_relative_path,
+        source_entry=source_entry,
+        target_format=target_format,
         artifact_kind=artifact_kind,
         title=title,
+        slug=slug,
         slot=slot,
+        record_date=record_date,
         summary=summary,
-        date_value=record_date,
-        project_relative_path=output_path.relative_to(config.root).as_posix(),
-        local_access_paths=[output_path.relative_to(config.root).as_posix()],
-        provider_item_id="",
-        provider_item_kind=default_provider_item_kind(config, has_local_path=True),
-        provider_item_url="",
-        derived_from=derived_from,
+        sheet_name=args.sheet_name,
+        allow_existing_output=False,
     )
     refresh_kernel_state(config, event_type="artifact.materialize", summary=f"Materialized {target_format} artifact `{title}` from `{source_relative_path}`.")
     payload = {
@@ -6679,6 +6903,161 @@ def artifact_materialize(config: ProjectConfig, args: argparse.Namespace) -> int
     return 0
 
 
+def artifact_import_plan(config: ProjectConfig, args: argparse.Namespace) -> int:
+    ensure_artifact_catalog(config)
+    provider_item_kind = args.provider_item_kind.lower()
+    spec = provider_import_spec(provider_item_kind)
+    provider = normalize_optional_text(args.provider).lower() or str(spec["provider"])
+    if provider != spec["provider"]:
+        raise SystemExit(f"{provider_item_kind} import planning currently supports provider `{spec['provider']}` only.")
+    source_path, source_relative_path, source_entry = resolve_artifact_import_source(
+        config,
+        source_path=getattr(args, "source_path", None),
+        artifact_id=getattr(args, "artifact_id", None),
+    )
+    target_format = provider_import_target_format(provider_item_kind, getattr(args, "target_format", None))
+    default_kind = normalize_optional_text(source_entry.get("kind", "")) if isinstance(source_entry, dict) else ""
+    artifact_kind = (args.kind or default_kind or "deliverable").lower()
+    slot = artifact_slot_for_kind(config, artifact_kind, args.slot)
+    source_entry_date = normalize_optional_text(source_entry.get("date", "")) if isinstance(source_entry, dict) else ""
+    detected_source_date = detect_source_date(source_path, source_summary(source_path)) or ""
+    record_date = normalize_record_date(args.date) if args.date else source_entry_date or detected_source_date or date.today().isoformat()
+    title = args.title or (normalize_optional_text(source_entry.get("title", "")) if isinstance(source_entry, dict) else "") or source_path.stem
+    slug = sanitize_slug(args.slug or title)
+    source_suffix = source_path.suffix.lower()
+    source_suffixes = set(spec["source_suffixes"])
+    if source_suffix not in source_suffixes:
+        supported = ", ".join(sorted(source_suffixes))
+        raise SystemExit(f"{provider_item_kind} import planning supports source files with these suffixes: {supported}")
+    bridge_entry: dict[str, object]
+    bridge_created = False
+    if source_suffix == f".{target_format}":
+        if isinstance(source_entry, dict):
+            bridge_entry = source_entry
+        else:
+            summary = args.summary.strip() or source_summary(source_path)
+            bridge_entry = register_artifact_entry(
+                config,
+                path=source_relative_path,
+                artifact_kind=artifact_kind,
+                title=title,
+                slot=slot,
+                summary=summary,
+                date_value=record_date,
+                project_relative_path=source_relative_path,
+                local_access_paths=[source_relative_path],
+                provider_item_id="",
+                provider_item_kind=default_provider_item_kind(config, has_local_path=True),
+                provider_item_url="",
+                derived_from=[],
+            )
+    else:
+        summary = materialized_artifact_summary(
+            config,
+            target_format=target_format,
+            source_relative_path=source_relative_path,
+            explicit_summary=args.summary,
+        )
+        bridge_entry, _bridge_output_path, bridge_created = materialize_or_register_bridge_artifact(
+            config,
+            source_path=source_path,
+            source_relative_path=source_relative_path,
+            source_entry=source_entry,
+            target_format=target_format,
+            artifact_kind=artifact_kind,
+            title=title,
+            slug=slug,
+            slot=slot,
+            record_date=record_date,
+            summary=summary,
+            sheet_name=args.sheet_name,
+            allow_existing_output=True,
+        )
+    bridge_path = artifact_display_path(bridge_entry)
+    project_relative_path = artifact_provider_relative_path(
+        bridge_entry,
+        fallback_path=bridge_path,
+        explicit_project_relative_path=getattr(args, "project_relative_path", ""),
+    )
+    bridge_artifact_id = normalize_optional_text(bridge_entry.get("id", ""))
+    derived_from = [bridge_artifact_id] if bridge_artifact_id else []
+    provider_root_id = config.provider_root_id if config.storage_provider == provider else ""
+    provider_root_url = config.provider_root_url if config.storage_provider == provider else ""
+    register_summary = normalize_optional_text(bridge_entry.get("summary", "")) or (args.summary.strip() if args.summary.strip() else source_summary(source_path))
+    register_after_import = {
+        "kind": artifact_kind,
+        "title": title,
+        "slot": slot,
+        "date": record_date,
+        "summary": register_summary,
+        "project_relative_path": project_relative_path,
+        "provider_item_kind": provider_item_kind,
+        "provider_item_id": "<provider-item-id>",
+        "provider_item_url": "<provider-item-url>",
+        "derived_from": derived_from,
+    }
+    plan = {
+        "version": VERSION,
+        "generated_on": date.today().isoformat(),
+        "command": "artifact.import-plan",
+        "project": project_payload(config),
+        "provider_import": {
+            "provider": provider,
+            "provider_item_kind": provider_item_kind,
+            "operation": "import-file",
+            "title": title,
+            "source_artifact_id": normalize_optional_text(source_entry.get("id", "")) if isinstance(source_entry, dict) else "",
+            "artifact_kind": artifact_kind,
+            "workflow_slot": slot,
+            "bridge_format": target_format,
+            "bridge_mime_type": provider_import_mime_type(provider_item_kind, target_format),
+            "bridge_artifact_id": bridge_artifact_id,
+            "bridge_path": bridge_path,
+            "source_path": source_relative_path,
+            "project_relative_path": project_relative_path,
+            "provider_root_id": provider_root_id,
+            "provider_root_url": provider_root_url,
+            "register_after_import": register_after_import,
+        },
+    }
+    plan_path = provider_import_plan_path(config, record_date=record_date, slug=slug, provider_item_kind=provider_item_kind)
+    plan_path.write_text(json.dumps(plan, indent=2, ensure_ascii=True) + "\n", encoding="utf-8")
+    refresh_kernel_state(config, event_type="artifact.import-plan", summary=f"Prepared {provider_item_kind} import plan `{title}`.")
+    register_command = artifact_register_command_preview(
+        config,
+        artifact_kind=artifact_kind,
+        title=title,
+        slot=slot,
+        date_value=record_date,
+        summary=register_summary,
+        project_relative_path=project_relative_path,
+        provider_item_kind=provider_item_kind,
+        derived_from=derived_from,
+    )
+    payload = {
+        "command": "artifact.import-plan",
+        "status": "ok",
+        "project": project_payload(config),
+        "provider_import": plan["provider_import"],
+        "plan_path": plan_path.relative_to(config.root).as_posix(),
+        "bridge_artifact": bridge_entry,
+        "bridge_created": bridge_created,
+        "register_command_preview": register_command,
+    }
+    if json_output_requested(args):
+        emit_json(payload)
+        return 0
+    if locale_family(config.interaction_locale) == "zh":
+        print(f"已生成 {provider_item_kind} 导入计划 {plan_path.relative_to(config.root).as_posix()}")
+        print(f"  - 桥接文件: {bridge_path}")
+        print(f"  - 后续登记命令: {register_command}")
+    else:
+        print(f"Prepared {provider_item_kind} import plan at {plan_path.relative_to(config.root).as_posix()}")
+        print(f"  - bridge artifact: {bridge_path}")
+        print(f"  - follow-up register command: {register_command}")
+    return 0
+
+
 def handle_artifact_command(config: ProjectConfig, args: argparse.Namespace) -> int:
     if args.artifact_command == "create":
         return artifact_create(config, args)
@@ -6686,6 +7065,8 @@ def handle_artifact_command(config: ProjectConfig, args: argparse.Namespace) -> 
         return artifact_register(config, args)
     if args.artifact_command == "materialize":
         return artifact_materialize(config, args)
+    if args.artifact_command == "import-plan":
+        return artifact_import_plan(config, args)
     if args.artifact_command == "locate":
         return artifact_locate(config, args)
     raise AssertionError("unreachable")
@@ -7057,6 +7438,7 @@ def render_export_catalog(config: ProjectConfig) -> str:
             {"path": config.data["paths"]["status_file"], "kind": "status", "project_owned": True},
             {"path": config.data["paths"]["change_records_file"], "kind": "change-index", "project_owned": True},
             {"path": config.memory_setting("digest_file", ".sula/memory-digest.md"), "kind": "memory-digest", "project_owned": False},
+            {"path": ".sula/exports/provider-imports", "kind": "provider-import-plans", "project_owned": False},
         ],
     }
     return json.dumps(exports, indent=2, ensure_ascii=True) + "\n"

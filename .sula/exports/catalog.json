@@ -1,5 +1,5 @@
 {
-  "version": "0.9.0",
+  "version": "0.10.0",
   "exports": [
     {
       "path": "STATUS.md",
@@ -14,6 +14,11 @@
     {
       "path": ".sula/memory-digest.md",
       "kind": "memory-digest",
+      "project_owned": false
+    },
+    {
+      "path": ".sula/exports/provider-imports",
+      "kind": "provider-import-plans",
       "project_owned": false
     }
   ]

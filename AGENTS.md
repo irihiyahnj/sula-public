@@ -38,6 +38,7 @@ This file is the primary instruction source for AI coding agents working in the 
 
 - Sula can register provider-backed artifacts for Google Drive style workspaces, including stable fields such as `project_relative_path`, `provider_item_id`, `provider_item_kind`, `provider_item_url`, `derived_from`, and `identity_key`.
 - Sula can materialize project-owned source files into import-friendly deliverables through `artifact materialize`.
+- Sula can prepare machine-readable provider import plans through `artifact import-plan`, including auto-generated `.docx` or `.xlsx` bridge artifacts when a Google Docs or Google Sheets import still needs a local handoff file.
 - Current materialization formats:
   - `.md` / `.txt` / `.html` -> `.html`
   - `.md` / `.txt` / `.html` -> `.docx` on macOS through `textutil`
@@ -48,6 +49,7 @@ This file is the primary instruction source for AI coding agents working in the 
   - `docs/reference/provider-backed-artifact-identity.md`
   - `docs/change-records/2026-04-12-add-provider-backed-artifact-registration-identity.md`
   - `docs/change-records/2026-04-12-add-artifact-materialization-for-docs-and-sheets.md`
+  - `docs/change-records/2026-04-12-add-provider-import-plans-for-google-docs-and-sheets.md`
 
 ## Out Of Scope For Now
 

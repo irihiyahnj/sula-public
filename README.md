@@ -271,6 +271,18 @@ python3 scripts/sula.py artifact materialize \
   --kind schedule \
   --title "Shoot Schedule Export"
 
+python3 scripts/sula.py artifact import-plan \
+  --project-root /path/to/project \
+  --source-path drafts/hospital-intake.md \
+  --provider-item-kind google-doc \
+  --json
+
+python3 scripts/sula.py artifact import-plan \
+  --project-root /path/to/project \
+  --artifact-id artifact:path-planning-shoot-schedule-csv \
+  --provider-item-kind google-sheet \
+  --json
+
 python3 scripts/sula.py artifact locate \
   --project-root /path/to/project \
   --kind agreement --json
@@ -287,6 +299,14 @@ Provider-backed artifacts can also be registered without a local materialized fi
 - `.csv` / `.tsv` / `.json` -> `.xlsx`
 
 That supports a practical workflow where Sula keeps Markdown and tabular files as project truth, then Google Docs or Google Sheets import the generated `.docx` or `.xlsx` when a native Google file is needed.
+
+`artifact import-plan` is the next bridge layer for external software:
+
+- it accepts a project source file or an existing artifact id
+- it reuses an import-ready `.docx`, `.html`, or `.xlsx` when one already exists
+- otherwise it materializes the required bridge file automatically
+- it writes a machine-readable plan to `.sula/exports/provider-imports/*.json`
+- it returns the follow-up `artifact register` shape that should be used after the real provider item id and URL exist
 
 ### Register projects in a portfolio
 

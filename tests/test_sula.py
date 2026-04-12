@@ -1051,6 +1051,136 @@ class SulaCliTests(unittest.TestCase):
             self.assertIn("xl/workbook.xml", names)
             self.assertIn("xl/worksheets/sheet1.xml", names)
 
+    def test_artifact_import_plan_materializes_markdown_for_google_doc(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            project_root = Path(tmpdir)
+            self.create_generic_project(project_root)
+            adopt_result = run_cli(
+                "adopt",
+                "--project-root",
+                str(project_root),
+                "--workflow-pack",
+                "client-service",
+                "--storage-provider",
+                "google-drive",
+                "--storage-sync-mode",
+                "local-sync",
+                "--storage-provider-root-url",
+                "https://drive.google.com/drive/folders/hospital-root",
+                "--storage-provider-root-id",
+                "hospital-root",
+                "--approve",
+            )
+            self.assertEqual(adopt_result.returncode, 0, adopt_result.stderr)
+
+            source_path = project_root / "drafts" / "hospital-intake.md"
+            source_path.parent.mkdir(parents=True, exist_ok=True)
+            source_path.write_text("# Hospital Intake Draft\n\nThis report should become a Google Doc.\n", encoding="utf-8")
+            source_register = run_cli(
+                "artifact",
+                "register",
+                "--project-root",
+                str(project_root),
+                "--path",
+                "drafts/hospital-intake.md",
+                "--kind",
+                "report",
+                "--title",
+                "Hospital Intake Draft",
+                "--json",
+            )
+            self.assertEqual(source_register.returncode, 0, source_register.stderr)
+            source_artifact = json.loads(source_register.stdout)["artifact"]
+
+            import_result = run_cli(
+                "artifact",
+                "import-plan",
+                "--project-root",
+                str(project_root),
+                "--source-path",
+                "drafts/hospital-intake.md",
+                "--provider-item-kind",
+                "google-doc",
+                "--json",
+            )
+            self.assertEqual(import_result.returncode, 0, import_result.stderr)
+            payload = json.loads(import_result.stdout)
+            self.assertEqual(payload["command"], "artifact.import-plan")
+            self.assertTrue(payload["bridge_created"])
+            bridge_artifact = payload["bridge_artifact"]
+            self.assertTrue(bridge_artifact["path"].endswith(".docx"))
+            self.assertEqual(bridge_artifact["derived_from"], [source_artifact["id"]])
+            provider_import = payload["provider_import"]
+            self.assertEqual(provider_import["provider"], "google-drive")
+            self.assertEqual(provider_import["provider_item_kind"], "google-doc")
+            self.assertEqual(provider_import["bridge_format"], "docx")
+            self.assertEqual(
+                provider_import["bridge_mime_type"],
+                "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            )
+            self.assertEqual(provider_import["provider_root_id"], "hospital-root")
+            self.assertTrue(provider_import["project_relative_path"].endswith("hospital-intake-draft"))
+            self.assertEqual(provider_import["register_after_import"]["derived_from"], [bridge_artifact["id"]])
+            self.assertIn("--provider-item-kind google-doc", payload["register_command_preview"])
+            plan_path = project_root / payload["plan_path"]
+            self.assertTrue(plan_path.exists())
+            plan = json.loads(plan_path.read_text(encoding="utf-8"))
+            self.assertEqual(plan["provider_import"]["bridge_artifact_id"], bridge_artifact["id"])
+
+    def test_artifact_import_plan_uses_artifact_id_for_google_sheet(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            project_root = Path(tmpdir)
+            self.create_generic_project(project_root)
+            adopt_result = run_cli(
+                "adopt",
+                "--project-root",
+                str(project_root),
+                "--workflow-pack",
+                "client-service",
+                "--approve",
+            )
+            self.assertEqual(adopt_result.returncode, 0, adopt_result.stderr)
+
+            source_path = project_root / "planning" / "shoot-schedule.csv"
+            source_path.parent.mkdir(parents=True, exist_ok=True)
+            source_path.write_text("date,owner\n2026-04-12,Alice\n", encoding="utf-8")
+            source_register = run_cli(
+                "artifact",
+                "register",
+                "--project-root",
+                str(project_root),
+                "--path",
+                "planning/shoot-schedule.csv",
+                "--kind",
+                "schedule",
+                "--title",
+                "Shoot Schedule",
+                "--json",
+            )
+            self.assertEqual(source_register.returncode, 0, source_register.stderr)
+            source_artifact = json.loads(source_register.stdout)["artifact"]
+
+            import_result = run_cli(
+                "artifact",
+                "import-plan",
+                "--project-root",
+                str(project_root),
+                "--artifact-id",
+                source_artifact["id"],
+                "--provider-item-kind",
+                "google-sheet",
+                "--json",
+            )
+            self.assertEqual(import_result.returncode, 0, import_result.stderr)
+            payload = json.loads(import_result.stdout)
+            self.assertTrue(payload["bridge_artifact"]["path"].endswith(".xlsx"))
+            self.assertEqual(payload["provider_import"]["provider"], "google-drive")
+            self.assertEqual(payload["provider_import"]["bridge_format"], "xlsx")
+            self.assertEqual(payload["provider_import"]["provider_root_id"], "")
+            self.assertEqual(payload["provider_import"]["register_after_import"]["provider_item_kind"], "google-sheet")
+            plan_path = project_root / payload["plan_path"]
+            self.assertTrue(plan_path.exists())
+
     def test_portfolio_register_list_and_query_json(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir, tempfile.TemporaryDirectory() as portfolio_tmpdir:
             project_root = Path(tmpdir)

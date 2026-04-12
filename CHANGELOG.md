@@ -2,6 +2,25 @@
 
 All notable changes to Sula Core should be recorded here with explicit sync impact.
 
+## 0.10.0 - 2026-04-12
+
+### Added
+
+- `artifact import-plan` as a machine-readable bridge from project-owned sources to provider-native Google Docs and Google Sheets imports
+- `.sula/exports/provider-imports/*.json` as stable import-plan outputs for external software and future adapters
+- automatic bridge artifact generation during import planning when a source file still needs `.docx` or `.xlsx` materialization
+
+### Changed
+
+- README and provider-backed artifact docs now describe provider import planning as the next step after local materialization, not as a future-only idea
+- export catalog now exposes the provider import plan directory under `.sula/exports/provider-imports`
+
+### Sync Impact
+
+- existing adopted projects remain compatible and only gain an extra export path in `.sula/exports/catalog.json` on next sync
+- external software can now ask Sula for an explicit Google Docs or Google Sheets import plan instead of reverse-engineering bridge files from artifact metadata
+- provider-backed artifact workflows now have a formal handoff layer between local project truth and future direct provider adapters
+
 ## 0.9.0 - 2026-04-12
 
 ### Added

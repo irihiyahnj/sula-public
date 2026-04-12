@@ -231,7 +231,7 @@
     "exists": true,
     "source_of_truth": true,
     "discovered": true,
-    "size_bytes": 1636,
+    "size_bytes": 2998,
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
@@ -247,7 +247,7 @@
     "exists": true,
     "source_of_truth": true,
     "discovered": true,
-    "size_bytes": 5091,
+    "size_bytes": 6098,
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
@@ -264,7 +264,7 @@
     "exists": true,
     "source_of_truth": true,
     "discovered": true,
-    "size_bytes": 10369,
+    "size_bytes": 11493,
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
@@ -361,7 +361,7 @@
     "exists": true,
     "source_of_truth": true,
     "discovered": true,
-    "size_bytes": 12761,
+    "size_bytes": 15120,
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
@@ -571,6 +571,23 @@
     ]
   },
   {
+    "id": "source:docs-change-records-2026-04-12-add-artifact-materialization-for-docs-and-sheets-md",
+    "kind": "document",
+    "path": "docs/change-records/2026-04-12-add-artifact-materialization-for-docs-and-sheets.md",
+    "exists": true,
+    "source_of_truth": true,
+    "discovered": true,
+    "size_bytes": 2998,
+    "anchor_strategy": "heading-or-line",
+    "adapters": [
+      "generic-project",
+      "local-fs",
+      "docs",
+      "memory",
+      "repo"
+    ]
+  },
+  {
     "id": "source:docs-change-records-2026-04-12-add-guided-onboarding-and-zero-memory-setup-flow-md",
     "kind": "document",
     "path": "docs/change-records/2026-04-12-add-guided-onboarding-and-zero-memory-setup-flow.md",
@@ -612,6 +629,57 @@
     "source_of_truth": true,
     "discovered": true,
     "size_bytes": 4117,
+    "anchor_strategy": "heading-or-line",
+    "adapters": [
+      "generic-project",
+      "local-fs",
+      "docs",
+      "memory",
+      "repo"
+    ]
+  },
+  {
+    "id": "source:docs-change-records-2026-04-12-add-project-language-policy-for-generated-docs-md",
+    "kind": "document",
+    "path": "docs/change-records/2026-04-12-add-project-language-policy-for-generated-docs.md",
+    "exists": true,
+    "source_of_truth": true,
+    "discovered": true,
+    "size_bytes": 3026,
+    "anchor_strategy": "heading-or-line",
+    "adapters": [
+      "generic-project",
+      "local-fs",
+      "docs",
+      "memory",
+      "repo"
+    ]
+  },
+  {
+    "id": "source:docs-change-records-2026-04-12-add-provider-backed-artifact-registration-identity-md",
+    "kind": "document",
+    "path": "docs/change-records/2026-04-12-add-provider-backed-artifact-registration-identity.md",
+    "exists": true,
+    "source_of_truth": true,
+    "discovered": true,
+    "size_bytes": 3619,
+    "anchor_strategy": "heading-or-line",
+    "adapters": [
+      "generic-project",
+      "local-fs",
+      "docs",
+      "memory",
+      "repo"
+    ]
+  },
+  {
+    "id": "source:docs-change-records-2026-04-12-add-provider-import-plans-for-google-docs-and-sheets-md",
+    "kind": "document",
+    "path": "docs/change-records/2026-04-12-add-provider-import-plans-for-google-docs-and-sheets.md",
+    "exists": true,
+    "source_of_truth": true,
+    "discovered": true,
+    "size_bytes": 3448,
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
@@ -974,7 +1042,7 @@
     "exists": true,
     "source_of_truth": true,
     "discovered": true,
-    "size_bytes": 6604,
+    "size_bytes": 7928,
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
@@ -1740,7 +1808,7 @@
     "exists": true,
     "source_of_truth": true,
     "discovered": true,
-    "size_bytes": 271792,
+    "size_bytes": 322375,
     "anchor_strategy": "line",
     "adapters": [
       "generic-project",
@@ -1880,7 +1948,7 @@
     "exists": true,
     "source_of_truth": true,
     "discovered": true,
-    "size_bytes": 48981,
+    "size_bytes": 66008,
     "anchor_strategy": "line",
     "adapters": [
       "generic-project",
