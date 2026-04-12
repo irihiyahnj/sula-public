@@ -34,6 +34,21 @@ This file is the primary instruction source for AI coding agents working in the 
 - `onboard`, `adopt`, `init`, `sync`, `doctor`, `remove`, `query`, `status`, `artifact`, `portfolio`, `record`, and `memory digest` commands
 - static launch-site assets under `site/`, including the canonical launch contract and bootstrap shim
 
+## Current Capabilities
+
+- Sula can register provider-backed artifacts for Google Drive style workspaces, including stable fields such as `project_relative_path`, `provider_item_id`, `provider_item_kind`, `provider_item_url`, `derived_from`, and `identity_key`.
+- Sula can materialize project-owned source files into import-friendly deliverables through `artifact materialize`.
+- Current materialization formats:
+  - `.md` / `.txt` / `.html` -> `.html`
+  - `.md` / `.txt` / `.html` -> `.docx` on macOS through `textutil`
+  - `.csv` / `.tsv` / `.json` -> `.xlsx`
+- Treat these features as the preferred bridge when a project needs Google Docs or Google Sheets outputs before direct provider-side document creation is available.
+- When a new session needs details, read:
+  - `README.md` artifact section
+  - `docs/reference/provider-backed-artifact-identity.md`
+  - `docs/change-records/2026-04-12-add-provider-backed-artifact-registration-identity.md`
+  - `docs/change-records/2026-04-12-add-artifact-materialization-for-docs-and-sheets.md`
+
 ## Out Of Scope For Now
 
 - automatic GitHub app integration
