@@ -3,9 +3,11 @@
 from __future__ import annotations
 
 import argparse
+import csv
 from dataclasses import dataclass
 from datetime import date, datetime
 import hashlib
+import html
 import json
 import os
 from pathlib import Path, PurePosixPath
@@ -14,6 +16,8 @@ import shutil
 import sqlite3
 import subprocess
 import sys
+import tempfile
+import zipfile
 
 
 SULA_ROOT = Path(__file__).resolve().parent.parent
@@ -863,6 +867,22 @@ def parse_args() -> argparse.Namespace:
         help="Artifact id this artifact derives from. Repeat for multiple source artifacts.",
     )
     artifact_register_cmd.add_argument("--json", action="store_true", help="Print JSON instead of human-readable output")
+
+    artifact_materialize_cmd = artifact_sub.add_parser(
+        "materialize",
+        help="Materialize a concrete document or spreadsheet artifact from a source file",
+    )
+    add_project_root_arg(artifact_materialize_cmd)
+    artifact_materialize_cmd.add_argument("--source-path", required=True, help="Source file relative to project root")
+    artifact_materialize_cmd.add_argument("--target-format", required=True, choices=["html", "docx", "xlsx"])
+    artifact_materialize_cmd.add_argument("--kind", help="Artifact kind for routing, defaults to the source artifact kind when known")
+    artifact_materialize_cmd.add_argument("--title", help="Artifact title, defaults to the source stem")
+    artifact_materialize_cmd.add_argument("--slug")
+    artifact_materialize_cmd.add_argument("--slot")
+    artifact_materialize_cmd.add_argument("--date")
+    artifact_materialize_cmd.add_argument("--summary", default="")
+    artifact_materialize_cmd.add_argument("--sheet-name", default="Sheet1")
+    artifact_materialize_cmd.add_argument("--json", action="store_true", help="Print JSON instead of human-readable output")
 
     artifact_locate_cmd = artifact_sub.add_parser("locate", help="Locate registered artifacts")
     add_project_root_arg(artifact_locate_cmd)
@@ -6244,11 +6264,428 @@ def artifact_search_tags(entry: dict[str, object]) -> list[str]:
     return [tag for tag in tags if tag]
 
 
+def resolve_required_project_source_path(config: ProjectConfig, raw_path: str) -> tuple[Path, str]:
+    path, relative_path = resolve_artifact_registration_path(config, raw_path)
+    if path is None or not relative_path:
+        raise SystemExit("A project source path is required.")
+    return (path, relative_path)
+
+
+def find_registered_artifact_by_source_path(config: ProjectConfig, relative_path: str) -> dict[str, object] | None:
+    normalized = normalize_project_relative_path(relative_path)
+    catalog = load_artifact_catalog(config)
+    for item in catalog.get("artifacts", []):
+        if not isinstance(item, dict):
+            continue
+        candidates = {
+            normalize_optional_text(item.get("path", "")),
+            normalize_optional_text(item.get("project_relative_path", "")),
+        }
+        local_access_paths = item.get("local_access_paths", [])
+        if isinstance(local_access_paths, list):
+            candidates.update(normalize_project_relative_path(str(value)) for value in local_access_paths if str(value).strip())
+        if normalized in {value for value in candidates if value}:
+            return item
+    return None
+
+
+def markdown_inline_html(text: str) -> str:
+    escaped = html.escape(text, quote=False)
+    escaped = re.sub(r"`([^`]+)`", lambda match: f"<code>{match.group(1)}</code>", escaped)
+    escaped = re.sub(r"\*\*([^*]+)\*\*", lambda match: f"<strong>{match.group(1)}</strong>", escaped)
+    escaped = re.sub(r"\*([^*]+)\*", lambda match: f"<em>{match.group(1)}</em>", escaped)
+    escaped = re.sub(
+        r"\[([^\]]+)\]\(([^)]+)\)",
+        lambda match: f'<a href="{html.escape(match.group(2), quote=True)}">{match.group(1)}</a>',
+        escaped,
+    )
+    return escaped
+
+
+def is_markdown_table_block(lines: list[str], index: int) -> bool:
+    if index + 1 >= len(lines):
+        return False
+    header = lines[index].strip()
+    separator = lines[index + 1].strip()
+    return "|" in header and bool(re.match(r"^\s*\|?(\s*:?-{3,}:?\s*\|)+\s*:?-{3,}:?\s*\|?\s*$", separator))
+
+
+def parse_markdown_table_row(line: str) -> list[str]:
+    stripped = line.strip().strip("|")
+    return [cell.strip() for cell in stripped.split("|")]
+
+
+def render_markdown_table(lines: list[str], start_index: int) -> tuple[str, int]:
+    header_cells = parse_markdown_table_row(lines[start_index])
+    body_rows: list[list[str]] = []
+    index = start_index + 2
+    while index < len(lines):
+        candidate = lines[index].rstrip()
+        if not candidate.strip() or "|" not in candidate:
+            break
+        body_rows.append(parse_markdown_table_row(candidate))
+        index += 1
+    header_html = "".join(f"<th>{markdown_inline_html(cell)}</th>" for cell in header_cells)
+    body_html = []
+    for row in body_rows:
+        cells = "".join(f"<td>{markdown_inline_html(cell)}</td>" for cell in row)
+        body_html.append(f"<tr>{cells}</tr>")
+    table_html = ["<table>", f"<thead><tr>{header_html}</tr></thead>"]
+    if body_html:
+        table_html.append("<tbody>")
+        table_html.extend(body_html)
+        table_html.append("</tbody>")
+    table_html.append("</table>")
+    return ("\n".join(table_html), index)
+
+
+def render_markdown_body_to_html(text: str) -> str:
+    lines = text.splitlines()
+    blocks: list[str] = []
+    index = 0
+    while index < len(lines):
+        line = lines[index].rstrip("\n")
+        stripped = line.strip()
+        if not stripped:
+            index += 1
+            continue
+        heading_match = re.match(r"^(#{1,6})\s+(.*)$", stripped)
+        if heading_match:
+            level = len(heading_match.group(1))
+            blocks.append(f"<h{level}>{markdown_inline_html(heading_match.group(2).strip())}</h{level}>")
+            index += 1
+            continue
+        if is_markdown_table_block(lines, index):
+            table_html, index = render_markdown_table(lines, index)
+            blocks.append(table_html)
+            continue
+        if stripped.startswith("```"):
+            fence = stripped[:3]
+            code_lines: list[str] = []
+            index += 1
+            while index < len(lines) and not lines[index].strip().startswith(fence):
+                code_lines.append(lines[index])
+                index += 1
+            if index < len(lines):
+                index += 1
+            code_html = html.escape("\n".join(code_lines))
+            blocks.append(f"<pre><code>{code_html}</code></pre>")
+            continue
+        if re.match(r"^[-*]\s+", stripped):
+            items: list[str] = []
+            while index < len(lines):
+                candidate = lines[index].strip()
+                if not re.match(r"^[-*]\s+", candidate):
+                    break
+                items.append(re.sub(r"^[-*]\s+", "", candidate))
+                index += 1
+            blocks.append("<ul>" + "".join(f"<li>{markdown_inline_html(item)}</li>" for item in items) + "</ul>")
+            continue
+        if re.match(r"^\d+\.\s+", stripped):
+            items = []
+            while index < len(lines):
+                candidate = lines[index].strip()
+                if not re.match(r"^\d+\.\s+", candidate):
+                    break
+                items.append(re.sub(r"^\d+\.\s+", "", candidate))
+                index += 1
+            blocks.append("<ol>" + "".join(f"<li>{markdown_inline_html(item)}</li>" for item in items) + "</ol>")
+            continue
+        if stripped.startswith(">"):
+            quote_lines: list[str] = []
+            while index < len(lines) and lines[index].strip().startswith(">"):
+                quote_lines.append(lines[index].strip()[1:].strip())
+                index += 1
+            quote_html = "".join(f"<p>{markdown_inline_html(item)}</p>" for item in quote_lines if item)
+            blocks.append(f"<blockquote>{quote_html}</blockquote>")
+            continue
+        paragraph_lines = [stripped]
+        index += 1
+        while index < len(lines):
+            candidate = lines[index].strip()
+            if not candidate or re.match(r"^(#{1,6})\s+", candidate) or candidate.startswith("```") or candidate.startswith(">"):
+                break
+            if is_markdown_table_block(lines, index) or re.match(r"^[-*]\s+", candidate) or re.match(r"^\d+\.\s+", candidate):
+                break
+            paragraph_lines.append(candidate)
+            index += 1
+        blocks.append(f"<p>{markdown_inline_html(' '.join(paragraph_lines))}</p>")
+    return "\n".join(blocks)
+
+
+def wrap_html_document(title: str, body_html: str) -> str:
+    safe_title = html.escape(title)
+    return (
+        "<!doctype html>\n"
+        "<html>\n"
+        "<head>\n"
+        '  <meta charset="utf-8">\n'
+        f"  <title>{safe_title}</title>\n"
+        "  <style>\n"
+        "    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; margin: 40px; line-height: 1.6; color: #1f2937; }\n"
+        "    table { border-collapse: collapse; width: 100%; margin: 16px 0; }\n"
+        "    th, td { border: 1px solid #cbd5e1; padding: 8px 10px; text-align: left; vertical-align: top; }\n"
+        "    th { background: #f8fafc; }\n"
+        "    code, pre { font-family: 'SFMono-Regular', Menlo, monospace; }\n"
+        "    pre { background: #f8fafc; padding: 12px; overflow-x: auto; }\n"
+        "    blockquote { border-left: 4px solid #cbd5e1; margin: 16px 0; padding-left: 16px; color: #475569; }\n"
+        "  </style>\n"
+        "</head>\n"
+        "<body>\n"
+        f"{body_html}\n"
+        "</body>\n"
+        "</html>\n"
+    )
+
+
+def render_source_document_to_html(source_path: Path, *, title: str) -> str:
+    suffix = source_path.suffix.lower()
+    text = source_path.read_text(encoding="utf-8", errors="ignore")
+    if suffix == ".html":
+        return text
+    if suffix == ".md":
+        return wrap_html_document(title, render_markdown_body_to_html(text))
+    if suffix == ".txt":
+        paragraphs = [segment.strip() for segment in text.split("\n\n") if segment.strip()]
+        body_html = "\n".join(f"<p>{markdown_inline_html(paragraph.replace(chr(10), ' '))}</p>" for paragraph in paragraphs)
+        return wrap_html_document(title, body_html or "<p></p>")
+    raise SystemExit(f"Unsupported document source format for materialization: {source_path.suffix or source_path.name}")
+
+
+def convert_html_to_docx(html_text: str, output_path: Path) -> None:
+    textutil_path = shutil.which("textutil")
+    if not textutil_path:
+        raise SystemExit("DOCX materialization requires `textutil` on this machine.")
+    temp_html: str | None = None
+    try:
+        with tempfile.NamedTemporaryFile("w", suffix=".html", encoding="utf-8", delete=False) as handle:
+            handle.write(html_text)
+            temp_html = handle.name
+        completed = subprocess.run(
+            [textutil_path, "-convert", "docx", "-output", str(output_path), temp_html],
+            text=True,
+            capture_output=True,
+            check=False,
+        )
+        if completed.returncode != 0:
+            raise SystemExit(f"DOCX materialization failed: {completed.stderr.strip() or completed.stdout.strip() or 'textutil error'}")
+    finally:
+        if temp_html and Path(temp_html).exists():
+            Path(temp_html).unlink()
+
+
+def json_tabular_rows(data: object) -> list[list[object]]:
+    if isinstance(data, dict) and "rows" in data:
+        data = data["rows"]
+    if isinstance(data, list) and data and all(isinstance(item, dict) for item in data):
+        headers: list[str] = []
+        seen: set[str] = set()
+        for item in data:
+            assert isinstance(item, dict)
+            for key in item:
+                if key not in seen:
+                    seen.add(key)
+                    headers.append(str(key))
+        rows: list[list[object]] = [headers]
+        for item in data:
+            assert isinstance(item, dict)
+            rows.append([item.get(header, "") for header in headers])
+        return rows
+    if isinstance(data, list) and all(isinstance(item, list) for item in data):
+        return [[cell for cell in row] for row in data if isinstance(row, list)]
+    raise SystemExit("JSON spreadsheet materialization expects an array of objects, an array of arrays, or an object with a `rows` array.")
+
+
+def load_tabular_rows(source_path: Path) -> list[list[object]]:
+    suffix = source_path.suffix.lower()
+    if suffix == ".csv":
+        with source_path.open("r", encoding="utf-8", newline="") as handle:
+            return [row for row in csv.reader(handle)]
+    if suffix == ".tsv":
+        with source_path.open("r", encoding="utf-8", newline="") as handle:
+            return [row for row in csv.reader(handle, delimiter="\t")]
+    if suffix == ".json":
+        data = json.loads(source_path.read_text(encoding="utf-8"))
+        return json_tabular_rows(data)
+    raise SystemExit(f"Unsupported spreadsheet source format for materialization: {source_path.suffix or source_path.name}")
+
+
+def excel_column_name(index: int) -> str:
+    label = ""
+    current = index
+    while current > 0:
+        current, remainder = divmod(current - 1, 26)
+        label = chr(65 + remainder) + label
+    return label or "A"
+
+
+def sanitize_sheet_name(value: str) -> str:
+    cleaned = re.sub(r"[:\\\\/?*\\[\\]]", "-", value).strip()
+    return (cleaned or "Sheet1")[:31]
+
+
+def xlsx_cell_xml(reference: str, value: object) -> str:
+    if isinstance(value, bool):
+        string_value = "TRUE" if value else "FALSE"
+        return f'<c r="{reference}" t="inlineStr"><is><t xml:space="preserve">{html.escape(string_value)}</t></is></c>'
+    if isinstance(value, (int, float)) and not isinstance(value, bool):
+        return f'<c r="{reference}"><v>{value}</v></c>'
+    text_value = html.escape("" if value is None else str(value))
+    return f'<c r="{reference}" t="inlineStr"><is><t xml:space="preserve">{text_value}</t></is></c>'
+
+
+def write_simple_xlsx(output_path: Path, rows: list[list[object]], *, sheet_name: str) -> None:
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    safe_sheet_name = sanitize_sheet_name(sheet_name)
+    sheet_rows: list[str] = []
+    for row_index, row in enumerate(rows, start=1):
+        cells: list[str] = []
+        for column_index, value in enumerate(row, start=1):
+            reference = f"{excel_column_name(column_index)}{row_index}"
+            cells.append(xlsx_cell_xml(reference, value))
+        sheet_rows.append(f'<row r="{row_index}">{"".join(cells)}</row>')
+    sheet_xml = (
+        '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+        '<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">'
+        f'<sheetData>{"".join(sheet_rows)}</sheetData>'
+        "</worksheet>"
+    )
+    workbook_xml = (
+        '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+        '<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" '
+        'xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">'
+        f'<sheets><sheet name="{html.escape(safe_sheet_name, quote=True)}" sheetId="1" r:id="rId1"/></sheets>'
+        "</workbook>"
+    )
+    workbook_rels_xml = (
+        '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+        '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'
+        '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/>'
+        "</Relationships>"
+    )
+    package_rels_xml = (
+        '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+        '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'
+        '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/>'
+        "</Relationships>"
+    )
+    content_types_xml = (
+        '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+        '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">'
+        '<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>'
+        '<Default Extension="xml" ContentType="application/xml"/>'
+        '<Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>'
+        '<Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>'
+        "</Types>"
+    )
+    with zipfile.ZipFile(output_path, "w", compression=zipfile.ZIP_DEFLATED) as archive:
+        archive.writestr("[Content_Types].xml", content_types_xml)
+        archive.writestr("_rels/.rels", package_rels_xml)
+        archive.writestr("xl/workbook.xml", workbook_xml)
+        archive.writestr("xl/_rels/workbook.xml.rels", workbook_rels_xml)
+        archive.writestr("xl/worksheets/sheet1.xml", sheet_xml)
+
+
+def materialize_source_file(source_path: Path, *, target_format: str, output_path: Path, title: str, sheet_name: str) -> None:
+    if target_format == "html":
+        output_path.write_text(render_source_document_to_html(source_path, title=title), encoding="utf-8")
+        return
+    if target_format == "docx":
+        convert_html_to_docx(render_source_document_to_html(source_path, title=title), output_path)
+        return
+    if target_format == "xlsx":
+        rows = load_tabular_rows(source_path)
+        write_simple_xlsx(output_path, rows, sheet_name=sheet_name)
+        return
+    raise SystemExit(f"Unsupported target materialization format: {target_format}")
+
+
+def materialized_artifact_summary(
+    config: ProjectConfig,
+    *,
+    target_format: str,
+    source_relative_path: str,
+    explicit_summary: str,
+) -> str:
+    if explicit_summary.strip():
+        return explicit_summary.strip()
+    if locale_family(config.content_locale) == "zh":
+        return f"由 `{source_relative_path}` 物化生成的 {target_format} 成品。"
+    return f"Materialized {target_format} artifact derived from `{source_relative_path}`."
+
+
+def artifact_materialize(config: ProjectConfig, args: argparse.Namespace) -> int:
+    ensure_artifact_catalog(config)
+    source_path, source_relative_path = resolve_required_project_source_path(config, args.source_path)
+    source_entry = find_registered_artifact_by_source_path(config, source_relative_path)
+    target_format = args.target_format.lower()
+    default_kind = normalize_optional_text(source_entry.get("kind", "")) if isinstance(source_entry, dict) else ""
+    artifact_kind = (args.kind or default_kind or "deliverable").lower()
+    slot = artifact_slot_for_kind(config, artifact_kind, args.slot)
+    source_entry_date = normalize_optional_text(source_entry.get("date", "")) if isinstance(source_entry, dict) else ""
+    record_date = normalize_record_date(args.date) if args.date else source_entry_date or date.today().isoformat()
+    title = args.title or (normalize_optional_text(source_entry.get("title", "")) if isinstance(source_entry, dict) else "") or source_path.stem
+    slug = sanitize_slug(args.slug or title)
+    target_dir = config.artifacts_root / slot
+    target_dir.mkdir(parents=True, exist_ok=True)
+    output_path = target_dir / f"{record_date}-{slug}.{target_format}"
+    if output_path.exists():
+        raise SystemExit(f"Materialized artifact already exists: {output_path}")
+    materialize_source_file(
+        source_path,
+        target_format=target_format,
+        output_path=output_path,
+        title=title,
+        sheet_name=args.sheet_name,
+    )
+    derived_from = [normalize_optional_text(source_entry.get("id", ""))] if isinstance(source_entry, dict) and source_entry.get("id") else []
+    summary = materialized_artifact_summary(
+        config,
+        target_format=target_format,
+        source_relative_path=source_relative_path,
+        explicit_summary=args.summary,
+    )
+    entry = register_artifact_entry(
+        config,
+        path=output_path.relative_to(config.root).as_posix(),
+        artifact_kind=artifact_kind,
+        title=title,
+        slot=slot,
+        summary=summary,
+        date_value=record_date,
+        project_relative_path=output_path.relative_to(config.root).as_posix(),
+        local_access_paths=[output_path.relative_to(config.root).as_posix()],
+        provider_item_id="",
+        provider_item_kind=default_provider_item_kind(config, has_local_path=True),
+        provider_item_url="",
+        derived_from=derived_from,
+    )
+    refresh_kernel_state(config, event_type="artifact.materialize", summary=f"Materialized {target_format} artifact `{title}` from `{source_relative_path}`.")
+    payload = {
+        "command": "artifact.materialize",
+        "status": "ok",
+        "project": project_payload(config),
+        "source_path": source_relative_path,
+        "target_format": target_format,
+        "artifact": entry,
+    }
+    if json_output_requested(args):
+        emit_json(payload)
+        return 0
+    if locale_family(config.interaction_locale) == "zh":
+        print(f"已从 {source_relative_path} 生成 {target_format} 文件 {output_path.relative_to(config.root).as_posix()}")
+    else:
+        print(f"Materialized {target_format} artifact from {source_relative_path} to {output_path.relative_to(config.root).as_posix()}")
+    return 0
+
+
 def handle_artifact_command(config: ProjectConfig, args: argparse.Namespace) -> int:
     if args.artifact_command == "create":
         return artifact_create(config, args)
     if args.artifact_command == "register":
         return artifact_register(config, args)
+    if args.artifact_command == "materialize":
+        return artifact_materialize(config, args)
     if args.artifact_command == "locate":
         return artifact_locate(config, args)
     raise AssertionError("unreachable")

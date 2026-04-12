@@ -257,6 +257,20 @@ python3 scripts/sula.py artifact register \
   --provider-item-kind google-doc \
   --provider-item-url https://docs.google.com/document/d/doc-abc123/edit
 
+python3 scripts/sula.py artifact materialize \
+  --project-root /path/to/project \
+  --source-path drafts/hospital-intake.md \
+  --target-format docx \
+  --kind report \
+  --title "Hospital Intake Report"
+
+python3 scripts/sula.py artifact materialize \
+  --project-root /path/to/project \
+  --source-path planning/shoot-schedule.csv \
+  --target-format xlsx \
+  --kind schedule \
+  --title "Shoot Schedule Export"
+
 python3 scripts/sula.py artifact locate \
   --project-root /path/to/project \
   --kind agreement --json
@@ -265,6 +279,14 @@ python3 scripts/sula.py artifact locate \
 Artifacts are routed through the active workflow pack and stored under the project's artifacts root, then registered in `.sula/artifacts/catalog.json`.
 
 Provider-backed artifacts can also be registered without a local materialized file path by supplying a stable project-relative path and provider item metadata. This lets Drive-synced and provider-native deliverables survive device-specific local path differences.
+
+`artifact materialize` lets a project-owned source file produce import-friendly deliverables without requiring Google OAuth first:
+
+- `.md` / `.txt` / `.html` -> `.html`
+- `.md` / `.txt` / `.html` -> `.docx` on macOS via `textutil`
+- `.csv` / `.tsv` / `.json` -> `.xlsx`
+
+That supports a practical workflow where Sula keeps Markdown and tabular files as project truth, then Google Docs or Google Sheets import the generated `.docx` or `.xlsx` when a native Google file is needed.
 
 ### Register projects in a portfolio
 

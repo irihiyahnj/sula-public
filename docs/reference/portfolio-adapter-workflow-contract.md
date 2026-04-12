@@ -84,6 +84,8 @@ For `google-drive` today, the supported mode is `local-sync`, where a Drive-sync
 
 Future direct API mode may enrich metadata, but must not become mandatory for Core.
 
+`workspace_root` is a runtime access path for the current machine. It is not the durable cross-device identity of provider-backed artifacts.
+
 ## Workflow Pack Contract
 
 Workflow packs should define:
@@ -118,6 +120,10 @@ Sula should track:
 - storage provider metadata
 
 Artifacts should be stored in `.sula/artifacts/catalog.json` as Sula-managed operating metadata, while the actual file remains project-owned truth.
+
+For provider-backed workspaces, artifact identity should reconcile provider metadata and project-relative location before falling back to one machine's absolute path.
+
+See [provider-backed-artifact-identity.md](provider-backed-artifact-identity.md) for the target cross-device identity model.
 
 ## Portfolio Registry Contract
 

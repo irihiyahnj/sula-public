@@ -5,6 +5,7 @@ import tempfile
 from pathlib import Path
 import unittest
 import json
+import zipfile
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
@@ -933,6 +934,122 @@ class SulaCliTests(unittest.TestCase):
             artifact_result = next(item for item in queried["results"] if item["title"] == "Hospital Intake Report")
             self.assertEqual(artifact_result["kind"], "report")
             self.assertEqual(artifact_result["path"], "delivery/2026-04-12-hospital-intake-report-v1")
+
+    def test_artifact_materialize_markdown_to_html_registers_output(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            project_root = Path(tmpdir)
+            self.create_generic_project(project_root)
+            adopt_result = run_cli(
+                "adopt",
+                "--project-root",
+                str(project_root),
+                "--workflow-pack",
+                "client-service",
+                "--approve",
+            )
+            self.assertEqual(adopt_result.returncode, 0, adopt_result.stderr)
+
+            source_path = project_root / "drafts" / "hospital-intake.md"
+            source_path.parent.mkdir(parents=True, exist_ok=True)
+            source_path.write_text(
+                "# Hospital Intake Draft\n\n- Confirm legal owner\n- Prepare handoff\n\n| Field | Value |\n| --- | --- |\n| Department | Cardiology |\n",
+                encoding="utf-8",
+            )
+            source_register = run_cli(
+                "artifact",
+                "register",
+                "--project-root",
+                str(project_root),
+                "--path",
+                "drafts/hospital-intake.md",
+                "--kind",
+                "report",
+                "--title",
+                "Hospital Intake Draft",
+                "--json",
+            )
+            self.assertEqual(source_register.returncode, 0, source_register.stderr)
+            source_artifact = json.loads(source_register.stdout)["artifact"]
+
+            materialize_result = run_cli(
+                "artifact",
+                "materialize",
+                "--project-root",
+                str(project_root),
+                "--source-path",
+                "drafts/hospital-intake.md",
+                "--target-format",
+                "html",
+                "--json",
+            )
+            self.assertEqual(materialize_result.returncode, 0, materialize_result.stderr)
+            payload = json.loads(materialize_result.stdout)
+            artifact = payload["artifact"]
+            output_path = project_root / artifact["path"]
+            self.assertTrue(output_path.exists())
+            self.assertTrue(output_path.name.endswith(".html"))
+            self.assertEqual(artifact["derived_from"], [source_artifact["id"]])
+            html_text = output_path.read_text(encoding="utf-8")
+            self.assertIn("<h1>Hospital Intake Draft</h1>", html_text)
+            self.assertIn("<table>", html_text)
+
+    def test_artifact_materialize_csv_to_xlsx_registers_output(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            project_root = Path(tmpdir)
+            self.create_generic_project(project_root)
+            adopt_result = run_cli(
+                "adopt",
+                "--project-root",
+                str(project_root),
+                "--workflow-pack",
+                "client-service",
+                "--approve",
+            )
+            self.assertEqual(adopt_result.returncode, 0, adopt_result.stderr)
+
+            source_path = project_root / "planning" / "shoot-schedule.csv"
+            source_path.parent.mkdir(parents=True, exist_ok=True)
+            source_path.write_text("date,owner\n2026-04-12,Alice\n2026-04-13,Bob\n", encoding="utf-8")
+            source_register = run_cli(
+                "artifact",
+                "register",
+                "--project-root",
+                str(project_root),
+                "--path",
+                "planning/shoot-schedule.csv",
+                "--kind",
+                "schedule",
+                "--title",
+                "Shoot Schedule",
+                "--json",
+            )
+            self.assertEqual(source_register.returncode, 0, source_register.stderr)
+            source_artifact = json.loads(source_register.stdout)["artifact"]
+
+            materialize_result = run_cli(
+                "artifact",
+                "materialize",
+                "--project-root",
+                str(project_root),
+                "--source-path",
+                "planning/shoot-schedule.csv",
+                "--target-format",
+                "xlsx",
+                "--title",
+                "Shoot Schedule Export",
+                "--json",
+            )
+            self.assertEqual(materialize_result.returncode, 0, materialize_result.stderr)
+            payload = json.loads(materialize_result.stdout)
+            artifact = payload["artifact"]
+            output_path = project_root / artifact["path"]
+            self.assertTrue(output_path.exists())
+            self.assertTrue(output_path.name.endswith(".xlsx"))
+            self.assertEqual(artifact["derived_from"], [source_artifact["id"]])
+            with zipfile.ZipFile(output_path) as archive:
+                names = set(archive.namelist())
+            self.assertIn("xl/workbook.xml", names)
+            self.assertIn("xl/worksheets/sheet1.xml", names)
 
     def test_portfolio_register_list_and_query_json(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir, tempfile.TemporaryDirectory() as portfolio_tmpdir:

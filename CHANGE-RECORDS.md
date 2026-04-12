@@ -15,6 +15,7 @@ Track why Sula changed, how sync impact was evaluated, what was verified, and ho
 
 ## Index
 
+- 2026-04-12 - [Add artifact materialization for docs and sheets](docs/change-records/2026-04-12-add-artifact-materialization-for-docs-and-sheets.md) - Added a local bridge from project-owned source files to `.html`, `.docx`, and `.xlsx` artifact outputs so teams can import deliverables into Google Docs or Google Sheets without waiting for direct provider adapters.
 - 2026-04-12 - [Add project language policy for generated docs and records](docs/change-records/2026-04-12-add-project-language-policy-for-generated-docs.md) - Added project-level language settings so generated docs, records, and summaries can use Chinese or English without changing stable file paths.
 - 2026-04-12 - [Add provider-backed artifact registration identity](docs/change-records/2026-04-12-add-provider-backed-artifact-registration-identity.md) - Extended artifact registration and indexing so Google Drive and future provider-backed deliverables can carry stable identity fields without depending on one machine's local path.
 - 2026-04-12 - [Document provider-backed artifact identity for cross-device project workspaces](docs/change-records/2026-04-12-document-provider-backed-artifact-identity.md) - Added the cross-device identity contract for Drive-synced and future provider-backed artifacts, clarifying that project ownership is stable even when local access paths differ.
