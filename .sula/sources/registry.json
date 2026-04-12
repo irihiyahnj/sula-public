@@ -231,7 +231,7 @@
     "exists": true,
     "source_of_truth": true,
     "discovered": true,
-    "size_bytes": 1523,
+    "size_bytes": 1534,
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
@@ -247,7 +247,7 @@
     "exists": true,
     "source_of_truth": true,
     "discovered": true,
-    "size_bytes": 4077,
+    "size_bytes": 4400,
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
@@ -264,7 +264,7 @@
     "exists": true,
     "source_of_truth": true,
     "discovered": true,
-    "size_bytes": 8240,
+    "size_bytes": 9366,
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
@@ -361,7 +361,7 @@
     "exists": true,
     "source_of_truth": true,
     "discovered": true,
-    "size_bytes": 10955,
+    "size_bytes": 12089,
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
@@ -393,7 +393,7 @@
     "exists": true,
     "source_of_truth": true,
     "discovered": true,
-    "size_bytes": 5220,
+    "size_bytes": 5590,
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
@@ -426,7 +426,7 @@
     "exists": true,
     "source_of_truth": true,
     "discovered": true,
-    "size_bytes": 5038,
+    "size_bytes": 6007,
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
@@ -561,6 +561,23 @@
     "source_of_truth": true,
     "discovered": true,
     "size_bytes": 2690,
+    "anchor_strategy": "heading-or-line",
+    "adapters": [
+      "generic-project",
+      "local-fs",
+      "docs",
+      "memory",
+      "repo"
+    ]
+  },
+  {
+    "id": "source:docs-change-records-2026-04-12-add-guided-onboarding-and-zero-memory-setup-flow-md",
+    "kind": "document",
+    "path": "docs/change-records/2026-04-12-add-guided-onboarding-and-zero-memory-setup-flow.md",
+    "exists": true,
+    "source_of_truth": true,
+    "discovered": true,
+    "size_bytes": 3771,
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
@@ -843,7 +860,7 @@
     "exists": true,
     "source_of_truth": true,
     "discovered": true,
-    "size_bytes": 3049,
+    "size_bytes": 3168,
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
@@ -875,7 +892,7 @@
     "exists": true,
     "source_of_truth": true,
     "discovered": true,
-    "size_bytes": 3044,
+    "size_bytes": 3540,
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
@@ -1673,7 +1690,7 @@
     "exists": true,
     "source_of_truth": true,
     "discovered": true,
-    "size_bytes": 211198,
+    "size_bytes": 231444,
     "anchor_strategy": "line",
     "adapters": [
       "generic-project",
@@ -1782,7 +1799,7 @@
     "exists": true,
     "source_of_truth": true,
     "discovered": true,
-    "size_bytes": 36985,
+    "size_bytes": 40524,
     "anchor_strategy": "line",
     "adapters": [
       "generic-project",

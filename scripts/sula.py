@@ -51,6 +51,14 @@ DISCOVERABLE_SOURCE_SUFFIXES = {
     ".css",
 }
 MAX_DISCOVERED_SOURCES = 200
+WORKFLOW_PACK_CHOICES = [
+    "generic-project",
+    "client-service",
+    "video-production",
+    "software-delivery",
+    "operating-system",
+]
+STORAGE_PROVIDER_CHOICES = ["local-fs", "google-drive"]
 
 MANIFEST_SPEC = {
     "project": {
@@ -378,16 +386,7 @@ def parse_args() -> argparse.Namespace:
     init_cmd.add_argument("--slug")
     init_cmd.add_argument("--description")
     init_cmd.add_argument("--profile", default="react-frontend-erpnext")
-    init_cmd.add_argument("--workflow-pack")
-    init_cmd.add_argument("--workflow-stage")
-    init_cmd.add_argument("--storage-provider")
-    init_cmd.add_argument("--storage-sync-mode")
-    init_cmd.add_argument("--storage-workspace-root")
-    init_cmd.add_argument("--storage-provider-root-url")
-    init_cmd.add_argument("--storage-provider-root-id")
-    init_cmd.add_argument("--portfolio-id")
-    init_cmd.add_argument("--portfolio-workspace")
-    init_cmd.add_argument("--portfolio-owner")
+    add_onboarding_metadata_args(init_cmd)
     init_cmd.add_argument("--json", action="store_true", help="Print JSON instead of human-readable output")
 
     sync_cmd = sub.add_parser("sync", help="Sync managed files from Sula into a project")
@@ -419,18 +418,24 @@ def parse_args() -> argparse.Namespace:
     adopt_cmd.add_argument("--name", help="Override the detected project name")
     adopt_cmd.add_argument("--slug", help="Override the detected project slug")
     adopt_cmd.add_argument("--description", help="Override the detected project description")
-    adopt_cmd.add_argument("--workflow-pack")
-    adopt_cmd.add_argument("--workflow-stage")
-    adopt_cmd.add_argument("--storage-provider")
-    adopt_cmd.add_argument("--storage-sync-mode")
-    adopt_cmd.add_argument("--storage-workspace-root")
-    adopt_cmd.add_argument("--storage-provider-root-url")
-    adopt_cmd.add_argument("--storage-provider-root-id")
-    adopt_cmd.add_argument("--portfolio-id")
-    adopt_cmd.add_argument("--portfolio-workspace")
-    adopt_cmd.add_argument("--portfolio-owner")
+    add_onboarding_metadata_args(adopt_cmd)
     adopt_cmd.add_argument("--approve", action="store_true", help="Apply the adoption plan after reporting it")
     adopt_cmd.add_argument("--json", action="store_true", help="Print JSON instead of human-readable output")
+
+    onboard_cmd = sub.add_parser("onboard", help="Ask setup questions, explain the operating contract, and optionally adopt Sula")
+    add_project_root_arg(onboard_cmd)
+    onboard_cmd.add_argument("--profile", help="Profile to use when auto-detection is insufficient")
+    onboard_cmd.add_argument("--name", help="Override the detected project name")
+    onboard_cmd.add_argument("--slug", help="Override the detected project slug")
+    onboard_cmd.add_argument("--description", help="Override the detected project description")
+    add_onboarding_metadata_args(onboard_cmd)
+    onboard_cmd.add_argument(
+        "--accept-suggested",
+        action="store_true",
+        help="Use suggested onboarding answers for any unanswered questions instead of prompting",
+    )
+    onboard_cmd.add_argument("--approve", action="store_true", help="Apply the adoption after onboarding")
+    onboard_cmd.add_argument("--json", action="store_true", help="Print JSON instead of human-readable output")
 
     doctor_cmd = sub.add_parser("doctor", help="Check manifest, lockfile, and managed files")
     add_project_root_arg(doctor_cmd)
@@ -531,6 +536,19 @@ def add_project_root_arg(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--project-root", required=True, help="Path to the target project root")
 
 
+def add_onboarding_metadata_args(parser: argparse.ArgumentParser) -> None:
+    parser.add_argument("--workflow-pack")
+    parser.add_argument("--workflow-stage")
+    parser.add_argument("--storage-provider")
+    parser.add_argument("--storage-sync-mode")
+    parser.add_argument("--storage-workspace-root")
+    parser.add_argument("--storage-provider-root-url")
+    parser.add_argument("--storage-provider-root-id")
+    parser.add_argument("--portfolio-id")
+    parser.add_argument("--portfolio-workspace")
+    parser.add_argument("--portfolio-owner")
+
+
 def add_portfolio_root_arg(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--portfolio-root", help="Optional portfolio registry root; defaults to ~/.sula/portfolio")
 
@@ -572,6 +590,306 @@ def sync_plan_payload(actions: list[RenderAction]) -> dict[str, object]:
             for action in actions
         ],
     }
+
+
+def clone_namespace(args: argparse.Namespace) -> argparse.Namespace:
+    return argparse.Namespace(**vars(args))
+
+
+def default_storage_sync_mode(provider: str) -> str:
+    return "local-sync" if provider == "google-drive" else "local-only"
+
+
+def default_provider_root_url(provider: str) -> str:
+    return "unrecorded" if provider == "google-drive" else "local-only"
+
+
+def default_provider_root_id(provider: str) -> str:
+    return "unrecorded" if provider == "google-drive" else "n/a"
+
+
+def infer_workflow_pack(project_root: Path, profile: str, package_data: dict | None, readme_text: str) -> tuple[str, str]:
+    if profile == "sula-core":
+        return ("operating-system", "profile `sula-core` maps directly to the `operating-system` workflow pack")
+    if profile == "react-frontend-erpnext":
+        return ("software-delivery", "React + ERPNext projects default to the `software-delivery` workflow pack")
+
+    lowered = (
+        f"{project_root.as_posix()} "
+        f"{readme_text} "
+        f"{json.dumps(package_data, ensure_ascii=True) if package_data else ''}"
+    ).lower()
+    if any(term in lowered for term in ["shot-list", "shoot", "filming", "footage", "storyboard", "post-production", "video production"]):
+        return ("video-production", "project text looks like a media-production workflow")
+    if any(term in lowered for term in ["contract", "agreement", "invoice", "quote", "proposal", "staffing", "client", "supplier", "vendor", "service"]):
+        return ("client-service", "project text looks like a client-service workflow")
+    if package_data is not None or any((project_root / candidate).exists() for candidate in ["src", "pyproject.toml", "requirements.txt"]):
+        return ("software-delivery", "project layout looks like a software delivery workspace")
+    return (default_workflow_pack(profile), "no narrower workflow pack was detected safely, so the generic default is suggested")
+
+
+def infer_storage_provider(project_root: Path) -> tuple[str, str]:
+    lowered = project_root.as_posix().lower()
+    if "google drive" in lowered or "googledrive" in lowered or ("cloudstorage" in lowered and "google" in lowered):
+        return ("google-drive", "project root lives inside a Google Drive local-sync path")
+    return ("local-fs", "project root looks like a normal local filesystem workspace")
+
+
+def infer_portfolio_workspace(workflow_pack: str, storage_provider: str) -> tuple[str, str]:
+    if workflow_pack in {"client-service", "video-production"}:
+        return ("client-projects", f"`{workflow_pack}` usually belongs to a shared client workspace")
+    if storage_provider == "google-drive":
+        return ("drive-workspace", "Drive-synced projects often belong to a shared workspace")
+    return ("personal", "personal is the safe default workspace when no broader portfolio grouping is known")
+
+
+def infer_portfolio_owner() -> tuple[str, str]:
+    owner = os.environ.get("SULA_OWNER") or os.environ.get("USER") or os.environ.get("USERNAME") or "n/a"
+    return (prettify_name(owner) if owner != "n/a" else owner, "owner defaults from the local environment when available")
+
+
+def suggest_onboarding_answers(
+    project_root: Path,
+    profile: str,
+    args: argparse.Namespace,
+    package_data: dict | None,
+    readme_text: str,
+) -> dict[str, dict[str, object]]:
+    workflow_pack, workflow_reason = infer_workflow_pack(project_root, profile, package_data, readme_text)
+    storage_provider, storage_reason = infer_storage_provider(project_root)
+    resolved_provider = getattr(args, "storage_provider", None) or storage_provider
+    portfolio_workspace, workspace_reason = infer_portfolio_workspace(
+        getattr(args, "workflow_pack", None) or workflow_pack,
+        resolved_provider,
+    )
+    portfolio_owner, owner_reason = infer_portfolio_owner()
+    portfolio_id_default = sanitize_slug(getattr(args, "portfolio_workspace", None) or portfolio_workspace or "default") or "default"
+    return {
+        "name": {
+            "value": getattr(args, "name", None) or detect_project_name(project_root, package_data, readme_text),
+            "reason": "project name is suggested from README, package metadata, or the directory name",
+        },
+        "description": {
+            "value": getattr(args, "description", None) or detect_project_description(package_data, readme_text),
+            "reason": "description is suggested from package metadata or the first README paragraph",
+        },
+        "workflow_pack": {"value": getattr(args, "workflow_pack", None) or workflow_pack, "reason": workflow_reason},
+        "workflow_stage": {
+            "value": getattr(args, "workflow_stage", None) or "active",
+            "reason": "active is the safe default stage for a live project",
+        },
+        "storage_provider": {"value": resolved_provider, "reason": storage_reason},
+        "storage_sync_mode": {
+            "value": getattr(args, "storage_sync_mode", None) or default_storage_sync_mode(resolved_provider),
+            "reason": "sync mode follows the chosen storage provider",
+        },
+        "storage_workspace_root": {
+            "value": getattr(args, "storage_workspace_root", None) or ".",
+            "reason": "workspace root defaults to the project root",
+        },
+        "storage_provider_root_url": {
+            "value": getattr(args, "storage_provider_root_url", None) or default_provider_root_url(resolved_provider),
+            "reason": "provider root URL stays removable operating metadata and may be filled in later",
+        },
+        "storage_provider_root_id": {
+            "value": getattr(args, "storage_provider_root_id", None) or default_provider_root_id(resolved_provider),
+            "reason": "provider root ID stays optional until the external workspace is recorded precisely",
+        },
+        "portfolio_workspace": {
+            "value": getattr(args, "portfolio_workspace", None) or portfolio_workspace,
+            "reason": workspace_reason,
+        },
+        "portfolio_owner": {
+            "value": getattr(args, "portfolio_owner", None) or portfolio_owner,
+            "reason": owner_reason,
+        },
+        "portfolio_id": {
+            "value": getattr(args, "portfolio_id", None) or portfolio_id_default,
+            "reason": "portfolio id defaults from the workspace label so registrations stay grouped",
+        },
+    }
+
+
+def onboarding_questions(
+    project_root: Path,
+    profile: str,
+    args: argparse.Namespace,
+    package_data: dict | None,
+    readme_text: str,
+) -> tuple[list[dict[str, object]], dict[str, dict[str, object]]]:
+    suggestions = suggest_onboarding_answers(project_root, profile, args, package_data, readme_text)
+    provider_value = str(suggestions["storage_provider"]["value"])
+    questions: list[dict[str, object]] = []
+
+    def add_question(
+        field: str,
+        prompt: str,
+        *,
+        required: bool,
+        choices: list[str] | None = None,
+    ) -> None:
+        if getattr(args, field, None):
+            return
+        suggestion = suggestions[field]
+        questions.append(
+            {
+                "id": field,
+                "field": field,
+                "prompt": prompt,
+                "default": suggestion["value"],
+                "required": required,
+                "choices": choices or [],
+                "reason": suggestion["reason"],
+            }
+        )
+
+    add_question("name", "Project display name", required=True)
+    add_question("description", "One-line project description", required=True)
+    add_question("workflow_pack", "Workflow pack", required=True, choices=WORKFLOW_PACK_CHOICES)
+    add_question("storage_provider", "Storage provider", required=True, choices=STORAGE_PROVIDER_CHOICES)
+    if provider_value == "google-drive":
+        add_question("storage_sync_mode", "Storage sync mode", required=True, choices=["local-sync"])
+        add_question("storage_provider_root_url", "Google Drive folder URL", required=False)
+        add_question("storage_provider_root_id", "Google Drive folder ID", required=False)
+    add_question("portfolio_workspace", "Portfolio workspace label", required=False)
+    add_question("portfolio_owner", "Portfolio owner label", required=False)
+    add_question("portfolio_id", "Portfolio id", required=False)
+    return questions, suggestions
+
+
+def fill_args_from_answers(
+    args: argparse.Namespace,
+    answers: dict[str, object],
+    suggestions: dict[str, dict[str, object]] | None = None,
+) -> argparse.Namespace:
+    resolved = clone_namespace(args)
+    merged: dict[str, object] = {}
+    if suggestions is not None:
+        for field, item in suggestions.items():
+            merged[field] = item["value"]
+    merged.update(answers)
+    for field, value in merged.items():
+        if getattr(resolved, field, None) in [None, ""]:
+            setattr(resolved, field, value)
+    return resolved
+
+
+def prompt_onboarding_question(question: dict[str, object]) -> str:
+    choices = [str(item) for item in question.get("choices", []) if str(item)]
+    prompt = str(question["prompt"])
+    default = str(question.get("default", ""))
+    if choices:
+        prompt += " [" + "/".join(choices) + "]"
+    if default:
+        prompt += f" (default: {default})"
+    prompt += ": "
+    while True:
+        try:
+            raw = input(prompt)
+        except EOFError:
+            return default
+        answer = raw.strip()
+        if not answer:
+            return default
+        if not choices or answer in choices:
+            return answer
+        print("Please choose one of the listed values or press Enter to accept the default.")
+
+
+def prompt_yes_no(prompt: str, *, default: bool = False) -> bool:
+    suffix = " [Y/n]: " if default else " [y/N]: "
+    try:
+        raw = input(prompt + suffix)
+    except EOFError:
+        return default
+    answer = raw.strip().lower()
+    if not answer:
+        return default
+    if answer in {"y", "yes"}:
+        return True
+    if answer in {"n", "no"}:
+        return False
+    return default
+
+
+def onboarding_summary_payload(
+    report: AdoptionReport,
+    resolved_args: argparse.Namespace,
+    *,
+    questions: list[dict[str, object]],
+    suggestions: dict[str, dict[str, object]],
+) -> dict[str, object]:
+    assert report.config_data is not None
+    manifest = report.config_data
+    workflow = manifest["workflow"]
+    storage = manifest["storage"]
+    portfolio = manifest["portfolio"]
+    artifacts_root = str(workflow["artifacts_root"])
+    workflow_definition = workflow_pack_definition(str(workflow["pack"]))
+    slot_paths = {
+        slot: f"{artifacts_root}/{slot}"
+        for slot in workflow_definition.get("slots", [])
+        if isinstance(slot, str)
+    }
+    will_manage = [
+        f"{len(report.managed_creates) + len(report.managed_updates)} centrally managed operating files",
+        f"{len(report.scaffold_creates)} project-owned scaffold starters",
+        "kernel state under `.sula/` for status, objects, sources, events, and query indexes",
+        f"artifact routing under `{artifacts_root}` through the `{workflow['pack']}` workflow pack",
+        f"storage adapter metadata for `{storage['provider']}` without making the provider part of project truth",
+    ]
+    if str(portfolio.get("workspace", "personal")) != "personal":
+        will_manage.append(f"portfolio registration metadata for workspace `{portfolio['workspace']}`")
+    next_commands = [
+        "python3 scripts/sula.py status --project-root /path/to/project --json",
+        "python3 scripts/sula.py query --project-root /path/to/project --q \"contract\" --json",
+        "python3 scripts/sula.py artifact create --project-root /path/to/project --kind agreement --title \"...\"",
+    ]
+    if str(portfolio.get("workspace", "")):
+        next_commands.append(
+            "python3 scripts/sula.py portfolio register --project-root /path/to/project --portfolio-root /path/to/portfolio"
+        )
+    return {
+        "project_root": str(report.project_root),
+        "profile": report.profile,
+        "project": manifest["project"],
+        "workflow": {
+            "pack": workflow["pack"],
+            "stage": workflow["stage"],
+            "artifacts_root": artifacts_root,
+            "slots": workflow_definition.get("slots", []),
+            "slot_paths": slot_paths,
+            "artifact_routes": workflow_definition.get("artifact_slots", {}),
+        },
+        "storage": storage,
+        "portfolio": portfolio,
+        "questions": questions,
+        "suggested_answers": {field: item["value"] for field, item in suggestions.items()},
+        "what_you_get": will_manage,
+        "next_commands": next_commands,
+        "approval_required": not getattr(resolved_args, "approve", False),
+    }
+
+
+def print_onboarding_summary(summary: dict[str, object]) -> None:
+    project = summary["project"]
+    workflow = summary["workflow"]
+    storage = summary["storage"]
+    portfolio = summary["portfolio"]
+    print(f"Sula onboarding summary for {summary['project_root']}")
+    print(f"Project: {project['name']} [{summary['profile']}]")
+    print(f"Workflow pack: {workflow['pack']} (stage: {workflow['stage']})")
+    print(f"Storage provider: {storage['provider']} ({storage['sync_mode']})")
+    print(f"Portfolio workspace: {portfolio['workspace']} / owner: {portfolio['owner']}")
+    print("What you will get:")
+    for item in summary["what_you_get"]:
+        print(f"  - {item}")
+    print("Artifact slots:")
+    for slot, path in summary["workflow"]["slot_paths"].items():
+        print(f"  - {slot}: {path}")
+    print("Suggested next commands:")
+    for item in summary["next_commands"]:
+        print(f"  - {item}")
 
 
 def default_portfolio_root() -> Path:
@@ -739,6 +1057,10 @@ def main() -> int:
     if args.command == "adopt":
         assert project_root is not None
         return adopt(project_root, args)
+
+    if args.command == "onboard":
+        assert project_root is not None
+        return onboard(project_root, args)
 
     if args.command == "remove":
         assert project_root is not None
@@ -993,12 +1315,13 @@ def manifest_workflow_config(args: argparse.Namespace, profile: str) -> dict:
 
 
 def manifest_storage_config(args: argparse.Namespace) -> dict:
+    provider = getattr(args, "storage_provider", None) or "local-fs"
     return {
-        "provider": getattr(args, "storage_provider", None) or "local-fs",
-        "sync_mode": getattr(args, "storage_sync_mode", None) or "local-only",
+        "provider": provider,
+        "sync_mode": getattr(args, "storage_sync_mode", None) or default_storage_sync_mode(provider),
         "workspace_root": getattr(args, "storage_workspace_root", None) or ".",
-        "provider_root_url": getattr(args, "storage_provider_root_url", None) or "local-only",
-        "provider_root_id": getattr(args, "storage_provider_root_id", None) or "n/a",
+        "provider_root_url": getattr(args, "storage_provider_root_url", None) or default_provider_root_url(provider),
+        "provider_root_id": getattr(args, "storage_provider_root_id", None) or default_provider_root_id(provider),
     }
 
 
@@ -1252,6 +1575,118 @@ def doctor_payload(
         "kernel_errors": kernel_errors,
         "warnings": warnings,
     }
+
+
+def existing_consumer_payload(config: ProjectConfig) -> dict[str, object]:
+    return {
+        "project": project_payload(config),
+        "next_commands": [
+            "python3 scripts/sula.py doctor --project-root /path/to/project --strict",
+            "python3 scripts/sula.py sync --project-root /path/to/project --dry-run",
+            "python3 scripts/sula.py status --project-root /path/to/project --json",
+        ],
+    }
+
+
+def onboard(project_root: Path, args: argparse.Namespace) -> int:
+    if (project_root / MANIFEST_PATH).exists():
+        config = load_manifest(project_root)
+        payload = {"command": "onboard", "status": "existing-consumer", **existing_consumer_payload(config)}
+        if json_output_requested(args):
+            emit_json(payload)
+            return 0
+        print(f"{config.data['project']['name']} is already under Sula management.")
+        print("Use one of these commands instead:")
+        for command in payload["next_commands"]:
+            print(f"  - {command}")
+        return 0
+
+    package_data = read_package_json(project_root)
+    readme_text = read_text_if_exists(project_root / "README.md")
+    detection_notes: list[str] = []
+    profile = detect_profile(project_root, args.profile, package_data, readme_text, detection_notes)
+    questions, suggestions = onboarding_questions(project_root, profile or "generic-project", args, package_data, readme_text)
+
+    if json_output_requested(args) and questions and not getattr(args, "accept_suggested", False):
+        preview_args = fill_args_from_answers(args, {}, suggestions)
+        report = inspect_adoption(project_root, preview_args)
+        summary = onboarding_summary_payload(report, preview_args, questions=questions, suggestions=suggestions)
+        emit_json(
+            {
+                "command": "onboard",
+                "status": "questions",
+                "questions": questions,
+                "suggested_answers": summary["suggested_answers"],
+                "summary": summary,
+                "report": adoption_report_payload(report),
+            }
+        )
+        return 0
+
+    resolved_args = fill_args_from_answers(args, {}, suggestions)
+    if not json_output_requested(args) and questions and not getattr(args, "accept_suggested", False):
+        print("Sula onboarding questions:")
+        interactive_answers: dict[str, object] = {}
+        for question in questions:
+            if question["field"] in {"storage_sync_mode", "storage_provider_root_url", "storage_provider_root_id"}:
+                current_provider = str(interactive_answers.get("storage_provider") or getattr(args, "storage_provider", None) or suggestions["storage_provider"]["value"])
+                if current_provider != "google-drive":
+                    continue
+            interactive_answers[question["field"]] = prompt_onboarding_question(question)
+        refreshed_base = fill_args_from_answers(args, interactive_answers, None)
+        refreshed_suggestions = suggest_onboarding_answers(
+            project_root,
+            profile or "generic-project",
+            refreshed_base,
+            package_data,
+            readme_text,
+        )
+        resolved_args = fill_args_from_answers(refreshed_base, {}, refreshed_suggestions)
+        suggestions = refreshed_suggestions
+        questions, _ = onboarding_questions(project_root, profile or "generic-project", resolved_args, package_data, readme_text)
+
+    report = inspect_adoption(project_root, resolved_args)
+    summary = onboarding_summary_payload(report, resolved_args, questions=questions, suggestions=suggestions)
+
+    if json_output_requested(args):
+        if not getattr(args, "approve", False):
+            emit_json(
+                {
+                    "command": "onboard",
+                    "status": "ready",
+                    "summary": summary,
+                    "report": adoption_report_payload(report),
+                }
+            )
+            return 0
+        if report.blockers:
+            emit_json(
+                {
+                    "command": "onboard",
+                    "status": "blocked",
+                    "summary": summary,
+                    "report": adoption_report_payload(report),
+                }
+            )
+            return 1
+        return apply_adoption(
+            report,
+            json_mode=True,
+            command_name="onboard",
+            extra_payload={"summary": summary},
+        )
+
+    print_onboarding_summary(summary)
+    if report.blockers:
+        print_adoption_report(report)
+        print("Sula onboarding cannot continue until the blocking issues are resolved.")
+        return 1
+    if not getattr(args, "approve", False):
+        if prompt_yes_no("Apply Sula now with these answers?", default=False):
+            return apply_adoption(report, json_mode=False)
+        print("Sula was not applied. Re-run `python3 scripts/sula.py onboard --project-root /path/to/project --approve` to apply after review.")
+        return 0
+    return apply_adoption(report, json_mode=False)
 
 
 def adopt(project_root: Path, args: argparse.Namespace) -> int:
@@ -1916,7 +2351,13 @@ def detect_repository_url(project_root: Path) -> str | None:
     return value or None
 
 
-def apply_adoption(report: AdoptionReport, *, json_mode: bool = False) -> int:
+def apply_adoption(
+    report: AdoptionReport,
+    *,
+    json_mode: bool = False,
+    command_name: str = "adopt",
+    extra_payload: dict[str, object] | None = None,
+) -> int:
     assert report.config_data is not None
     config = ProjectConfig(root=report.project_root, data=report.config_data)
     manifest_path = config.root / MANIFEST_PATH
@@ -1925,20 +2366,21 @@ def apply_adoption(report: AdoptionReport, *, json_mode: bool = False) -> int:
     apply_actions(report.actions)
     write_lockfile(config)
     finalize_adoption_traceability(config)
-    generate_memory_digest(config, argparse.Namespace(output=None, stdout=False, json=False))
+    generate_memory_digest(config, argparse.Namespace(output=None, stdout=False, json=False), emit_output=not json_mode)
     refresh_kernel_state(config, event_type="adopt.approved", summary="Applied initial Sula adoption.")
     if not json_mode:
         print("Post-adoption validation:")
-    doctor_exit = doctor(config, strict=True, json_mode=json_mode)
+    doctor_exit = doctor(config, strict=True, json_mode=json_mode, emit_output=not json_mode)
     if json_mode:
-        emit_json(
-            {
-                "command": "adopt",
-                "status": "ok" if doctor_exit == 0 else "needs-follow-up",
-                "project": project_payload(config),
-                "report": adoption_report_payload(report),
-            }
-        )
+        payload = {
+            "command": command_name,
+            "status": "ok" if doctor_exit == 0 else "needs-follow-up",
+            "project": project_payload(config),
+            "report": adoption_report_payload(report),
+        }
+        if extra_payload:
+            payload.update(extra_payload)
+        emit_json(payload)
         return doctor_exit
     print_adoption_usage(config)
     if doctor_exit == 0:
@@ -2498,16 +2940,16 @@ def append_bullet_to_section(text: str, section_name: str, bullet: str) -> str:
     return text[:start] + new_body + text[end:]
 
 
-def generate_memory_digest(config: ProjectConfig, args: argparse.Namespace) -> int:
+def generate_memory_digest(config: ProjectConfig, args: argparse.Namespace, *, emit_output: bool = True) -> int:
     output_path = config.digest_file if not args.output else (config.root / args.output)
     digest = build_memory_digest(config, output_path)
-    if args.stdout:
+    if args.stdout and emit_output:
         print(digest, end="")
         return 0
     output_path.parent.mkdir(parents=True, exist_ok=True)
     output_path.write_text(digest, encoding="utf-8")
     refresh_kernel_state(config, event_type="memory.digest", summary=f"Regenerated memory digest at `{output_path.relative_to(config.root).as_posix()}`.")
-    if json_output_requested(args):
+    if json_output_requested(args) and emit_output:
         emit_json(
             {
                 "command": "memory.digest",
@@ -2517,7 +2959,8 @@ def generate_memory_digest(config: ProjectConfig, args: argparse.Namespace) -> i
             }
         )
         return 0
-    print(f"Wrote memory digest to {output_path}")
+    if emit_output:
+        print(f"Wrote memory digest to {output_path}")
     return 0
 
 
@@ -2651,7 +3094,7 @@ def relative_link(from_path: Path, to_path: Path) -> str:
     return os.path.relpath(to_path, start=from_path.parent).replace(os.sep, "/")
 
 
-def doctor(config: ProjectConfig, *, strict: bool, json_mode: bool = False) -> int:
+def doctor(config: ProjectConfig, *, strict: bool, json_mode: bool = False, emit_output: bool = True) -> int:
     missing_files: list[str] = []
     drifted_files: list[str] = []
     placeholder_files: list[str] = []
@@ -2674,38 +3117,38 @@ def doctor(config: ProjectConfig, *, strict: bool, json_mode: bool = False) -> i
 
     lock_issues.extend(check_lockfile(config))
 
-    if not json_mode and missing_files:
+    if emit_output and not json_mode and missing_files:
         print("Missing managed files:")
         for item in missing_files:
             print(f"  - {item}")
-    if not json_mode and drifted_files:
+    if emit_output and not json_mode and drifted_files:
         print("Managed files differ from the current Sula render:")
         for item in drifted_files:
             print(f"  - {item}")
-    if not json_mode and placeholder_files:
+    if emit_output and not json_mode and placeholder_files:
         print("Files still contain unresolved placeholders:")
         for item in placeholder_files:
             print(f"  - {item}")
-    if not json_mode and memory_errors:
+    if emit_output and not json_mode and memory_errors:
         print("Project memory issues:")
         for item in memory_errors:
             print(f"  - {item}")
-    if not json_mode and lock_issues:
+    if emit_output and not json_mode and lock_issues:
         print("Lockfile issues:")
         for item in lock_issues:
             print(f"  - {item}")
-    if not json_mode and kernel_errors:
+    if emit_output and not json_mode and kernel_errors:
         print("Kernel issues:")
         for item in kernel_errors:
             print(f"  - {item}")
-    if not json_mode and warnings:
+    if emit_output and not json_mode and warnings:
         print("Warnings:")
         for item in warnings:
             print(f"  - {item}")
 
     has_errors = bool(missing_files or drifted_files or placeholder_files or memory_errors or lock_issues or kernel_errors)
     passed = not has_errors and not (strict and warnings)
-    if json_mode:
+    if json_mode and emit_output:
         emit_json(
             {
                 "command": "doctor",
@@ -2725,7 +3168,8 @@ def doctor(config: ProjectConfig, *, strict: bool, json_mode: bool = False) -> i
         )
         return 0 if passed else 1
     if passed:
-        print(f"Sula doctor passed for {config.data['project']['name']}")
+        if emit_output:
+            print(f"Sula doctor passed for {config.data['project']['name']}")
         return 0
     return 1
 

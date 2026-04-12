@@ -21,6 +21,17 @@ def run_cli(*args: str, cwd: Path | None = None) -> subprocess.CompletedProcess[
     )
 
 
+def run_cli_input(input_text: str, *args: str, cwd: Path | None = None) -> subprocess.CompletedProcess[str]:
+    return subprocess.run(
+        ["python3", str(SULA_SCRIPT), *args],
+        cwd=cwd or REPO_ROOT,
+        input=input_text,
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+
+
 class SulaCliTests(unittest.TestCase):
     def create_generic_project(self, project_root: Path) -> None:
         (project_root / "docs").mkdir(parents=True, exist_ok=True)
@@ -219,6 +230,63 @@ class SulaCliTests(unittest.TestCase):
             self.assertEqual(payload["report"]["manifest"]["storage"]["provider"], "google-drive")
             self.assertEqual(payload["report"]["project_root"], str(project_root.resolve()))
 
+    def test_onboard_json_returns_questions_and_summary(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            project_root = Path(tmpdir)
+            self.create_generic_project(project_root)
+
+            result = run_cli("onboard", "--project-root", str(project_root), "--json")
+
+            self.assertEqual(result.returncode, 0, result.stderr)
+            payload = json.loads(result.stdout)
+            self.assertEqual(payload["command"], "onboard")
+            self.assertEqual(payload["status"], "questions")
+            question_ids = {item["id"] for item in payload["questions"]}
+            self.assertIn("workflow_pack", question_ids)
+            self.assertIn("storage_provider", question_ids)
+            self.assertEqual(payload["summary"]["workflow"]["pack"], "client-service")
+            self.assertEqual(payload["summary"]["storage"]["provider"], "local-fs")
+            self.assertTrue(payload["summary"]["what_you_get"])
+
+    def test_onboard_accept_suggested_approve_applies_project(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            project_root = Path(tmpdir)
+            self.create_generic_project(project_root)
+
+            result = run_cli(
+                "onboard",
+                "--project-root",
+                str(project_root),
+                "--accept-suggested",
+                "--approve",
+                "--json",
+            )
+
+            self.assertEqual(result.returncode, 0, result.stderr)
+            payload = json.loads(result.stdout)
+            self.assertEqual(payload["command"], "onboard")
+            self.assertEqual(payload["status"], "ok")
+            self.assertEqual(payload["summary"]["workflow"]["pack"], "client-service")
+            self.assertTrue((project_root / ".sula" / "project.toml").exists())
+
+    def test_onboard_interactive_uses_defaults_and_waits_for_apply_confirmation(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            project_root = Path(tmpdir)
+            self.create_generic_project(project_root)
+
+            result = run_cli_input(
+                "\n\n\n\n\n\n\nn\n",
+                "onboard",
+                "--project-root",
+                str(project_root),
+            )
+
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertIn("Sula onboarding questions:", result.stdout)
+            self.assertIn("What you will get:", result.stdout)
+            self.assertIn("Sula was not applied.", result.stdout)
+            self.assertFalse((project_root / ".sula" / "project.toml").exists())
+
     def test_adopt_approve_supports_non_git_generic_project(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
             project_root = Path(tmpdir)
@@ -238,6 +306,19 @@ class SulaCliTests(unittest.TestCase):
             self.assertIn('profile = "generic-project"', manifest)
             self.assertIn('primary_branch = "n/a"', manifest)
             self.assertTrue((project_root / "docs" / "runbooks" / "project-operations.md").exists())
+
+    def test_adopt_approve_json_emits_single_payload(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            project_root = Path(tmpdir)
+            self.create_generic_project(project_root)
+
+            result = run_cli("adopt", "--project-root", str(project_root), "--approve", "--json")
+
+            self.assertEqual(result.returncode, 0, result.stderr)
+            payload = json.loads(result.stdout)
+            self.assertEqual(payload["command"], "adopt")
+            self.assertEqual(payload["status"], "ok")
+            self.assertTrue((project_root / ".sula" / "project.toml").exists())
             adapter_catalog = json.loads((project_root / ".sula" / "adapters" / "catalog.json").read_text(encoding="utf-8"))
             adapter_ids = {item["id"] for item in adapter_catalog["adapters"]}
             self.assertIn("generic-project", adapter_ids)

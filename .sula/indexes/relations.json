@@ -1,5 +1,5 @@
 {
-  "version": "0.7.0",
+  "version": "0.8.0",
   "profile": "sula-core",
   "relations": [
     {
@@ -123,6 +123,11 @@
       "type": "derived-from"
     },
     {
+      "from": "decision:status:2026-04-12-added-add-guided-onboarding-and-zero-memory-setup-flow-docs-change-records-2026-04-12-add-guided-onboarding-and-zero-memory-setup-flow-md",
+      "to": "source:status-md",
+      "type": "derived-from"
+    },
+    {
       "from": "person:status:sula-core-maintainers",
       "to": "source:status-md",
       "type": "derived-from"
@@ -170,6 +175,11 @@
     {
       "from": "agreement:2026-04-12-add-kernel-object-query-and-bundle-contracts",
       "to": "source:docs-change-records-2026-04-12-add-kernel-object-query-and-bundle-contracts-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "change:2026-04-12-add-guided-onboarding-and-zero-memory-setup-flow",
+      "to": "source:docs-change-records-2026-04-12-add-guided-onboarding-and-zero-memory-setup-flow-md",
       "type": "derived-from"
     },
     {
@@ -355,6 +365,11 @@
     {
       "from": "object:source:docs-change-records-2026-04-11-self-adopt-sula-root-under-sula-core-profile-md",
       "to": "source:docs-change-records-2026-04-11-self-adopt-sula-root-under-sula-core-profile-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "object:source:docs-change-records-2026-04-12-add-guided-onboarding-and-zero-memory-setup-flow-md",
+      "to": "source:docs-change-records-2026-04-12-add-guided-onboarding-and-zero-memory-setup-flow-md",
       "type": "derived-from"
     },
     {

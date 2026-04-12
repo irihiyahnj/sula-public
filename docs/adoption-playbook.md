@@ -4,14 +4,23 @@ This playbook describes how to roll Sula into a repository cleanly.
 
 ## Fast Path
 
-The default onboarding flow is inspect, report, approve:
+The default onboarding flow is guided onboarding first, low-level adoption second when needed:
+
+```bash
+python3 scripts/sula.py onboard --project-root /path/to/project
+python3 scripts/sula.py onboard --project-root /path/to/project --accept-suggested --approve
+```
+
+`onboard` asks the missing questions, explains what Sula will manage, and then applies adoption through the same manifest and kernel contract.
+
+The lower-level inspect, report, approve flow remains:
 
 ```bash
 python3 scripts/sula.py adopt --project-root /path/to/project
 python3 scripts/sula.py adopt --project-root /path/to/project --approve
 ```
 
-Use `adopt` by default. Drop down to `init` only when you need manual control over fields that the adoption report cannot infer safely.
+Use `onboard` by default. Drop down to `adopt` when you already know the exact fields or need the raw approval report without the interview flow. Drop down to `init` only when you need manual control over fields that the adoption report cannot infer safely.
 
 Software integrations should prefer the same commands with `--json` so they can consume stable envelopes instead of scraping human text.
 

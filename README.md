@@ -9,6 +9,7 @@ Sula is not a product template for one stack. It is a coordination layer with:
 - a reusable documentation and operations core
 - profile-specific templates for project families
 - a project manifest that captures each repository's facts
+- a guided zero-memory onboarding flow for first-time setup
 - machine-readable CLI outputs for external tools and adapters
 - an inspect-report-approve adoption flow for one-sentence onboarding
 - scripts to initialize, sync, and audit project adoption
@@ -129,7 +130,18 @@ examples/
 
 ## Quick Start
 
-### Adopt Sula into a repository
+### Onboard A Project With Questions
+
+For first-time setup, prefer the guided onboarding flow:
+
+```bash
+python3 scripts/sula.py onboard --project-root /path/to/project
+python3 scripts/sula.py onboard --project-root /path/to/project --accept-suggested --approve
+```
+
+`onboard` asks the missing questions, proposes workflow/storage/portfolio answers, explains what Sula will manage, and can apply adoption immediately after confirmation.
+
+### Low-Level Adoption Report
 
 In a live agent session, the target request should be as short as:
 
@@ -248,7 +260,7 @@ This searches the local kernel object catalog, source registry, and event timeli
 
 ## Current Version
 
-Sula version: `0.7.0`
+Sula version: `0.8.0`
 
 Versioning rules are in [docs/versioning.md](docs/versioning.md).
 

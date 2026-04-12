@@ -143,6 +143,7 @@ The CLI should be usable by humans and by software.
 
 Commands that matter for software integration should support `--json`:
 
+- `onboard`
 - `init`
 - `adopt`
 - `sync`

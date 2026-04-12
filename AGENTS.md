@@ -31,7 +31,7 @@ This file is the primary instruction source for AI coding agents working in the 
 - `sula-core` profile
 - project manifest schema and example
 - machine-readable CLI outputs for local software integration
-- `adopt`, `init`, `sync`, `doctor`, `remove`, `query`, `status`, `artifact`, `portfolio`, `record`, and `memory digest` commands
+- `onboard`, `adopt`, `init`, `sync`, `doctor`, `remove`, `query`, `status`, `artifact`, `portfolio`, `record`, and `memory digest` commands
 
 ## Out Of Scope For Now
 

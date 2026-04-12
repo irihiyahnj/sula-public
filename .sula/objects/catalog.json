@@ -1,5 +1,5 @@
 {
-  "version": "0.7.0",
+  "version": "0.8.0",
   "profile": "sula-core",
   "objects": [
     {
@@ -31,7 +31,7 @@
       "id": "state:current",
       "kind": "state",
       "title": "Current Project State",
-      "summary": "- Sula now manages itself as a first-class `sula-core` consumer while still acting as the source repository for reusable operating-system assets.\n- The repository has memory-aware governance, an in-repo canary, a root self-adoption path, and an approval-based adoption agent for bringing new repositories under Sula.\n- Public-release governance is now in place, and the remaining blocker is historical lineage cleanup rather than working-tree quality.\n- The future `sula.1stp.monster` landing page is now represented by real static site assets with canonical long-form bootstrap prompts and protocol pages.\n- The bootstrap site is now live on both `https://sula.fly.dev/` and `https://sula.1stp.monster/`, with the public bootstrap contract explicitly handling existing Sula consumers and canonical tool-source resolution.\n- Sula now has a recorded vNext architecture target for a `generic-project` kernel, adapter bundles, scientific retrieval, and first-class removal semantics.\n- The first milestone of that direction is now implemented: unknown and non-Git projects can adopt through `generic-project`, `.sula/` holds kernel artifacts, and removal has a report-first command.\n- The second milestone is now implemented as well: local retrieval can rebuild from SQLite, kernel objects cover task/decision/risk/person/agreement/milestone shapes, and query supports stronger filters plus timeline output.\n- The next operating milestone is now implemented too: machine-readable CLI responses, workflow/storage/portfolio manifest sections, artifact routing, and portfolio registration are available for non-code client projects.\n- Drive-synced projects can now describe `google-drive` as an adapter instead of pretending that storage provider is a project type, which keeps the kernel portable for future providers.",
+      "summary": "- Sula now manages itself as a first-class `sula-core` consumer while still acting as the source repository for reusable operating-system assets.\n- The repository has memory-aware governance, an in-repo canary, a root self-adoption path, and an approval-based adoption agent for bringing new repositories under Sula.\n- Public-release governance is now in place, and the remaining blocker is historical lineage cleanup rather than working-tree quality.\n- The future `sula.1stp.monster` landing page is now represented by real static site assets with canonical long-form bootstrap prompts and protocol pages.\n- The bootstrap site is now live on both `https://sula.fly.dev/` and `https://sula.1stp.monster/`, with the public bootstrap contract explicitly handling existing Sula consumers and canonical tool-source resolution.\n- Sula now has a recorded vNext architecture target for a `generic-project` kernel, adapter bundles, scientific retrieval, and first-class removal semantics.\n- The first milestone of that direction is now implemented: unknown and non-Git projects can adopt through `generic-project`, `.sula/` holds kernel artifacts, and removal has a report-first command.\n- The second milestone is now implemented as well: local retrieval can rebuild from SQLite, kernel objects cover task/decision/risk/person/agreement/milestone shapes, and query supports stronger filters plus timeline output.\n- The next operating milestone is now implemented too: machine-readable CLI responses, workflow/storage/portfolio manifest sections, artifact routing, and portfolio registration are available for non-code client projects.\n- Drive-synced projects can now describe `google-drive` as an adapter instead of pretending that storage provider is a project type, which keeps the kernel portable for future providers.\n- The next UX milestone is now implemented too: `onboard` provides a zero-memory interview flow that asks setup questions, explains what Sula will manage, and then applies adoption through the same kernel contract.",
       "status": "current",
       "path": "STATUS.md",
       "source_paths": [
@@ -467,6 +467,26 @@
       "date": "2026-04-12"
     },
     {
+      "id": "decision:status:2026-04-12-added-add-guided-onboarding-and-zero-memory-setup-flow-docs-change-records-2026-04-12-add-guided-onboarding-and-zero-memory-setup-flow-md",
+      "kind": "decision",
+      "title": "2026-04-12: added [Add guided onboarding and zero-memory setup flow](docs/cha...",
+      "summary": "2026-04-12: added [Add guided onboarding and zero-memory setup flow](docs/change-records/2026-04-12-add-guided-onboarding-and-zero-memory-setup-flow.md)",
+      "status": "decided",
+      "path": "STATUS.md",
+      "source_paths": [
+        "STATUS.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "recent-decision",
+        "status"
+      ],
+      "date": "2026-04-12"
+    },
+    {
       "id": "person:status:sula-core-maintainers",
       "kind": "person",
       "title": "Sula Core maintainers",
@@ -656,6 +676,25 @@
       ],
       "tags": [
         "agreement"
+      ],
+      "date": "2026-04-12"
+    },
+    {
+      "id": "change:2026-04-12-add-guided-onboarding-and-zero-memory-setup-flow",
+      "kind": "change",
+      "title": "Add guided onboarding and zero-memory setup flow",
+      "summary": "- date: 2026-04-12 - executor: Codex - branch: codex/bootstrap-sula - related commit(s): pending - status: completed",
+      "status": "recorded",
+      "path": "docs/change-records/2026-04-12-add-guided-onboarding-and-zero-memory-setup-flow.md",
+      "source_paths": [
+        "docs/change-records/2026-04-12-add-guided-onboarding-and-zero-memory-setup-flow.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "change"
       ],
       "date": "2026-04-12"
     },
@@ -1429,6 +1468,28 @@
         "discovered-source"
       ],
       "date": "2026-04-11"
+    },
+    {
+      "id": "object:source:docs-change-records-2026-04-12-add-guided-onboarding-and-zero-memory-setup-flow-md",
+      "kind": "document",
+      "title": "2026-04-12-add-guided-onboarding-and-zero-memory-setup-flow.md",
+      "summary": "- date: 2026-04-12 - executor: Codex - branch: codex/bootstrap-sula - related commit(s): pending - status: completed",
+      "status": "indexed",
+      "path": "docs/change-records/2026-04-12-add-guided-onboarding-and-zero-memory-setup-flow.md",
+      "source_paths": [
+        "docs/change-records/2026-04-12-add-guided-onboarding-and-zero-memory-setup-flow.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "memory",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": "2026-04-12"
     },
     {
       "id": "object:source:docs-change-records-2026-04-12-add-kernel-object-query-and-bundle-contracts-md",

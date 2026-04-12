@@ -53,7 +53,13 @@ This keeps the protocol anchored to a canonical source repository without requir
 
 ## CLI Flow
 
-Inspect and report:
+Human-first guided onboarding:
+
+```bash
+python3 scripts/sula.py onboard --project-root /path/to/project
+```
+
+Low-level inspect and report:
 
 ```bash
 python3 scripts/sula.py adopt --project-root /path/to/project

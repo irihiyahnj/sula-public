@@ -1,5 +1,5 @@
 [kernel]
-sula_version = "0.7.0"
+sula_version = "0.8.0"
 profile = "sula-core"
 adapters = ["generic-project", "docs", "memory", "repo", "local-fs", "registry", "release"]
 git_enabled = true

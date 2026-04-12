@@ -2,6 +2,26 @@
 
 All notable changes to Sula Core should be recorded here with explicit sync impact.
 
+## 0.8.0 - 2026-04-12
+
+### Added
+
+- `onboard` as a guided, zero-memory onboarding entrypoint for first-time project setup
+- onboarding question payloads and operating summaries that explain what Sula will manage before adoption
+- interactive confirmation flow for human users and `--accept-suggested` for machine or fast-path callers
+
+### Changed
+
+- `adopt --approve --json` and `onboard --approve --json` now emit a single machine envelope instead of leaking helper output
+- onboarding defaults now follow the selected storage provider, so `google-drive` suggestions no longer inherit `local-only` storage settings
+- README and adoption docs now treat guided onboarding as the preferred first-time entrypoint
+
+### Sync Impact
+
+- existing adopted projects remain compatible and only receive the normal version-lock and kernel-state refresh on next sync
+- external tools can now drive a first-time setup conversation without requiring users to memorize Sula flags or artifact-routing details
+- human operators can connect a project through questions first and inspect the resulting operating promise before or during adoption
+
 ## 0.7.0 - 2026-04-12
 
 ### Added
