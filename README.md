@@ -15,6 +15,7 @@ Sula is not a product template for one stack. It is a coordination layer with:
 - an inspect-report-approve adoption flow for one-sentence onboarding
 - scripts to initialize, sync, and audit project adoption
 - a governed rollout path for sync impact and release discipline
+- a feedback-bundle workflow so reusable fixes can move upstream into Sula Core and then back downstream through versioned sync
 - a single-project memory model for durable status, decisions, releases, and incidents
 - workflow packs, artifact routing, and portfolio registration for non-code client projects
 
@@ -240,6 +241,32 @@ python3 scripts/sula.py doctor --project-root /path/to/project --strict --json
 
 These commands expose the same project kernel to humans and to external software. When `--json` is used, Sula becomes a local machine protocol instead of a text-only CLI.
 
+### Capture reusable feedback from adopted projects
+
+```bash
+python3 scripts/sula.py feedback capture \
+  --project-root /path/to/project \
+  --title "Route reusable managed fix upstream" \
+  --summary "Captured a reusable fix from local Sula drift." \
+  --shared-rationale "This issue affects more than one adopted project." \
+  --json
+
+python3 scripts/sula.py feedback ingest \
+  --project-root /path/to/sula-core \
+  --bundle-path /path/to/project/.sula/feedback/outbox/archives/<feedback-id>.zip \
+  --json
+
+python3 scripts/sula.py feedback decide \
+  --project-root /path/to/sula-core \
+  --feedback-id <feedback-id> \
+  --decision accepted \
+  --note "Absorb this into the shared release path." \
+  --target-version 0.11.0 \
+  --json
+```
+
+This keeps project-owned truth local while still giving Sula Core a governed intake path for reusable fixes. Projects may patch their local managed files to stay productive, but upstream adoption happens only after Sula Core review and a later versioned rollout.
+
 ### Create and track project artifacts
 
 ```bash
@@ -292,6 +319,13 @@ Artifacts are routed through the active workflow pack and stored under the proje
 
 Provider-backed artifacts can also be registered without a local materialized file path by supplying a stable project-relative path and provider item metadata. This lets Drive-synced and provider-native deliverables survive device-specific local path differences.
 
+Formal planning, proposal, report, process, and training documents now have a first-class design contract:
+
+- projects can declare that contract in `[document_design]` inside `.sula/project.toml`
+- managed projects receive `docs/ops/document-design-principles.md` as the reusable rulebook
+- `artifact create` renders genre-specific source-document bundles for `schedule`, `proposal` / `plan`, `report`, `process`, and `training`
+- source files remain the editable truth; `.docx`, `.html`, `.xlsx`, and provider-native outputs stay derived artifacts with traceable lineage
+
 `artifact materialize` lets a project-owned source file produce import-friendly deliverables without requiring Google OAuth first:
 
 - `.md` / `.txt` / `.html` -> `.html`
@@ -334,7 +368,7 @@ This searches the local kernel object catalog, source registry, and event timeli
 
 ## Current Version
 
-Sula version: `0.9.0`
+Sula version: `0.11.0`
 
 Versioning rules are in [docs/versioning.md](docs/versioning.md).
 
@@ -345,13 +379,15 @@ Sula itself is a maintained project. Before releasing changes that will later sy
 1. Run `python3 -m unittest discover -s tests -v`
 2. Review [CHANGELOG.md](CHANGELOG.md) and capture sync impact
 3. Review [registry/adopted-projects.toml](registry/adopted-projects.toml)
-4. Dry-run sync against canary projects before broad rollout
-5. Regenerate committed canary memory digests if the project policy uses them
+4. Review [registry/feedback/catalog.json](registry/feedback/catalog.json)
+5. Dry-run sync against canary projects before broad rollout
+6. Regenerate committed canary memory digests if the project policy uses them
 
 Release discipline and impact rules live in:
 
 - [docs/README.md](docs/README.md)
 - [docs/release-process.md](docs/release-process.md)
+- [docs/reference/feedback-bundle-lifecycle.md](docs/reference/feedback-bundle-lifecycle.md)
 - [docs/reference/project-memory-model.md](docs/reference/project-memory-model.md)
 - [docs/reference/sync-impact-model.md](docs/reference/sync-impact-model.md)
 - [docs/reference/adoption-registry.md](docs/reference/adoption-registry.md)
@@ -369,6 +405,7 @@ Release discipline and impact rules live in:
 - [docs/philosophy.md](docs/philosophy.md)
 - [docs/README.md](docs/README.md)
 - [docs/reference/sula-vnext-project-kernel.md](docs/reference/sula-vnext-project-kernel.md)
+- [docs/reference/feedback-bundle-lifecycle.md](docs/reference/feedback-bundle-lifecycle.md)
 - [docs/reference/portfolio-adapter-workflow-contract.md](docs/reference/portfolio-adapter-workflow-contract.md)
 - [docs/adoption-playbook.md](docs/adoption-playbook.md)
 - [docs/reference/adoption-agent.md](docs/reference/adoption-agent.md)

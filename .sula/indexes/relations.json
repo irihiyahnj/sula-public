@@ -1,5 +1,5 @@
 {
-  "version": "0.10.0",
+  "version": "0.11.0",
   "profile": "sula-core",
   "relations": [
     {
@@ -39,6 +39,16 @@
     },
     {
       "from": "task:status:validate-portfolio-registration-artifact-routing-and-google-drive-local-sync-behavior-against-the-first-real-client-service-workspace",
+      "to": "source:status-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "task:status:validate-the-new-formal-document-bundles-against-the-first-real-planning-heavy-client-workspace-and-confirm-where-google-docs-import-needs-richer-tabular-bridge-defaults",
+      "to": "source:status-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "task:status:validate-the-released-feedback-bundle-lifecycle-through-the-first-external-adopted-project-and-the-first-real-sula-core-feedback-item-that-flows-through-the-queue-end-to-end",
       "to": "source:status-md",
       "type": "derived-from"
     },
@@ -123,12 +133,32 @@
       "type": "derived-from"
     },
     {
+      "from": "decision:status:2026-04-12-added-add-formal-document-design-bundles-docs-change-records-2026-04-12-add-formal-document-design-bundles-md",
+      "to": "source:status-md",
+      "type": "derived-from"
+    },
+    {
       "from": "decision:status:2026-04-12-added-add-guided-onboarding-and-zero-memory-setup-flow-docs-change-records-2026-04-12-add-guided-onboarding-and-zero-memory-setup-flow-md",
       "to": "source:status-md",
       "type": "derived-from"
     },
     {
       "from": "decision:status:2026-04-12-added-add-site-launch-contract-and-canonical-bootstrap-shim-docs-change-records-2026-04-12-add-site-launch-contract-and-canonical-bootstrap-shim-md",
+      "to": "source:status-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "decision:status:2026-04-12-added-add-feedback-bundles-and-sula-core-review-workflow-docs-change-records-2026-04-12-add-feedback-bundles-and-core-review-workflow-md",
+      "to": "source:status-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "decision:status:2026-04-12-released-sula-0-11-0-formal-document-workflows-and-feedback-bundles-docs-releases-2026-04-12-release-sula-0-11-0-formal-document-workflows-and-feedback-bundles-md",
+      "to": "source:status-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "decision:status:2026-04-12-added-release-record-release-sula-0-11-0-formal-document-workflows-and-feedback-bundles-docs-releases-2026-04-12-release-sula-0-11-0-formal-document-workflows-and-feedback-bundles-md",
       "to": "source:status-md",
       "type": "derived-from"
     },
@@ -223,6 +253,21 @@
       "type": "derived-from"
     },
     {
+      "from": "change:2026-04-12-add-formal-document-design-bundles",
+      "to": "source:docs-change-records-2026-04-12-add-formal-document-design-bundles-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "agreement:2026-04-12-add-formal-document-design-bundles",
+      "to": "source:docs-change-records-2026-04-12-add-formal-document-design-bundles-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "change:2026-04-12-add-feedback-bundles-and-core-review-workflow",
+      "to": "source:docs-change-records-2026-04-12-add-feedback-bundles-and-core-review-workflow-md",
+      "type": "derived-from"
+    },
+    {
       "from": "change:2026-04-12-add-artifact-materialization-for-docs-and-sheets",
       "to": "source:docs-change-records-2026-04-12-add-artifact-materialization-for-docs-and-sheets-md",
       "type": "derived-from"
@@ -265,6 +310,31 @@
     {
       "from": "change:2026-04-11-add-adoption-agent-flow-for-one-sentence-onboarding",
       "to": "source:docs-change-records-2026-04-11-add-adoption-agent-flow-for-one-sentence-onboarding-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "release:2026-04-12-release-sula-0-11-0-formal-document-workflows-and-feedback-bundles",
+      "to": "source:docs-releases-2026-04-12-release-sula-0-11-0-formal-document-workflows-and-feedback-bundles-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "milestone:2026-04-12-release-sula-0-11-0-formal-document-workflows-and-feedback-bundles",
+      "to": "source:docs-releases-2026-04-12-release-sula-0-11-0-formal-document-workflows-and-feedback-bundles-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "risk:docs-releases-2026-04-12-release-sula-0-11-0-formal-document-workflows-and-feedback-bundles-md:adopted-projects-will-receive-more-managed-operating-guidance-and-a-broader-manifest-contract-on-next-sync-so-teams-need-to-review-the-new-document-design-and-feedback-guidance-before-treating-the-rollout-as-routine",
+      "to": "source:docs-releases-2026-04-12-release-sula-0-11-0-formal-document-workflows-and-feedback-bundles-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "risk:docs-releases-2026-04-12-release-sula-0-11-0-formal-document-workflows-and-feedback-bundles-md:project-teams-can-still-ignore-the-new-feedback-capture-path-and-keep-one-off-local-managed-drift-so-operator-behavior-remains-part-of-rollout-quality",
+      "to": "source:docs-releases-2026-04-12-release-sula-0-11-0-formal-document-workflows-and-feedback-bundles-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "agreement:2026-04-12-release-sula-0-11-0-formal-document-workflows-and-feedback-bundles",
+      "to": "source:docs-releases-2026-04-12-release-sula-0-11-0-formal-document-workflows-and-feedback-bundles-md",
       "type": "derived-from"
     },
     {
@@ -423,6 +493,21 @@
       "type": "derived-from"
     },
     {
+      "from": "object:source:docs-change-records-2026-04-12-add-feedback-bundles-and-core-review-workflow-md",
+      "to": "source:docs-change-records-2026-04-12-add-feedback-bundles-and-core-review-workflow-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "object:source:docs-change-records-2026-04-12-add-formal-document-design-bundles-md",
+      "to": "source:docs-change-records-2026-04-12-add-formal-document-design-bundles-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "agreement:source:docs-change-records-2026-04-12-add-formal-document-design-bundles-md",
+      "to": "source:docs-change-records-2026-04-12-add-formal-document-design-bundles-md",
+      "type": "derived-from"
+    },
+    {
       "from": "object:source:docs-change-records-2026-04-12-add-guided-onboarding-and-zero-memory-setup-flow-md",
       "to": "source:docs-change-records-2026-04-12-add-guided-onboarding-and-zero-memory-setup-flow-md",
       "type": "derived-from"
@@ -523,6 +608,11 @@
       "type": "derived-from"
     },
     {
+      "from": "object:source:docs-ops-document-design-principles-md",
+      "to": "source:docs-ops-document-design-principles-md",
+      "type": "derived-from"
+    },
+    {
       "from": "object:source:docs-ops-project-memory-md",
       "to": "source:docs-ops-project-memory-md",
       "type": "derived-from"
@@ -573,6 +663,11 @@
       "type": "derived-from"
     },
     {
+      "from": "object:source:docs-reference-feedback-bundle-lifecycle-md",
+      "to": "source:docs-reference-feedback-bundle-lifecycle-md",
+      "type": "derived-from"
+    },
+    {
       "from": "object:source:docs-reference-portfolio-adapter-workflow-contract-md",
       "to": "source:docs-reference-portfolio-adapter-workflow-contract-md",
       "type": "derived-from"
@@ -615,6 +710,16 @@
     {
       "from": "object:source:docs-release-process-md",
       "to": "source:docs-release-process-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "object:source:docs-releases-2026-04-12-release-sula-0-11-0-formal-document-workflows-and-feedback-bundles-md",
+      "to": "source:docs-releases-2026-04-12-release-sula-0-11-0-formal-document-workflows-and-feedback-bundles-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "agreement:source:docs-releases-2026-04-12-release-sula-0-11-0-formal-document-workflows-and-feedback-bundles-md",
+      "to": "source:docs-releases-2026-04-12-release-sula-0-11-0-formal-document-workflows-and-feedback-bundles-md",
       "type": "derived-from"
     },
     {
@@ -845,6 +950,16 @@
     {
       "from": "object:source:registry-adopted-projects-toml",
       "to": "source:registry-adopted-projects-toml",
+      "type": "derived-from"
+    },
+    {
+      "from": "object:source:registry-feedback-readme-md",
+      "to": "source:registry-feedback-readme-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "object:source:registry-feedback-catalog-json",
+      "to": "source:registry-feedback-catalog-json",
       "type": "derived-from"
     },
     {

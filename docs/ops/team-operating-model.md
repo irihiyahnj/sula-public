@@ -35,10 +35,13 @@ Unless stated otherwise, Codex acts as:
 - keep primary orchestration logic centralized in [scripts/sula.py](../scripts/sula.py)
 - keep shared state or durable coordination centered in [registry/adopted-projects.toml](../registry/adopted-projects.toml)
 - keep the main project entry or operator-facing surface centered in [README.md](../README.md)
+- for formal planning, proposal, report, process, and training docs, follow [document-design-principles.md](document-design-principles.md)
+- classify formal document genre before drafting and keep the source file as the editable truth
 
 ### 4. Verify
 
 - docs-only changes: verify references, traceability, and structure
+- formal document changes: verify the genre-specific bundle is present and any derived deliverables stay traceable
 - code changes: run validation proportional to the change
 - release candidates: apply release and smoke checklists
 
@@ -58,6 +61,7 @@ Before recommending deployment, explicitly answer:
 - update `CHANGE-RECORDS.md`
 - add or update `docs/change-records/*`
 - add release or incident records when risk history matters
+- if a reusable Sula-managed problem was fixed locally, capture a feedback bundle before leaving the project on a one-off managed drift
 - regenerate `.sula/memory-digest.md` after non-trivial changes if the project uses it
 
 ## Definition Of Done

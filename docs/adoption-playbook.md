@@ -76,6 +76,7 @@ If an adoption flow requires the user to remember internal paths, slot names, or
    - `.cursor/rules/project.mdc`
    - `docs/README.md`
    - `docs/ops/*`
+   - `docs/ops/document-design-principles.md`
    - profile-managed docs
 6. Adjust project-specific facts in scaffold files.
 7. Create or migrate the first change record if useful for project onboarding history.

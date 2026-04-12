@@ -2,6 +2,31 @@
 
 All notable changes to Sula Core should be recorded here with explicit sync impact.
 
+## 0.11.0 - 2026-04-12
+
+### Added
+
+- formal document design bundles with a first-class `[document_design]` manifest section, a managed design rulebook, and genre-aware source templates for schedule, proposal, report, process, and training artifacts
+- `feedback capture` so adopted projects can package reusable local managed-file fixes as portable feedback bundles with doctor state, sync plan, diffs, and snapshot files
+- `feedback ingest`, `feedback list`, `feedback show`, and `feedback decide` so Sula Core can run a governed intake and decision workflow over those bundles
+- `.sula/feedback/outbox/archives/` as the machine-readable export surface for project-side feedback bundles
+- `registry/feedback/catalog.json` and `registry/feedback/inbox/` as Sula Core's central feedback review queue
+- [docs/reference/feedback-bundle-lifecycle.md](docs/reference/feedback-bundle-lifecycle.md) as the formal contract for upstream feedback and downstream rollout
+
+### Changed
+
+- managed AI instructions, docs, schemas, and artifact generation now carry the formal document design contract consistently across adoption, sync, and artifact creation
+- managed AI instruction files and team-operating docs now tell adopted projects to capture reusable Sula issues instead of leaving them as undocumented local drift
+- the Sula Core release runbook and release-process docs now require feedback queue review as part of release discipline
+- export catalogs now expose feedback outbox paths for every project, and expose the central feedback catalog when the active profile is `sula-core`
+
+### Sync Impact
+
+- existing adopted projects remain compatible and gain the formal document design policy plus an extra feedback export path under `.sula/exports/catalog.json` on next sync
+- teams can now standardize source-first planning, proposal, report, process, and training documents through managed Sula guidance instead of per-project prompt drift
+- projects can now keep working with local managed-file fixes while still sending a reviewable upstream bundle back to Sula Core
+- Sula Core maintainers now have an explicit inbox and decision trail before reusable fixes are absorbed into templates, docs, scripts, and later releases
+
 ## 0.10.0 - 2026-04-12
 
 ### Added

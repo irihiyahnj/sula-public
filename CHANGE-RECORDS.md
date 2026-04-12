@@ -15,6 +15,8 @@ Track why Sula changed, how sync impact was evaluated, what was verified, and ho
 
 ## Index
 
+- 2026-04-12 - [Add formal document design bundles](docs/change-records/2026-04-12-add-formal-document-design-bundles.md) - Added a first-class document design manifest section, a managed formal-document rulebook, and genre-aware source bundles for schedule, proposal, report, process, and training artifacts.
+- 2026-04-12 - [Add feedback bundles and Sula Core review workflow](docs/change-records/2026-04-12-add-feedback-bundles-and-core-review-workflow.md) - Added a governed upstream-feedback lifecycle so adopted projects can package reusable local Sula fixes, Sula Core can review them centrally, and approved changes can still roll out later through versioned sync.
 - 2026-04-12 - [Add artifact materialization for docs and sheets](docs/change-records/2026-04-12-add-artifact-materialization-for-docs-and-sheets.md) - Added a local bridge from project-owned source files to `.html`, `.docx`, and `.xlsx` artifact outputs so teams can import deliverables into Google Docs or Google Sheets without waiting for direct provider adapters.
 - 2026-04-12 - [Add project language policy for generated docs and records](docs/change-records/2026-04-12-add-project-language-policy-for-generated-docs.md) - Added project-level language settings so generated docs, records, and summaries can use Chinese or English without changing stable file paths.
 - 2026-04-12 - [Add provider-backed artifact registration identity](docs/change-records/2026-04-12-add-provider-backed-artifact-registration-identity.md) - Extended artifact registration and indexing so Google Drive and future provider-backed deliverables can carry stable identity fields without depending on one machine's local path.

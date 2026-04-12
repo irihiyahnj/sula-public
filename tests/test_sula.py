@@ -149,6 +149,21 @@ class SulaCliTests(unittest.TestCase):
             encoding="utf-8",
         )
 
+    def init_sula_core_project(self, project_root: Path) -> subprocess.CompletedProcess[str]:
+        return run_cli(
+            "init",
+            "--project-root",
+            str(project_root),
+            "--name",
+            "Sula Core Test",
+            "--slug",
+            "sula-core-test",
+            "--description",
+            "Self-managed Sula Core test root",
+            "--profile",
+            "sula-core",
+        )
+
     def create_file_system_project_with_frontend_tooling(self, project_root: Path) -> None:
         (project_root / "src").mkdir(parents=True, exist_ok=True)
         (project_root / "README.md").write_text(
@@ -225,12 +240,17 @@ class SulaCliTests(unittest.TestCase):
             self.assertTrue((project_root / ".sula" / "version.lock").exists())
             self.assertTrue((project_root / "CODEX.md").exists())
             self.assertTrue((project_root / "README.md").exists())
+            self.assertTrue((project_root / "docs" / "ops" / "document-design-principles.md").exists())
             self.assertTrue((project_root / "docs" / "ops" / "project-memory.md").exists())
             self.assertTrue((project_root / "docs" / "ops" / "release-checklist.md").exists())
             self.assertTrue((project_root / "docs" / "runbooks" / "deploy-and-rollback.md").exists())
             self.assertTrue((project_root / "docs" / "change-records" / "_template.md").exists())
             self.assertTrue((project_root / "docs" / "releases" / "_template.md").exists())
             self.assertTrue((project_root / "docs" / "incidents" / "_template.md").exists())
+
+            manifest = (project_root / ".sula" / "project.toml").read_text(encoding="utf-8")
+            self.assertIn("[document_design]", manifest)
+            self.assertIn('principles_path = "docs/ops/document-design-principles.md"', manifest)
 
     def test_adopt_reports_plan_before_approval(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -356,6 +376,7 @@ class SulaCliTests(unittest.TestCase):
             manifest = (project_root / ".sula" / "project.toml").read_text(encoding="utf-8")
             self.assertIn("[language]", manifest)
             self.assertIn('content_locale = "en"', manifest)
+            self.assertIn("[document_design]", manifest)
 
     def test_onboard_interactive_uses_defaults_and_waits_for_apply_confirmation(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -849,6 +870,121 @@ class SulaCliTests(unittest.TestCase):
             self.assertTrue(located["results"])
             self.assertEqual(located["results"][0]["kind"], "agreement")
             self.assertEqual(located["results"][0]["display_path"], located["results"][0]["path"])
+
+    def test_artifact_create_schedule_uses_formal_schedule_bundle(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            project_root = Path(tmpdir)
+            self.create_generic_project(project_root)
+            adopt_result = run_cli(
+                "adopt",
+                "--project-root",
+                str(project_root),
+                "--workflow-pack",
+                "client-service",
+                "--approve",
+            )
+            self.assertEqual(adopt_result.returncode, 0, adopt_result.stderr)
+
+            create_result = run_cli(
+                "artifact",
+                "create",
+                "--project-root",
+                str(project_root),
+                "--kind",
+                "schedule",
+                "--title",
+                "Hospital Shoot Schedule",
+                "--date",
+                "2026-04-12",
+                "--json",
+            )
+            self.assertEqual(create_result.returncode, 0, create_result.stderr)
+            payload = json.loads(create_result.stdout)
+            artifact = payload["artifact"]
+            self.assertEqual(artifact["slot"], "planning")
+            artifact_text = (project_root / artifact["path"]).read_text(encoding="utf-8")
+            self.assertIn("document bundle: monthly-gantt-dual-actions-raci", artifact_text)
+            self.assertIn("## Monthly Overview", artifact_text)
+            self.assertIn("## Role-split Gantt", artifact_text)
+            self.assertIn("## Counterparty Action Table", artifact_text)
+            self.assertIn("## Internal Action Table", artifact_text)
+            self.assertIn("## Responsibility Matrix", artifact_text)
+            self.assertIn("```mermaid", artifact_text)
+
+    def test_artifact_create_formal_document_bundles_cover_multiple_genres(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            project_root = Path(tmpdir)
+            self.create_generic_project(project_root)
+            adopt_result = run_cli(
+                "adopt",
+                "--project-root",
+                str(project_root),
+                "--workflow-pack",
+                "client-service",
+                "--approve",
+            )
+            self.assertEqual(adopt_result.returncode, 0, adopt_result.stderr)
+
+            cases = [
+                (
+                    "plan",
+                    "Hospital Rollout Plan",
+                    "planning",
+                    "document genre: proposal",
+                    "document bundle: problem-solution-workplan-raci",
+                    ["## Executive Summary", "## Proposed Approach", "## Risks And Decisions"],
+                ),
+                (
+                    "report",
+                    "Hospital Weekly Report",
+                    "delivery",
+                    "document genre: report",
+                    "document bundle: executive-findings-actions",
+                    ["## Key Findings", "## Progress And Risks", "## Next Actions"],
+                ),
+                (
+                    "process",
+                    "Hospital Intake Process",
+                    "planning",
+                    "document genre: process",
+                    "document bundle: purpose-workflow-controls-records",
+                    ["## Workflow Steps", "## Controls And Exceptions", "## Artifacts And Records"],
+                ),
+                (
+                    "training",
+                    "Hospital Coordinator Training",
+                    "delivery",
+                    "document genre: training",
+                    "document bundle: outcomes-agenda-delivery-assessment-followup",
+                    ["## Audience And Outcomes", "## Session Plan", "## Follow-up And Records"],
+                ),
+            ]
+
+            for kind, title, expected_slot, expected_genre, expected_bundle, headings in cases:
+                create_result = run_cli(
+                    "artifact",
+                    "create",
+                    "--project-root",
+                    str(project_root),
+                    "--kind",
+                    kind,
+                    "--title",
+                    title,
+                    "--date",
+                    "2026-04-12",
+                    "--slug",
+                    f"{kind}-artifact",
+                    "--json",
+                )
+                self.assertEqual(create_result.returncode, 0, create_result.stderr)
+                payload = json.loads(create_result.stdout)
+                artifact = payload["artifact"]
+                self.assertEqual(artifact["slot"], expected_slot)
+                artifact_text = (project_root / artifact["path"]).read_text(encoding="utf-8")
+                self.assertIn(expected_genre, artifact_text)
+                self.assertIn(expected_bundle, artifact_text)
+                for heading in headings:
+                    self.assertIn(heading, artifact_text)
 
     def test_artifact_register_supports_provider_backed_identity_without_local_path(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -1456,6 +1592,150 @@ class SulaCliTests(unittest.TestCase):
             digest = digest_path.read_text(encoding="utf-8")
             self.assertIn("Current State", digest)
             self.assertIn("Capture memory baseline", digest)
+
+    def test_feedback_capture_creates_bundle_and_archive_for_managed_drift(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            project_root = Path(tmpdir)
+            self.create_generic_project(project_root)
+            adopt_result = run_cli("adopt", "--project-root", str(project_root), "--approve")
+            self.assertEqual(adopt_result.returncode, 0, adopt_result.stderr)
+
+            (project_root / "CODEX.md").write_text("local managed improvement\n", encoding="utf-8")
+
+            result = run_cli(
+                "feedback",
+                "capture",
+                "--project-root",
+                str(project_root),
+                "--title",
+                "Route reusable drift upstream",
+                "--summary",
+                "Captured a reusable managed-file fix from one adopted project.",
+                "--shared-rationale",
+                "Every adopted project should be able to turn local managed-file fixes into reviewable Sula Core feedback.",
+                "--local-fix-summary",
+                "Adjusted the local managed instructions after a real usage issue.",
+                "--requested-outcome",
+                "Add a central Sula Core intake and review workflow.",
+                "--json",
+            )
+
+            self.assertEqual(result.returncode, 0, result.stderr)
+            payload = json.loads(result.stdout)
+            feedback = payload["feedback"]
+            bundle_root = project_root / feedback["bundle_path"]
+            archive_path = project_root / feedback["archive_path"]
+
+            self.assertTrue(bundle_root.exists())
+            self.assertTrue(archive_path.exists())
+            self.assertTrue((bundle_root / "bundle.json").exists())
+            self.assertTrue((bundle_root / "changes.patch").exists())
+
+            bundle = json.loads((bundle_root / "bundle.json").read_text(encoding="utf-8"))
+            self.assertEqual(bundle["feedback"]["title"], "Route reusable drift upstream")
+            self.assertEqual(bundle["managed_changes"][0]["path"], "CODEX.md")
+            self.assertFalse(bundle["doctor"]["passed"])
+
+            with zipfile.ZipFile(archive_path) as archive:
+                self.assertIn(f"{feedback['id']}/bundle.json", archive.namelist())
+
+    def test_feedback_ingest_show_list_and_decide_track_core_review_state(self) -> None:
+        with tempfile.TemporaryDirectory() as project_tmpdir, tempfile.TemporaryDirectory() as core_tmpdir:
+            project_root = Path(project_tmpdir)
+            core_root = Path(core_tmpdir)
+            self.create_generic_project(project_root)
+            adopt_result = run_cli("adopt", "--project-root", str(project_root), "--approve")
+            self.assertEqual(adopt_result.returncode, 0, adopt_result.stderr)
+
+            (project_root / "CODEX.md").write_text("local managed improvement\n", encoding="utf-8")
+            capture_result = run_cli(
+                "feedback",
+                "capture",
+                "--project-root",
+                str(project_root),
+                "--title",
+                "Standardize upstream feedback",
+                "--summary",
+                "Converted a local Sula fix into a reusable bundle for core review.",
+                "--shared-rationale",
+                "This should become a central workflow instead of remaining a one-project patch.",
+                "--json",
+            )
+            self.assertEqual(capture_result.returncode, 0, capture_result.stderr)
+            captured = json.loads(capture_result.stdout)["feedback"]
+            archive_path = project_root / captured["archive_path"]
+
+            core_init = self.init_sula_core_project(core_root)
+            self.assertEqual(core_init.returncode, 0, core_init.stderr)
+
+            ingest_result = run_cli(
+                "feedback",
+                "ingest",
+                "--project-root",
+                str(core_root),
+                "--bundle-path",
+                str(archive_path),
+                "--json",
+            )
+            self.assertEqual(ingest_result.returncode, 0, ingest_result.stderr)
+            ingested = json.loads(ingest_result.stdout)["feedback"]
+            self.assertEqual(ingested["status"], "open")
+
+            show_result = run_cli(
+                "feedback",
+                "show",
+                "--project-root",
+                str(core_root),
+                "--feedback-id",
+                ingested["id"],
+                "--json",
+            )
+            self.assertEqual(show_result.returncode, 0, show_result.stderr)
+            shown = json.loads(show_result.stdout)
+            self.assertEqual(shown["bundle"]["feedback"]["title"], "Standardize upstream feedback")
+
+            decide_result = run_cli(
+                "feedback",
+                "decide",
+                "--project-root",
+                str(core_root),
+                "--feedback-id",
+                ingested["id"],
+                "--decision",
+                "accepted",
+                "--note",
+                "Promote this into the shared Sula Core release path.",
+                "--target-version",
+                "0.11.0",
+                "--linked-change-record",
+                "docs/change-records/2026-04-12-add-feedback-bundles-and-core-review-workflow.md",
+                "--json",
+            )
+            self.assertEqual(decide_result.returncode, 0, decide_result.stderr)
+            decided = json.loads(decide_result.stdout)["feedback"]
+            self.assertEqual(decided["status"], "accepted")
+            self.assertEqual(decided["latest_decision"]["target_version"], "0.11.0")
+
+            list_result = run_cli(
+                "feedback",
+                "list",
+                "--project-root",
+                str(core_root),
+                "--status",
+                "accepted",
+                "--json",
+            )
+            self.assertEqual(list_result.returncode, 0, list_result.stderr)
+            listed = json.loads(list_result.stdout)["items"]
+            self.assertEqual(len(listed), 1)
+            self.assertEqual(listed[0]["id"], ingested["id"])
+
+            catalog = json.loads((core_root / "registry" / "feedback" / "catalog.json").read_text(encoding="utf-8"))
+            self.assertEqual(catalog["items"][0]["status"], "accepted")
+            decision = json.loads(
+                (core_root / "registry" / "feedback" / "inbox" / ingested["id"] / "decision.json").read_text(encoding="utf-8")
+            )
+            self.assertEqual(decision["decision"], "accepted")
 
     def test_remove_reports_and_preserves_scaffold_files(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:

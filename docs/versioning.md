@@ -24,16 +24,20 @@ It allows projects to upgrade intentionally instead of drifting accidentally.
 Before bumping Sula in a project:
 
 1. review release notes or git diff
-2. run `sula sync --dry-run`
-3. run `sula sync`
-4. run `sula doctor --strict`
-5. review the generated diff
-6. commit the upgrade as its own change batch
+2. if the project had reusable local managed-file fixes, capture them first with `sula feedback capture`
+3. run `sula sync --dry-run`
+4. run `sula sync`
+5. run `sula doctor --strict`
+6. review the generated diff
+7. commit the upgrade as its own change batch
 
 ## Release Discipline
 
 Before tagging a new Sula version:
 
 1. update [../CHANGELOG.md](../CHANGELOG.md) with explicit sync impact
-2. follow [release-process.md](release-process.md)
-3. verify canary rollout order through [../registry/adopted-projects.toml](../registry/adopted-projects.toml)
+2. review [../registry/feedback/catalog.json](../registry/feedback/catalog.json) and decide which accepted feedback items land in the release
+3. follow [release-process.md](release-process.md)
+4. verify canary rollout order through [../registry/adopted-projects.toml](../registry/adopted-projects.toml)
+
+For Sula Core, a release is the published Git/tagged repository state that adopted projects should sync against, not a web-app deployment event.

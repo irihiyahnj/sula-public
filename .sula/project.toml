@@ -47,3 +47,14 @@ release_record_directory = "docs/releases"
 incident_record_directory = "docs/incidents"
 digest_file = ".sula/memory-digest.md"
 status_max_age_days = 14
+
+[document_design]
+principles_path = "docs/ops/document-design-principles.md"
+source_first = true
+register_derived_artifacts = true
+preferred_source_format = "markdown"
+schedule_bundle = "monthly-gantt-dual-actions-raci"
+proposal_bundle = "problem-solution-workplan-raci"
+report_bundle = "executive-findings-actions"
+process_bundle = "purpose-workflow-controls-records"
+training_bundle = "outcomes-agenda-delivery-assessment-followup"

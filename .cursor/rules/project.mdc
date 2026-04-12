@@ -12,6 +12,7 @@ Critical rules:
 - Highest rule: `Preserve the split between centrally managed operating-system files and project-owned business truth.`
 - Keep primary integration logic centralized in [scripts/sula.py](scripts/sula.py).
 - Use [docs/README.md](docs/README.md) as the document map and [docs/ops/team-operating-model.md](docs/ops/team-operating-model.md) as the default execution flow.
+- Follow [docs/ops/document-design-principles.md](docs/ops/document-design-principles.md) for formal planning, proposal, report, process, and training documents.
 - Working branches use `codex/*`.
 - Deployment branch = `main`.
 - Run `python3 -m unittest discover -s tests -v` before finishing substantial changes.

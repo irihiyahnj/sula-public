@@ -10,6 +10,7 @@ If this file conflicts with `AGENTS.md`, `AGENTS.md` wins.
 - Treat user requests as end-to-end delivery requests unless the user explicitly asks only for analysis, brainstorming, or a plan.
 - Use [docs/README.md](docs/README.md) as the documentation map.
 - Follow [docs/ops/team-operating-model.md](docs/ops/team-operating-model.md) as the default execution flow.
+- Follow [docs/ops/document-design-principles.md](docs/ops/document-design-principles.md) for formal planning, proposal, report, process, and training documents.
 
 ## Critical Reminders
 
@@ -18,6 +19,7 @@ If this file conflicts with `AGENTS.md`, `AGENTS.md` wins.
 - Keep durable documentation organized through [docs/README.md](docs/README.md).
 - Reuse the primary orchestration lane in [scripts/sula.py](scripts/sula.py) before creating new entrypoints.
 - Keep the main project entry or operator-facing surface centered in [README.md](README.md).
+- If a reusable Sula-managed issue is found and fixed locally, capture it with `python3 scripts/sula.py feedback capture --project-root . ...` before leaving the project on local drift alone.
 - Working branches use `codex/*`.
 - Deployment branch = `main`.
 - Validate substantial changes with `python3 -m unittest discover -s tests -v`.

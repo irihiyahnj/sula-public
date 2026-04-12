@@ -121,6 +121,74 @@
         "status_max_age_days": {"type": "integer", "minimum": 1}
       },
       "additionalProperties": false
+    },
+    "workflow": {
+      "type": "object",
+      "required": ["pack", "stage", "artifacts_root"],
+      "properties": {
+        "pack": {"type": "string", "minLength": 1},
+        "stage": {"type": "string", "minLength": 1},
+        "artifacts_root": {"type": "string", "minLength": 1}
+      },
+      "additionalProperties": false
+    },
+    "storage": {
+      "type": "object",
+      "required": ["provider", "sync_mode", "workspace_root", "provider_root_url", "provider_root_id"],
+      "properties": {
+        "provider": {"type": "string", "minLength": 1},
+        "sync_mode": {"type": "string", "minLength": 1},
+        "workspace_root": {"type": "string", "minLength": 1},
+        "provider_root_url": {"type": "string", "minLength": 1},
+        "provider_root_id": {"type": "string", "minLength": 1}
+      },
+      "additionalProperties": false
+    },
+    "portfolio": {
+      "type": "object",
+      "required": ["portfolio_id", "workspace", "owner"],
+      "properties": {
+        "portfolio_id": {"type": "string", "minLength": 1},
+        "workspace": {"type": "string", "minLength": 1},
+        "owner": {"type": "string", "minLength": 1}
+      },
+      "additionalProperties": false
+    },
+    "language": {
+      "type": "object",
+      "required": ["content_locale", "interaction_locale", "preserve_user_input_language"],
+      "properties": {
+        "content_locale": {"type": "string", "minLength": 1},
+        "interaction_locale": {"type": "string", "minLength": 1},
+        "preserve_user_input_language": {"type": "boolean"}
+      },
+      "additionalProperties": false
+    },
+    "document_design": {
+      "type": "object",
+      "required": [
+        "principles_path",
+        "source_first",
+        "register_derived_artifacts",
+        "preferred_source_format",
+        "schedule_bundle",
+        "proposal_bundle",
+        "report_bundle",
+        "process_bundle",
+        "training_bundle"
+      ],
+      "properties": {
+        "principles_path": {"type": "string", "minLength": 1},
+        "source_first": {"type": "boolean"},
+        "register_derived_artifacts": {"type": "boolean"},
+        "preferred_source_format": {"type": "string", "minLength": 1},
+        "schedule_bundle": {"type": "string", "minLength": 1},
+        "proposal_bundle": {"type": "string", "minLength": 1},
+        "report_bundle": {"type": "string", "minLength": 1},
+        "process_bundle": {"type": "string", "minLength": 1},
+        "training_bundle": {"type": "string", "minLength": 1}
+      },
+      "additionalProperties": false
     }
   },
   "additionalProperties": false

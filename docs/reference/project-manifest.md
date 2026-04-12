@@ -91,6 +91,18 @@ The safe baseline profile is `generic-project`. Narrower profiles can add more s
 - `interaction_locale`
 - `preserve_user_input_language`
 
+### `[document_design]` (optional but recommended)
+
+- `principles_path`
+- `source_first`
+- `register_derived_artifacts`
+- `preferred_source_format`
+- `schedule_bundle`
+- `proposal_bundle`
+- `report_bundle`
+- `process_bundle`
+- `training_bundle`
+
 ## Example
 
 See [../../schema/project.example.toml](../../schema/project.example.toml).
@@ -106,6 +118,7 @@ See [../../schema/project.example.toml](../../schema/project.example.toml).
 - `storage.workspace_root` is the current machine's access root for the adopted workspace. It should not be treated as the stable identity of provider-backed artifacts across devices.
 - The optional `[portfolio]` section lets a project register itself into a broader multi-project workspace without hard-coding that workspace into Sula Core.
 - The optional `[language]` section lets a project choose the language for Sula-generated docs, records, and human-readable command output while preserving user-authored text as-is.
+- The optional `[document_design]` section records how formal planning, proposal, report, process, and training documents should be structured, while keeping project-owned source files as the editable truth.
 - Project history stays in the project repository, not in the manifest.
 
 See [provider-backed-artifact-identity.md](provider-backed-artifact-identity.md) for the cross-device identity model behind provider-backed project files.

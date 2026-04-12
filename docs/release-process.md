@@ -2,16 +2,19 @@
 
 This process exists to protect adopted projects from accidental Sula Core regressions.
 
+For Sula Core, `release` means the intended repository state is published through the canonical Git history and is ready for downstream sync. It does not require a web-style production deployment.
+
 ## Release Inputs
 
 Before any version bump or tag:
 
 1. classify the change as patch, minor, or major under [versioning.md](versioning.md)
 2. update [CHANGELOG.md](../CHANGELOG.md) with a `Sync Impact` section
-3. run `python3 -m unittest discover -s tests -v`
-4. review `python3 scripts/sula.py sync --project-root <project> --dry-run` against each canary project
-5. run `python3 scripts/sula.py doctor --project-root <project> --strict` on each canary project after sync
-6. regenerate any canary `memory digest` outputs that are committed by policy
+3. review [../registry/feedback/catalog.json](../registry/feedback/catalog.json) and triage reusable feedback targeted for this release
+4. run `python3 -m unittest discover -s tests -v`
+5. review `python3 scripts/sula.py sync --project-root <project> --dry-run` against each canary project
+6. run `python3 scripts/sula.py doctor --project-root <project> --strict` on each canary project after sync
+7. regenerate any canary `memory digest` outputs that are committed by policy
 
 ## Rollout Rules
 
@@ -28,7 +31,8 @@ Before any version bump or tag:
 4. run canary dry-runs and canary doctor checks
 5. tag the release
 6. sync canary repositories
-7. expand rollout to the rest of the registry in controlled batches
+7. mark shipped feedback items as `released`
+8. expand rollout to the rest of the registry in controlled batches
 
 ## Non-release Changes
 

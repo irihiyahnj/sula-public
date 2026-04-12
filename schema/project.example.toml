@@ -69,3 +69,14 @@ owner = "Jing"
 content_locale = "zh-CN"
 interaction_locale = "zh-CN"
 preserve_user_input_language = true
+
+[document_design]
+principles_path = "docs/ops/document-design-principles.md"
+source_first = true
+register_derived_artifacts = true
+preferred_source_format = "markdown"
+schedule_bundle = "monthly-gantt-dual-actions-raci"
+proposal_bundle = "problem-solution-workplan-raci"
+report_bundle = "executive-findings-actions"
+process_bundle = "purpose-workflow-controls-records"
+training_bundle = "outcomes-agenda-delivery-assessment-followup"

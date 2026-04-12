@@ -13,8 +13,10 @@
 - The second milestone is now implemented as well: local retrieval can rebuild from SQLite, kernel objects cover task/decision/risk/person/agreement/milestone shapes, and query supports stronger filters plus timeline output.
 - The next operating milestone is now implemented too: machine-readable CLI responses, workflow/storage/portfolio manifest sections, artifact routing, and portfolio registration are available for non-code client projects.
 - Drive-synced projects can now describe `google-drive` as an adapter instead of pretending that storage provider is a project type, which keeps the kernel portable for future providers.
+- Formal document design is now a first-class Sula capability: adopted projects can carry reusable source-first structure bundles for schedule, proposal, report, process, and training documents instead of relying on one-off prompt instructions.
 - The next UX milestone is now implemented too: `onboard` provides a zero-memory interview flow that asks setup questions, explains what Sula will manage, and then applies adoption through the same kernel contract.
 - The next launch milestone is now implemented too: the public site exposes `/launch/`, a machine-readable launcher descriptor, and a downloadable `bootstrap.py` shim so startup no longer depends on guessing local commands.
+- The feedback-bundle lifecycle is now released in the Git-backed Sula 0.11.0 source state: adopted projects can capture reusable local Sula fixes as feedback bundles, and Sula Core can ingest, review, and release them through a central queue.
 
 ## Health
 
@@ -28,6 +30,8 @@
 - keep `sula-core` and `react-frontend-erpnext` profiles aligned with real usage
 - validate the new `generic-project` and `remove` flows against external canaries
 - validate portfolio registration, artifact routing, and `google-drive` local-sync behavior against the first real client-service workspace
+- validate the new formal-document bundles against the first real planning-heavy client workspace and confirm where Google Docs import needs richer tabular bridge defaults
+- validate the released feedback-bundle lifecycle through the first external adopted project and the first real Sula Core feedback item that flows through the queue end to end
 - turn the recorded vNext architecture into stronger adapter composition and better result quality over the new SQLite-backed retrieval path
 - maintain clear approval reporting so managed/scaffold boundaries remain obvious during onboarding
 - keep the public bootstrap contract aligned with real consumer behavior and protocol failures seen in live use
@@ -51,9 +55,13 @@
 - 2026-04-12: added [Add kernel object, query, and bundle contracts](docs/change-records/2026-04-12-add-kernel-object-query-and-bundle-contracts.md)
 - 2026-04-12: added [Add SQLite kernel cache, richer object extraction, and timeline query filters](docs/change-records/2026-04-12-add-sqlite-kernel-cache-richer-object-extraction-and-timeline-query-filters.md)
 - 2026-04-12: added [Add machine JSON interfaces, artifact routing, portfolio registry, and Google Drive local-sync contracts](docs/change-records/2026-04-12-add-machine-json-interfaces-artifact-routing-portfolio-registry-and-google-drive-local-sync-contracts.md)
+- 2026-04-12: added [Add formal document design bundles](docs/change-records/2026-04-12-add-formal-document-design-bundles.md)
 - 2026-04-12: added [Add guided onboarding and zero-memory setup flow](docs/change-records/2026-04-12-add-guided-onboarding-and-zero-memory-setup-flow.md)
 - 2026-04-12: added [Add site launch contract and canonical bootstrap shim](docs/change-records/2026-04-12-add-site-launch-contract-and-canonical-bootstrap-shim.md)
+- 2026-04-12: added [Add feedback bundles and Sula Core review workflow](docs/change-records/2026-04-12-add-feedback-bundles-and-core-review-workflow.md)
+- 2026-04-12: released [Sula 0.11.0 formal document workflows and feedback bundles](docs/releases/2026-04-12-release-sula-0-11-0-formal-document-workflows-and-feedback-bundles.md)
 
+- 2026-04-12: added release record [Release Sula 0.11.0 formal document workflows and feedback bundles](docs/releases/2026-04-12-release-sula-0-11-0-formal-document-workflows-and-feedback-bundles.md)
 ## Next Review
 
 - owner: Sula Core maintainers

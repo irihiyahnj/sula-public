@@ -5,7 +5,8 @@ from __future__ import annotations
 import argparse
 import csv
 from dataclasses import dataclass
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
+import difflib
 import hashlib
 import html
 import json
@@ -65,6 +66,10 @@ WORKFLOW_PACK_CHOICES = [
 ]
 STORAGE_PROVIDER_CHOICES = ["local-fs", "google-drive"]
 LANGUAGE_CHOICES = ["zh-CN", "en"]
+FEEDBACK_KIND_CHOICES = ["bug", "improvement", "docs", "policy", "regression"]
+FEEDBACK_SEVERITY_CHOICES = ["low", "medium", "high", "critical"]
+FEEDBACK_DECISION_CHOICES = ["triaged", "accepted", "deferred", "rejected", "released"]
+FEEDBACK_BUNDLE_SCHEMA_VERSION = 1
 PROVIDER_IMPORT_KIND_SPECS = {
     "google-doc": {
         "provider": "google-drive",
@@ -87,6 +92,41 @@ PROVIDER_IMPORT_KIND_SPECS = {
         "existing_suffixes": {".xlsx"},
         "source_suffixes": {".xlsx", ".csv", ".tsv", ".json"},
     },
+}
+FORMAL_DOCUMENT_GENRES = ("schedule", "proposal", "report", "process", "training")
+FORMAL_DOCUMENT_BUNDLE_DEFAULTS = {
+    "schedule": "monthly-gantt-dual-actions-raci",
+    "proposal": "problem-solution-workplan-raci",
+    "report": "executive-findings-actions",
+    "process": "purpose-workflow-controls-records",
+    "training": "outcomes-agenda-delivery-assessment-followup",
+}
+DOCUMENT_GENRE_BY_KIND = {
+    "schedule": "schedule",
+    "timeline": "schedule",
+    "calendar": "schedule",
+    "proposal": "proposal",
+    "plan": "proposal",
+    "report": "report",
+    "progress": "report",
+    "summary": "report",
+    "update": "report",
+    "process": "process",
+    "workflow": "process",
+    "procedure": "process",
+    "sop": "process",
+    "runbook": "process",
+    "training": "training",
+    "workshop": "training",
+    "enablement": "training",
+    "onboarding": "training",
+}
+DOCUMENT_TITLE_GENRE_KEYWORDS = {
+    "schedule": ("schedule", "timeline", "calendar", "roadmap", "排期", "日程", "进度表", "甘特"),
+    "proposal": ("proposal", "work plan", "workplan", "implementation plan", "方案", "计划", "实施方案"),
+    "report": ("report", "weekly update", "monthly update", "summary", "汇报", "报告", "周报", "月报", "总结"),
+    "process": ("process", "workflow", "procedure", "sop", "runbook", "流程", "机制", "作业指导"),
+    "training": ("training", "workshop", "enablement", "onboarding", "培训", "课件", "授课"),
 }
 
 MANIFEST_SPEC = {
@@ -165,6 +205,17 @@ OPTIONAL_MANIFEST_SPEC = {
         "interaction_locale": "string",
         "preserve_user_input_language": "bool",
     },
+    "document_design": {
+        "principles_path": "string",
+        "source_first": "bool",
+        "register_derived_artifacts": "bool",
+        "preferred_source_format": "string",
+        "schedule_bundle": "string",
+        "proposal_bundle": "string",
+        "report_bundle": "string",
+        "process_bundle": "string",
+        "training_bundle": "string",
+    },
 }
 
 EXISTENCE_WARNING_FIELDS = [
@@ -172,6 +223,7 @@ EXISTENCE_WARNING_FIELDS = [
     ("paths", "state_layer"),
     ("paths", "app_shell"),
     ("deploy", "workflow"),
+    ("document_design", "principles_path"),
 ]
 
 STATUS_REQUIRED_SECTIONS = [
@@ -386,6 +438,9 @@ class ProjectConfig:
     def language_setting(self, key: str, default):
         return self.data.get("language", {}).get(key, default)
 
+    def document_design_setting(self, key: str, default):
+        return self.data.get("document_design", {}).get(key, default)
+
     @property
     def workflow_pack(self) -> str:
         return str(self.workflow_setting("pack", default_workflow_pack(self.profile)))
@@ -431,6 +486,27 @@ class ProjectConfig:
     def interaction_locale(self) -> str:
         return normalize_locale(str(self.language_setting("interaction_locale", self.content_locale)))
 
+    @property
+    def document_design_principles_path(self) -> str:
+        return str(self.document_design_setting("principles_path", "docs/ops/document-design-principles.md"))
+
+    @property
+    def document_source_first(self) -> bool:
+        return bool(self.document_design_setting("source_first", True))
+
+    @property
+    def register_derived_artifacts(self) -> bool:
+        return bool(self.document_design_setting("register_derived_artifacts", True))
+
+    @property
+    def preferred_document_source_format(self) -> str:
+        return str(self.document_design_setting("preferred_source_format", "markdown"))
+
+    def document_bundle_for_genre(self, genre: str) -> str:
+        if genre not in FORMAL_DOCUMENT_BUNDLE_DEFAULTS:
+            return ""
+        return str(self.document_design_setting(f"{genre}_bundle", FORMAL_DOCUMENT_BUNDLE_DEFAULTS[genre]))
+
     def token_map(self) -> dict[str, str]:
         auth = self.data["auth"]
         tokens = {
@@ -475,6 +551,15 @@ class ProjectConfig:
             "PORTFOLIO_WORKSPACE": self.portfolio_setting("workspace", "personal"),
             "CONTENT_LOCALE": self.content_locale,
             "INTERACTION_LOCALE": self.interaction_locale,
+            "DOCUMENT_DESIGN_PRINCIPLES_PATH": self.document_design_principles_path,
+            "DOCUMENT_SOURCE_FIRST": str(self.document_source_first).lower(),
+            "DOCUMENT_REGISTER_DERIVED_ARTIFACTS": str(self.register_derived_artifacts).lower(),
+            "DOCUMENT_PREFERRED_SOURCE_FORMAT": self.preferred_document_source_format,
+            "SCHEDULE_BUNDLE": self.document_bundle_for_genre("schedule"),
+            "PROPOSAL_BUNDLE": self.document_bundle_for_genre("proposal"),
+            "REPORT_BUNDLE": self.document_bundle_for_genre("report"),
+            "PROCESS_BUNDLE": self.document_bundle_for_genre("process"),
+            "TRAINING_BUNDLE": self.document_bundle_for_genre("training"),
             "CURRENT_DATE": date.today().isoformat(),
             "KERNEL_ADAPTERS": ", ".join(self.kernel_adapters()),
             "GIT_MODE": "enabled" if is_git_repository(self.root) else "not-required",
@@ -866,7 +951,11 @@ def parse_args() -> argparse.Namespace:
     artifact_sub = artifact_cmd.add_subparsers(dest="artifact_command", required=True)
     artifact_create_cmd = artifact_sub.add_parser("create", help="Create a managed project artifact in the workflow slot")
     add_project_root_arg(artifact_create_cmd)
-    artifact_create_cmd.add_argument("--kind", required=True, help="Artifact kind such as agreement, report, invoice, schedule")
+    artifact_create_cmd.add_argument(
+        "--kind",
+        required=True,
+        help="Artifact kind such as agreement, proposal, report, process, training, invoice, or schedule",
+    )
     artifact_create_cmd.add_argument("--title", required=True)
     artifact_create_cmd.add_argument("--slug")
     artifact_create_cmd.add_argument("--slot")
@@ -988,6 +1077,45 @@ def parse_args() -> argparse.Namespace:
     portfolio_query_cmd.add_argument("--timeline", action="store_true")
     portfolio_query_cmd.add_argument("--limit", type=int, default=20)
     portfolio_query_cmd.add_argument("--json", action="store_true", help="Print JSON instead of human-readable output")
+
+    feedback_cmd = sub.add_parser("feedback", help="Capture and review reusable feedback between adopted projects and Sula Core")
+    feedback_sub = feedback_cmd.add_subparsers(dest="feedback_command", required=True)
+
+    feedback_capture_cmd = feedback_sub.add_parser("capture", help="Capture local managed-file feedback from an adopted project")
+    add_project_root_arg(feedback_capture_cmd)
+    feedback_capture_cmd.add_argument("--title", required=True)
+    feedback_capture_cmd.add_argument("--summary", required=True)
+    feedback_capture_cmd.add_argument("--kind", choices=FEEDBACK_KIND_CHOICES, default="improvement")
+    feedback_capture_cmd.add_argument("--severity", choices=FEEDBACK_SEVERITY_CHOICES, default="medium")
+    feedback_capture_cmd.add_argument("--shared-rationale", required=True)
+    feedback_capture_cmd.add_argument("--local-fix-summary", default="")
+    feedback_capture_cmd.add_argument("--requested-outcome", default="")
+    feedback_capture_cmd.add_argument("--json", action="store_true", help="Print JSON instead of human-readable output")
+
+    feedback_ingest_cmd = feedback_sub.add_parser("ingest", help="Ingest a feedback bundle into Sula Core review state")
+    add_project_root_arg(feedback_ingest_cmd)
+    feedback_ingest_cmd.add_argument("--bundle-path", required=True, help="Path to a feedback bundle directory or zip archive")
+    feedback_ingest_cmd.add_argument("--json", action="store_true", help="Print JSON instead of human-readable output")
+
+    feedback_list_cmd = feedback_sub.add_parser("list", help="List feedback tracked by Sula Core")
+    add_project_root_arg(feedback_list_cmd)
+    feedback_list_cmd.add_argument("--status", choices=["open", *FEEDBACK_DECISION_CHOICES])
+    feedback_list_cmd.add_argument("--json", action="store_true", help="Print JSON instead of human-readable output")
+
+    feedback_show_cmd = feedback_sub.add_parser("show", help="Show one feedback bundle tracked by Sula Core")
+    add_project_root_arg(feedback_show_cmd)
+    feedback_show_cmd.add_argument("--feedback-id", required=True)
+    feedback_show_cmd.add_argument("--json", action="store_true", help="Print JSON instead of human-readable output")
+
+    feedback_decide_cmd = feedback_sub.add_parser("decide", help="Record a Sula Core review decision for one feedback item")
+    add_project_root_arg(feedback_decide_cmd)
+    feedback_decide_cmd.add_argument("--feedback-id", required=True)
+    feedback_decide_cmd.add_argument("--decision", required=True, choices=FEEDBACK_DECISION_CHOICES)
+    feedback_decide_cmd.add_argument("--note", required=True)
+    feedback_decide_cmd.add_argument("--target-version")
+    feedback_decide_cmd.add_argument("--linked-change-record")
+    feedback_decide_cmd.add_argument("--linked-release")
+    feedback_decide_cmd.add_argument("--json", action="store_true", help="Print JSON instead of human-readable output")
 
     return parser.parse_args()
 
@@ -1461,8 +1589,18 @@ def workflow_pack_definition(pack: str) -> dict[str, object]:
                 "invoice": "finance",
                 "report": "delivery",
                 "schedule": "planning",
+                "timeline": "planning",
+                "proposal": "planning",
+                "plan": "planning",
                 "brief": "planning",
+                "process": "planning",
+                "workflow": "planning",
+                "procedure": "planning",
+                "sop": "planning",
+                "runbook": "planning",
                 "deliverable": "delivery",
+                "training": "delivery",
+                "workshop": "delivery",
                 "note": "intake",
             },
         },
@@ -1475,9 +1613,19 @@ def workflow_pack_definition(pack: str) -> dict[str, object]:
                 "invoice": "finance",
                 "report": "delivery",
                 "schedule": "planning",
+                "timeline": "planning",
+                "proposal": "planning",
+                "plan": "planning",
                 "brief": "planning",
+                "process": "planning",
+                "workflow": "planning",
+                "procedure": "planning",
+                "sop": "planning",
+                "runbook": "planning",
                 "deliverable": "delivery",
                 "progress": "delivery",
+                "training": "delivery",
+                "workshop": "delivery",
                 "note": "intake",
             },
         },
@@ -1490,11 +1638,21 @@ def workflow_pack_definition(pack: str) -> dict[str, object]:
                 "invoice": "finance",
                 "report": "delivery",
                 "schedule": "planning",
+                "timeline": "planning",
+                "proposal": "planning",
+                "plan": "planning",
                 "brief": "planning",
+                "process": "planning",
+                "workflow": "planning",
+                "procedure": "planning",
+                "sop": "planning",
+                "runbook": "planning",
                 "shot-list": "production",
                 "progress": "production",
                 "daily-log": "production",
                 "deliverable": "delivery",
+                "training": "delivery",
+                "workshop": "delivery",
                 "note": "intake",
             },
         },
@@ -1503,8 +1661,18 @@ def workflow_pack_definition(pack: str) -> dict[str, object]:
             "artifact_slots": {
                 "report": "delivery",
                 "schedule": "planning",
+                "timeline": "planning",
+                "proposal": "planning",
+                "plan": "planning",
                 "brief": "planning",
+                "process": "planning",
+                "workflow": "planning",
+                "procedure": "planning",
+                "sop": "planning",
+                "runbook": "planning",
                 "deliverable": "delivery",
+                "training": "delivery",
+                "workshop": "delivery",
                 "note": "intake",
             },
         },
@@ -1512,6 +1680,17 @@ def workflow_pack_definition(pack: str) -> dict[str, object]:
             "slots": ["design", "operations", "releases", "archive"],
             "artifact_slots": {
                 "report": "operations",
+                "schedule": "operations",
+                "timeline": "operations",
+                "proposal": "design",
+                "plan": "design",
+                "process": "operations",
+                "workflow": "operations",
+                "procedure": "operations",
+                "sop": "operations",
+                "runbook": "operations",
+                "training": "operations",
+                "workshop": "operations",
                 "release": "releases",
                 "note": "design",
             },
@@ -1591,6 +1770,9 @@ def main() -> int:
 
     if args.command == "portfolio":
         return handle_portfolio_command(args)
+
+    if args.command == "feedback":
+        return handle_feedback_command(args)
 
     assert project_root is not None
     config = load_manifest(project_root)
@@ -1704,6 +1886,7 @@ def build_manifest(args: argparse.Namespace) -> dict:
             "storage": storage,
             "portfolio": portfolio,
             "language": language,
+            "document_design": default_document_design_config(),
         }
     if profile == "generic-project":
         return {
@@ -1755,6 +1938,7 @@ def build_manifest(args: argparse.Namespace) -> dict:
             "storage": storage,
             "portfolio": portfolio,
             "language": language,
+            "document_design": default_document_design_config(),
         }
     return {
         "project": {
@@ -1805,6 +1989,7 @@ def build_manifest(args: argparse.Namespace) -> dict:
         "storage": storage,
         "portfolio": portfolio,
         "language": language,
+        "document_design": default_document_design_config(),
     }
 
 
@@ -1824,6 +2009,7 @@ def render_manifest(manifest: dict) -> str:
         "storage",
         "portfolio",
         "language",
+        "document_design",
     ]:
         if section_name not in manifest:
             continue
@@ -1867,6 +2053,20 @@ def manifest_language_config(args: argparse.Namespace) -> dict:
         "content_locale": content_locale,
         "interaction_locale": normalize_locale(getattr(args, "interaction_locale", None) or content_locale),
         "preserve_user_input_language": True,
+    }
+
+
+def default_document_design_config() -> dict:
+    return {
+        "principles_path": "docs/ops/document-design-principles.md",
+        "source_first": True,
+        "register_derived_artifacts": True,
+        "preferred_source_format": "markdown",
+        "schedule_bundle": FORMAL_DOCUMENT_BUNDLE_DEFAULTS["schedule"],
+        "proposal_bundle": FORMAL_DOCUMENT_BUNDLE_DEFAULTS["proposal"],
+        "report_bundle": FORMAL_DOCUMENT_BUNDLE_DEFAULTS["report"],
+        "process_bundle": FORMAL_DOCUMENT_BUNDLE_DEFAULTS["process"],
+        "training_bundle": FORMAL_DOCUMENT_BUNDLE_DEFAULTS["training"],
     }
 
 
@@ -2452,6 +2652,7 @@ def build_generic_project_manifest(
         "storage": manifest_storage_config(args),
         "portfolio": manifest_portfolio_config(args),
         "language": language,
+        "document_design": default_document_design_config(),
     }
 
 
@@ -2513,6 +2714,7 @@ def build_sula_core_manifest(project_root: Path, args: argparse.Namespace, detec
         "storage": manifest_storage_config(args),
         "portfolio": manifest_portfolio_config(args),
         "language": language,
+        "document_design": default_document_design_config(),
     }
 
 
@@ -2592,6 +2794,7 @@ def build_react_erpnext_manifest(
         "storage": manifest_storage_config(args),
         "portfolio": manifest_portfolio_config(args),
         "language": language,
+        "document_design": default_document_design_config(),
     }
 
 
@@ -3844,7 +4047,7 @@ def relative_link(from_path: Path, to_path: Path) -> str:
     return os.path.relpath(to_path, start=from_path.parent).replace(os.sep, "/")
 
 
-def doctor(config: ProjectConfig, *, strict: bool, json_mode: bool = False, emit_output: bool = True) -> int:
+def inspect_doctor_state(config: ProjectConfig, *, strict: bool) -> dict[str, object]:
     missing_files: list[str] = []
     drifted_files: list[str] = []
     placeholder_files: list[str] = []
@@ -3866,6 +4069,30 @@ def doctor(config: ProjectConfig, *, strict: bool, json_mode: bool = False, emit
             placeholder_files.append(str(action.output_path))
 
     lock_issues.extend(check_lockfile(config))
+    has_errors = bool(missing_files or drifted_files or placeholder_files or memory_errors or lock_issues or kernel_errors)
+    passed = not has_errors and not (strict and warnings)
+    return {
+        "missing_files": missing_files,
+        "drifted_files": drifted_files,
+        "placeholder_files": placeholder_files,
+        "memory_errors": memory_errors,
+        "lock_issues": lock_issues,
+        "kernel_errors": kernel_errors,
+        "warnings": warnings,
+        "passed": passed,
+        "has_errors": has_errors,
+    }
+
+
+def doctor(config: ProjectConfig, *, strict: bool, json_mode: bool = False, emit_output: bool = True) -> int:
+    report = inspect_doctor_state(config, strict=strict)
+    missing_files = report["missing_files"]
+    drifted_files = report["drifted_files"]
+    placeholder_files = report["placeholder_files"]
+    memory_errors = report["memory_errors"]
+    lock_issues = report["lock_issues"]
+    kernel_errors = report["kernel_errors"]
+    warnings = report["warnings"]
 
     if emit_output and not json_mode and missing_files:
         print("Missing managed files:")
@@ -3896,8 +4123,7 @@ def doctor(config: ProjectConfig, *, strict: bool, json_mode: bool = False, emit
         for item in warnings:
             print(f"  - {item}")
 
-    has_errors = bool(missing_files or drifted_files or placeholder_files or memory_errors or lock_issues or kernel_errors)
-    passed = not has_errors and not (strict and warnings)
+    passed = bool(report["passed"])
     if json_mode and emit_output:
         emit_json(
             {
@@ -3930,7 +4156,10 @@ def doctor(config: ProjectConfig, *, strict: bool, json_mode: bool = False, emit
 def collect_doctor_warnings(config: ProjectConfig) -> list[str]:
     warnings: list[str] = []
     for section, key in EXISTENCE_WARNING_FIELDS:
-        relative_value = config.data[section][key]
+        section_data = config.data.get(section, {})
+        if not isinstance(section_data, dict) or key not in section_data:
+            continue
+        relative_value = str(section_data[key])
         if relative_value.strip().lower() in NON_PATH_SENTINELS:
             continue
         target = config.root / relative_value
@@ -7283,7 +7512,493 @@ def register_artifact_entry(
     return entry
 
 
-def render_artifact_template(
+def infer_document_genre(artifact_kind: str, title: str) -> str:
+    lowered_kind = artifact_kind.strip().lower()
+    if lowered_kind in DOCUMENT_GENRE_BY_KIND:
+        return DOCUMENT_GENRE_BY_KIND[lowered_kind]
+    haystack = f"{artifact_kind} {title}".casefold()
+    for genre, keywords in DOCUMENT_TITLE_GENRE_KEYWORDS.items():
+        if any(keyword.casefold() in haystack for keyword in keywords):
+            return genre
+    return ""
+
+
+def markdown_table(headers: list[str], rows: list[list[str]]) -> list[str]:
+    header_line = "| " + " | ".join(headers) + " |"
+    separator_line = "| " + " | ".join("---" for _ in headers) + " |"
+    lines = [header_line, separator_line]
+    for row in rows:
+        lines.append("| " + " | ".join(row) + " |")
+    return lines
+
+
+def artifact_metadata_lines(
+    config: ProjectConfig,
+    *,
+    artifact_kind: str,
+    record_date: str,
+    slot: str,
+    document_genre: str = "",
+    bundle_name: str = "",
+) -> list[str]:
+    zh = locale_family(config.content_locale) == "zh"
+    lines = [
+        "## 元数据" if zh else "## Metadata",
+        "",
+        f"- {'日期' if zh else 'date'}: {record_date}",
+        f"- {'类型' if zh else 'kind'}: {artifact_kind}",
+        f"- {'项目' if zh else 'project'}: {config.data['project']['name']}",
+        f"- {'工作流包' if zh else 'workflow pack'}: {config.workflow_pack}",
+        f"- {'工作流槽位' if zh else 'workflow slot'}: {slot}",
+        f"- {'存储提供方' if zh else 'storage provider'}: {config.storage_provider}",
+    ]
+    if document_genre:
+        lines.append(f"- {'文档体裁' if zh else 'document genre'}: {document_genre}")
+    if bundle_name:
+        lines.append(f"- {'结构模板' if zh else 'document bundle'}: {bundle_name}")
+    return lines
+
+
+def summary_section_lines(summary: str, *, zh: bool) -> list[str]:
+    return [
+        "## 摘要" if zh else "## Summary",
+        "",
+        summary,
+    ]
+
+
+def schedule_mermaid_lines(title: str, record_date: str, *, zh: bool) -> list[str]:
+    try:
+        start_date = date.fromisoformat(record_date)
+    except ValueError:
+        start_date = date.today()
+    second = (start_date + timedelta(days=3)).isoformat()
+    third = (start_date + timedelta(days=6)).isoformat()
+    return [
+        "```mermaid",
+        "gantt",
+        f"    title {title}",
+        "    dateFormat  YYYY-MM-DD",
+        f"    section {'对方' if zh else 'Counterparty'}",
+        f"    {'需求确认' if zh else 'Requirements alignment'} :cp_align, {start_date.isoformat()}, 3d",
+        f"    {'素材与审批' if zh else 'Assets and approvals'} :cp_assets, {second}, 3d",
+        f"    section {'我方' if zh else 'Internal'}",
+        f"    {'排期固化' if zh else 'Schedule lock'} :internal_lock, {start_date.isoformat()}, 2d",
+        f"    {'执行与跟进' if zh else 'Execution follow-through'} :internal_execute, {third}, 4d",
+        "```",
+    ]
+
+
+def render_schedule_artifact_template(
+    config: ProjectConfig,
+    artifact_kind: str,
+    title: str,
+    summary: str,
+    record_date: str,
+    slot: str,
+    bundle_name: str,
+) -> str:
+    zh = locale_family(config.content_locale) == "zh"
+    lines = [
+        f"# {title}",
+        "",
+        *artifact_metadata_lines(
+            config,
+            artifact_kind=artifact_kind,
+            record_date=record_date,
+            slot=slot,
+            document_genre="schedule",
+            bundle_name=bundle_name,
+        ),
+        "",
+        *summary_section_lines(summary, zh=zh),
+        "",
+        "## 月度总览" if zh else "## Monthly Overview",
+        "",
+        *markdown_table(
+            ["阶段", "时间范围", "负责人", "关键里程碑", "依赖", "状态"] if zh else ["Phase", "Date Range", "Owner", "Milestone", "Dependency", "Status"],
+            [
+                ["启动与对齐", f"{record_date} -> {record_date}", "_负责人_", "_确认目标与边界_", "_无_", "_未开始_"] if zh else [f"Kickoff and alignment", f"{record_date} -> {record_date}", "_owner_", "_confirm goals and boundaries_", "_none_", "_not started_"],
+                ["执行准备", "YYYY-MM-DD -> YYYY-MM-DD", "_负责人_", "_锁定资源、口径与审批_", "_启动确认_", "_未开始_"] if zh else [f"Execution preparation", "YYYY-MM-DD -> YYYY-MM-DD", "_owner_", "_lock resources, narrative, and approvals_", "_kickoff alignment_", "_not started_"],
+                ["执行与复盘", "YYYY-MM-DD -> YYYY-MM-DD", "_负责人_", "_完成交付与复盘_", "_准备完成_", "_未开始_"] if zh else [f"Execution and review", "YYYY-MM-DD -> YYYY-MM-DD", "_owner_", "_complete delivery and review_", "_preparation complete_", "_not started_"],
+            ],
+        ),
+        "",
+        "## 角色拆分甘特图" if zh else "## Role-split Gantt",
+        "",
+        *markdown_table(
+            ["角色", "开始", "结束", "关键动作", "依赖", "输出"] if zh else ["Role", "Start", "End", "Key Action", "Dependency", "Output"],
+            [
+                ["对方", record_date, "YYYY-MM-DD", "_确认需求、提供素材、完成审批_", "_项目启动_", "_确认后的输入_"] if zh else ["Counterparty", record_date, "YYYY-MM-DD", "_align requirements, provide assets, close approvals_", "_project kickoff_", "_approved inputs_"],
+                ["我方", record_date, "YYYY-MM-DD", "_固化排期、推进执行、组织复盘_", "_对方输入齐备_", "_交付与复盘纪要_"] if zh else ["Internal", record_date, "YYYY-MM-DD", "_lock schedule, drive execution, run review_", "_counterparty inputs ready_", "_delivery and review note_"],
+            ],
+        ),
+        "",
+        *schedule_mermaid_lines(title, record_date, zh=zh),
+        "",
+        "## 同仁动作表" if zh else "## Counterparty Action Table",
+        "",
+        *markdown_table(
+            ["日期", "角色", "动作", "依赖", "交付物", "状态"] if zh else ["Date", "Role", "Action", "Dependency", "Deliverable", "Status"],
+            [
+                [record_date, "_对接人_", "_确认目标、范围与关键约束_", "_项目启动_", "_确认口径_", "_未开始_"] if zh else [record_date, "_lead_", "_confirm goals, scope, and key constraints_", "_project kickoff_", "_aligned brief_", "_not started_"],
+                ["YYYY-MM-DD", "_审批人_", "_完成素材、预算或法务审批_", "_确认口径_", "_审批结果_", "_未开始_"] if zh else ["YYYY-MM-DD", "_approver_", "_complete asset, budget, or legal approvals_", "_aligned brief_", "_approval result_", "_not started_"],
+            ],
+        ),
+        "",
+        "## 我方动作表" if zh else "## Internal Action Table",
+        "",
+        *markdown_table(
+            ["日期", "角色", "动作", "依赖", "交付物", "状态"] if zh else ["Date", "Role", "Action", "Dependency", "Deliverable", "Status"],
+            [
+                [record_date, "_项目经理_", "_固化排期、节奏与责任人_", "_目标已确认_", "_可执行排期_", "_未开始_"] if zh else [record_date, "_project manager_", "_lock schedule, pace, and ownership_", "_goals aligned_", "_executable schedule_", "_not started_"],
+                ["YYYY-MM-DD", "_执行负责人_", "_推进执行、收口风险并同步进展_", "_排期已锁定_", "_进展同步_", "_未开始_"] if zh else ["YYYY-MM-DD", "_execution owner_", "_drive execution, close risks, and share progress_", "_schedule locked_", "_progress update_", "_not started_"],
+            ],
+        ),
+        "",
+        "## 角色责任矩阵" if zh else "## Responsibility Matrix",
+        "",
+        *markdown_table(
+            ["工作项", "负责 R", "签核 A", "协作 C", "知会 I", "完成定义"] if zh else ["Work Item", "Responsible R", "Accountable A", "Consulted C", "Informed I", "Done Definition"],
+            [
+                ["目标与范围确认", "_我方 PM_", "_对方负责人_", "_核心执行人_", "_相关干系人_", "_目标、边界、日期确认_"] if zh else ["Goal and scope alignment", "_internal PM_", "_counterparty lead_", "_core executors_", "_stakeholders_", "_goals, boundaries, and dates confirmed_"],
+                ["执行推进", "_执行负责人_", "_我方 PM_", "_对方接口人_", "_相关干系人_", "_节点完成且风险同步_"] if zh else ["Execution delivery", "_execution owner_", "_internal PM_", "_counterparty contact_", "_stakeholders_", "_milestones completed and risks synced_"],
+            ],
+        ),
+        "",
+    ]
+    return "\n".join(lines)
+
+
+def render_proposal_artifact_template(
+    config: ProjectConfig,
+    artifact_kind: str,
+    title: str,
+    summary: str,
+    record_date: str,
+    slot: str,
+    bundle_name: str,
+) -> str:
+    zh = locale_family(config.content_locale) == "zh"
+    lines = [
+        f"# {title}",
+        "",
+        *artifact_metadata_lines(
+            config,
+            artifact_kind=artifact_kind,
+            record_date=record_date,
+            slot=slot,
+            document_genre="proposal",
+            bundle_name=bundle_name,
+        ),
+        "",
+        *summary_section_lines(summary, zh=zh),
+        "",
+        "## 执行摘要" if zh else "## Executive Summary",
+        "",
+        "- _用一段话写清问题、目标与建议方案_"
+        if zh
+        else "- _summarize the problem, target outcome, and recommended approach in one paragraph_",
+        "",
+        "## 目标与范围" if zh else "## Objectives And Scope",
+        "",
+        *markdown_table(
+            ["项", "内容"] if zh else ["Item", "Details"],
+            [
+                ["业务目标", "_写清业务目标_"] if zh else ["Business objective", "_describe the business objective_"],
+                ["交付范围", "_写清本次包含内容_"] if zh else ["In scope", "_define what this proposal includes_"],
+                ["不在范围", "_写清明确不做的部分_"] if zh else ["Out of scope", "_define what is explicitly excluded_"],
+            ],
+        ),
+        "",
+        "## 现状与约束" if zh else "## Current State And Constraints",
+        "",
+        "- _说明当前状态、关键约束、必须兼容的前提_"
+        if zh
+        else "- _capture the current state, critical constraints, and non-negotiable requirements_",
+        "",
+        "## 建议方案" if zh else "## Proposed Approach",
+        "",
+        "1. _方案骨架_"
+        if zh
+        else "1. _approach outline_",
+        "2. _关键工作包_"
+        if zh
+        else "2. _major work packages_",
+        "3. _成功判定_"
+        if zh
+        else "3. _success criteria_",
+        "",
+        "## 里程碑与工作计划" if zh else "## Milestones And Work Plan",
+        "",
+        *markdown_table(
+            ["里程碑", "时间", "负责人", "完成定义"] if zh else ["Milestone", "Timing", "Owner", "Done Definition"],
+            [
+                ["方案确认", record_date, "_负责人_", "_方案获批_"] if zh else ["Proposal approval", record_date, "_owner_", "_proposal approved_"],
+                ["执行准备", "YYYY-MM-DD", "_负责人_", "_资源与依赖齐备_"] if zh else ["Execution readiness", "YYYY-MM-DD", "_owner_", "_resources and dependencies ready_"],
+                ["结果验收", "YYYY-MM-DD", "_负责人_", "_验收通过_"] if zh else ["Outcome acceptance", "YYYY-MM-DD", "_owner_", "_acceptance complete_"],
+            ],
+        ),
+        "",
+        "## 责任矩阵" if zh else "## Responsibility Matrix",
+        "",
+        *markdown_table(
+            ["工作包", "负责 R", "签核 A", "协作 C", "知会 I"] if zh else ["Work Package", "Responsible R", "Accountable A", "Consulted C", "Informed I"],
+            [
+                ["方案定稿", "_负责人_", "_决策人_", "_顾问_", "_相关方_"] if zh else ["Finalize proposal", "_owner_", "_decision maker_", "_advisors_", "_stakeholders_"],
+                ["执行落地", "_执行人_", "_负责人_", "_接口人_", "_相关方_"] if zh else ["Execution", "_executor_", "_owner_", "_counterparts_", "_stakeholders_"],
+            ],
+        ),
+        "",
+        "## 风险与待决策事项" if zh else "## Risks And Decisions",
+        "",
+        "- _列出关键风险、依赖和需要拍板的问题_"
+        if zh
+        else "- _list the main risks, dependencies, and open decisions_",
+        "",
+    ]
+    return "\n".join(lines)
+
+
+def render_report_artifact_template(
+    config: ProjectConfig,
+    artifact_kind: str,
+    title: str,
+    summary: str,
+    record_date: str,
+    slot: str,
+    bundle_name: str,
+) -> str:
+    zh = locale_family(config.content_locale) == "zh"
+    lines = [
+        f"# {title}",
+        "",
+        *artifact_metadata_lines(
+            config,
+            artifact_kind=artifact_kind,
+            record_date=record_date,
+            slot=slot,
+            document_genre="report",
+            bundle_name=bundle_name,
+        ),
+        "",
+        *summary_section_lines(summary, zh=zh),
+        "",
+        "## 执行摘要" if zh else "## Executive Summary",
+        "",
+        "- _先给出结论，再给证据和动作_"
+        if zh
+        else "- _lead with the conclusion, then support it with evidence and actions_",
+        "",
+        "## 背景与范围" if zh else "## Background And Scope",
+        "",
+        "- _说明本次汇报覆盖的周期、对象和范围_"
+        if zh
+        else "- _define the reporting period, audience, and scope_",
+        "",
+        "## 方法与证据" if zh else "## Method And Evidence",
+        "",
+        *markdown_table(
+            ["来源", "内容", "可信度"] if zh else ["Source", "Evidence", "Confidence"],
+            [
+                ["_数据源 / 访谈 / 观察_", "_写清证据内容_", "_高 / 中 / 低_"] if zh else ["_data / interviews / observation_", "_describe the evidence_", "_high / medium / low_"],
+            ],
+        ),
+        "",
+        "## 关键发现" if zh else "## Key Findings",
+        "",
+        "1. _发现一_"
+        if zh
+        else "1. _finding one_",
+        "2. _发现二_"
+        if zh
+        else "2. _finding two_",
+        "3. _发现三_"
+        if zh
+        else "3. _finding three_",
+        "",
+        "## 进展与风险" if zh else "## Progress And Risks",
+        "",
+        *markdown_table(
+            ["主题", "当前状态", "风险", "缓解动作"] if zh else ["Theme", "Current Status", "Risk", "Mitigation"],
+            [
+                ["_主题_", "_写状态_", "_写风险_", "_写缓解动作_"] if zh else ["_theme_", "_state current status_", "_state risk_", "_state mitigation_"],
+            ],
+        ),
+        "",
+        "## 决策与请求" if zh else "## Decisions And Requests",
+        "",
+        "- _写需要确认的决策、支持或资源_"
+        if zh
+        else "- _capture the decisions, support, or resources needed_",
+        "",
+        "## 下一步动作" if zh else "## Next Actions",
+        "",
+        *markdown_table(
+            ["动作", "负责人", "截止日期", "完成定义"] if zh else ["Action", "Owner", "Due Date", "Done Definition"],
+            [
+                ["_下一步动作_", "_负责人_", "YYYY-MM-DD", "_写完成定义_"] if zh else ["_next action_", "_owner_", "YYYY-MM-DD", "_define done_"],
+            ],
+        ),
+        "",
+    ]
+    return "\n".join(lines)
+
+
+def render_process_artifact_template(
+    config: ProjectConfig,
+    artifact_kind: str,
+    title: str,
+    summary: str,
+    record_date: str,
+    slot: str,
+    bundle_name: str,
+) -> str:
+    zh = locale_family(config.content_locale) == "zh"
+    lines = [
+        f"# {title}",
+        "",
+        *artifact_metadata_lines(
+            config,
+            artifact_kind=artifact_kind,
+            record_date=record_date,
+            slot=slot,
+            document_genre="process",
+            bundle_name=bundle_name,
+        ),
+        "",
+        *summary_section_lines(summary, zh=zh),
+        "",
+        "## 目的与适用范围" if zh else "## Purpose And Scope",
+        "",
+        "- _说明这个流程解决什么问题，适用于哪些场景_"
+        if zh
+        else "- _define what this process solves and when it applies_",
+        "",
+        "## 角色与输入" if zh else "## Roles And Inputs",
+        "",
+        *markdown_table(
+            ["角色", "职责", "关键输入"] if zh else ["Role", "Responsibility", "Key Inputs"],
+            [
+                ["_角色_", "_职责_", "_输入_"] if zh else ["_role_", "_responsibility_", "_input_"],
+            ],
+        ),
+        "",
+        "## 流程步骤" if zh else "## Workflow Steps",
+        "",
+        *markdown_table(
+            ["步骤", "触发条件", "动作", "输出"] if zh else ["Step", "Trigger", "Action", "Output"],
+            [
+                ["1", "_触发条件_", "_执行动作_", "_输出_"] if zh else ["1", "_trigger_", "_action_", "_output_"],
+                ["2", "_触发条件_", "_执行动作_", "_输出_"] if zh else ["2", "_trigger_", "_action_", "_output_"],
+                ["3", "_触发条件_", "_执行动作_", "_输出_"] if zh else ["3", "_trigger_", "_action_", "_output_"],
+            ],
+        ),
+        "",
+        "## 控制点与例外处理" if zh else "## Controls And Exceptions",
+        "",
+        "- _写清审批点、升级条件、失败回退和异常路径_"
+        if zh
+        else "- _document approvals, escalation rules, rollback, and exception paths_",
+        "",
+        "## 产物与记录" if zh else "## Artifacts And Records",
+        "",
+        *markdown_table(
+            ["产物", "维护方式", "存放位置"] if zh else ["Artifact", "Maintenance Rule", "Location"],
+            [
+                ["_源文件_", "_持续维护_", "_项目路径_"] if zh else ["_source file_", "_maintain continuously_", "_project path_"],
+                ["_派生成品_", "_按需物化并登记_", "_artifact catalog_"] if zh else ["_derived deliverable_", "_materialize as needed and register_", "_artifact catalog_"],
+            ],
+        ),
+        "",
+        "## 指标与复盘" if zh else "## Metrics And Review",
+        "",
+        "- _定义衡量标准、复盘频率和改进责任人_"
+        if zh
+        else "- _define metrics, review cadence, and improvement ownership_",
+        "",
+    ]
+    return "\n".join(lines)
+
+
+def render_training_artifact_template(
+    config: ProjectConfig,
+    artifact_kind: str,
+    title: str,
+    summary: str,
+    record_date: str,
+    slot: str,
+    bundle_name: str,
+) -> str:
+    zh = locale_family(config.content_locale) == "zh"
+    lines = [
+        f"# {title}",
+        "",
+        *artifact_metadata_lines(
+            config,
+            artifact_kind=artifact_kind,
+            record_date=record_date,
+            slot=slot,
+            document_genre="training",
+            bundle_name=bundle_name,
+        ),
+        "",
+        *summary_section_lines(summary, zh=zh),
+        "",
+        "## 受众与学习目标" if zh else "## Audience And Outcomes",
+        "",
+        *markdown_table(
+            ["受众", "起点", "目标结果"] if zh else ["Audience", "Starting Point", "Target Outcome"],
+            [
+                ["_对象_", "_现状_", "_培训后应达到的结果_"] if zh else ["_audience_", "_current baseline_", "_expected outcome after training_"],
+            ],
+        ),
+        "",
+        "## 议程总览" if zh else "## Agenda Overview",
+        "",
+        *markdown_table(
+            ["模块", "时长", "目标"] if zh else ["Module", "Duration", "Objective"],
+            [
+                ["_模块一_", "_30 min_", "_写本模块目标_"] if zh else ["_module one_", "_30 min_", "_define the module objective_"],
+                ["_模块二_", "_45 min_", "_写本模块目标_"] if zh else ["_module two_", "_45 min_", "_define the module objective_"],
+            ],
+        ),
+        "",
+        "## 课前准备与材料" if zh else "## Preparation And Materials",
+        "",
+        "- _列出参训前提、材料、环境和负责人_"
+        if zh
+        else "- _list prerequisites, materials, environment, and owners_",
+        "",
+        "## 课程执行方案" if zh else "## Session Plan",
+        "",
+        *markdown_table(
+            ["时间段", "讲授内容", "形式", "负责人"] if zh else ["Time Block", "Content", "Format", "Owner"],
+            [
+                ["_00:00-00:30_", "_内容_", "_讲解 / 演示 / 练习_", "_负责人_"] if zh else ["_00:00-00:30_", "_content_", "_lecture / demo / exercise_", "_owner_"],
+            ],
+        ),
+        "",
+        "## 练习与评估" if zh else "## Exercises And Assessment",
+        "",
+        "- _说明练习题、通过标准、评估方式和补救动作_"
+        if zh
+        else "- _document exercises, pass criteria, evaluation method, and remediation_",
+        "",
+        "## 课后跟进与留痕" if zh else "## Follow-up And Records",
+        "",
+        *markdown_table(
+            ["事项", "负责人", "截止日期", "记录位置"] if zh else ["Item", "Owner", "Due Date", "Record Location"],
+            [
+                ["_课后动作_", "_负责人_", "YYYY-MM-DD", "_记录路径_"] if zh else ["_follow-up action_", "_owner_", "YYYY-MM-DD", "_record path_"],
+            ],
+        ),
+        "",
+    ]
+    return "\n".join(lines)
+
+
+def render_generic_artifact_template(
     config: ProjectConfig,
     artifact_kind: str,
     title: str,
@@ -7295,18 +8010,14 @@ def render_artifact_template(
     lines = [
         f"# {title}",
         "",
-        "## 元数据" if zh else "## Metadata",
+        *artifact_metadata_lines(
+            config,
+            artifact_kind=artifact_kind,
+            record_date=record_date,
+            slot=slot,
+        ),
         "",
-        f"- {'日期' if zh else 'date'}: {record_date}",
-        f"- {'类型' if zh else 'kind'}: {artifact_kind}",
-        f"- {'项目' if zh else 'project'}: {config.data['project']['name']}",
-        f"- {'工作流包' if zh else 'workflow pack'}: {config.workflow_pack}",
-        f"- {'工作流槽位' if zh else 'workflow slot'}: {slot}",
-        f"- {'存储提供方' if zh else 'storage provider'}: {config.storage_provider}",
-        "",
-        "## 摘要" if zh else "## Summary",
-        "",
-        summary,
+        *summary_section_lines(summary, zh=zh),
         "",
         "## 详情" if zh else "## Details",
         "",
@@ -7314,6 +8025,29 @@ def render_artifact_template(
         "",
     ]
     return "\n".join(lines)
+
+
+def render_artifact_template(
+    config: ProjectConfig,
+    artifact_kind: str,
+    title: str,
+    summary: str,
+    record_date: str,
+    slot: str,
+) -> str:
+    document_genre = infer_document_genre(artifact_kind, title)
+    bundle_name = config.document_bundle_for_genre(document_genre) if document_genre else ""
+    if document_genre == "schedule":
+        return render_schedule_artifact_template(config, artifact_kind, title, summary, record_date, slot, bundle_name)
+    if document_genre == "proposal":
+        return render_proposal_artifact_template(config, artifact_kind, title, summary, record_date, slot, bundle_name)
+    if document_genre == "report":
+        return render_report_artifact_template(config, artifact_kind, title, summary, record_date, slot, bundle_name)
+    if document_genre == "process":
+        return render_process_artifact_template(config, artifact_kind, title, summary, record_date, slot, bundle_name)
+    if document_genre == "training":
+        return render_training_artifact_template(config, artifact_kind, title, summary, record_date, slot, bundle_name)
+    return render_generic_artifact_template(config, artifact_kind, title, summary, record_date, slot)
 
 
 def handle_portfolio_command(args: argparse.Namespace) -> int:
@@ -7422,6 +8156,471 @@ def summarize_project_for_portfolio(config: ProjectConfig) -> dict[str, object]:
     }
 
 
+def handle_feedback_command(args: argparse.Namespace) -> int:
+    project_root = Path(args.project_root).expanduser().resolve()
+    config = load_manifest(project_root)
+    if args.feedback_command == "capture":
+        feedback = capture_feedback_bundle(config, args)
+        if json_output_requested(args):
+            emit_json({"command": "feedback.capture", "status": "ok", "project": project_payload(config), "feedback": feedback})
+            return 0
+        print(f"Captured feedback {feedback['id']} for {config.data['project']['name']}")
+        print(f"  Title: {feedback['title']}")
+        print(f"  Managed changes: {feedback['managed_change_count']}")
+        print(f"  Doctor passed: {feedback['doctor_passed']}")
+        print(f"  Bundle: {feedback['bundle_path']}")
+        print(f"  Archive: {feedback['archive_path']}")
+        return 0
+
+    require_sula_core_project(config, f"feedback {args.feedback_command}")
+    if args.feedback_command == "ingest":
+        item = ingest_feedback_bundle(config, Path(args.bundle_path).expanduser().resolve())
+        if json_output_requested(args):
+            emit_json({"command": "feedback.ingest", "status": "ok", "project": project_payload(config), "feedback": item})
+            return 0
+        print(f"Ingested feedback {item['id']} into Sula Core")
+        print(f"  Title: {item['title']}")
+        print(f"  Status: {item['status']}")
+        print(f"  Bundle: {item['bundle_path']}")
+        return 0
+    if args.feedback_command == "list":
+        catalog = load_feedback_catalog(config)
+        items = [item for item in catalog.get("items", []) if isinstance(item, dict)]
+        if getattr(args, "status", None):
+            items = [item for item in items if item.get("status") == args.status]
+        if json_output_requested(args):
+            emit_json({"command": "feedback.list", "status": "ok", "project": project_payload(config), "items": items})
+            return 0
+        print(f"Sula Core feedback queue for {config.data['project']['name']}")
+        if not items:
+            print("  No feedback items.")
+            return 0
+        for item in items:
+            print(
+                "  - "
+                f"{item['id']} [{item['status']}] {item['title']} "
+                f"({item['source_project_slug']} @ {item['locked_sula_version']})"
+            )
+        return 0
+    if args.feedback_command == "show":
+        item = find_feedback_catalog_item(config, args.feedback_id)
+        bundle = load_feedback_bundle(config.root / str(item["bundle_path"]))
+        if json_output_requested(args):
+            emit_json({"command": "feedback.show", "status": "ok", "project": project_payload(config), "feedback": item, "bundle": bundle})
+            return 0
+        print(f"Feedback {item['id']} [{item['status']}]")
+        print(f"  Title: {item['title']}")
+        print(f"  Source project: {item['source_project_name']} ({item['source_project_slug']})")
+        print(f"  Locked Sula version: {item['locked_sula_version']}")
+        print(f"  Managed changes: {item['managed_change_count']}")
+        print(f"  Summary: {bundle['feedback']['summary']}")
+        if item.get("latest_decision"):
+            latest = item["latest_decision"]
+            print(f"  Latest decision: {latest['decision']} at {latest['decided_at']}")
+        return 0
+    if args.feedback_command == "decide":
+        item = decide_feedback_bundle(config, args)
+        if json_output_requested(args):
+            emit_json({"command": "feedback.decide", "status": "ok", "project": project_payload(config), "feedback": item})
+            return 0
+        print(f"Updated feedback {item['id']} to {item['status']}")
+        print(f"  Title: {item['title']}")
+        if item.get("latest_decision"):
+            latest = item["latest_decision"]
+            print(f"  Note: {latest['note']}")
+        return 0
+    raise AssertionError("unreachable")
+
+
+def require_sula_core_project(config: ProjectConfig, command: str) -> None:
+    if config.profile != "sula-core":
+        raise SystemExit(f"{command} requires a project adopted under the `sula-core` profile")
+
+
+def feedback_outbox_bundles_root(config: ProjectConfig) -> Path:
+    return config.root / ".sula" / "feedback" / "outbox" / "bundles"
+
+
+def feedback_outbox_archives_root(config: ProjectConfig) -> Path:
+    return config.root / ".sula" / "feedback" / "outbox" / "archives"
+
+
+def feedback_registry_root(config: ProjectConfig) -> Path:
+    return config.root / "registry" / "feedback"
+
+
+def feedback_catalog_path(config: ProjectConfig) -> Path:
+    return feedback_registry_root(config) / "catalog.json"
+
+
+def feedback_inbox_root(config: ProjectConfig) -> Path:
+    return feedback_registry_root(config) / "inbox"
+
+
+def utc_timestamp() -> str:
+    return datetime.utcnow().replace(microsecond=0).isoformat() + "Z"
+
+
+def sha256_text(text: str) -> str:
+    return hashlib.sha256(text.encode("utf-8")).hexdigest()
+
+
+def build_feedback_id(config: ProjectConfig, title: str, summary: str, captured_at: str) -> str:
+    timestamp = captured_at.replace("-", "").replace(":", "").replace(".", "").replace("Z", "").replace("T", "T")
+    slug = sanitize_slug(title)[:40]
+    fingerprint = hashlib.sha256(
+        f"{config.data['project']['slug']}\n{title}\n{summary}\n{captured_at}".encode("utf-8")
+    ).hexdigest()[:8]
+    return f"feedback-{timestamp}-{slug}-{fingerprint}"
+
+
+def write_feedback_text(bundle_root: Path, relative_path: Path, text: str) -> None:
+    output_path = bundle_root / relative_path
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    output_path.write_text(text, encoding="utf-8")
+
+
+def diff_patch_relative_path(relative_path: Path) -> Path:
+    patch_path = Path("diffs") / relative_path
+    return patch_path.parent / f"{patch_path.name}.patch"
+
+
+def diff_line_counts(diff_lines: list[str]) -> tuple[int, int]:
+    added = 0
+    removed = 0
+    for line in diff_lines:
+        if line.startswith("+++ ") or line.startswith("--- "):
+            continue
+        if line.startswith("+"):
+            added += 1
+        elif line.startswith("-"):
+            removed += 1
+    return added, removed
+
+
+def create_feedback_archive(bundle_root: Path, archive_path: Path) -> None:
+    archive_path.parent.mkdir(parents=True, exist_ok=True)
+    archive_resolved = archive_path.resolve()
+    with zipfile.ZipFile(archive_path, "w", compression=zipfile.ZIP_DEFLATED) as archive:
+        for path in sorted(bundle_root.rglob("*")):
+            if path.is_dir():
+                continue
+            if path.resolve() == archive_resolved:
+                continue
+            archive.write(path, arcname=f"{bundle_root.name}/{path.relative_to(bundle_root).as_posix()}")
+
+
+def load_feedback_bundle(bundle_root: Path) -> dict[str, object]:
+    bundle_path = bundle_root / "bundle.json"
+    if not bundle_path.exists():
+        raise SystemExit(f"Missing feedback bundle manifest: {bundle_path}")
+    try:
+        bundle = json.loads(bundle_path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError as exc:
+        raise SystemExit(f"Invalid feedback bundle JSON: {bundle_path} ({exc})")
+    if not isinstance(bundle, dict):
+        raise SystemExit(f"Malformed feedback bundle: {bundle_path}")
+    feedback = bundle.get("feedback")
+    if not isinstance(feedback, dict) or not isinstance(feedback.get("id"), str) or not feedback["id"].strip():
+        raise SystemExit(f"Malformed feedback bundle metadata: {bundle_path}")
+    return bundle
+
+
+def resolve_feedback_bundle_source(bundle_path: Path) -> tuple[Path, object | None]:
+    if bundle_path.is_dir():
+        return bundle_path, None
+    if bundle_path.is_file() and zipfile.is_zipfile(bundle_path):
+        tempdir = tempfile.TemporaryDirectory()
+        with zipfile.ZipFile(bundle_path) as archive:
+            archive.extractall(tempdir.name)
+        candidates = [path.parent for path in Path(tempdir.name).rglob("bundle.json")]
+        if len(candidates) != 1:
+            tempdir.cleanup()
+            raise SystemExit(f"Expected exactly one feedback bundle in archive: {bundle_path}")
+        return candidates[0], tempdir
+    raise SystemExit(f"Feedback bundle path must be a directory or zip archive: {bundle_path}")
+
+
+def default_feedback_catalog() -> dict[str, object]:
+    return {"version": VERSION, "updated_at": "", "items": []}
+
+
+def ensure_feedback_catalog(config: ProjectConfig) -> None:
+    registry_root = feedback_registry_root(config)
+    registry_root.mkdir(parents=True, exist_ok=True)
+    feedback_inbox_root(config).mkdir(parents=True, exist_ok=True)
+    catalog_path = feedback_catalog_path(config)
+    if catalog_path.exists():
+        return
+    catalog_path.write_text(json.dumps(default_feedback_catalog(), indent=2, ensure_ascii=True) + "\n", encoding="utf-8")
+
+
+def load_feedback_catalog(config: ProjectConfig) -> dict[str, object]:
+    ensure_feedback_catalog(config)
+    path = feedback_catalog_path(config)
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError as exc:
+        raise SystemExit(f"Invalid feedback catalog JSON: {path} ({exc})")
+    if not isinstance(data, dict) or not isinstance(data.get("items"), list):
+        raise SystemExit(f"Malformed feedback catalog: {path}")
+    return data
+
+
+def write_feedback_catalog(config: ProjectConfig, catalog: dict[str, object]) -> None:
+    ensure_feedback_catalog(config)
+    path = feedback_catalog_path(config)
+    path.write_text(json.dumps(catalog, indent=2, ensure_ascii=True) + "\n", encoding="utf-8")
+
+
+def capture_feedback_bundle(config: ProjectConfig, args: argparse.Namespace) -> dict[str, object]:
+    captured_at = utc_timestamp()
+    feedback_id = build_feedback_id(config, args.title, args.summary, captured_at)
+    bundle_root = feedback_outbox_bundles_root(config) / feedback_id
+    archive_path = feedback_outbox_archives_root(config) / f"{feedback_id}.zip"
+    if bundle_root.exists() or archive_path.exists():
+        raise SystemExit(f"Feedback bundle already exists: {feedback_id}")
+
+    bundle_root.mkdir(parents=True, exist_ok=True)
+    feedback_outbox_archives_root(config).mkdir(parents=True, exist_ok=True)
+
+    actions = collect_render_actions(config, include_scaffold=False)
+    drifted_actions = [action for action in actions if action.status == "update"]
+    doctor_state = inspect_doctor_state(config, strict=False)
+    managed_changes: list[dict[str, object]] = []
+    combined_diff_parts: list[str] = []
+
+    for action in drifted_actions:
+        current_text = action.output_path.read_text(encoding="utf-8")
+        diff_lines = list(
+            difflib.unified_diff(
+                action.rendered_text.splitlines(keepends=True),
+                current_text.splitlines(keepends=True),
+                fromfile=f"rendered/{action.relative_path.as_posix()}",
+                tofile=f"local/{action.relative_path.as_posix()}",
+            )
+        )
+        diff_text = "".join(diff_lines)
+        local_relative_path = Path("files") / "local" / action.relative_path
+        rendered_relative_path = Path("files") / "rendered" / action.relative_path
+        patch_relative_path = diff_patch_relative_path(action.relative_path)
+        write_feedback_text(bundle_root, local_relative_path, current_text)
+        write_feedback_text(bundle_root, rendered_relative_path, action.rendered_text)
+        write_feedback_text(bundle_root, patch_relative_path, diff_text)
+        added_lines, removed_lines = diff_line_counts(diff_lines)
+        if diff_text:
+            combined_diff_parts.append(diff_text)
+        managed_changes.append(
+            {
+                "path": action.relative_path.as_posix(),
+                "origin": action.origin,
+                "impact_level": action.impact_level,
+                "impact_scope": action.impact_scope,
+                "local_sha256": sha256_text(current_text),
+                "rendered_sha256": sha256_text(action.rendered_text),
+                "added_lines": added_lines,
+                "removed_lines": removed_lines,
+                "local_path": local_relative_path.as_posix(),
+                "rendered_path": rendered_relative_path.as_posix(),
+                "patch_path": patch_relative_path.as_posix(),
+            }
+        )
+
+    combined_patch_text = "".join(combined_diff_parts)
+    write_feedback_text(bundle_root, Path("changes.patch"), combined_patch_text)
+    write_feedback_text(bundle_root, Path("doctor.json"), json.dumps(doctor_state, indent=2, ensure_ascii=True) + "\n")
+    write_feedback_text(
+        bundle_root,
+        Path("sync-plan.json"),
+        json.dumps(sync_plan_payload(actions), indent=2, ensure_ascii=True) + "\n",
+    )
+    write_feedback_text(bundle_root, Path("snapshots") / "project.toml", (config.root / MANIFEST_PATH).read_text(encoding="utf-8"))
+    write_feedback_text(bundle_root, Path("snapshots") / "version.lock", (config.root / LOCK_PATH).read_text(encoding="utf-8"))
+
+    bundle = {
+        "schema_version": FEEDBACK_BUNDLE_SCHEMA_VERSION,
+        "captured_at": captured_at,
+        "feedback": {
+            "id": feedback_id,
+            "title": args.title,
+            "summary": args.summary,
+            "kind": args.kind,
+            "severity": args.severity,
+            "shared_rationale": args.shared_rationale,
+            "local_fix_summary": args.local_fix_summary.strip(),
+            "requested_outcome": args.requested_outcome.strip(),
+        },
+        "source_project": {
+            "project": config.data["project"],
+            "repository": config.data["repository"],
+            "workflow": config.data.get("workflow", {}),
+            "storage": config.data.get("storage", {}),
+            "portfolio": config.data.get("portfolio", {}),
+            "language": config.data.get("language", {}),
+            "root": str(config.root),
+        },
+        "source_sula": {
+            "captured_with_version": VERSION,
+            "locked_version": parse_flat_kv_toml((config.root / LOCK_PATH).read_text(encoding="utf-8")).get("sula_version", ""),
+            "profile": config.profile,
+        },
+        "doctor": doctor_state,
+        "sync_plan": sync_plan_payload(actions),
+        "managed_changes": managed_changes,
+        "artifacts": {
+            "doctor_report": "doctor.json",
+            "sync_plan": "sync-plan.json",
+            "combined_patch": "changes.patch",
+            "manifest_snapshot": "snapshots/project.toml",
+            "lockfile_snapshot": "snapshots/version.lock",
+        },
+    }
+    write_feedback_text(bundle_root, Path("bundle.json"), json.dumps(bundle, indent=2, ensure_ascii=True) + "\n")
+    create_feedback_archive(bundle_root, archive_path)
+    refresh_kernel_state(config, event_type="feedback.captured", summary=f"Captured reusable feedback `{args.title}`.")
+    return {
+        "id": feedback_id,
+        "title": args.title,
+        "kind": args.kind,
+        "severity": args.severity,
+        "bundle_path": bundle_root.relative_to(config.root).as_posix(),
+        "archive_path": archive_path.relative_to(config.root).as_posix(),
+        "captured_at": captured_at,
+        "managed_change_count": len(managed_changes),
+        "doctor_passed": bool(doctor_state["passed"]),
+        "locked_sula_version": bundle["source_sula"]["locked_version"],
+    }
+
+
+def feedback_catalog_entry(
+    config: ProjectConfig,
+    bundle: dict[str, object],
+    *,
+    bundle_path: Path,
+    archive_path: Path,
+    ingested_at: str,
+) -> dict[str, object]:
+    feedback = bundle["feedback"]
+    source_project = bundle["source_project"]
+    source_sula = bundle["source_sula"]
+    doctor_report = bundle["doctor"]
+    return {
+        "id": feedback["id"],
+        "title": feedback["title"],
+        "kind": feedback["kind"],
+        "severity": feedback["severity"],
+        "status": "open",
+        "captured_at": bundle["captured_at"],
+        "ingested_at": ingested_at,
+        "updated_at": ingested_at,
+        "source_project_name": source_project["project"]["name"],
+        "source_project_slug": source_project["project"]["slug"],
+        "source_profile": source_project["project"]["profile"],
+        "locked_sula_version": source_sula["locked_version"],
+        "captured_with_version": source_sula["captured_with_version"],
+        "managed_change_count": len(bundle.get("managed_changes", [])),
+        "doctor_passed": bool(doctor_report.get("passed")),
+        "bundle_path": bundle_path.relative_to(config.root).as_posix(),
+        "archive_path": archive_path.relative_to(config.root).as_posix(),
+        "shared_rationale": feedback["shared_rationale"],
+        "requested_outcome": feedback.get("requested_outcome", ""),
+        "latest_decision": None,
+        "decision_history": [],
+    }
+
+
+def ingest_feedback_bundle(config: ProjectConfig, source_path: Path) -> dict[str, object]:
+    source_bundle_root, tempdir = resolve_feedback_bundle_source(source_path)
+    try:
+        bundle = load_feedback_bundle(source_bundle_root)
+        catalog = load_feedback_catalog(config)
+        feedback_id = str(bundle["feedback"]["id"])
+        existing_ids = {str(item.get("id")) for item in catalog.get("items", []) if isinstance(item, dict)}
+        if feedback_id in existing_ids:
+            raise SystemExit(f"Feedback already exists in Sula Core: {feedback_id}")
+        inbox_root = feedback_inbox_root(config)
+        target_root = inbox_root / feedback_id
+        if target_root.exists():
+            raise SystemExit(f"Feedback inbox path already exists: {target_root}")
+        shutil.copytree(source_bundle_root, target_root)
+        target_archive = target_root / "bundle.zip"
+        if source_path.is_file() and zipfile.is_zipfile(source_path):
+            shutil.copyfile(source_path, target_archive)
+        else:
+            create_feedback_archive(target_root, target_archive)
+        ingested_at = utc_timestamp()
+        entry = feedback_catalog_entry(
+            config,
+            bundle,
+            bundle_path=target_root,
+            archive_path=target_archive,
+            ingested_at=ingested_at,
+        )
+        items = [item for item in catalog.get("items", []) if isinstance(item, dict)]
+        items.append(entry)
+        items.sort(key=lambda item: (str(item.get("status", "")) != "open", str(item.get("captured_at", "")), str(item.get("id", ""))))
+        catalog["version"] = VERSION
+        catalog["updated_at"] = ingested_at
+        catalog["items"] = items
+        write_feedback_catalog(config, catalog)
+        refresh_kernel_state(
+            config,
+            event_type="feedback.ingested",
+            summary=f"Ingested feedback `{feedback_id}` from `{entry['source_project_slug']}`.",
+        )
+        return entry
+    finally:
+        if tempdir is not None:
+            tempdir.cleanup()
+
+
+def find_feedback_catalog_item(config: ProjectConfig, feedback_id: str) -> dict[str, object]:
+    catalog = load_feedback_catalog(config)
+    for item in catalog.get("items", []):
+        if isinstance(item, dict) and item.get("id") == feedback_id:
+            return item
+    raise SystemExit(f"Unknown feedback id: {feedback_id}")
+
+
+def decide_feedback_bundle(config: ProjectConfig, args: argparse.Namespace) -> dict[str, object]:
+    catalog = load_feedback_catalog(config)
+    items = [item for item in catalog.get("items", []) if isinstance(item, dict)]
+    match_index = next((index for index, item in enumerate(items) if item.get("id") == args.feedback_id), None)
+    if match_index is None:
+        raise SystemExit(f"Unknown feedback id: {args.feedback_id}")
+    decided_at = utc_timestamp()
+    decision_record = {
+        "decision": args.decision,
+        "note": args.note,
+        "decided_at": decided_at,
+        "target_version": args.target_version or "",
+        "linked_change_record": args.linked_change_record or "",
+        "linked_release": args.linked_release or "",
+    }
+    item = dict(items[match_index])
+    raw_history = item.get("decision_history", [])
+    decision_history = list(raw_history) if isinstance(raw_history, list) else []
+    decision_history.append(decision_record)
+    item["status"] = args.decision
+    item["updated_at"] = decided_at
+    item["latest_decision"] = decision_record
+    item["decision_history"] = decision_history
+    items[match_index] = item
+    catalog["version"] = VERSION
+    catalog["updated_at"] = decided_at
+    catalog["items"] = items
+    write_feedback_catalog(config, catalog)
+
+    bundle_root = config.root / str(item["bundle_path"])
+    write_feedback_text(bundle_root, Path("decision.json"), json.dumps(decision_record, indent=2, ensure_ascii=True) + "\n")
+    refresh_kernel_state(
+        config,
+        event_type="feedback.decided",
+        summary=f"Marked feedback `{args.feedback_id}` as `{args.decision}`.",
+    )
+    return item
+
+
 def load_json_file(path: Path, *, default):
     if not path.exists():
         return default
@@ -7432,14 +8631,23 @@ def load_json_file(path: Path, *, default):
 
 
 def render_export_catalog(config: ProjectConfig) -> str:
+    export_items = [
+        {"path": config.data["paths"]["status_file"], "kind": "status", "project_owned": True},
+        {"path": config.data["paths"]["change_records_file"], "kind": "change-index", "project_owned": True},
+        {"path": config.memory_setting("digest_file", ".sula/memory-digest.md"), "kind": "memory-digest", "project_owned": False},
+        {"path": ".sula/exports/provider-imports", "kind": "provider-import-plans", "project_owned": False},
+        {"path": ".sula/feedback/outbox/archives", "kind": "feedback-outbox", "project_owned": False},
+    ]
+    if config.profile == "sula-core":
+        export_items.extend(
+            [
+                {"path": "registry/feedback/catalog.json", "kind": "feedback-catalog", "project_owned": True},
+                {"path": "registry/feedback/inbox", "kind": "feedback-inbox", "project_owned": True},
+            ]
+        )
     exports = {
         "version": VERSION,
-        "exports": [
-            {"path": config.data["paths"]["status_file"], "kind": "status", "project_owned": True},
-            {"path": config.data["paths"]["change_records_file"], "kind": "change-index", "project_owned": True},
-            {"path": config.memory_setting("digest_file", ".sula/memory-digest.md"), "kind": "memory-digest", "project_owned": False},
-            {"path": ".sula/exports/provider-imports", "kind": "provider-import-plans", "project_owned": False},
-        ],
+        "exports": export_items,
     }
     return json.dumps(exports, indent=2, ensure_ascii=True) + "\n"
 

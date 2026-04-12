@@ -31,20 +31,24 @@ This file is the primary instruction source for AI coding agents working in the 
 - `sula-core` profile
 - project manifest schema and example
 - machine-readable CLI outputs for local software integration
-- `onboard`, `adopt`, `init`, `sync`, `doctor`, `remove`, `query`, `status`, `artifact`, `portfolio`, `record`, and `memory digest` commands
+- `onboard`, `adopt`, `init`, `sync`, `doctor`, `remove`, `query`, `status`, `artifact`, `portfolio`, `feedback`, `record`, and `memory digest` commands
 - static launch-site assets under `site/`, including the canonical launch contract and bootstrap shim
 
 ## Current Capabilities
 
+- Sula can encode formal document design policy in a first-class `[document_design]` manifest section, including source-first rules and reusable structure bundles for schedule, proposal, report, process, and training documents.
+- Sula can capture reusable managed-file fixes from adopted projects as portable feedback bundles, then ingest, review, and decide them in Sula Core before later rollout through normal versioned sync.
 - Sula can register provider-backed artifacts for Google Drive style workspaces, including stable fields such as `project_relative_path`, `provider_item_id`, `provider_item_kind`, `provider_item_url`, `derived_from`, and `identity_key`.
 - Sula can materialize project-owned source files into import-friendly deliverables through `artifact materialize`.
 - Sula can prepare machine-readable provider import plans through `artifact import-plan`, including auto-generated `.docx` or `.xlsx` bridge artifacts when a Google Docs or Google Sheets import still needs a local handoff file.
+- `artifact create` can now render formal source-document bundles for `schedule`, `proposal` / `plan`, `report`, `process`, and `training` artifacts instead of falling back to a single generic shell.
 - Current materialization formats:
   - `.md` / `.txt` / `.html` -> `.html`
   - `.md` / `.txt` / `.html` -> `.docx` on macOS through `textutil`
   - `.csv` / `.tsv` / `.json` -> `.xlsx`
 - Treat these features as the preferred bridge when a project needs Google Docs or Google Sheets outputs before direct provider-side document creation is available.
 - When a new session needs details, read:
+  - `docs/reference/feedback-bundle-lifecycle.md`
   - `README.md` artifact section
   - `docs/reference/provider-backed-artifact-identity.md`
   - `docs/change-records/2026-04-12-add-provider-backed-artifact-registration-identity.md`
