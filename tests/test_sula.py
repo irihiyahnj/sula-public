@@ -281,6 +281,8 @@ class SulaCliTests(unittest.TestCase):
             self.assertTrue((project_root / "docs" / "change-records" / "_template.md").exists())
             self.assertTrue((project_root / "docs" / "releases" / "_template.md").exists())
             self.assertTrue((project_root / "docs" / "incidents" / "_template.md").exists())
+            self.assertIn("python3 scripts/sula.py check --project-root .", (project_root / "AGENTS.md").read_text(encoding="utf-8"))
+            self.assertIn("python3 scripts/sula.py check --project-root .", (project_root / "CODEX.md").read_text(encoding="utf-8"))
 
             manifest = (project_root / ".sula" / "project.toml").read_text(encoding="utf-8")
             self.assertIn("[document_design]", manifest)
@@ -2411,6 +2413,52 @@ class SulaCliTests(unittest.TestCase):
             self.assertNotEqual(result.returncode, 0)
             self.assertIn("Warnings:", result.stdout)
             self.assertIn("paths.api_layer", result.stdout)
+
+    def test_check_passes_for_freshly_adopted_project(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            project_root = Path(tmpdir)
+            self.create_generic_project(project_root)
+            adopt_result = run_cli("adopt", "--project-root", str(project_root), "--approve")
+            self.assertEqual(adopt_result.returncode, 0, adopt_result.stderr)
+
+            result = run_cli("check", "--project-root", str(project_root))
+
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertIn("SULA CHECK OK", result.stdout)
+            self.assertIn("event_log_entries=", result.stdout)
+            self.assertIn("change_records=", result.stdout)
+
+    def test_check_detects_stale_generated_state_until_memory_digest_rebuilds_it(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            project_root = Path(tmpdir)
+            self.create_generic_project(project_root)
+            adopt_result = run_cli("adopt", "--project-root", str(project_root), "--approve")
+            self.assertEqual(adopt_result.returncode, 0, adopt_result.stderr)
+
+            status_path = project_root / "STATUS.md"
+            status_text = status_path.read_text(encoding="utf-8")
+            status_path.write_text(
+                status_text.replace(
+                    f"- Initial Sula adoption is complete for this repository under the `generic-project` profile.",
+                    "- Initial Sula adoption is complete for this repository, and the daily Sula check gate is now required for state-sync work.",
+                ),
+                encoding="utf-8",
+            )
+
+            failed = run_cli("check", "--project-root", str(project_root))
+
+            self.assertNotEqual(failed.returncode, 0)
+            self.assertIn("SULA CHECK FAILED", failed.stdout)
+            self.assertIn(".sula/state/current.md", failed.stdout)
+            self.assertIn(".sula/memory-digest.md", failed.stdout)
+            self.assertIn("memory digest", failed.stdout)
+
+            rebuild = run_cli("memory", "digest", "--project-root", str(project_root))
+            self.assertEqual(rebuild.returncode, 0, rebuild.stderr)
+
+            passed = run_cli("check", "--project-root", str(project_root))
+            self.assertEqual(passed.returncode, 0, passed.stderr)
+            self.assertIn("SULA CHECK OK", passed.stdout)
 
     def test_record_new_creates_change_record_and_updates_memory_files(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:

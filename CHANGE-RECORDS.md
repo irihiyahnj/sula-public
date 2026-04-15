@@ -15,6 +15,7 @@ Track why Sula changed, how sync impact was evaluated, what was verified, and ho
 
 ## Index
 
+- 2026-04-15 - [Add daily Sula check workflow for state-sync verification](docs/change-records/2026-04-15-add-daily-sula-check-workflow-for-state-sync-verification.md) - Added a first-class `check` command, generated-state drift detection, and template rules that make `SULA CHECK OK` the daily gate for status-sync work.
 - 2026-04-12 - [Add project-local Google OAuth storage and provider target-path routing](docs/change-records/2026-04-12-add-project-local-google-oauth-and-provider-target-path-routing.md) - Standardized project-local Google OAuth storage, default provider-native target paths, and provider parent-folder routing under the provider root.
 - 2026-04-12 - [Add provider-native read-only refresh and artifact refresh command](docs/change-records/2026-04-12-add-provider-native-read-only-refresh-and-artifact-refresh-command.md) - Added provider adapters, `artifact refresh`, automatic provider refresh on freshness intent, and cached provider snapshots for Google-native collaborative artifacts.
 - 2026-04-12 - [Add truth-source and freshness checks for collaborative provider-backed artifacts](docs/change-records/2026-04-12-add-truth-source-and-freshness-checks-for-collaborative-provider-artifacts.md) - Added artifact-family truth-source metadata, natural-language freshness intent handling, stale-local-copy detection, and provider-metadata gap reporting for collaborative provider-backed files.

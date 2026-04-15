@@ -43,6 +43,7 @@ Unless stated otherwise, {{DEFAULT_AGENT}} acts as:
 - docs-only changes: verify references, traceability, and structure
 - formal document changes: verify the genre-specific bundle is present and any derived deliverables stay traceable
 - code changes: run validation proportional to the change
+- if current-state or memory files changed, run `python3 scripts/sula.py check --project-root .` and require `SULA CHECK OK`
 - release candidates: apply release and smoke checklists
 
 ### 5. Release Gate
@@ -63,6 +64,7 @@ Before recommending deployment, explicitly answer:
 - add release or incident records when risk history matters
 - if a reusable Sula-managed problem was fixed locally, capture a feedback bundle before leaving the project on a one-off managed drift
 - regenerate `{{MEMORY_DIGEST_FILE}}` after non-trivial changes if the project uses it
+- prefer rebuilding `.sula/state/current.md`, `.sula/events/log.jsonl`, and `.sula/memory-digest.md` through Sula commands instead of editing them manually
 
 ## Definition Of Done
 

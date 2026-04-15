@@ -46,6 +46,7 @@ This digest is generated for fast recall. It is not a source of truth and should
 3. If a release has material rollout risk, add a release note.
 4. If an incident affects availability, permissions, data, or deployment safety, add an incident record.
 5. Every architecture exception should reference a change record.
+6. If work touches `STATUS.md`, `CHANGE-RECORDS.md`, `docs/change-records/*`, `.sula/state/current.md`, `.sula/events/log.jsonl`, or `.sula/memory-digest.md`, finish by running `python3 scripts/sula.py check --project-root .` and require `SULA CHECK OK`.
 
 ## Freshness Target
 
@@ -57,3 +58,4 @@ This digest is generated for fast recall. It is not a source of truth and should
 - mixing temporary task notes into stable architecture docs
 - writing release reasoning into commit messages only
 - editing the generated memory digest instead of the underlying records
+- editing generated `.sula/*` state by hand when a Sula command can rebuild it

@@ -206,9 +206,11 @@ python3 scripts/sula.py sync --project-root /path/to/project --dry-run
 python3 scripts/sula.py sync --project-root /path/to/project
 python3 scripts/sula.py doctor --project-root /path/to/project
 python3 scripts/sula.py doctor --project-root /path/to/project --strict
+python3 scripts/sula.py check --project-root /path/to/project
 ```
 
 Use `--dry-run` before every real sync so you can review which managed files would change and how risky they are.
+Use `check` as the daily close-out gate after changing `STATUS.md`, `CHANGE-RECORDS.md`, `docs/change-records/*`, or generated `.sula/*` state; only `SULA CHECK OK` counts as a finished state-sync update.
 
 ### Remove Sula from a project
 
@@ -237,6 +239,7 @@ This creates durable project memory without mixing managed operating-system file
 python3 scripts/sula.py status --project-root /path/to/project
 python3 scripts/sula.py status --project-root /path/to/project --json
 python3 scripts/sula.py doctor --project-root /path/to/project --strict --json
+python3 scripts/sula.py check --project-root /path/to/project --json
 ```
 
 These commands expose the same project kernel to humans and to external software. When `--json` is used, Sula becomes a local machine protocol instead of a text-only CLI.

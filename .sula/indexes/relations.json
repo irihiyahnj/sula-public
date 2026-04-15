@@ -148,6 +148,11 @@
       "type": "derived-from"
     },
     {
+      "from": "decision:status:2026-04-15-added-add-daily-sula-check-workflow-for-state-sync-verification-docs-change-records-2026-04-15-add-daily-sula-check-workflow-for-state-sync-verification-md",
+      "to": "source:status-md",
+      "type": "derived-from"
+    },
+    {
       "from": "decision:status:2026-04-12-added-add-guided-onboarding-and-zero-memory-setup-flow-docs-change-records-2026-04-12-add-guided-onboarding-and-zero-memory-setup-flow-md",
       "to": "source:status-md",
       "type": "derived-from"
@@ -185,6 +190,11 @@
     {
       "from": "risk:health:yellow-the-bootstrap-site-and-custom-domain-are-live-but-the-repository-history-still-needs-a-clean-public-release-strategy-before-this-exact-repository-should-be-opened",
       "to": "source:status-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "change:2026-04-15-add-daily-sula-check-workflow-for-state-sync-verification",
+      "to": "source:docs-change-records-2026-04-15-add-daily-sula-check-workflow-for-state-sync-verification-md",
       "type": "derived-from"
     },
     {
@@ -620,6 +630,11 @@
     {
       "from": "object:source:docs-change-records-2026-04-12-implement-generic-project-kernel-and-removal-flow-md",
       "to": "source:docs-change-records-2026-04-12-implement-generic-project-kernel-and-removal-flow-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "object:source:docs-change-records-2026-04-15-add-daily-sula-check-workflow-for-state-sync-verification-md",
+      "to": "source:docs-change-records-2026-04-15-add-daily-sula-check-workflow-for-state-sync-verification-md",
       "type": "derived-from"
     },
     {

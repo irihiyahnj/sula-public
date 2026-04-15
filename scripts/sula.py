@@ -13,6 +13,7 @@ import json
 import os
 from pathlib import Path, PurePosixPath
 import re
+import shlex
 import shutil
 import sqlite3
 import subprocess
@@ -311,6 +312,7 @@ MEMORY_DATE_PATTERN = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 INLINE_DATE_PATTERN = re.compile(r"\b\d{4}-\d{2}-\d{2}\b")
 CHANGE_RECORD_FILENAME_PATTERN = re.compile(r"^\d{4}-\d{2}-\d{2}-[a-z0-9][a-z0-9-]*\.md$")
 STATUS_UPDATED_PATTERN = re.compile(r"^- (?:last updated|最后更新):\s*(.+?)\s*$", re.MULTILINE)
+GENERATED_ON_PATTERN = re.compile(r"^- (?:generated on|生成于):\s*(.+?)\s*$", re.MULTILINE)
 MARKDOWN_LINK_PATTERN = re.compile(r"\[([^\]]+)\]\(([^)]+)\)")
 NON_ASCII_CJK_PATTERN = re.compile(r"[\u3400-\u9fff]")
 
@@ -985,6 +987,10 @@ def parse_args() -> argparse.Namespace:
         help="Fail on warnings such as manifest references that do not exist in the project",
     )
     doctor_cmd.add_argument("--json", action="store_true", help="Print JSON instead of human-readable output")
+
+    check_cmd = sub.add_parser("check", help="Run the daily Sula state-sync verification workflow")
+    add_project_root_arg(check_cmd)
+    check_cmd.add_argument("--json", action="store_true", help="Print JSON instead of human-readable output")
 
     status_cmd = sub.add_parser("status", help="Summarize current project state")
     add_project_root_arg(status_cmd)
@@ -1867,6 +1873,9 @@ def main() -> int:
 
     if args.command == "doctor":
         return doctor(config, strict=args.strict, json_mode=json_output_requested(args))
+
+    if args.command == "check":
+        return daily_check(config, json_mode=json_output_requested(args))
 
     if args.command == "status":
         return project_status(config, args)
@@ -4223,6 +4232,126 @@ def doctor(config: ProjectConfig, *, strict: bool, json_mode: bool = False, emit
                 print(f"Sula doctor passed for {config.data['project']['name']}")
         return 0
     return 1
+
+
+def normalize_generated_snapshot_text(text: str) -> str:
+    lines = [line for line in text.splitlines() if not GENERATED_ON_PATTERN.fullmatch(line)]
+    return "\n".join(lines).strip()
+
+
+def collect_daily_check_drift_errors(config: ProjectConfig) -> list[str]:
+    errors: list[str] = []
+    repair_command = f"python3 scripts/sula.py memory digest --project-root {shlex.quote(str(config.root))}"
+
+    generated_targets = [
+        (config.root / ".sula" / "state" / "current.md", render_kernel_current_state(config)),
+        (config.digest_file, build_memory_digest(config, config.digest_file)),
+    ]
+    for path, expected_text in generated_targets:
+        if not path.exists():
+            errors.append(f"missing generated state file: {path}. Rebuild with `{repair_command}`.")
+            continue
+        current_text = path.read_text(encoding="utf-8")
+        if normalize_generated_snapshot_text(current_text) != normalize_generated_snapshot_text(expected_text):
+            errors.append(f"{path}: generated state is out of sync with current source documents. Rebuild with `{repair_command}`.")
+    return errors
+
+
+def flatten_daily_check_issues(report: dict[str, object], drift_errors: list[str]) -> list[str]:
+    issues: list[str] = []
+    issues.extend(str(item) for item in report["missing_files"])
+    issues.extend(str(item) for item in report["drifted_files"])
+    issues.extend(str(item) for item in report["placeholder_files"])
+    issues.extend(str(item) for item in report["memory_errors"])
+    issues.extend(str(item) for item in report["lock_issues"])
+    issues.extend(str(item) for item in report["kernel_errors"])
+    issues.extend(f"warning: {item}" for item in report["warnings"])
+    issues.extend(drift_errors)
+    return issues
+
+
+def count_nonempty_lines(path: Path) -> int:
+    if not path.exists():
+        return 0
+    return sum(1 for line in path.read_text(encoding="utf-8").splitlines() if line.strip())
+
+
+def build_daily_check_commands(config: ProjectConfig, report: dict[str, object], drift_errors: list[str]) -> list[str]:
+    commands: list[str] = []
+    project_root_arg = shlex.quote(str(config.root))
+    if drift_errors:
+        commands.append(f"python3 scripts/sula.py memory digest --project-root {project_root_arg}")
+    if report["missing_files"] or report["drifted_files"] or report["placeholder_files"] or report["lock_issues"]:
+        commands.append(f"python3 scripts/sula.py sync --project-root {project_root_arg} --dry-run")
+    commands.append(f"python3 scripts/sula.py check --project-root {project_root_arg}")
+
+    deduped: list[str] = []
+    seen: set[str] = set()
+    for command in commands:
+        if command in seen:
+            continue
+        seen.add(command)
+        deduped.append(command)
+    return deduped
+
+
+def daily_check_payload(config: ProjectConfig, report: dict[str, object], drift_errors: list[str], *, passed: bool) -> dict[str, object]:
+    status_path = config.root / config.data["paths"]["status_file"]
+    status_text = status_path.read_text(encoding="utf-8") if status_path.exists() else ""
+    return {
+        "project": project_payload(config),
+        "passed": passed,
+        "status_updated": extract_status_updated_date(status_text),
+        "event_log_entries": count_nonempty_lines(config.root / ".sula" / "events" / "log.jsonl"),
+        "change_record_count": len(list_record_files(config.change_record_directory)),
+        "derived_state_errors": drift_errors,
+        "issues": flatten_daily_check_issues(report, drift_errors),
+        "repair_commands": build_daily_check_commands(config, report, drift_errors),
+        "doctor": doctor_payload(
+            config,
+            missing_files=report["missing_files"],
+            drifted_files=report["drifted_files"],
+            placeholder_files=report["placeholder_files"],
+            memory_errors=report["memory_errors"],
+            lock_issues=report["lock_issues"],
+            kernel_errors=report["kernel_errors"],
+            warnings=report["warnings"],
+            passed=bool(report["passed"]),
+        ),
+    }
+
+
+def daily_check(config: ProjectConfig, *, json_mode: bool = False, emit_output: bool = True) -> int:
+    report = inspect_doctor_state(config, strict=True)
+    drift_errors = collect_daily_check_drift_errors(config)
+    passed = bool(report["passed"]) and not drift_errors
+    payload = daily_check_payload(config, report, drift_errors, passed=passed)
+
+    if json_mode and emit_output:
+        emit_json({"command": "check", "status": "ok" if passed else "failed", **payload})
+        return 0 if passed else 1
+
+    if not emit_output:
+        return 0 if passed else 1
+
+    if passed:
+        print("SULA CHECK OK")
+        print(f"project={config.data['project']['slug']}")
+        print(f"status_updated={payload['status_updated'] or 'missing'}")
+        print(f"event_log_entries={payload['event_log_entries']}")
+        print(f"change_records={payload['change_record_count']}")
+        return 0
+
+    print("SULA CHECK FAILED")
+    print(f"project={config.data['project']['slug']}")
+    print("issues:")
+    for item in payload["issues"]:
+        print(f"  - {item}")
+    print("next:")
+    for command in payload["repair_commands"]:
+        print(f"  - {command}")
+    return 1
+
 
 def collect_doctor_warnings(config: ProjectConfig) -> list[str]:
     warnings: list[str] = []

@@ -231,7 +231,7 @@
     "exists": true,
     "source_of_truth": true,
     "discovered": true,
-    "size_bytes": 4418,
+    "size_bytes": 4658,
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
@@ -247,7 +247,7 @@
     "exists": true,
     "source_of_truth": true,
     "discovered": true,
-    "size_bytes": 7866,
+    "size_bytes": 8188,
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
@@ -297,7 +297,7 @@
     "exists": true,
     "source_of_truth": true,
     "discovered": true,
-    "size_bytes": 1492,
+    "size_bytes": 1888,
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
@@ -361,7 +361,7 @@
     "exists": true,
     "source_of_truth": true,
     "discovered": true,
-    "size_bytes": 21155,
+    "size_bytes": 21491,
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
@@ -393,7 +393,7 @@
     "exists": true,
     "source_of_truth": true,
     "discovered": true,
-    "size_bytes": 8361,
+    "size_bytes": 8733,
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
@@ -860,6 +860,23 @@
     ]
   },
   {
+    "id": "source:docs-change-records-2026-04-15-add-daily-sula-check-workflow-for-state-sync-verification-md",
+    "kind": "document",
+    "path": "docs/change-records/2026-04-15-add-daily-sula-check-workflow-for-state-sync-verification.md",
+    "exists": true,
+    "source_of_truth": true,
+    "discovered": true,
+    "size_bytes": 3273,
+    "anchor_strategy": "heading-or-line",
+    "adapters": [
+      "generic-project",
+      "local-fs",
+      "docs",
+      "memory",
+      "repo"
+    ]
+  },
+  {
     "id": "source:docs-change-records-readme-md",
     "kind": "document",
     "path": "docs/change-records/README.md",
@@ -966,7 +983,7 @@
     "exists": true,
     "source_of_truth": true,
     "discovered": true,
-    "size_bytes": 1748,
+    "size_bytes": 2082,
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
@@ -1031,7 +1048,7 @@
     "exists": true,
     "source_of_truth": true,
     "discovered": true,
-    "size_bytes": 2551,
+    "size_bytes": 2832,
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
@@ -1976,7 +1993,7 @@
     "exists": true,
     "source_of_truth": true,
     "discovered": true,
-    "size_bytes": 444386,
+    "size_bytes": 450121,
     "anchor_strategy": "line",
     "adapters": [
       "generic-project",
@@ -2191,7 +2208,7 @@
     "exists": true,
     "source_of_truth": true,
     "discovered": true,
-    "size_bytes": 116845,
+    "size_bytes": 119508,
     "anchor_strategy": "line",
     "adapters": [
       "generic-project",
