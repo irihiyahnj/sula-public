@@ -9,6 +9,7 @@ from datetime import date, datetime, timedelta, timezone
 import difflib
 import hashlib
 import html
+from html.parser import HTMLParser
 import json
 import os
 from pathlib import Path, PurePosixPath
@@ -6533,7 +6534,7 @@ def rebuild_kernel_sqlite_cache(config: ProjectConfig) -> None:
                     ).lower(),
                 ),
             )
-        for item in events:
+        for index, item in enumerate(events, start=1):
             cursor.execute(
                 """
                 INSERT INTO documents (
@@ -6545,7 +6546,7 @@ def rebuild_kernel_sqlite_cache(config: ProjectConfig) -> None:
                 ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
-                    f"event:{item.get('timestamp', '')}:{item.get('event_type', '')}",
+                    f"event:{index}:{item.get('timestamp', '')}:{item.get('event_type', '')}",
                     "event",
                     "event",
                     str(item.get("event_type", "")),
@@ -8013,25 +8014,200 @@ def render_source_document_to_html(source_path: Path, *, title: str) -> str:
 
 
 def convert_html_to_docx(html_text: str, output_path: Path) -> None:
-    textutil_path = shutil.which("textutil")
-    if not textutil_path:
-        raise SystemExit("DOCX materialization requires `textutil` on this machine.")
-    temp_html: str | None = None
-    try:
-        with tempfile.NamedTemporaryFile("w", suffix=".html", encoding="utf-8", delete=False) as handle:
-            handle.write(html_text)
-            temp_html = handle.name
-        completed = subprocess.run(
-            [textutil_path, "-convert", "docx", "-output", str(output_path), temp_html],
-            text=True,
-            capture_output=True,
-            check=False,
+    write_simple_docx(output_path, html_blocks_for_docx(html_text))
+
+
+class DocxHtmlParser(HTMLParser):
+    def __init__(self) -> None:
+        super().__init__(convert_charrefs=True)
+        self.blocks: list[dict[str, str]] = []
+        self.current_style = "Normal"
+        self.current_parts: list[str] = []
+        self.preformatted = False
+        self.in_table_cell = False
+        self.table_cell_parts: list[str] = []
+        self.table_row_cells: list[str] = []
+
+    def push_text(self, text: str) -> None:
+        if not text:
+            return
+        if self.in_table_cell:
+            self.table_cell_parts.append(text)
+            return
+        self.current_parts.append(text)
+
+    def flush_block(self) -> None:
+        raw_text = "".join(self.current_parts)
+        if self.preformatted:
+            text = raw_text.strip("\n")
+        else:
+            text = re.sub(r"[ \t\r\f\v]+", " ", raw_text)
+            text = re.sub(r" *\n *", "\n", text)
+            text = text.strip()
+        if text:
+            self.blocks.append({"style": self.current_style, "text": text})
+        self.current_parts = []
+        self.current_style = "Normal"
+
+    def start_block(self, style: str) -> None:
+        self.flush_block()
+        self.current_style = style
+
+    def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
+        del attrs
+        if tag in {"p", "div"}:
+            self.start_block("Normal")
+        elif tag == "blockquote":
+            self.start_block("Quote")
+        elif tag == "pre":
+            self.start_block("Code")
+            self.preformatted = True
+        elif tag in {"h1", "h2", "h3", "h4", "h5", "h6"}:
+            self.start_block("Heading1" if tag == "h1" else "Heading2")
+        elif tag == "li":
+            self.start_block("ListParagraph")
+            self.push_text("- ")
+        elif tag == "br":
+            self.push_text("\n")
+        elif tag == "tr":
+            self.table_row_cells = []
+        elif tag in {"td", "th"}:
+            self.in_table_cell = True
+            self.table_cell_parts = []
+
+    def handle_endtag(self, tag: str) -> None:
+        if tag in {"p", "div", "blockquote", "li"}:
+            self.flush_block()
+        elif tag == "pre":
+            self.flush_block()
+            self.preformatted = False
+        elif tag in {"h1", "h2", "h3", "h4", "h5", "h6"}:
+            self.flush_block()
+        elif tag in {"td", "th"}:
+            cell_text = re.sub(r"\s+", " ", "".join(self.table_cell_parts)).strip()
+            self.table_row_cells.append(cell_text)
+            self.table_cell_parts = []
+            self.in_table_cell = False
+        elif tag == "tr":
+            row_text = " | ".join(cell for cell in self.table_row_cells if cell)
+            if row_text:
+                self.start_block("TableParagraph")
+                self.push_text(row_text)
+                self.flush_block()
+            self.table_row_cells = []
+        elif tag == "body":
+            self.flush_block()
+
+    def handle_data(self, data: str) -> None:
+        if self.preformatted:
+            self.push_text(data)
+            return
+        self.push_text(re.sub(r"\s+", " ", data))
+
+
+def html_blocks_for_docx(html_text: str) -> list[dict[str, str]]:
+    parser = DocxHtmlParser()
+    parser.feed(html_text)
+    parser.close()
+    parser.flush_block()
+    if parser.blocks:
+        return parser.blocks
+    plain_text = re.sub(r"<[^>]+>", " ", html_text)
+    normalized = re.sub(r"\s+", " ", plain_text).strip()
+    return [{"style": "Normal", "text": normalized or " "}]
+
+
+def docx_runs_xml(text: str) -> str:
+    segments = text.split("\n")
+    xml_parts: list[str] = []
+    for index, segment in enumerate(segments):
+        xml_parts.append(
+            '<w:r><w:t xml:space="preserve">'
+            + html.escape(segment or " ", quote=False)
+            + "</w:t></w:r>"
         )
-        if completed.returncode != 0:
-            raise SystemExit(f"DOCX materialization failed: {completed.stderr.strip() or completed.stdout.strip() or 'textutil error'}")
-    finally:
-        if temp_html and Path(temp_html).exists():
-            Path(temp_html).unlink()
+        if index < len(segments) - 1:
+            xml_parts.append("<w:r><w:br/></w:r>")
+    return "".join(xml_parts)
+
+
+def docx_paragraph_xml(text: str, *, style: str) -> str:
+    style_xml = f'<w:pPr><w:pStyle w:val="{style}"/></w:pPr>' if style else ""
+    return f"<w:p>{style_xml}{docx_runs_xml(text)}</w:p>"
+
+
+def docx_styles_xml() -> str:
+    return (
+        '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+        '<w:styles xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">'
+        '<w:style w:type="paragraph" w:default="1" w:styleId="Normal"><w:name w:val="Normal"/></w:style>'
+        '<w:style w:type="paragraph" w:styleId="Heading1"><w:name w:val="heading 1"/></w:style>'
+        '<w:style w:type="paragraph" w:styleId="Heading2"><w:name w:val="heading 2"/></w:style>'
+        '<w:style w:type="paragraph" w:styleId="Quote"><w:name w:val="Quote"/></w:style>'
+        '<w:style w:type="paragraph" w:styleId="Code"><w:name w:val="Code"/></w:style>'
+        '<w:style w:type="paragraph" w:styleId="ListParagraph"><w:name w:val="List Paragraph"/></w:style>'
+        '<w:style w:type="paragraph" w:styleId="TableParagraph"><w:name w:val="Table Paragraph"/></w:style>'
+        "</w:styles>"
+    )
+
+
+def write_simple_docx(output_path: Path, blocks: list[dict[str, str]]) -> None:
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    paragraphs = "".join(
+        docx_paragraph_xml(
+            block.get("text", "") or " ",
+            style=normalize_optional_text(block.get("style", "")) or "Normal",
+        )
+        for block in blocks
+    ) or docx_paragraph_xml(" ", style="Normal")
+    document_xml = (
+        '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+        '<w:document xmlns:wpc="http://schemas.microsoft.com/office/word/2010/wordprocessingCanvas" '
+        'xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" '
+        'xmlns:o="urn:schemas-microsoft-com:office:office" '
+        'xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" '
+        'xmlns:m="http://schemas.openxmlformats.org/officeDocument/2006/math" '
+        'xmlns:v="urn:schemas-microsoft-com:vml" '
+        'xmlns:wp14="http://schemas.microsoft.com/office/word/2010/wordprocessingDrawing" '
+        'xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing" '
+        'xmlns:w10="urn:schemas-microsoft-com:office:word" '
+        'xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main" '
+        'xmlns:w14="http://schemas.microsoft.com/office/word/2010/wordml" '
+        'xmlns:wpg="http://schemas.microsoft.com/office/word/2010/wordprocessingGroup" '
+        'xmlns:wpi="http://schemas.microsoft.com/office/word/2010/wordprocessingInk" '
+        'xmlns:wne="http://schemas.microsoft.com/office/2006/wordml" '
+        'xmlns:wps="http://schemas.microsoft.com/office/word/2010/wordprocessingShape" '
+        'mc:Ignorable="w14 wp14">'
+        f"<w:body>{paragraphs}<w:sectPr/></w:body>"
+        "</w:document>"
+    )
+    content_types_xml = (
+        '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+        '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">'
+        '<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>'
+        '<Default Extension="xml" ContentType="application/xml"/>'
+        '<Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/>'
+        '<Override PartName="/word/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml"/>'
+        "</Types>"
+    )
+    package_rels_xml = (
+        '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+        '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'
+        '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/>'
+        "</Relationships>"
+    )
+    document_rels_xml = (
+        '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+        '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'
+        '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/>'
+        "</Relationships>"
+    )
+    with zipfile.ZipFile(output_path, "w", compression=zipfile.ZIP_DEFLATED) as archive:
+        archive.writestr("[Content_Types].xml", content_types_xml)
+        archive.writestr("_rels/.rels", package_rels_xml)
+        archive.writestr("word/document.xml", document_xml)
+        archive.writestr("word/_rels/document.xml.rels", document_rels_xml)
+        archive.writestr("word/styles.xml", docx_styles_xml())
 
 
 def json_tabular_rows(data: object) -> list[list[object]]:

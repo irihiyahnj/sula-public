@@ -1281,6 +1281,11 @@ class SulaCliTests(unittest.TestCase):
             self.assertTrue(payload["bridge_created"])
             bridge_artifact = payload["bridge_artifact"]
             self.assertTrue(bridge_artifact["path"].endswith(".docx"))
+            bridge_path = project_root / bridge_artifact["path"]
+            self.assertTrue(bridge_path.exists())
+            with zipfile.ZipFile(bridge_path) as archive:
+                names = set(archive.namelist())
+            self.assertIn("word/document.xml", names)
             self.assertEqual(bridge_artifact["derived_from"], [source_artifact["id"]])
             provider_import = payload["provider_import"]
             self.assertEqual(provider_import["provider"], "google-drive")
@@ -2142,6 +2147,11 @@ class SulaCliTests(unittest.TestCase):
             )
             self.assertEqual(materialize_result.returncode, 0, materialize_result.stderr)
             bridge_artifact = json.loads(materialize_result.stdout)["artifact"]
+            bridge_path = project_root / bridge_artifact["path"]
+            self.assertTrue(bridge_path.exists())
+            with zipfile.ZipFile(bridge_path) as archive:
+                names = set(archive.namelist())
+            self.assertIn("word/document.xml", names)
 
             provider_register = run_cli(
                 "artifact",
@@ -2365,6 +2375,55 @@ class SulaCliTests(unittest.TestCase):
             self.assertNotEqual(result.returncode, 0)
             self.assertIn("Kernel issues:", result.stdout)
             self.assertIn("invalid kernel event JSON", result.stdout)
+
+    def test_query_handles_duplicate_event_type_and_timestamp(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            project_root = Path(tmpdir)
+            self.create_generic_project(project_root)
+            adopt_result = run_cli("adopt", "--project-root", str(project_root), "--approve")
+            self.assertEqual(adopt_result.returncode, 0, adopt_result.stderr)
+
+            event_log = project_root / ".sula" / "events" / "log.jsonl"
+            event_log.write_text(
+                "\n".join(
+                    [
+                        json.dumps(
+                            {
+                                "timestamp": "2026-04-15T12:00:00Z",
+                                "event_type": "artifact.register",
+                                "summary": "Registered draft A.",
+                                "profile": "generic-project",
+                                "project": "Field Ops",
+                            },
+                            ensure_ascii=True,
+                        ),
+                        json.dumps(
+                            {
+                                "timestamp": "2026-04-15T12:00:00Z",
+                                "event_type": "artifact.register",
+                                "summary": "Registered draft B.",
+                                "profile": "generic-project",
+                                "project": "Field Ops",
+                            },
+                            ensure_ascii=True,
+                        ),
+                    ]
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            cache_root = project_root / ".sula" / "cache"
+            for cache_name in ["kernel.db", "query-index.json"]:
+                cache_path = cache_root / cache_name
+                if cache_path.exists():
+                    cache_path.unlink()
+
+            result = run_cli("query", "--project-root", str(project_root), "--q", "Registered draft", "--kind", "event", "--json")
+
+            self.assertEqual(result.returncode, 0, result.stderr)
+            payload = json.loads(result.stdout)
+            event_results = [item for item in payload["results"] if item["kind"] == "event"]
+            self.assertGreaterEqual(len(event_results), 1)
 
     def test_doctor_reports_unknown_adapter_reference_in_source_registry(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
