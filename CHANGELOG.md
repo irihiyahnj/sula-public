@@ -2,6 +2,30 @@
 
 All notable changes to Sula Core should be recorded here with explicit sync impact.
 
+## Unreleased
+
+### Added
+
+- truth-source and freshness metadata for collaborative artifact families, including `family_key`, `artifact_role`, `source_of_truth`, `collaboration_mode`, `last_refreshed_at`, and `last_provider_sync_at`
+- `artifact refresh` plus read-only Google Docs / Google Sheets provider adapters and `.sula/cache/provider-snapshots/` normalized provider snapshot caching
+- project-local Google OAuth storage under `.sula/local/google-oauth.json` when a Sula project root is known
+- `check` as a first-class daily state-sync verification command that fails when generated `.sula/state/current.md` or `.sula/memory-digest.md` drift away from current source documents
+
+### Changed
+
+- `query`, `artifact locate`, and `status` now surface fact-source summaries, local-copy staleness risk, and provider-metadata gaps for collaborative provider-backed artifacts
+- natural-language freshness phrases such as "先看最新版本再继续" or "共享文档为准" now trigger truth-source-aware retrieval instead of blindly trusting old local context
+- freshness-intent `query` and `artifact locate` now attempt a real provider refresh before returning results when provider metadata and access are available
+- provider-native registration and import planning now default Google Docs or Sheets target paths from workflow slots like `delivery/...` instead of treating the provider root as the implicit destination
+- state-sync workflows now expect `SULA CHECK OK` before completion, with generated `.sula/*` state rebuilt through Sula commands instead of hand edits
+
+### Sync Impact
+
+- existing adopted projects remain compatible and gain richer artifact catalog metadata plus truth-source/freshness summaries on next artifact registration or kernel refresh
+- collaborative Drive-based projects can now distinguish provider-native truth from local sync copies and exported derivatives without relying on one project-specific prompt ritual
+- projects that want live provider refresh can now supply a read-only Google access token through `SULA_GOOGLE_ACCESS_TOKEN` without introducing a mandatory third-party dependency
+- adopted projects that sync to this version gain a reusable daily close-out gate for status and memory updates instead of relying on project-local scripts
+
 ## 0.11.0 - 2026-04-12
 
 ### Added
