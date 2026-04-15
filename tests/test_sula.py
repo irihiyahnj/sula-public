@@ -1,10 +1,14 @@
 from __future__ import annotations
 
+from datetime import date
 import subprocess
 import tempfile
 from pathlib import Path
 import unittest
 import json
+import os
+import threading
+from http.server import BaseHTTPRequestHandler, HTTPServer
 import zipfile
 
 
@@ -13,17 +17,24 @@ SULA_SCRIPT = REPO_ROOT / "scripts" / "sula.py"
 SITE_BOOTSTRAP_SCRIPT = REPO_ROOT / "site" / "launch" / "bootstrap.py"
 
 
-def run_cli(*args: str, cwd: Path | None = None) -> subprocess.CompletedProcess[str]:
+def run_cli(*args: str, cwd: Path | None = None, env: dict[str, str] | None = None) -> subprocess.CompletedProcess[str]:
+    command_env = os.environ.copy()
+    if env:
+        command_env.update(env)
     return subprocess.run(
         ["python3", str(SULA_SCRIPT), *args],
         cwd=cwd or REPO_ROOT,
         text=True,
         capture_output=True,
         check=False,
+        env=command_env,
     )
 
 
-def run_cli_input(input_text: str, *args: str, cwd: Path | None = None) -> subprocess.CompletedProcess[str]:
+def run_cli_input(input_text: str, *args: str, cwd: Path | None = None, env: dict[str, str] | None = None) -> subprocess.CompletedProcess[str]:
+    command_env = os.environ.copy()
+    if env:
+        command_env.update(env)
     return subprocess.run(
         ["python3", str(SULA_SCRIPT), *args],
         cwd=cwd or REPO_ROOT,
@@ -31,6 +42,7 @@ def run_cli_input(input_text: str, *args: str, cwd: Path | None = None) -> subpr
         text=True,
         capture_output=True,
         check=False,
+        env=command_env,
     )
 
 
@@ -45,6 +57,28 @@ def run_site_bootstrap(*args: str, cwd: Path | None = None) -> subprocess.Comple
 
 
 class SulaCliTests(unittest.TestCase):
+    def write_provider_fixture(self, fixture_root: Path, *, provider_item_kind: str, provider_item_id: str, payload: dict) -> Path:
+        fixture_root.mkdir(parents=True, exist_ok=True)
+        fixture_path = fixture_root / f"{provider_item_kind}--{provider_item_id}.json"
+        fixture_path.write_text(json.dumps(payload, indent=2, ensure_ascii=True) + "\n", encoding="utf-8")
+        return fixture_path
+
+    def start_token_server(self, response_payload: dict[str, object]) -> tuple[HTTPServer, str]:
+        class TokenHandler(BaseHTTPRequestHandler):
+            def do_POST(self) -> None:
+                self.send_response(200)
+                self.send_header("Content-Type", "application/json")
+                self.end_headers()
+                self.wfile.write(json.dumps(response_payload, ensure_ascii=True).encode("utf-8"))
+
+            def log_message(self, format: str, *args) -> None:  # noqa: A003
+                return
+
+        server = HTTPServer(("127.0.0.1", 0), TokenHandler)
+        thread = threading.Thread(target=server.serve_forever, daemon=True)
+        thread.start()
+        return server, f"http://127.0.0.1:{server.server_port}/token"
+
     def create_generic_project(self, project_root: Path) -> None:
         (project_root / "docs").mkdir(parents=True, exist_ok=True)
         (project_root / "README.md").write_text(
@@ -1255,13 +1289,66 @@ class SulaCliTests(unittest.TestCase):
                 "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
             )
             self.assertEqual(provider_import["provider_root_id"], "hospital-root")
-            self.assertTrue(provider_import["project_relative_path"].endswith("hospital-intake-draft"))
+            expected_relative_path = f"delivery/{date.today().isoformat()}-hospital-intake-draft"
+            self.assertEqual(provider_import["project_relative_path"], expected_relative_path)
+            self.assertEqual(provider_import["provider_parent_relative_path"], "delivery")
             self.assertEqual(provider_import["register_after_import"]["derived_from"], [bridge_artifact["id"]])
             self.assertIn("--provider-item-kind google-doc", payload["register_command_preview"])
+            self.assertIn(f"--project-relative-path {expected_relative_path}", payload["register_command_preview"])
             plan_path = project_root / payload["plan_path"]
             self.assertTrue(plan_path.exists())
             plan = json.loads(plan_path.read_text(encoding="utf-8"))
             self.assertEqual(plan["provider_import"]["bridge_artifact_id"], bridge_artifact["id"])
+
+    def test_provider_native_register_defaults_to_slot_relative_project_path(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            project_root = Path(tmpdir)
+            self.create_generic_project(project_root)
+            adopt_result = run_cli(
+                "adopt",
+                "--project-root",
+                str(project_root),
+                "--workflow-pack",
+                "client-service",
+                "--storage-provider",
+                "google-drive",
+                "--storage-sync-mode",
+                "local-sync",
+                "--storage-provider-root-url",
+                "https://drive.google.com/drive/folders/hospital-root",
+                "--storage-provider-root-id",
+                "hospital-root",
+                "--approve",
+            )
+            self.assertEqual(adopt_result.returncode, 0, adopt_result.stderr)
+
+            register_result = run_cli(
+                "artifact",
+                "register",
+                "--project-root",
+                str(project_root),
+                "--kind",
+                "report",
+                "--title",
+                "Shared Report Provider",
+                "--date",
+                "2026-04-12",
+                "--provider-item-id",
+                "doc-direct-1",
+                "--provider-item-kind",
+                "google-doc",
+                "--provider-item-url",
+                "https://docs.google.com/document/d/doc-direct-1/edit",
+                "--collaboration-mode",
+                "multi-editor",
+                "--source-of-truth",
+                "provider-native",
+                "--json",
+            )
+            self.assertEqual(register_result.returncode, 0, register_result.stderr)
+            artifact = json.loads(register_result.stdout)["artifact"]
+            self.assertEqual(artifact["project_relative_path"], "delivery/2026-04-12-shared-report-provider")
+            self.assertEqual(artifact["path"], "delivery/2026-04-12-shared-report-provider")
 
     def test_artifact_import_plan_uses_artifact_id_for_google_sheet(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -1316,6 +1403,794 @@ class SulaCliTests(unittest.TestCase):
             self.assertEqual(payload["provider_import"]["register_after_import"]["provider_item_kind"], "google-sheet")
             plan_path = project_root / payload["plan_path"]
             self.assertTrue(plan_path.exists())
+
+    def test_query_freshness_intent_prefers_provider_truth_for_multi_editor_artifact(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            project_root = Path(tmpdir)
+            self.create_generic_project(project_root)
+            adopt_result = run_cli(
+                "adopt",
+                "--project-root",
+                str(project_root),
+                "--workflow-pack",
+                "client-service",
+                "--storage-provider",
+                "google-drive",
+                "--storage-sync-mode",
+                "local-sync",
+                "--storage-provider-root-url",
+                "https://drive.google.com/drive/folders/hospital-root",
+                "--storage-provider-root-id",
+                "hospital-root",
+                "--approve",
+            )
+            self.assertEqual(adopt_result.returncode, 0, adopt_result.stderr)
+
+            source_path = project_root / "drafts" / "hospital-intake.md"
+            source_path.parent.mkdir(parents=True, exist_ok=True)
+            source_path.write_text("# Hospital Intake Draft\n\nShared source draft.\n", encoding="utf-8")
+            source_register = run_cli(
+                "artifact",
+                "register",
+                "--project-root",
+                str(project_root),
+                "--path",
+                "drafts/hospital-intake.md",
+                "--kind",
+                "report",
+                "--title",
+                "Hospital Intake Draft",
+                "--collaboration-mode",
+                "multi-editor",
+                "--source-of-truth",
+                "provider-native",
+                "--last-refreshed-at",
+                "2026-04-12T08:00:00Z",
+                "--json",
+            )
+            self.assertEqual(source_register.returncode, 0, source_register.stderr)
+            source_artifact = json.loads(source_register.stdout)["artifact"]
+
+            provider_register = run_cli(
+                "artifact",
+                "register",
+                "--project-root",
+                str(project_root),
+                "--kind",
+                "report",
+                "--title",
+                "Hospital Intake Shared Doc",
+                "--project-relative-path",
+                "delivery/2026-04-12-hospital-intake-report-v1",
+                "--provider-item-id",
+                "doc-abc123",
+                "--provider-item-kind",
+                "google-doc",
+                "--provider-item-url",
+                "https://docs.google.com/document/d/doc-abc123/edit",
+                "--derived-from",
+                source_artifact["id"],
+                "--collaboration-mode",
+                "multi-editor",
+                "--source-of-truth",
+                "provider-native",
+                "--last-provider-sync-at",
+                "2099-04-12T10:00:00Z",
+                "--json",
+            )
+            self.assertEqual(provider_register.returncode, 0, provider_register.stderr)
+            provider_artifact = json.loads(provider_register.stdout)["artifact"]
+
+            query_result = run_cli(
+                "query",
+                "--project-root",
+                str(project_root),
+                "--q",
+                "先看最新版本再继续",
+                "--json",
+            )
+            self.assertEqual(query_result.returncode, 0, query_result.stderr)
+            payload = json.loads(query_result.stdout)
+            self.assertTrue(payload["freshness_intent_detected"])
+            self.assertTrue(payload["results"])
+            first = payload["results"][0]
+            self.assertEqual(first["truth_source_type"], "provider-native")
+            self.assertEqual(first["truth_source_artifact_id"], provider_artifact["id"])
+            self.assertEqual(first["collaboration_mode"], "multi-editor")
+            self.assertTrue(first["local_copy_stale_risk"])
+            self.assertEqual(first["freshness_status"], "local-copy-may-be-stale")
+
+            status_result = run_cli("status", "--project-root", str(project_root), "--json")
+            self.assertEqual(status_result.returncode, 0, status_result.stderr)
+            status_payload = json.loads(status_result.stdout)
+            self.assertEqual(status_payload["state"]["truth_sources"]["provider_native"], 1)
+            self.assertEqual(status_payload["state"]["truth_sources"]["local_copy_risk_count"], 1)
+
+    def test_artifact_refresh_updates_provider_metadata_and_snapshot_cache(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir, tempfile.TemporaryDirectory() as fixture_tmpdir:
+            project_root = Path(tmpdir)
+            fixture_root = Path(fixture_tmpdir)
+            self.create_generic_project(project_root)
+            adopt_result = run_cli(
+                "adopt",
+                "--project-root",
+                str(project_root),
+                "--workflow-pack",
+                "client-service",
+                "--storage-provider",
+                "google-drive",
+                "--storage-sync-mode",
+                "local-sync",
+                "--storage-provider-root-url",
+                "https://drive.google.com/drive/folders/hospital-root",
+                "--storage-provider-root-id",
+                "hospital-root",
+                "--approve",
+            )
+            self.assertEqual(adopt_result.returncode, 0, adopt_result.stderr)
+
+            source_path = project_root / "drafts" / "hospital-intake.md"
+            source_path.parent.mkdir(parents=True, exist_ok=True)
+            source_path.write_text("# Hospital Intake Draft\n\nShared source draft.\n", encoding="utf-8")
+            source_register = run_cli(
+                "artifact",
+                "register",
+                "--project-root",
+                str(project_root),
+                "--path",
+                "drafts/hospital-intake.md",
+                "--kind",
+                "report",
+                "--title",
+                "Hospital Intake Draft",
+                "--collaboration-mode",
+                "multi-editor",
+                "--source-of-truth",
+                "provider-native",
+                "--json",
+            )
+            self.assertEqual(source_register.returncode, 0, source_register.stderr)
+            source_artifact = json.loads(source_register.stdout)["artifact"]
+
+            provider_register = run_cli(
+                "artifact",
+                "register",
+                "--project-root",
+                str(project_root),
+                "--kind",
+                "report",
+                "--title",
+                "Hospital Intake Shared Doc",
+                "--project-relative-path",
+                "delivery/2026-04-12-hospital-intake-report-v1",
+                "--provider-item-id",
+                "doc-abc123",
+                "--provider-item-kind",
+                "google-doc",
+                "--provider-item-url",
+                "https://docs.google.com/document/d/doc-abc123/edit",
+                "--derived-from",
+                source_artifact["id"],
+                "--collaboration-mode",
+                "multi-editor",
+                "--source-of-truth",
+                "provider-native",
+                "--json",
+            )
+            self.assertEqual(provider_register.returncode, 0, provider_register.stderr)
+            provider_artifact = json.loads(provider_register.stdout)["artifact"]
+
+            self.write_provider_fixture(
+                fixture_root,
+                provider_item_kind="google-doc",
+                provider_item_id="doc-abc123",
+                payload={
+                    "metadata": {
+                        "id": "doc-abc123",
+                        "name": "Hospital Intake Shared Doc",
+                        "modifiedTime": "2026-04-12T10:00:00Z",
+                        "version": "42",
+                        "webViewLink": "https://docs.google.com/document/d/doc-abc123/edit",
+                        "etag": "etag-42",
+                    },
+                    "document": {
+                        "title": "Hospital Intake Shared Doc",
+                        "body": {
+                            "content": [
+                                {
+                                    "paragraph": {
+                                        "elements": [{"textRun": {"content": "Latest provider content.\n"}}],
+                                        "paragraphStyle": {"namedStyleType": "HEADING_1"},
+                                    }
+                                }
+                            ]
+                        },
+                    },
+                },
+            )
+            env = {"SULA_PROVIDER_FIXTURE_DIR": str(fixture_root)}
+            refresh_result = run_cli(
+                "artifact",
+                "refresh",
+                "--project-root",
+                str(project_root),
+                "--artifact-id",
+                provider_artifact["id"],
+                "--json",
+                env=env,
+            )
+            self.assertEqual(refresh_result.returncode, 0, refresh_result.stderr)
+            payload = json.loads(refresh_result.stdout)
+            self.assertEqual(payload["refresh"]["ok"], 1)
+            refresh_row = payload["refresh"]["results"][0]
+            self.assertEqual(refresh_row["status"], "ok")
+            self.assertEqual(refresh_row["provider_revision_id"], "42")
+            snapshot_path = project_root / refresh_row["provider_snapshot_path"]
+            self.assertTrue(snapshot_path.exists())
+            snapshot = json.loads(snapshot_path.read_text(encoding="utf-8"))
+            self.assertEqual(snapshot["provider_revision_id"], "42")
+            self.assertIn("Latest provider content.", snapshot["normalized_content"]["plain_text"])
+
+            locate_result = run_cli(
+                "artifact",
+                "locate",
+                "--project-root",
+                str(project_root),
+                "--q",
+                "doc-abc123",
+                "--json",
+            )
+            self.assertEqual(locate_result.returncode, 0, locate_result.stderr)
+            located = json.loads(locate_result.stdout)
+            refreshed = next(item for item in located["results"] if item["id"] == provider_artifact["id"])
+            self.assertEqual(refreshed["provider_revision_id"], "42")
+            self.assertEqual(refreshed["provider_last_fetch_status"], "ok")
+
+    def test_query_freshness_intent_auto_refreshes_provider_fixture(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir, tempfile.TemporaryDirectory() as fixture_tmpdir:
+            project_root = Path(tmpdir)
+            fixture_root = Path(fixture_tmpdir)
+            self.create_generic_project(project_root)
+            adopt_result = run_cli(
+                "adopt",
+                "--project-root",
+                str(project_root),
+                "--workflow-pack",
+                "client-service",
+                "--storage-provider",
+                "google-drive",
+                "--storage-sync-mode",
+                "local-sync",
+                "--storage-provider-root-url",
+                "https://drive.google.com/drive/folders/hospital-root",
+                "--storage-provider-root-id",
+                "hospital-root",
+                "--approve",
+            )
+            self.assertEqual(adopt_result.returncode, 0, adopt_result.stderr)
+
+            source_path = project_root / "drafts" / "shared-report.md"
+            source_path.parent.mkdir(parents=True, exist_ok=True)
+            source_path.write_text("# Shared Report\n\nLocal copy.\n", encoding="utf-8")
+            source_register = run_cli(
+                "artifact",
+                "register",
+                "--project-root",
+                str(project_root),
+                "--path",
+                "drafts/shared-report.md",
+                "--kind",
+                "report",
+                "--title",
+                "Shared Report Local",
+                "--collaboration-mode",
+                "multi-editor",
+                "--source-of-truth",
+                "provider-native",
+                "--json",
+            )
+            self.assertEqual(source_register.returncode, 0, source_register.stderr)
+            source_artifact = json.loads(source_register.stdout)["artifact"]
+
+            provider_register = run_cli(
+                "artifact",
+                "register",
+                "--project-root",
+                str(project_root),
+                "--kind",
+                "report",
+                "--title",
+                "Shared Report Provider",
+                "--project-relative-path",
+                "delivery/shared-report",
+                "--provider-item-id",
+                "doc-shared-1",
+                "--provider-item-kind",
+                "google-doc",
+                "--provider-item-url",
+                "https://docs.google.com/document/d/doc-shared-1/edit",
+                "--derived-from",
+                source_artifact["id"],
+                "--collaboration-mode",
+                "multi-editor",
+                "--source-of-truth",
+                "provider-native",
+                "--json",
+            )
+            self.assertEqual(provider_register.returncode, 0, provider_register.stderr)
+            provider_artifact = json.loads(provider_register.stdout)["artifact"]
+
+            self.write_provider_fixture(
+                fixture_root,
+                provider_item_kind="google-doc",
+                provider_item_id="doc-shared-1",
+                payload={
+                    "metadata": {
+                        "id": "doc-shared-1",
+                        "name": "Shared Report Provider",
+                        "modifiedTime": "2026-04-12T11:00:00Z",
+                        "version": "77",
+                        "webViewLink": "https://docs.google.com/document/d/doc-shared-1/edit",
+                    },
+                    "document": {
+                        "title": "Shared Report Provider",
+                        "body": {"content": [{"paragraph": {"elements": [{"textRun": {"content": "Fresh provider version.\n"}}]}}]},
+                    },
+                },
+            )
+            env = {"SULA_PROVIDER_FIXTURE_DIR": str(fixture_root)}
+            query_result = run_cli(
+                "query",
+                "--project-root",
+                str(project_root),
+                "--q",
+                "先看最新版本再继续",
+                "--json",
+                env=env,
+            )
+            self.assertEqual(query_result.returncode, 0, query_result.stderr)
+            payload = json.loads(query_result.stdout)
+            self.assertTrue(payload["freshness_intent_detected"])
+            self.assertEqual(payload["refresh"]["ok"], 1)
+            first = next(item for item in payload["results"] if item["id"] == provider_artifact["id"])
+            self.assertEqual(first["provider_revision_id"], "77")
+            self.assertEqual(first["provider_modified_at"], "2026-04-12T11:00:00Z")
+            self.assertEqual(first["provider_last_fetch_status"], "ok")
+            self.assertEqual(first["truth_source_type"], "provider-native")
+            self.assertEqual(first["provider_target_path"], "delivery/shared-report")
+            self.assertEqual(first["provider_parent_relative_path"], "delivery")
+
+    def test_provider_refresh_can_use_oauth_store_refresh_token(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir, tempfile.TemporaryDirectory() as fixture_tmpdir, tempfile.TemporaryDirectory() as oauth_tmpdir:
+            project_root = Path(tmpdir)
+            fixture_root = Path(fixture_tmpdir)
+            oauth_file = Path(oauth_tmpdir) / "google-oauth.json"
+            token_server, token_uri = self.start_token_server(
+                {
+                    "access_token": "refreshed-access-token",
+                    "expires_in": 3600,
+                    "token_type": "Bearer",
+                    "scope": "https://www.googleapis.com/auth/drive.metadata.readonly https://www.googleapis.com/auth/documents.readonly https://www.googleapis.com/auth/spreadsheets.readonly",
+                }
+            )
+            try:
+                self.create_generic_project(project_root)
+                adopt_result = run_cli(
+                    "adopt",
+                    "--project-root",
+                    str(project_root),
+                    "--workflow-pack",
+                    "client-service",
+                    "--storage-provider",
+                    "google-drive",
+                    "--storage-sync-mode",
+                    "local-sync",
+                    "--storage-provider-root-url",
+                    "https://drive.google.com/drive/folders/hospital-root",
+                    "--storage-provider-root-id",
+                    "hospital-root",
+                    "--approve",
+                )
+                self.assertEqual(adopt_result.returncode, 0, adopt_result.stderr)
+
+                oauth_file.write_text(
+                    json.dumps(
+                        {
+                            "provider": "google-drive",
+                            "client_id": "desktop-client-id.apps.googleusercontent.com",
+                            "client_secret": "",
+                            "token_uri": token_uri,
+                            "refresh_token": "refresh-token-value",
+                            "access_token": "",
+                            "access_token_expires_at": "2000-01-01T00:00:00Z",
+                        },
+                        indent=2,
+                        ensure_ascii=True,
+                    )
+                    + "\n",
+                    encoding="utf-8",
+                )
+
+                source_path = project_root / "drafts" / "shared-report.md"
+                source_path.parent.mkdir(parents=True, exist_ok=True)
+                source_path.write_text("# Shared Report\n\nLocal copy.\n", encoding="utf-8")
+                source_register = run_cli(
+                    "artifact",
+                    "register",
+                    "--project-root",
+                    str(project_root),
+                    "--path",
+                    "drafts/shared-report.md",
+                    "--kind",
+                    "report",
+                    "--title",
+                    "Shared Report Local",
+                    "--collaboration-mode",
+                    "multi-editor",
+                    "--source-of-truth",
+                    "provider-native",
+                    "--json",
+                )
+                self.assertEqual(source_register.returncode, 0, source_register.stderr)
+                source_artifact = json.loads(source_register.stdout)["artifact"]
+
+                provider_register = run_cli(
+                    "artifact",
+                    "register",
+                    "--project-root",
+                    str(project_root),
+                    "--kind",
+                    "report",
+                    "--title",
+                    "Shared Report Provider",
+                    "--project-relative-path",
+                    "delivery/shared-report",
+                    "--provider-item-id",
+                    "doc-oauth-1",
+                    "--provider-item-kind",
+                    "google-doc",
+                    "--provider-item-url",
+                    "https://docs.google.com/document/d/doc-oauth-1/edit",
+                    "--derived-from",
+                    source_artifact["id"],
+                    "--collaboration-mode",
+                    "multi-editor",
+                    "--source-of-truth",
+                    "provider-native",
+                    "--json",
+                )
+                self.assertEqual(provider_register.returncode, 0, provider_register.stderr)
+
+                self.write_provider_fixture(
+                    fixture_root,
+                    provider_item_kind="google-doc",
+                    provider_item_id="doc-oauth-1",
+                    payload={
+                        "metadata": {
+                            "id": "doc-oauth-1",
+                            "name": "Shared Report Provider",
+                            "modifiedTime": "2026-04-12T12:00:00Z",
+                            "version": "88",
+                            "webViewLink": "https://docs.google.com/document/d/doc-oauth-1/edit",
+                        },
+                        "document": {
+                            "title": "Shared Report Provider",
+                            "body": {"content": [{"paragraph": {"elements": [{"textRun": {"content": "OAuth refreshed provider version.\n"}}]}}]},
+                        },
+                    },
+                )
+                env = {
+                    "SULA_PROVIDER_FIXTURE_DIR": str(fixture_root),
+                    "SULA_GOOGLE_OAUTH_FILE": str(oauth_file),
+                }
+                refresh_result = run_cli(
+                    "artifact",
+                    "refresh",
+                    "--project-root",
+                    str(project_root),
+                    "--all-collaborative",
+                    "--json",
+                    env=env,
+                )
+                self.assertEqual(refresh_result.returncode, 0, refresh_result.stderr)
+                payload = json.loads(refresh_result.stdout)
+                self.assertEqual(payload["refresh"]["ok"], 1)
+                updated_oauth = json.loads(oauth_file.read_text(encoding="utf-8"))
+                self.assertEqual(updated_oauth["access_token"], "refreshed-access-token")
+            finally:
+                token_server.shutdown()
+                token_server.server_close()
+
+    def test_provider_refresh_prefers_project_local_oauth_store(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir, tempfile.TemporaryDirectory() as fixture_tmpdir:
+            project_root = Path(tmpdir)
+            fixture_root = Path(fixture_tmpdir)
+            oauth_file = project_root / ".sula" / "local" / "google-oauth.json"
+            token_server, token_uri = self.start_token_server(
+                {
+                    "access_token": "project-local-access-token",
+                    "expires_in": 3600,
+                    "token_type": "Bearer",
+                    "scope": "https://www.googleapis.com/auth/drive.metadata.readonly https://www.googleapis.com/auth/documents.readonly https://www.googleapis.com/auth/spreadsheets.readonly",
+                }
+            )
+            try:
+                self.create_generic_project(project_root)
+                adopt_result = run_cli(
+                    "adopt",
+                    "--project-root",
+                    str(project_root),
+                    "--workflow-pack",
+                    "client-service",
+                    "--storage-provider",
+                    "google-drive",
+                    "--storage-sync-mode",
+                    "local-sync",
+                    "--storage-provider-root-url",
+                    "https://drive.google.com/drive/folders/hospital-root",
+                    "--storage-provider-root-id",
+                    "hospital-root",
+                    "--approve",
+                )
+                self.assertEqual(adopt_result.returncode, 0, adopt_result.stderr)
+
+                oauth_file.parent.mkdir(parents=True, exist_ok=True)
+                oauth_file.write_text(
+                    json.dumps(
+                        {
+                            "provider": "google-drive",
+                            "client_id": "desktop-client-id.apps.googleusercontent.com",
+                            "client_secret": "",
+                            "token_uri": token_uri,
+                            "refresh_token": "project-local-refresh-token",
+                            "access_token": "",
+                            "access_token_expires_at": "2000-01-01T00:00:00Z",
+                        },
+                        indent=2,
+                        ensure_ascii=True,
+                    )
+                    + "\n",
+                    encoding="utf-8",
+                )
+
+                provider_register = run_cli(
+                    "artifact",
+                    "register",
+                    "--project-root",
+                    str(project_root),
+                    "--kind",
+                    "report",
+                    "--title",
+                    "Shared Report Provider",
+                    "--project-relative-path",
+                    "delivery/shared-report",
+                    "--provider-item-id",
+                    "doc-project-local-1",
+                    "--provider-item-kind",
+                    "google-doc",
+                    "--provider-item-url",
+                    "https://docs.google.com/document/d/doc-project-local-1/edit",
+                    "--collaboration-mode",
+                    "multi-editor",
+                    "--source-of-truth",
+                    "provider-native",
+                    "--json",
+                )
+                self.assertEqual(provider_register.returncode, 0, provider_register.stderr)
+
+                self.write_provider_fixture(
+                    fixture_root,
+                    provider_item_kind="google-doc",
+                    provider_item_id="doc-project-local-1",
+                    payload={
+                        "metadata": {
+                            "id": "doc-project-local-1",
+                            "name": "Shared Report Provider",
+                            "modifiedTime": "2026-04-12T12:30:00Z",
+                            "version": "91",
+                            "webViewLink": "https://docs.google.com/document/d/doc-project-local-1/edit",
+                        },
+                        "document": {
+                            "title": "Shared Report Provider",
+                            "body": {"content": [{"paragraph": {"elements": [{"textRun": {"content": "Project local OAuth refresh.\n"}}]}}]},
+                        },
+                    },
+                )
+                refresh_result = run_cli(
+                    "artifact",
+                    "refresh",
+                    "--project-root",
+                    str(project_root),
+                    "--all-collaborative",
+                    "--json",
+                    env={"SULA_PROVIDER_FIXTURE_DIR": str(fixture_root)},
+                )
+                self.assertEqual(refresh_result.returncode, 0, refresh_result.stderr)
+                payload = json.loads(refresh_result.stdout)
+                self.assertEqual(payload["refresh"]["ok"], 1)
+                updated_oauth = json.loads(oauth_file.read_text(encoding="utf-8"))
+                self.assertEqual(updated_oauth["access_token"], "project-local-access-token")
+
+                status_result = run_cli("status", "--project-root", str(project_root), "--json")
+                self.assertEqual(status_result.returncode, 0, status_result.stderr)
+                status_payload = json.loads(status_result.stdout)
+                self.assertEqual(status_payload["state"]["storage"]["google_oauth_store_path"], ".sula/local/google-oauth.json")
+            finally:
+                token_server.shutdown()
+                token_server.server_close()
+
+    def test_freshness_check_reports_provider_metadata_gap_instead_of_assuming_local_latest(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            project_root = Path(tmpdir)
+            self.create_generic_project(project_root)
+            adopt_result = run_cli(
+                "adopt",
+                "--project-root",
+                str(project_root),
+                "--workflow-pack",
+                "client-service",
+                "--storage-provider",
+                "google-drive",
+                "--storage-sync-mode",
+                "local-sync",
+                "--approve",
+            )
+            self.assertEqual(adopt_result.returncode, 0, adopt_result.stderr)
+
+            source_path = project_root / "drafts" / "shared-report.md"
+            source_path.parent.mkdir(parents=True, exist_ok=True)
+            source_path.write_text("# Shared Report\n\n多人协作草稿。\n", encoding="utf-8")
+            register_result = run_cli(
+                "artifact",
+                "register",
+                "--project-root",
+                str(project_root),
+                "--path",
+                "drafts/shared-report.md",
+                "--kind",
+                "report",
+                "--title",
+                "Shared Report",
+                "--collaboration-mode",
+                "multi-editor",
+                "--source-of-truth",
+                "provider-native",
+                "--last-refreshed-at",
+                "2026-04-12T08:00:00Z",
+                "--json",
+            )
+            self.assertEqual(register_result.returncode, 0, register_result.stderr)
+
+            locate_result = run_cli(
+                "artifact",
+                "locate",
+                "--project-root",
+                str(project_root),
+                "--q",
+                "共享文档为准",
+                "--json",
+            )
+            self.assertEqual(locate_result.returncode, 0, locate_result.stderr)
+            payload = json.loads(locate_result.stdout)
+            self.assertTrue(payload["freshness_intent_detected"])
+            self.assertEqual(len(payload["results"]), 1)
+            artifact = payload["results"][0]
+            self.assertEqual(artifact["truth_source_type"], "provider-native")
+            self.assertEqual(artifact["freshness_status"], "provider-metadata-missing")
+            self.assertIn("provider_root_url", artifact["missing_provider_metadata"])
+            self.assertIn("provider_root_id", artifact["missing_provider_metadata"])
+            self.assertIn("provider_item_id", artifact["missing_provider_metadata"])
+            self.assertIn("provider_item_kind", artifact["missing_provider_metadata"])
+            self.assertIn("provider_item_url", artifact["missing_provider_metadata"])
+            self.assertIn("Re-register this artifact", artifact["minimal_register_action"])
+
+    def test_artifact_family_tracks_workspace_provider_and_derivative_shapes(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            project_root = Path(tmpdir)
+            self.create_generic_project(project_root)
+            adopt_result = run_cli(
+                "adopt",
+                "--project-root",
+                str(project_root),
+                "--workflow-pack",
+                "client-service",
+                "--storage-provider",
+                "google-drive",
+                "--storage-sync-mode",
+                "local-sync",
+                "--storage-provider-root-url",
+                "https://drive.google.com/drive/folders/hospital-root",
+                "--storage-provider-root-id",
+                "hospital-root",
+                "--approve",
+            )
+            self.assertEqual(adopt_result.returncode, 0, adopt_result.stderr)
+
+            source_path = project_root / "drafts" / "hospital-intake.md"
+            source_path.parent.mkdir(parents=True, exist_ok=True)
+            source_path.write_text("# Hospital Intake Draft\n\nFamily tracking source.\n", encoding="utf-8")
+            source_register = run_cli(
+                "artifact",
+                "register",
+                "--project-root",
+                str(project_root),
+                "--path",
+                "drafts/hospital-intake.md",
+                "--kind",
+                "report",
+                "--title",
+                "Hospital Intake Draft",
+                "--json",
+            )
+            self.assertEqual(source_register.returncode, 0, source_register.stderr)
+            source_artifact = json.loads(source_register.stdout)["artifact"]
+
+            materialize_result = run_cli(
+                "artifact",
+                "materialize",
+                "--project-root",
+                str(project_root),
+                "--source-path",
+                "drafts/hospital-intake.md",
+                "--target-format",
+                "docx",
+                "--title",
+                "Hospital Intake Export",
+                "--json",
+            )
+            self.assertEqual(materialize_result.returncode, 0, materialize_result.stderr)
+            bridge_artifact = json.loads(materialize_result.stdout)["artifact"]
+
+            provider_register = run_cli(
+                "artifact",
+                "register",
+                "--project-root",
+                str(project_root),
+                "--kind",
+                "report",
+                "--title",
+                "Hospital Intake Shared Doc",
+                "--project-relative-path",
+                "delivery/2026-04-12-hospital-intake-report-v1",
+                "--provider-item-id",
+                "doc-abc123",
+                "--provider-item-kind",
+                "google-doc",
+                "--provider-item-url",
+                "https://docs.google.com/document/d/doc-abc123/edit",
+                "--derived-from",
+                bridge_artifact["id"],
+                "--collaboration-mode",
+                "multi-editor",
+                "--source-of-truth",
+                "provider-native",
+                "--json",
+            )
+            self.assertEqual(provider_register.returncode, 0, provider_register.stderr)
+            provider_artifact = json.loads(provider_register.stdout)["artifact"]
+
+            locate_result = run_cli(
+                "artifact",
+                "locate",
+                "--project-root",
+                str(project_root),
+                "--q",
+                "Hospital Intake",
+                "--json",
+            )
+            self.assertEqual(locate_result.returncode, 0, locate_result.stderr)
+            payload = json.loads(locate_result.stdout)
+            family_entries = [
+                item
+                for item in payload["results"]
+                if item["id"] in {source_artifact["id"], bridge_artifact["id"], provider_artifact["id"]}
+            ]
+            self.assertEqual(len(family_entries), 3)
+            self.assertEqual({item["family_key"] for item in family_entries}, {source_artifact["family_key"]})
+            self.assertEqual(
+                {item["artifact_role"] for item in family_entries},
+                {"workspace-source", "exported-derivative", "provider-native-source"},
+            )
 
     def test_portfolio_register_list_and_query_json(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir, tempfile.TemporaryDirectory() as portfolio_tmpdir:

@@ -31,7 +31,7 @@
       "id": "state:current",
       "kind": "state",
       "title": "Current Project State",
-      "summary": "- Sula now manages itself as a first-class `sula-core` consumer while still acting as the source repository for reusable operating-system assets.\n- The repository has memory-aware governance, an in-repo canary, a root self-adoption path, and an approval-based adoption agent for bringing new repositories under Sula.\n- Public-release governance is now in place, and the remaining blocker is historical lineage cleanup rather than working-tree quality.\n- The future `sula.1stp.monster` landing page is now represented by real static site assets with canonical long-form bootstrap prompts and protocol pages.\n- The bootstrap site is now live on both `https://sula.fly.dev/` and `https://sula.1stp.monster/`, with the public bootstrap contract explicitly handling existing Sula consumers and canonical tool-source resolution.\n- Sula now has a recorded vNext architecture target for a `generic-project` kernel, adapter bundles, scientific retrieval, and first-class removal semantics.\n- The first milestone of that direction is now implemented: unknown and non-Git projects can adopt through `generic-project`, `.sula/` holds kernel artifacts, and removal has a report-first command.\n- The second milestone is now implemented as well: local retrieval can rebuild from SQLite, kernel objects cover task/decision/risk/person/agreement/milestone shapes, and query supports stronger filters plus timeline output.\n- The next operating milestone is now implemented too: machine-readable CLI responses, workflow/storage/portfolio manifest sections, artifact routing, and portfolio registration are available for non-code client projects.\n- Drive-synced projects can now describe `google-drive` as an adapter instead of pretending that storage provider is a project type, which keeps the kernel portable for future providers.\n- Formal document design is now a first-class Sula capability: adopted projects can carry reusable source-first structure bundles for schedule, proposal, report, process, and training documents instead of relying on one-off prompt instructions.\n- The next UX milestone is now implemented too: `onboard` provides a zero-memory interview flow that asks setup questions, explains what Sula will manage, and then applies adoption through the same kernel contract.\n- The next launch milestone is now implemented too: the public site exposes `/launch/`, a machine-readable launcher descriptor, and a downloadable `bootstrap.py` shim so startup no longer depends on guessing local commands.\n- The feedback-bundle lifecycle is now released in the Git-backed Sula 0.11.0 source state: adopted projects can capture reusable local Sula fixes as feedback bundles, and Sula Core can ingest, review, and release them through a central queue.",
+      "summary": "- Sula now manages itself as a first-class `sula-core` consumer while still acting as the source repository for reusable operating-system assets.\n- The repository has memory-aware governance, an in-repo canary, a root self-adoption path, and an approval-based adoption agent for bringing new repositories under Sula.\n- Public-release governance is now in place, and the remaining blocker is historical lineage cleanup rather than working-tree quality.\n- The future `sula.1stp.monster` landing page is now represented by real static site assets with canonical long-form bootstrap prompts and protocol pages.\n- The bootstrap site is now live on both `https://sula.fly.dev/` and `https://sula.1stp.monster/`, with the public bootstrap contract explicitly handling existing Sula consumers and canonical tool-source resolution.\n- Sula now has a recorded vNext architecture target for a `generic-project` kernel, adapter bundles, scientific retrieval, and first-class removal semantics.\n- The first milestone of that direction is now implemented: unknown and non-Git projects can adopt through `generic-project`, `.sula/` holds kernel artifacts, and removal has a report-first command.\n- The second milestone is now implemented as well: local retrieval can rebuild from SQLite, kernel objects cover task/decision/risk/person/agreement/milestone shapes, and query supports stronger filters plus timeline output.\n- The next operating milestone is now implemented too: machine-readable CLI responses, workflow/storage/portfolio manifest sections, artifact routing, and portfolio registration are available for non-code client projects.\n- Drive-synced projects can now describe `google-drive` as an adapter instead of pretending that storage provider is a project type, which keeps the kernel portable for future providers.\n- Collaborative provider-backed artifact families can now declare their truth source, refresh state, and stale-local-copy risk, so Sula can prefer shared Google-native facts when users ask for the latest version in natural language.\n- Sula now has a real read-only provider refresh path for Google Docs and Google Sheets, plus `artifact refresh` and cached provider snapshots, so freshness intent can trigger an actual provider metadata refresh instead of only local re-ranking.\n- Formal document design is now a first-class Sula capability: adopted projects can carry reusable source-first structure bundles for schedule, proposal, report, process, and training documents instead of relying on one-off prompt instructions.\n- The next UX milestone is now implemented too: `onboard` provides a zero-memory interview flow that asks setup questions, explains what Sula will manage, and then applies adoption through the same kernel contract.\n- The next launch milestone is now implemented too: the public site exposes `/launch/`, a machine-readable launcher descriptor, and a downloadable `bootstrap.py` shim so startup no longer depends on guessing local commands.\n- The feedback-bundle lifecycle is now released in the Git-backed Sula 0.11.0 source state: adopted projects can capture reusable local Sula fixes as feedback bundles, and Sula Core can ingest, review, and release them through a central queue.",
       "status": "current",
       "path": "STATUS.md",
       "source_paths": [
@@ -527,6 +527,46 @@
       "date": "2026-04-12"
     },
     {
+      "id": "decision:status:2026-04-12-added-add-truth-source-and-freshness-checks-for-collaborative-provider-backed-artifacts-docs-change-records-2026-04-12-add-truth-source-and-freshness-checks-for-collaborative-provider-artifacts-md",
+      "kind": "decision",
+      "title": "2026-04-12: added [Add truth-source and freshness checks for collaborative pr...",
+      "summary": "2026-04-12: added [Add truth-source and freshness checks for collaborative provider-backed artifacts](docs/change-records/2026-04-12-add-truth-source-and-freshness-checks-for-collaborative-provider-artifacts.md)",
+      "status": "decided",
+      "path": "STATUS.md",
+      "source_paths": [
+        "STATUS.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "recent-decision",
+        "status"
+      ],
+      "date": "2026-04-12"
+    },
+    {
+      "id": "decision:status:2026-04-12-added-add-provider-native-read-only-refresh-and-artifact-refresh-command-docs-change-records-2026-04-12-add-provider-native-read-only-refresh-and-artifact-refresh-command-md",
+      "kind": "decision",
+      "title": "2026-04-12: added [Add provider-native read-only refresh and artifact refresh...",
+      "summary": "2026-04-12: added [Add provider-native read-only refresh and artifact refresh command](docs/change-records/2026-04-12-add-provider-native-read-only-refresh-and-artifact-refresh-command.md)",
+      "status": "decided",
+      "path": "STATUS.md",
+      "source_paths": [
+        "STATUS.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "recent-decision",
+        "status"
+      ],
+      "date": "2026-04-12"
+    },
+    {
       "id": "decision:status:2026-04-12-added-add-guided-onboarding-and-zero-memory-setup-flow-docs-change-records-2026-04-12-add-guided-onboarding-and-zero-memory-setup-flow-md",
       "kind": "decision",
       "title": "2026-04-12: added [Add guided onboarding and zero-memory setup flow](docs/cha...",
@@ -763,6 +803,25 @@
       "date": "2026-04-12"
     },
     {
+      "id": "change:2026-04-12-add-truth-source-and-freshness-checks-for-collaborative-provider-artifacts",
+      "kind": "change",
+      "title": "Add truth-source and freshness checks for collaborative provider-backed artifacts",
+      "summary": "- date: 2026-04-12 - executor: Codex - branch: unknown - related commit(s): pending review commit - status: completed",
+      "status": "recorded",
+      "path": "docs/change-records/2026-04-12-add-truth-source-and-freshness-checks-for-collaborative-provider-artifacts.md",
+      "source_paths": [
+        "docs/change-records/2026-04-12-add-truth-source-and-freshness-checks-for-collaborative-provider-artifacts.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "change"
+      ],
+      "date": "2026-04-12"
+    },
+    {
       "id": "change:2026-04-12-add-sqlite-kernel-cache-richer-object-extraction-and-timeline-query-filters",
       "kind": "change",
       "title": "Add SQLite kernel cache, richer object extraction, and timeline query filters",
@@ -820,6 +879,25 @@
       "date": "2026-04-12"
     },
     {
+      "id": "change:2026-04-12-add-provider-native-read-only-refresh-and-artifact-refresh-command",
+      "kind": "change",
+      "title": "Add provider-native read-only refresh and artifact refresh command",
+      "summary": "- date: 2026-04-12 - executor: Codex - branch: unknown - related commit(s): pending review commit - status: completed",
+      "status": "recorded",
+      "path": "docs/change-records/2026-04-12-add-provider-native-read-only-refresh-and-artifact-refresh-command.md",
+      "source_paths": [
+        "docs/change-records/2026-04-12-add-provider-native-read-only-refresh-and-artifact-refresh-command.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "change"
+      ],
+      "date": "2026-04-12"
+    },
+    {
       "id": "change:2026-04-12-add-provider-import-plans-for-google-docs-and-sheets",
       "kind": "change",
       "title": "Add provider import plans for Google Docs and Google Sheets",
@@ -847,6 +925,25 @@
       "path": "docs/change-records/2026-04-12-add-provider-backed-artifact-registration-identity.md",
       "source_paths": [
         "docs/change-records/2026-04-12-add-provider-backed-artifact-registration-identity.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "change"
+      ],
+      "date": "2026-04-12"
+    },
+    {
+      "id": "change:2026-04-12-add-project-local-google-oauth-and-provider-target-path-routing",
+      "kind": "change",
+      "title": "Add project-local Google OAuth storage and provider target-path routing",
+      "summary": "- date: 2026-04-12 - executor: Codex - branch: unknown - related commit(s): pending review commit - status: completed",
+      "status": "recorded",
+      "path": "docs/change-records/2026-04-12-add-project-local-google-oauth-and-provider-target-path-routing.md",
+      "source_paths": [
+        "docs/change-records/2026-04-12-add-project-local-google-oauth-and-provider-target-path-routing.md"
       ],
       "adapters": [
         "generic-project",
@@ -2161,6 +2258,28 @@
       "date": "2026-04-12"
     },
     {
+      "id": "object:source:docs-change-records-2026-04-12-add-project-local-google-oauth-and-provider-target-path-routing-md",
+      "kind": "document",
+      "title": "2026-04-12-add-project-local-google-oauth-and-provider-target-path-routing.md",
+      "summary": "- date: 2026-04-12 - executor: Codex - branch: unknown - related commit(s): pending review commit - status: completed",
+      "status": "indexed",
+      "path": "docs/change-records/2026-04-12-add-project-local-google-oauth-and-provider-target-path-routing.md",
+      "source_paths": [
+        "docs/change-records/2026-04-12-add-project-local-google-oauth-and-provider-target-path-routing.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "memory",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": "2026-04-12"
+    },
+    {
       "id": "object:source:docs-change-records-2026-04-12-add-provider-backed-artifact-registration-identity-md",
       "kind": "document",
       "title": "2026-04-12-add-provider-backed-artifact-registration-identity.md",
@@ -2191,6 +2310,28 @@
       "path": "docs/change-records/2026-04-12-add-provider-import-plans-for-google-docs-and-sheets.md",
       "source_paths": [
         "docs/change-records/2026-04-12-add-provider-import-plans-for-google-docs-and-sheets.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "memory",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": "2026-04-12"
+    },
+    {
+      "id": "object:source:docs-change-records-2026-04-12-add-provider-native-read-only-refresh-and-artifact-refresh-command-md",
+      "kind": "document",
+      "title": "2026-04-12-add-provider-native-read-only-refresh-and-artifact-refresh-command.md",
+      "summary": "- date: 2026-04-12 - executor: Codex - branch: unknown - related commit(s): pending review commit - status: completed",
+      "status": "indexed",
+      "path": "docs/change-records/2026-04-12-add-provider-native-read-only-refresh-and-artifact-refresh-command.md",
+      "source_paths": [
+        "docs/change-records/2026-04-12-add-provider-native-read-only-refresh-and-artifact-refresh-command.md"
       ],
       "adapters": [
         "generic-project",
@@ -2258,6 +2399,28 @@
       "path": "docs/change-records/2026-04-12-add-sqlite-kernel-cache-richer-object-extraction-and-timeline-query-filters.md",
       "source_paths": [
         "docs/change-records/2026-04-12-add-sqlite-kernel-cache-richer-object-extraction-and-timeline-query-filters.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "memory",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": "2026-04-12"
+    },
+    {
+      "id": "object:source:docs-change-records-2026-04-12-add-truth-source-and-freshness-checks-for-collaborative-provider-artifacts-md",
+      "kind": "document",
+      "title": "2026-04-12-add-truth-source-and-freshness-checks-for-collaborative-provider-artifacts.md",
+      "summary": "- date: 2026-04-12 - executor: Codex - branch: unknown - related commit(s): pending review commit - status: completed",
+      "status": "indexed",
+      "path": "docs/change-records/2026-04-12-add-truth-source-and-freshness-checks-for-collaborative-provider-artifacts.md",
+      "source_paths": [
+        "docs/change-records/2026-04-12-add-truth-source-and-freshness-checks-for-collaborative-provider-artifacts.md"
       ],
       "adapters": [
         "generic-project",
@@ -4050,6 +4213,106 @@
       "path": "scripts/sula.py",
       "source_paths": [
         "scripts/sula.py"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:scripts-sula-google-auth-py",
+      "kind": "code",
+      "title": "sula_google_auth.py",
+      "summary": "from __future__ import annotations",
+      "status": "indexed",
+      "path": "scripts/sula_google_auth.py",
+      "source_paths": [
+        "scripts/sula_google_auth.py"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:scripts-sula-providers-init-py",
+      "kind": "code",
+      "title": "__init__.py",
+      "summary": "from __future__ import annotations",
+      "status": "indexed",
+      "path": "scripts/sula_providers/__init__.py",
+      "source_paths": [
+        "scripts/sula_providers/__init__.py"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:scripts-sula-providers-base-py",
+      "kind": "code",
+      "title": "base.py",
+      "summary": "from __future__ import annotations",
+      "status": "indexed",
+      "path": "scripts/sula_providers/base.py",
+      "source_paths": [
+        "scripts/sula_providers/base.py"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:scripts-sula-providers-google-drive-py",
+      "kind": "code",
+      "title": "google_drive.py",
+      "summary": "from __future__ import annotations",
+      "status": "indexed",
+      "path": "scripts/sula_providers/google_drive.py",
+      "source_paths": [
+        "scripts/sula_providers/google_drive.py"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:scripts-sula-providers-google-oauth-store-py",
+      "kind": "code",
+      "title": "google_oauth_store.py",
+      "summary": "from __future__ import annotations",
+      "status": "indexed",
+      "path": "scripts/sula_providers/google_oauth_store.py",
+      "source_paths": [
+        "scripts/sula_providers/google_oauth_store.py"
       ],
       "adapters": [
         "generic-project",

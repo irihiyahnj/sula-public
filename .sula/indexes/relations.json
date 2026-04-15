@@ -138,6 +138,16 @@
       "type": "derived-from"
     },
     {
+      "from": "decision:status:2026-04-12-added-add-truth-source-and-freshness-checks-for-collaborative-provider-backed-artifacts-docs-change-records-2026-04-12-add-truth-source-and-freshness-checks-for-collaborative-provider-artifacts-md",
+      "to": "source:status-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "decision:status:2026-04-12-added-add-provider-native-read-only-refresh-and-artifact-refresh-command-docs-change-records-2026-04-12-add-provider-native-read-only-refresh-and-artifact-refresh-command-md",
+      "to": "source:status-md",
+      "type": "derived-from"
+    },
+    {
       "from": "decision:status:2026-04-12-added-add-guided-onboarding-and-zero-memory-setup-flow-docs-change-records-2026-04-12-add-guided-onboarding-and-zero-memory-setup-flow-md",
       "to": "source:status-md",
       "type": "derived-from"
@@ -198,6 +208,11 @@
       "type": "derived-from"
     },
     {
+      "from": "change:2026-04-12-add-truth-source-and-freshness-checks-for-collaborative-provider-artifacts",
+      "to": "source:docs-change-records-2026-04-12-add-truth-source-and-freshness-checks-for-collaborative-provider-artifacts-md",
+      "type": "derived-from"
+    },
+    {
       "from": "change:2026-04-12-add-sqlite-kernel-cache-richer-object-extraction-and-timeline-query-filters",
       "to": "source:docs-change-records-2026-04-12-add-sqlite-kernel-cache-richer-object-extraction-and-timeline-query-filters-md",
       "type": "derived-from"
@@ -213,6 +228,11 @@
       "type": "derived-from"
     },
     {
+      "from": "change:2026-04-12-add-provider-native-read-only-refresh-and-artifact-refresh-command",
+      "to": "source:docs-change-records-2026-04-12-add-provider-native-read-only-refresh-and-artifact-refresh-command-md",
+      "type": "derived-from"
+    },
+    {
       "from": "change:2026-04-12-add-provider-import-plans-for-google-docs-and-sheets",
       "to": "source:docs-change-records-2026-04-12-add-provider-import-plans-for-google-docs-and-sheets-md",
       "type": "derived-from"
@@ -220,6 +240,11 @@
     {
       "from": "change:2026-04-12-add-provider-backed-artifact-registration-identity",
       "to": "source:docs-change-records-2026-04-12-add-provider-backed-artifact-registration-identity-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "change:2026-04-12-add-project-local-google-oauth-and-provider-target-path-routing",
+      "to": "source:docs-change-records-2026-04-12-add-project-local-google-oauth-and-provider-target-path-routing-md",
       "type": "derived-from"
     },
     {
@@ -538,6 +563,11 @@
       "type": "derived-from"
     },
     {
+      "from": "object:source:docs-change-records-2026-04-12-add-project-local-google-oauth-and-provider-target-path-routing-md",
+      "to": "source:docs-change-records-2026-04-12-add-project-local-google-oauth-and-provider-target-path-routing-md",
+      "type": "derived-from"
+    },
+    {
       "from": "object:source:docs-change-records-2026-04-12-add-provider-backed-artifact-registration-identity-md",
       "to": "source:docs-change-records-2026-04-12-add-provider-backed-artifact-registration-identity-md",
       "type": "derived-from"
@@ -545,6 +575,11 @@
     {
       "from": "object:source:docs-change-records-2026-04-12-add-provider-import-plans-for-google-docs-and-sheets-md",
       "to": "source:docs-change-records-2026-04-12-add-provider-import-plans-for-google-docs-and-sheets-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "object:source:docs-change-records-2026-04-12-add-provider-native-read-only-refresh-and-artifact-refresh-command-md",
+      "to": "source:docs-change-records-2026-04-12-add-provider-native-read-only-refresh-and-artifact-refresh-command-md",
       "type": "derived-from"
     },
     {
@@ -560,6 +595,11 @@
     {
       "from": "object:source:docs-change-records-2026-04-12-add-sqlite-kernel-cache-richer-object-extraction-and-timeline-query-filters-md",
       "to": "source:docs-change-records-2026-04-12-add-sqlite-kernel-cache-richer-object-extraction-and-timeline-query-filters-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "object:source:docs-change-records-2026-04-12-add-truth-source-and-freshness-checks-for-collaborative-provider-artifacts-md",
+      "to": "source:docs-change-records-2026-04-12-add-truth-source-and-freshness-checks-for-collaborative-provider-artifacts-md",
       "type": "derived-from"
     },
     {
@@ -975,6 +1015,31 @@
     {
       "from": "object:source:scripts-sula-py",
       "to": "source:scripts-sula-py",
+      "type": "derived-from"
+    },
+    {
+      "from": "object:source:scripts-sula-google-auth-py",
+      "to": "source:scripts-sula-google-auth-py",
+      "type": "derived-from"
+    },
+    {
+      "from": "object:source:scripts-sula-providers-init-py",
+      "to": "source:scripts-sula-providers-init-py",
+      "type": "derived-from"
+    },
+    {
+      "from": "object:source:scripts-sula-providers-base-py",
+      "to": "source:scripts-sula-providers-base-py",
+      "type": "derived-from"
+    },
+    {
+      "from": "object:source:scripts-sula-providers-google-drive-py",
+      "to": "source:scripts-sula-providers-google-drive-py",
+      "type": "derived-from"
+    },
+    {
+      "from": "object:source:scripts-sula-providers-google-oauth-store-py",
+      "to": "source:scripts-sula-providers-google-oauth-store-py",
       "type": "derived-from"
     },
     {

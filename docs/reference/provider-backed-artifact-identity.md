@@ -37,8 +37,16 @@ The current artifact registration flow can also persist provider-backed identity
 - `provider_item_url`
 - `derived_from`
 - `identity_key`
+- `family_key`
+- `artifact_role`
+- `source_of_truth`
+- `collaboration_mode`
+- `last_refreshed_at`
+- `last_provider_sync_at`
 
-Today Sula does not yet treat a native Google Doc or Google Sheet as a first-class provider object unless it is materialized into the local workspace or explicitly registered as an artifact.
+`project_relative_path` should now be read as "the provider-native target path inside the recorded provider root", not as a machine-local path guess.
+
+Today Sula can treat a registered native Google Doc or Google Sheet as the fact source for a collaborative artifact family, and it can surface freshness risk when a local copy may be stale.
 
 Today the preferred bridge is:
 
@@ -93,6 +101,14 @@ It should not mean:
 
 For Google Drive this is the stable folder identity that survives local path changes across devices.
 
+Provider-native item placement should then be derived as:
+
+- `provider_root_*`: the top-level project container
+- `project_relative_path`: the native item path under that container
+- `provider_parent_relative_path`: the folder path under that container that should hold the native item
+
+If a provider-native artifact is registered or planned without an explicit `project_relative_path`, Sula should default it from the workflow slot plus a stable title stem such as `delivery/2026-04-12-hospital-intake-draft`. That keeps native Docs and Sheets out of the provider root folder by default.
+
 ## Artifact Rules
 
 Provider-backed artifacts should be treated as first-class project objects even when they are not plain local files.
@@ -102,6 +118,12 @@ Sula should distinguish at least these artifact shapes:
 - synced file: a normal file that exists inside the local adopted project root
 - provider-native document: a Google Doc or Google Sheet that may not have a stable exported file in the local root
 - exported derivative: a PDF, Markdown file, CSV, or other generated file derived from a provider-native source
+
+Sula now records these shapes directly through `artifact_role`:
+
+- `workspace-source`
+- `provider-native-source`
+- `exported-derivative`
 
 For cross-device identity, Sula should prefer:
 
@@ -121,6 +143,7 @@ When `sync_mode = "local-sync"`:
 - files inside the adopted project root should be indexed as local project files
 - those files should still inherit provider metadata from the storage adapter
 - query should treat the file as a project object, not as a machine-local orphan
+- query, `artifact locate`, and `status` should expose which family member is the current truth source and whether local copies may be stale
 
 When direct provider mode exists:
 
@@ -147,6 +170,54 @@ As a practical bridge before direct provider APIs exist everywhere, Sula may als
 - CSV, TSV, or JSON tables to XLSX for Google Sheets import
 
 Sula can now also write a machine-readable import plan that tells another tool exactly which bridge file to import, which provider item kind to create, and which `artifact register` metadata to persist afterward.
+
+## Collaborative Freshness Rule
+
+When an artifact family is marked `collaboration_mode = "multi-editor"` and has complete provider metadata, Sula should default to the provider-native item as the fact source.
+
+When a user says things like:
+
+- "这份表很多人在 Google 上一起改"
+- "别人刚改过"
+- "先看最新版本再继续"
+- "以共享文档为准"
+
+Sula should treat that as a freshness intent, rerun truth-source evaluation, and prefer provider-native facts over cached local interpretations.
+
+The retrieval outputs now surface:
+
+- `truth_source_type`
+- `truth_source_artifact_id`
+- `truth_source_path`
+- `last_refreshed_at`
+- `last_provider_sync_at`
+- `local_copy_stale_risk`
+- `missing_provider_metadata`
+
+If required provider metadata is incomplete, Sula should not silently treat the workspace file as current. It should report the missing fields and require a minimal re-registration step before a provider-native truth-source claim is trusted.
+
+## Read-only Refresh Path
+
+Sula now has an explicit provider refresh workflow for collaborative provider-native artifacts:
+
+- `artifact refresh --artifact-id ...`
+- automatic provider refresh on freshness-intent `query`
+- automatic provider refresh on freshness-intent `artifact locate`
+- optional `status --refresh-provider` for an operator-driven full summary refresh
+
+For Google-backed workspaces, the first shipping contract is read-only:
+
+- Google Drive metadata is fetched to confirm `modifiedTime`, `version`, and the current web URL
+- Google Docs bodies are normalized into a cache-friendly block model
+- Google Sheets metadata is normalized into sheet summaries
+- normalized provider snapshots are cached under `.sula/cache/provider-snapshots/`
+
+Auth stays removable and local:
+
+- real refresh uses `SULA_GOOGLE_ACCESS_TOKEN`
+- local tests and canaries may use `SULA_PROVIDER_FIXTURE_DIR`
+
+If refresh fails, Sula records fetch status and error details in removable artifact metadata instead of pretending that the old local context is still current.
 
 ## Cross-Device Examples
 

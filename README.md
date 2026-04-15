@@ -282,7 +282,10 @@ python3 scripts/sula.py artifact register \
   --project-relative-path delivery/2026-04-12-hospital-intake-report-v1 \
   --provider-item-id doc-abc123 \
   --provider-item-kind google-doc \
-  --provider-item-url https://docs.google.com/document/d/doc-abc123/edit
+  --provider-item-url https://docs.google.com/document/d/doc-abc123/edit \
+  --source-of-truth provider-native \
+  --collaboration-mode multi-editor \
+  --last-provider-sync-at 2026-04-12T10:00:00Z
 
 python3 scripts/sula.py artifact materialize \
   --project-root /path/to/project \
@@ -313,11 +316,23 @@ python3 scripts/sula.py artifact import-plan \
 python3 scripts/sula.py artifact locate \
   --project-root /path/to/project \
   --kind agreement --json
+
+python3 scripts/sula.py artifact refresh \
+  --project-root /path/to/project \
+  --artifact-id artifact-provider-google-drive-hospital-root-google-doc-doc-abc123 \
+  --json
 ```
 
 Artifacts are routed through the active workflow pack and stored under the project's artifacts root, then registered in `.sula/artifacts/catalog.json`.
 
 Provider-backed artifacts can also be registered without a local materialized file path by supplying a stable project-relative path and provider item metadata. This lets Drive-synced and provider-native deliverables survive device-specific local path differences.
+
+Collaborative provider-backed artifacts can now also carry truth-source and freshness metadata:
+
+- `artifact register` accepts `--source-of-truth`, `--collaboration-mode`, `--artifact-role`, `--last-refreshed-at`, and `--last-provider-sync-at`
+- artifact families keep `workspace-source`, `provider-native-source`, and `exported-derivative` entries traceable under one `family_key`
+- when a multi-editor artifact points at a Google Doc or Google Sheet, Sula treats the provider-native item as the default fact source instead of silently trusting a local copy
+- if provider metadata is incomplete, Sula reports the missing `provider_root_url`, `provider_root_id`, `provider_item_id`, `provider_item_kind`, and `provider_item_url` fields instead of assuming that the local file is current
 
 Formal planning, proposal, report, process, and training documents now have a first-class design contract:
 
@@ -341,6 +356,49 @@ That supports a practical workflow where Sula keeps Markdown and tabular files a
 - otherwise it materializes the required bridge file automatically
 - it writes a machine-readable plan to `.sula/exports/provider-imports/*.json`
 - it returns the follow-up `artifact register` shape that should be used after the real provider item id and URL exist
+- it treats `project_relative_path` as the provider-native target path under the recorded `provider_root_id`
+- it now also emits `provider_parent_relative_path` so external Google import or create steps know which folder path to use instead of defaulting to the provider root folder
+
+Natural-language freshness checks are now part of the retrieval contract:
+
+- `python3 scripts/sula.py query --project-root /path/to/project --q "先看最新版本再继续" --json`
+- `python3 scripts/sula.py artifact locate --project-root /path/to/project --q "共享文档为准" --json`
+- `python3 scripts/sula.py status --project-root /path/to/project --json`
+
+Those outputs now expose the current `truth_source_type`, `last_refreshed_at`, `last_provider_sync_at`, `local_copy_stale_risk`, and any missing provider metadata for collaborative artifact families.
+
+When provider metadata is complete and read-only Google access is available, freshness intent now triggers a real provider refresh before results are returned:
+
+- set `SULA_GOOGLE_ACCESS_TOKEN` to a read-only Google API bearer token
+- or, for local testing, point `SULA_PROVIDER_FIXTURE_DIR` at JSON fixtures consumed by the Google provider adapter
+
+For a durable local setup, you can do one browser-based consent and let Sula refresh access tokens from a stored refresh token afterward:
+
+```bash
+python3 scripts/sula_google_auth.py \
+  --project-root /path/to/project \
+  --client-secrets-file /path/to/client_secret_desktop.json \
+  --print-shell
+```
+
+When `--project-root` is present, the OAuth store defaults to `PROJECT/.sula/local/google-oauth.json`. Without it, the fallback remains `~/.config/sula/google-oauth.json`. During provider refresh, Sula now tries the project-local OAuth store first and then falls back to the global store, so other sessions only need the project root to find the right token file.
+
+For provider-native Docs or Sheets, Sula now treats the saved location as:
+
+- `provider_root_id` or `provider_root_url`: the project container in Drive
+- `project_relative_path`: the provider-native target path inside that container
+- `provider_parent_relative_path`: the folder path that should contain the native item
+
+If you do not set `--project-relative-path` explicitly, Sula defaults it from the workflow slot, record date, and title slug, for example `delivery/2026-04-12-hospital-intake-draft`. That avoids ambiguous “save it at the root” behavior.
+
+`artifact refresh` is the explicit operational surface for the same workflow:
+
+- `--artifact-id` refreshes one registered family
+- `--family-key` refreshes one whole artifact family
+- `--q` refreshes matching provider-native families before a focused operation
+- `--all-collaborative` refreshes every collaborative provider-native family in the project
+
+Successful refreshes persist read-only provider metadata such as revision id, modified time, fetch status, and a cached normalized provider snapshot under `.sula/cache/provider-snapshots/`.
 
 ### Register projects in a portfolio
 

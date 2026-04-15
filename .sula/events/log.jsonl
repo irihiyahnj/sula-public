@@ -22,3 +22,7 @@
 {"timestamp": "2026-04-12T11:52:25Z", "event_type": "sync.applied", "summary": "Synchronized managed Sula files.", "profile": "sula-core", "project": "sula"}
 {"timestamp": "2026-04-12T11:55:02Z", "event_type": "record.release", "summary": "Added release record `Release Sula 0.11.0 formal document workflows and feedback bundles`.", "profile": "sula-core", "project": "sula"}
 {"timestamp": "2026-04-12T11:55:55Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-04-15T00:50:39Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-04-15T00:50:39Z", "event_type": "sync.applied", "summary": "Synchronized managed Sula files.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-04-15T01:19:45Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-04-15T01:19:45Z", "event_type": "sync.applied", "summary": "Synchronized managed Sula files.", "profile": "sula-core", "project": "sula"}

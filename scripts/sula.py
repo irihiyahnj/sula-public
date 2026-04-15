@@ -5,7 +5,7 @@ from __future__ import annotations
 import argparse
 import csv
 from dataclasses import dataclass
-from datetime import date, datetime, timedelta
+from datetime import date, datetime, timedelta, timezone
 import difflib
 import hashlib
 import html
@@ -19,6 +19,8 @@ import subprocess
 import sys
 import tempfile
 import zipfile
+
+from sula_providers import ProviderAdapterError, ProviderSnapshot, create_provider_adapter
 
 
 SULA_ROOT = Path(__file__).resolve().parent.parent
@@ -93,6 +95,35 @@ PROVIDER_IMPORT_KIND_SPECS = {
         "source_suffixes": {".xlsx", ".csv", ".tsv", ".json"},
     },
 }
+PROVIDER_NATIVE_ITEM_KINDS = {"google-doc", "google-sheet"}
+ARTIFACT_ROLE_CHOICES = ["workspace-source", "provider-native-source", "exported-derivative"]
+SOURCE_OF_TRUTH_CHOICES = ["auto", "workspace", "provider-native"]
+COLLABORATION_MODE_CHOICES = ["single-editor", "multi-editor"]
+EXPORT_DERIVATIVE_SUFFIXES = {".docx", ".html", ".pdf", ".xlsx"}
+FRESHNESS_INTENT_PHRASES = [
+    "先看最新版本再继续",
+    "这份共享文件可能被别人改过",
+    "这份表很多人在 google 上一起改",
+    "共享文档为准",
+    "共享文件为准",
+    "别人刚改过",
+    "刚改过",
+    "最新版本",
+    "最新",
+    "多人协作",
+    "共同编辑",
+    "一起改",
+    "look at the latest version first",
+    "latest version",
+    "most recent version",
+    "shared document",
+    "shared doc",
+    "source of truth",
+    "others just changed",
+    "someone else changed",
+    "just changed",
+    "refresh before continue",
+]
 FORMAL_DOCUMENT_GENRES = ("schedule", "proposal", "report", "process", "training")
 FORMAL_DOCUMENT_BUNDLE_DEFAULTS = {
     "schedule": "monthly-gantt-dual-actions-raci",
@@ -456,6 +487,18 @@ class ProjectConfig:
     @property
     def provider_import_root(self) -> Path:
         return self.root / ".sula" / "exports" / "provider-imports"
+
+    @property
+    def provider_snapshot_root(self) -> Path:
+        return self.root / ".sula" / "cache" / "provider-snapshots"
+
+    @property
+    def local_state_root(self) -> Path:
+        return self.root / ".sula" / "local"
+
+    @property
+    def project_google_oauth_file(self) -> Path:
+        return self.local_state_root / "google-oauth.json"
 
     @property
     def storage_provider(self) -> str:
@@ -945,6 +988,7 @@ def parse_args() -> argparse.Namespace:
 
     status_cmd = sub.add_parser("status", help="Summarize current project state")
     add_project_root_arg(status_cmd)
+    status_cmd.add_argument("--refresh-provider", action="store_true", help="Refresh collaborative provider-native truth sources before summarizing")
     status_cmd.add_argument("--json", action="store_true", help="Print JSON instead of human-readable output")
 
     artifact_cmd = sub.add_parser("artifact", help="Create, register, and locate project artifacts")
@@ -976,6 +1020,23 @@ def parse_args() -> argparse.Namespace:
     artifact_register_cmd.add_argument("--provider-item-id", help="Stable provider item id such as a Google Doc or Sheet id")
     artifact_register_cmd.add_argument("--provider-item-kind", help="Provider item kind such as google-doc, google-sheet, or drive-file")
     artifact_register_cmd.add_argument("--provider-item-url", help="Stable provider URL for this artifact")
+    artifact_register_cmd.add_argument(
+        "--source-of-truth",
+        choices=SOURCE_OF_TRUTH_CHOICES,
+        help="Truth-source preference for this artifact family: auto, workspace, or provider-native",
+    )
+    artifact_register_cmd.add_argument(
+        "--collaboration-mode",
+        choices=COLLABORATION_MODE_CHOICES,
+        help="Collaboration mode for this artifact: single-editor or multi-editor",
+    )
+    artifact_register_cmd.add_argument(
+        "--artifact-role",
+        choices=ARTIFACT_ROLE_CHOICES,
+        help="Optional explicit artifact role: workspace-source, provider-native-source, or exported-derivative",
+    )
+    artifact_register_cmd.add_argument("--last-refreshed-at", help="ISO timestamp for the last truth-source refresh or evaluation")
+    artifact_register_cmd.add_argument("--last-provider-sync-at", help="ISO timestamp for the latest known provider-side update")
     artifact_register_cmd.add_argument(
         "--derived-from",
         action="append",
@@ -1027,6 +1088,17 @@ def parse_args() -> argparse.Namespace:
     artifact_locate_cmd.add_argument("--q", default="")
     artifact_locate_cmd.add_argument("--limit", type=int, default=10)
     artifact_locate_cmd.add_argument("--json", action="store_true", help="Print JSON instead of human-readable output")
+
+    artifact_refresh_cmd = artifact_sub.add_parser("refresh", help="Refresh provider-native truth sources and freshness metadata")
+    add_project_root_arg(artifact_refresh_cmd)
+    artifact_refresh_group = artifact_refresh_cmd.add_mutually_exclusive_group(required=True)
+    artifact_refresh_group.add_argument("--artifact-id", help="Refresh one artifact family by registered artifact id")
+    artifact_refresh_group.add_argument("--family-key", help="Refresh one artifact family by family key")
+    artifact_refresh_group.add_argument("--q", help="Refresh provider-native artifact families matching this query")
+    artifact_refresh_group.add_argument("--all-collaborative", action="store_true", help="Refresh all collaborative provider-native artifact families")
+    artifact_refresh_cmd.add_argument("--limit", type=int, default=5)
+    artifact_refresh_cmd.add_argument("--force", action="store_true", help="Refresh even when TTL says the cached provider check is still fresh")
+    artifact_refresh_cmd.add_argument("--json", action="store_true", help="Print JSON instead of human-readable output")
 
     record_cmd = sub.add_parser("record", help="Create a memory record inside a project")
     record_sub = record_cmd.add_subparsers(dest="record_command", required=True)
@@ -4152,7 +4224,6 @@ def doctor(config: ProjectConfig, *, strict: bool, json_mode: bool = False, emit
         return 0
     return 1
 
-
 def collect_doctor_warnings(config: ProjectConfig) -> list[str]:
     warnings: list[str] = []
     for section, key in EXISTENCE_WARNING_FIELDS:
@@ -4984,6 +5055,7 @@ def build_artifact_objects(config: ProjectConfig) -> list[dict[str, object]]:
             continue
         source_paths = artifact_local_access_paths(config, artifact)
         display_path = artifact_display_path(artifact)
+        truth_summary = artifact_truth_summary(config, artifact, catalog=catalog)
         objects.append(
             {
                 "id": str(artifact.get("id", "")),
@@ -5003,6 +5075,29 @@ def build_artifact_objects(config: ProjectConfig) -> list[dict[str, object]]:
                 "provider_item_id": normalize_optional_text(artifact.get("provider_item_id", "")),
                 "provider_item_kind": normalize_optional_text(artifact.get("provider_item_kind", "")),
                 "provider_item_url": normalize_optional_text(artifact.get("provider_item_url", "")),
+                "family_key": truth_summary["family_key"],
+                "artifact_role": normalize_artifact_role(artifact.get("artifact_role", ""), default="workspace-source"),
+                "source_of_truth": truth_summary["source_of_truth"],
+                "truth_source_type": truth_summary["truth_source_type"],
+                "truth_source_artifact_id": truth_summary["truth_source_artifact_id"],
+                "truth_source_path": truth_summary["truth_source_path"],
+                "provider_target_path": truth_summary["provider_target_path"],
+                "provider_parent_relative_path": truth_summary["provider_parent_relative_path"],
+                "collaboration_mode": truth_summary["collaboration_mode"],
+                "last_refreshed_at": truth_summary["last_refreshed_at"],
+                "last_provider_sync_at": truth_summary["last_provider_sync_at"],
+                "local_copy_stale_risk": truth_summary["local_copy_stale_risk"],
+                "freshness_status": truth_summary["freshness_status"],
+                "missing_provider_metadata": truth_summary["missing_provider_metadata"],
+                "family_roles": truth_summary["family_roles"],
+                "minimal_register_action": truth_summary["minimal_register_action"],
+                "provider_revision_id": truth_summary["provider_revision_id"],
+                "provider_modified_at": truth_summary["provider_modified_at"],
+                "provider_last_checked_at": truth_summary["provider_last_checked_at"],
+                "provider_last_fetch_status": truth_summary["provider_last_fetch_status"],
+                "provider_last_fetch_error": truth_summary["provider_last_fetch_error"],
+                "provider_snapshot_path": truth_summary["provider_snapshot_path"],
+                "truth_source_reason": truth_summary["truth_source_reason"],
             }
         )
     return objects
@@ -5457,6 +5552,28 @@ def build_query_documents(config: ProjectConfig) -> list[dict[str, object]]:
                 "adapters": [str(tag) for tag in item.get("adapters", [])] if isinstance(item.get("adapters", []), list) else [],
                 "status": normalize_optional_text(item.get("status", "")),
                 "date": normalize_optional_text(item.get("date", "")),
+                "family_key": normalize_optional_text(item.get("family_key", "")),
+                "artifact_role": normalize_optional_text(item.get("artifact_role", "")),
+                "source_of_truth": normalize_optional_text(item.get("source_of_truth", "")),
+                "truth_source_type": normalize_optional_text(item.get("truth_source_type", "")),
+                "truth_source_artifact_id": normalize_optional_text(item.get("truth_source_artifact_id", "")),
+                "truth_source_path": normalize_optional_text(item.get("truth_source_path", "")),
+                "provider_target_path": normalize_optional_text(item.get("provider_target_path", "")),
+                "provider_parent_relative_path": normalize_optional_text(item.get("provider_parent_relative_path", "")),
+                "collaboration_mode": normalize_optional_text(item.get("collaboration_mode", "")),
+                "last_refreshed_at": normalize_optional_text(item.get("last_refreshed_at", "")),
+                "last_provider_sync_at": normalize_optional_text(item.get("last_provider_sync_at", "")),
+                "local_copy_stale_risk": bool(item.get("local_copy_stale_risk")),
+                "freshness_status": normalize_optional_text(item.get("freshness_status", "")),
+                "missing_provider_metadata": item.get("missing_provider_metadata", []) if isinstance(item.get("missing_provider_metadata", []), list) else [],
+                "minimal_register_action": normalize_optional_text(item.get("minimal_register_action", "")),
+                "provider_revision_id": normalize_optional_text(item.get("provider_revision_id", "")),
+                "provider_modified_at": normalize_optional_text(item.get("provider_modified_at", "")),
+                "provider_last_checked_at": normalize_optional_text(item.get("provider_last_checked_at", "")),
+                "provider_last_fetch_status": normalize_optional_text(item.get("provider_last_fetch_status", "")),
+                "provider_last_fetch_error": normalize_optional_text(item.get("provider_last_fetch_error", "")),
+                "provider_snapshot_path": normalize_optional_text(item.get("provider_snapshot_path", "")),
+                "truth_source_reason": normalize_optional_text(item.get("truth_source_reason", "")),
             }
         )
     for item in source_registry:
@@ -5478,9 +5595,22 @@ def build_query_documents(config: ProjectConfig) -> list[dict[str, object]]:
 
 
 def query_project_kernel(config: ProjectConfig, args: argparse.Namespace) -> int:
+    freshness_intent = detect_freshness_intent(args.q)
+    effective_query = strip_freshness_intent_phrases(args.q) if freshness_intent else args.q
+    refresh_report = None
+    if freshness_intent:
+        refresh_report = refresh_provider_artifact_batch(
+            config,
+            query=effective_query,
+            all_collaborative=False,
+            limit=max(args.limit, 5),
+            force=True,
+            event_type="artifact.refresh.intent",
+            event_summary_prefix="Refreshed provider-native truth sources before query",
+        )
     results = search_kernel(
         config,
-        args.q,
+        effective_query,
         kind=args.kind,
         adapter=args.adapter,
         status=args.status,
@@ -5489,12 +5619,16 @@ def query_project_kernel(config: ProjectConfig, args: argparse.Namespace) -> int
         until=args.until,
         timeline=args.timeline,
         limit=args.limit,
+        freshness_intent=freshness_intent,
     )
     if args.json:
         print(
             json.dumps(
                 {
                     "query": args.q,
+                    "effective_query": effective_query,
+                    "freshness_intent_detected": freshness_intent,
+                    "refresh": refresh_report,
                     "kind": args.kind,
                     "adapter": args.adapter,
                     "status": args.status,
@@ -5520,9 +5654,16 @@ def query_project_kernel(config: ProjectConfig, args: argparse.Namespace) -> int
         related_suffix = ""
         if result.get("related_kinds"):
             related_suffix = " related=" + ",".join(str(kind_name) for kind_name in result["related_kinds"])
+        truth_suffix = f" truth={result['truth_source_type']}" if result.get("truth_source_type") else ""
+        refresh_suffix = f" refreshed={result['last_refreshed_at']}" if result.get("last_refreshed_at") else ""
+        stale_suffix = " local-copy-risk=true" if result.get("local_copy_stale_risk") else ""
+        provider_path_suffix = f" provider-path={result['provider_target_path']}" if result.get("provider_target_path") else ""
+        missing_suffix = ""
+        if result.get("missing_provider_metadata"):
+            missing_suffix = " missing=" + ",".join(str(value) for value in result["missing_provider_metadata"])
         print(
             "  - "
-            f"{date_prefix}[{result['kind']}] score={result['score']}{status_suffix}{related_suffix} "
+            f"{date_prefix}[{result['kind']}] score={result['score']}{status_suffix}{related_suffix}{truth_suffix}{refresh_suffix}{stale_suffix}{provider_path_suffix}{missing_suffix} "
             f"{result['title']} :: {result['path']}"
         )
     return 0
@@ -5540,6 +5681,7 @@ def search_kernel(
     until: str | None,
     timeline: bool,
     limit: int,
+    freshness_intent: bool = False,
 ) -> list[dict[str, object]]:
     normalized_query = query.strip().lower()
     query_tokens = tokenize_text(normalized_query)
@@ -5551,7 +5693,7 @@ def search_kernel(
         refresh_kernel_state(config, event_type="query.rebuild", summary="Rebuilt kernel state before query.")
     if not query_cache_path.exists():
         refresh_kernel_state(config, event_type="query.cache", summary="Built query cache for local retrieval.")
-    if sqlite_cache_path.exists():
+    if sqlite_cache_path.exists() and not freshness_intent:
         sqlite_results = search_kernel_sqlite(
             sqlite_cache_path,
             normalized_query,
@@ -5564,6 +5706,7 @@ def search_kernel(
             until=until,
             timeline=timeline,
             limit=limit,
+            freshness_intent=freshness_intent,
         )
         if sqlite_results:
             return sqlite_results
@@ -5585,7 +5728,8 @@ def search_kernel(
             path_prefix=path_prefix,
             since=since,
             until=until,
-            allow_empty=timeline,
+            allow_empty=timeline or freshness_intent,
+            freshness_intent=freshness_intent,
         )
         if result is not None:
             candidates.append(result)
@@ -5614,10 +5758,13 @@ def search_kernel(
             path_prefix=path_prefix,
             since=since,
             until=until,
-            allow_empty=timeline,
+            allow_empty=timeline or freshness_intent,
+            freshness_intent=freshness_intent,
         )
         if result is not None:
             candidates.append(result)
+    if freshness_intent:
+        candidates = [item for item in candidates if candidate_is_freshness_relevant(item)]
     return finalize_query_results(
         candidates,
         timeline=timeline,
@@ -5653,6 +5800,7 @@ def score_candidate(
     since: str | None,
     until: str | None,
     allow_empty: bool,
+    freshness_intent: bool = False,
 ) -> dict[str, object] | None:
     candidate_kind = str(item.get("kind", "unknown"))
     if kind and candidate_kind != kind:
@@ -5665,6 +5813,22 @@ def score_candidate(
     candidate_status = normalize_optional_text(item.get("status", ""))
     candidate_date = normalize_optional_text(item.get("date", ""))
     entity_type = normalize_optional_text(item.get("entity_type", "object")) or "object"
+    truth_source_type = normalize_optional_text(item.get("truth_source_type", ""))
+    collaboration_mode = normalize_optional_text(item.get("collaboration_mode", ""))
+    freshness_status = normalize_optional_text(item.get("freshness_status", ""))
+    last_refreshed_at = normalize_optional_timestamp(item.get("last_refreshed_at", ""))
+    last_provider_sync_at = normalize_optional_timestamp(item.get("last_provider_sync_at", ""))
+    provider_revision_id = normalize_optional_text(item.get("provider_revision_id", ""))
+    provider_modified_at = normalize_optional_text(item.get("provider_modified_at", ""))
+    provider_last_checked_at = normalize_optional_text(item.get("provider_last_checked_at", ""))
+    provider_last_fetch_status = normalize_optional_text(item.get("provider_last_fetch_status", ""))
+    provider_last_fetch_error = normalize_optional_text(item.get("provider_last_fetch_error", ""))
+    provider_snapshot_path = normalize_optional_text(item.get("provider_snapshot_path", ""))
+    truth_source_reason = normalize_optional_text(item.get("truth_source_reason", ""))
+    provider_target_path = normalize_optional_text(item.get("provider_target_path", ""))
+    provider_parent_path = normalize_optional_text(item.get("provider_parent_relative_path", ""))
+    missing_provider_metadata = item.get("missing_provider_metadata", [])
+    local_copy_stale_risk = bool(item.get("local_copy_stale_risk"))
     if adapter and adapter not in adapters:
         return None
     if status and candidate_status != status:
@@ -5676,7 +5840,18 @@ def score_candidate(
     if until and (not candidate_date or candidate_date > until):
         return None
     haystack = " ".join(
-        [str(item.get("id", "")), candidate_kind, title, summary, path, " ".join(tags), " ".join(adapters), candidate_status]
+        [
+            str(item.get("id", "")),
+            candidate_kind,
+            title,
+            summary,
+            path,
+            provider_target_path,
+            provider_parent_path,
+            " ".join(tags),
+            " ".join(adapters),
+            candidate_status,
+        ]
     ).lower()
     score = 0
     if normalized_query == str(item.get("id", "")).lower():
@@ -5691,6 +5866,15 @@ def score_candidate(
         score += 40
     score += entity_type_score_bonus(entity_type)
     score += kind_score_bonus(candidate_kind)
+    if freshness_intent:
+        if collaboration_mode == "multi-editor":
+            score += 18
+        if truth_source_type == "provider-native":
+            score += 24
+        if local_copy_stale_risk:
+            score += 28
+        if freshness_status == "provider-metadata-missing":
+            score += 32
     haystack_tokens = set(tokenize_text(haystack))
     for token in query_tokens:
         if token in haystack_tokens:
@@ -5710,6 +5894,28 @@ def score_candidate(
         "date": candidate_date,
         "entity_type": entity_type,
         "family": kind_family(candidate_kind),
+        "family_key": normalize_optional_text(item.get("family_key", "")),
+        "artifact_role": normalize_optional_text(item.get("artifact_role", "")),
+        "source_of_truth": normalize_optional_text(item.get("source_of_truth", "")),
+        "truth_source_type": truth_source_type,
+        "truth_source_artifact_id": normalize_optional_text(item.get("truth_source_artifact_id", "")),
+        "truth_source_path": normalize_optional_text(item.get("truth_source_path", "")),
+        "provider_target_path": provider_target_path,
+        "provider_parent_relative_path": provider_parent_path,
+        "collaboration_mode": collaboration_mode,
+        "last_refreshed_at": last_refreshed_at,
+        "last_provider_sync_at": last_provider_sync_at,
+        "local_copy_stale_risk": local_copy_stale_risk,
+        "freshness_status": freshness_status,
+        "missing_provider_metadata": missing_provider_metadata if isinstance(missing_provider_metadata, list) else [],
+        "minimal_register_action": normalize_optional_text(item.get("minimal_register_action", "")),
+        "provider_revision_id": provider_revision_id,
+        "provider_modified_at": provider_modified_at,
+        "provider_last_checked_at": provider_last_checked_at,
+        "provider_last_fetch_status": provider_last_fetch_status,
+        "provider_last_fetch_error": provider_last_fetch_error,
+        "provider_snapshot_path": provider_snapshot_path,
+        "truth_source_reason": truth_source_reason,
     }
 
 
@@ -5780,6 +5986,15 @@ def normalize_query_text(value: str) -> str:
     return re.sub(r"\s+", " ", value.strip().lower())
 
 
+def candidate_is_freshness_relevant(item: dict[str, object]) -> bool:
+    return bool(
+        normalize_optional_text(item.get("truth_source_type", "")) == "provider-native"
+        or normalize_optional_text(item.get("collaboration_mode", "")) == "multi-editor"
+        or normalize_optional_text(item.get("source_of_truth", "")) == "provider-native"
+        or bool(item.get("missing_provider_metadata"))
+    )
+
+
 def compact_query_result_families(
     candidates: list[dict[str, object]],
     *,
@@ -5797,7 +6012,8 @@ def compact_query_result_families(
         if not path or kind == "event":
             passthrough.append(item)
             continue
-        grouped.setdefault(path, []).append(item)
+        group_key = normalize_optional_text(item.get("family_key", "")) or path
+        grouped.setdefault(group_key, []).append(item)
 
     compacted: list[dict[str, object]] = []
     for path, items in grouped.items():
@@ -6052,6 +6268,21 @@ def rebuild_kernel_sqlite_cache(config: ProjectConfig) -> None:
                 date_value TEXT,
                 tags_text TEXT,
                 adapters_text TEXT,
+                family_key TEXT,
+                artifact_role TEXT,
+                source_of_truth TEXT,
+                truth_source_type TEXT,
+                truth_source_artifact_id TEXT,
+                truth_source_path TEXT,
+                provider_target_path TEXT,
+                provider_parent_relative_path TEXT,
+                collaboration_mode TEXT,
+                last_refreshed_at TEXT,
+                last_provider_sync_at TEXT,
+                stale_local_copy_risk INTEGER NOT NULL,
+                freshness_status TEXT,
+                missing_provider_metadata_json TEXT,
+                minimal_register_action TEXT,
                 searchable_text TEXT NOT NULL
             );
             CREATE INDEX idx_sources_kind_path ON sources(kind, path);
@@ -6124,8 +6355,12 @@ def rebuild_kernel_sqlite_cache(config: ProjectConfig) -> None:
             cursor.execute(
                 """
                 INSERT INTO documents (
-                    doc_id, entity_type, kind, title, summary, path, status, date_value, tags_text, adapters_text, searchable_text
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    doc_id, entity_type, kind, title, summary, path, status, date_value, tags_text, adapters_text,
+                    family_key, artifact_role, source_of_truth, truth_source_type, truth_source_artifact_id, truth_source_path,
+                    provider_target_path, provider_parent_relative_path,
+                    collaboration_mode, last_refreshed_at, last_provider_sync_at, stale_local_copy_risk, freshness_status,
+                    missing_provider_metadata_json, minimal_register_action, searchable_text
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
                     str(item.get("id", "")),
@@ -6138,6 +6373,21 @@ def rebuild_kernel_sqlite_cache(config: ProjectConfig) -> None:
                     str(item.get("date", "") or ""),
                     " ".join(str(tag) for tag in item.get("tags", [])),
                     " ".join(str(adapter) for adapter in item.get("adapters", [])),
+                    str(item.get("family_key", "")),
+                    str(item.get("artifact_role", "")),
+                    str(item.get("source_of_truth", "")),
+                    str(item.get("truth_source_type", "")),
+                    str(item.get("truth_source_artifact_id", "")),
+                    str(item.get("truth_source_path", "")),
+                    str(item.get("provider_target_path", "")),
+                    str(item.get("provider_parent_relative_path", "")),
+                    str(item.get("collaboration_mode", "")),
+                    str(item.get("last_refreshed_at", "") or ""),
+                    str(item.get("last_provider_sync_at", "") or ""),
+                    1 if item.get("local_copy_stale_risk") else 0,
+                    str(item.get("freshness_status", "")),
+                    json.dumps(item.get("missing_provider_metadata", []), ensure_ascii=True),
+                    str(item.get("minimal_register_action", "")),
                     " ".join(
                         [
                             str(item.get("id", "")),
@@ -6145,6 +6395,7 @@ def rebuild_kernel_sqlite_cache(config: ProjectConfig) -> None:
                             str(item.get("title", "")),
                             str(item.get("summary", "")),
                             str(item.get("path", "")),
+                            str(item.get("provider_target_path", "")),
                             " ".join(str(tag) for tag in item.get("tags", [])),
                             " ".join(str(adapter) for adapter in item.get("adapters", [])),
                             str(item.get("status", "")),
@@ -6157,8 +6408,12 @@ def rebuild_kernel_sqlite_cache(config: ProjectConfig) -> None:
             cursor.execute(
                 """
                 INSERT INTO documents (
-                    doc_id, entity_type, kind, title, summary, path, status, date_value, tags_text, adapters_text, searchable_text
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    doc_id, entity_type, kind, title, summary, path, status, date_value, tags_text, adapters_text,
+                    family_key, artifact_role, source_of_truth, truth_source_type, truth_source_artifact_id, truth_source_path,
+                    provider_target_path, provider_parent_relative_path,
+                    collaboration_mode, last_refreshed_at, last_provider_sync_at, stale_local_copy_risk, freshness_status,
+                    missing_provider_metadata_json, minimal_register_action, searchable_text
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
                     f"event:{item.get('timestamp', '')}:{item.get('event_type', '')}",
@@ -6171,6 +6426,21 @@ def rebuild_kernel_sqlite_cache(config: ProjectConfig) -> None:
                     str(item.get("timestamp", "")),
                     "event kernel",
                     "generic-project memory",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                    0,
+                    "",
+                    "[]",
+                    "",
                     " ".join(
                         [
                             str(item.get("event_type", "")),
@@ -6219,6 +6489,7 @@ def search_kernel_sqlite(
     until: str | None,
     timeline: bool,
     limit: int,
+    freshness_intent: bool = False,
 ) -> list[dict[str, object]]:
     where_clauses = ["1 = 1"]
     parameters: list[object] = []
@@ -6250,7 +6521,10 @@ def search_kernel_sqlite(
             parameters.append(f"%{term}%")
         where_clauses.append("(" + " OR ".join(search_clauses) + ")")
     sql = (
-        "SELECT doc_id, entity_type, kind, title, summary, path, status, date_value "
+        "SELECT doc_id, entity_type, kind, title, summary, path, status, date_value, family_key, artifact_role, source_of_truth, "
+        "truth_source_type, truth_source_artifact_id, truth_source_path, provider_target_path, provider_parent_relative_path, "
+        "collaboration_mode, last_refreshed_at, last_provider_sync_at, stale_local_copy_risk, freshness_status, "
+        "missing_provider_metadata_json, minimal_register_action "
         "FROM documents WHERE "
         + " AND ".join(where_clauses)
     )
@@ -6271,6 +6545,21 @@ def search_kernel_sqlite(
                 "path": row[5],
                 "status": row[6],
                 "date": row[7],
+                "family_key": row[8],
+                "artifact_role": row[9],
+                "source_of_truth": row[10],
+                "truth_source_type": row[11],
+                "truth_source_artifact_id": row[12],
+                "truth_source_path": row[13],
+                "provider_target_path": row[14],
+                "provider_parent_relative_path": row[15],
+                "collaboration_mode": row[16],
+                "last_refreshed_at": row[17],
+                "last_provider_sync_at": row[18],
+                "local_copy_stale_risk": bool(row[19]),
+                "freshness_status": row[20],
+                "missing_provider_metadata": json.loads(row[21] or "[]"),
+                "minimal_register_action": row[22],
                 "tags": [],
                 "adapters": [],
             }
@@ -6284,10 +6573,13 @@ def search_kernel_sqlite(
                 path_prefix=None,
                 since=None,
                 until=None,
-                allow_empty=timeline,
+                allow_empty=timeline or freshness_intent,
+                freshness_intent=freshness_intent,
             )
             if result is not None:
                 results.append(result)
+    if freshness_intent:
+        results = [item for item in results if candidate_is_freshness_relevant(item)]
     return finalize_query_results(
         results,
         timeline=timeline,
@@ -6308,7 +6600,92 @@ def normalize_optional_text(value: object) -> str:
     return str(value)
 
 
+def current_utc_timestamp() -> str:
+    return datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
+
+
+def normalize_optional_timestamp(value: object) -> str:
+    text = normalize_optional_text(value).strip()
+    if not text:
+        return ""
+    if MEMORY_DATE_PATTERN.fullmatch(text):
+        return f"{text}T00:00:00Z"
+    candidate = text.replace("Z", "+00:00")
+    try:
+        parsed = datetime.fromisoformat(candidate)
+    except ValueError as exc:
+        raise SystemExit(f"Invalid ISO timestamp: {text}") from exc
+    if parsed.tzinfo is None:
+        parsed = parsed.replace(tzinfo=timezone.utc)
+    return parsed.astimezone(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
+
+
+def normalize_artifact_role(value: object, *, default: str | None = None) -> str:
+    raw = normalize_optional_text(value).strip().lower().replace("_", "-")
+    aliases = {
+        "workspace": "workspace-source",
+        "provider-native": "provider-native-source",
+        "derivative": "exported-derivative",
+    }
+    normalized = aliases.get(raw, raw)
+    if not normalized:
+        return default or ""
+    if normalized not in ARTIFACT_ROLE_CHOICES:
+        raise SystemExit(f"Unsupported artifact role: {value}")
+    return normalized
+
+
+def normalize_source_of_truth(value: object, *, default: str = "auto") -> str:
+    raw = normalize_optional_text(value).strip().lower().replace("_", "-")
+    aliases = {
+        "workspace-source": "workspace",
+        "provider-native-source": "provider-native",
+        "provider": "provider-native",
+    }
+    normalized = aliases.get(raw, raw)
+    if not normalized:
+        return default
+    if normalized not in SOURCE_OF_TRUTH_CHOICES:
+        raise SystemExit(f"Unsupported source_of_truth value: {value}")
+    return normalized
+
+
+def normalize_collaboration_mode(value: object, *, default: str = "single-editor") -> str:
+    normalized = normalize_optional_text(value).strip().lower().replace("_", "-")
+    if not normalized:
+        return default
+    if normalized not in COLLABORATION_MODE_CHOICES:
+        raise SystemExit(f"Unsupported collaboration_mode value: {value}")
+    return normalized
+
+
+def provider_metadata_is_missing(value: object) -> bool:
+    normalized = normalize_optional_text(value).strip().lower()
+    return not normalized or normalized in NON_PATH_SENTINELS or normalized == "unrecorded"
+
+
+def detect_freshness_intent(text: str) -> bool:
+    lowered = text.strip().lower()
+    return any(phrase in lowered for phrase in FRESHNESS_INTENT_PHRASES)
+
+
+def strip_freshness_intent_phrases(text: str) -> str:
+    cleaned = text
+    for phrase in sorted(FRESHNESS_INTENT_PHRASES, key=len, reverse=True):
+        cleaned = re.sub(re.escape(phrase), " ", cleaned, flags=re.IGNORECASE)
+    return re.sub(r"\s+", " ", cleaned).strip()
+
+
 def project_status(config: ProjectConfig, args: argparse.Namespace) -> int:
+    if getattr(args, "refresh_provider", False):
+        refresh_provider_artifact_batch(
+            config,
+            all_collaborative=True,
+            limit=200,
+            force=True,
+            event_type="artifact.refresh.status",
+            event_summary_prefix="Refreshed provider-native truth sources before status summary",
+        )
     payload = project_status_payload(config)
     if json_output_requested(args):
         emit_json({"command": "status", "status": "ok", "project": project_payload(config), "state": payload})
@@ -6323,6 +6700,12 @@ def project_status(config: ProjectConfig, args: argparse.Namespace) -> int:
         print(f"  开放任务: {payload['counts']['open_tasks']}")
         print(f"  开放风险: {payload['counts']['open_risks']}")
         print(f"  文件产物: {payload['counts']['artifacts']}")
+        print(
+            "  事实源: "
+            f"provider-native={payload['truth_sources']['provider_native']} "
+            f"workspace={payload['truth_sources']['workspace']} "
+            f"risk={payload['truth_sources']['local_copy_risk_count']}"
+        )
     else:
         print(f"Sula status for {config.data['project']['name']}")
         print(f"  Profile: {config.profile}")
@@ -6333,6 +6716,28 @@ def project_status(config: ProjectConfig, args: argparse.Namespace) -> int:
         print(f"  Open tasks: {payload['counts']['open_tasks']}")
         print(f"  Open risks: {payload['counts']['open_risks']}")
         print(f"  Artifacts: {payload['counts']['artifacts']}")
+        print(
+            "  Truth sources: "
+            f"provider-native={payload['truth_sources']['provider_native']} "
+            f"workspace={payload['truth_sources']['workspace']} "
+            f"risk={payload['truth_sources']['local_copy_risk_count']}"
+        )
+    if payload["truth_sources"]["artifacts_at_risk"]:
+        print("  事实源风险:" if locale_family(config.interaction_locale) == "zh" else "  Truth-source risks:")
+        for item in payload["truth_sources"]["artifacts_at_risk"]:
+            missing_suffix = ""
+            if item.get("missing_provider_metadata"):
+                missing_suffix = " missing=" + ",".join(str(value) for value in item["missing_provider_metadata"])
+            provider_path_suffix = f" provider-path={item['provider_target_path']}" if item.get("provider_target_path") else ""
+            print(
+                f"    - {item['title']} truth={item['truth_source_type']} refreshed={item['last_refreshed_at']}{provider_path_suffix}{missing_suffix}"
+            )
+    if payload["truth_sources"]["provider_errors"]:
+        print("  Provider 刷新错误:" if locale_family(config.interaction_locale) == "zh" else "  Provider refresh errors:")
+        for item in payload["truth_sources"]["provider_errors"]:
+            print(
+                f"    - {item['title']} status={item.get('provider_last_fetch_status', '')} error={item.get('provider_last_fetch_error', '')}"
+            )
     if payload["recent_events"]:
         print("  近期事件:" if locale_family(config.interaction_locale) == "zh" else "  Recent events:")
         for item in payload["recent_events"]:
@@ -6349,10 +6754,41 @@ def project_status_payload(config: ProjectConfig) -> dict[str, object]:
     object_catalog = load_json_file(kernel_root / "objects" / "catalog.json", default={"objects": []})
     objects = object_catalog.get("objects", []) if isinstance(object_catalog, dict) else []
     artifact_catalog = load_artifact_catalog(config)
+    artifact_summaries = []
+    for item in artifact_catalog.get("artifacts", []):
+        if not isinstance(item, dict):
+            continue
+        summary = artifact_truth_summary(config, item, catalog=artifact_catalog)
+        artifact_summaries.append(
+            {
+                "id": normalize_optional_text(item.get("id", "")),
+                "title": normalize_optional_text(item.get("title", "")),
+                "kind": normalize_optional_text(item.get("kind", "")),
+                "display_path": artifact_display_path(item),
+                **summary,
+            }
+        )
     recent_events = read_kernel_events(kernel_root / "events" / "log.jsonl")[-5:]
     open_tasks = [item for item in objects if isinstance(item, dict) and item.get("kind") == "task" and item.get("status") in {"open", "planned"}]
     open_risks = [item for item in objects if isinstance(item, dict) and item.get("kind") == "risk" and item.get("status") in {"open", "watch", "incident"}]
     milestones = [item for item in objects if isinstance(item, dict) and item.get("kind") == "milestone"]
+    unique_family_summaries: dict[str, dict[str, object]] = {}
+    for item in artifact_summaries:
+        family_key = normalize_optional_text(item.get("family_key", "")) or normalize_optional_text(item.get("id", ""))
+        if family_key in unique_family_summaries:
+            continue
+        unique_family_summaries[family_key] = item
+    truth_source_rows = list(unique_family_summaries.values())
+    provider_native_count = sum(1 for item in truth_source_rows if item.get("truth_source_type") == "provider-native")
+    workspace_count = sum(1 for item in truth_source_rows if item.get("truth_source_type") == "workspace")
+    derivative_count = sum(1 for item in truth_source_rows if item.get("truth_source_type") == "exported-derivative")
+    local_copy_risk = [item for item in truth_source_rows if item.get("local_copy_stale_risk") or item.get("missing_provider_metadata")]
+    provider_errors = [
+        item
+        for item in truth_source_rows
+        if normalize_optional_text(item.get("provider_last_fetch_status", ""))
+        and normalize_optional_text(item.get("provider_last_fetch_status", "")) != "ok"
+    ]
     return {
         "summary": state_sections.get("Summary", "_missing_"),
         "health": state_sections.get("Health", "_missing_"),
@@ -6371,6 +6807,9 @@ def project_status_payload(config: ProjectConfig) -> dict[str, object]:
             "workspace_root": str(config.storage_workspace_root),
             "provider_root_url": config.provider_root_url,
             "provider_root_id": config.provider_root_id,
+            "google_oauth_store_path": config.project_google_oauth_file.relative_to(config.root).as_posix()
+            if config.storage_provider == "google-drive"
+            else "",
         },
         "counts": {
             "open_tasks": len(open_tasks),
@@ -6378,6 +6817,19 @@ def project_status_payload(config: ProjectConfig) -> dict[str, object]:
             "milestones": len(milestones),
             "artifacts": len(artifact_catalog.get("artifacts", [])),
             "sources": len(load_json_file(kernel_root / "sources" / "registry.json", default=[])),
+        },
+        "truth_sources": {
+            "artifact_families": len(truth_source_rows),
+            "collaborative_artifacts": sum(1 for item in truth_source_rows if item.get("collaboration_mode") == "multi-editor"),
+            "provider_native": provider_native_count,
+            "workspace": workspace_count,
+            "exported_derivative": derivative_count,
+            "last_refreshed_at": max((normalize_optional_text(item.get("last_refreshed_at", "")) for item in truth_source_rows), default=""),
+            "last_provider_sync_at": max((normalize_optional_text(item.get("last_provider_sync_at", "")) for item in truth_source_rows), default=""),
+            "last_provider_check_at": max((normalize_optional_text(item.get("provider_last_checked_at", "")) for item in truth_source_rows), default=""),
+            "local_copy_risk_count": len(local_copy_risk),
+            "artifacts_at_risk": local_copy_risk[:5],
+            "provider_errors": provider_errors[:5],
         },
         "recent_events": recent_events,
     }
@@ -6530,10 +6982,19 @@ def artifact_search_tags(entry: dict[str, object]) -> list[str]:
         "artifact",
         normalize_optional_text(entry.get("slot", "")),
         normalize_optional_text(entry.get("workflow_pack", "")),
+        normalize_optional_text(entry.get("family_key", "")),
+        normalize_optional_text(entry.get("artifact_role", "")),
+        normalize_optional_text(entry.get("source_of_truth", "")),
+        normalize_optional_text(entry.get("collaboration_mode", "")),
+        normalize_optional_text(entry.get("last_refreshed_at", "")),
+        normalize_optional_text(entry.get("last_provider_sync_at", "")),
         normalize_optional_text(entry.get("provider_item_kind", "")),
         normalize_optional_text(entry.get("provider_item_id", "")),
         normalize_optional_text(entry.get("project_relative_path", "")),
         normalize_optional_text(entry.get("provider_item_url", "")),
+        normalize_optional_text(entry.get("provider_revision_id", "")),
+        normalize_optional_text(entry.get("provider_modified_at", "")),
+        normalize_optional_text(entry.get("provider_last_fetch_status", "")),
     ]
     derived_from = entry.get("derived_from", [])
     if isinstance(derived_from, list):
@@ -6579,6 +7040,515 @@ def find_registered_artifact_by_id(config: ProjectConfig, artifact_id: str) -> d
     return None
 
 
+def family_key_from_path(storage_provider: str, provider_root_id: str, relative_path: str) -> str:
+    normalized = normalize_project_relative_path(relative_path) if relative_path else ""
+    if not normalized:
+        return ""
+    pure = PurePosixPath(normalized)
+    family_path = pure.with_suffix("").as_posix() if pure.suffix else pure.as_posix()
+    root_id = provider_root_id or "unrecorded"
+    return f"family|{storage_provider}|{root_id}|{family_path}"
+
+
+def infer_artifact_role(
+    *,
+    path: str,
+    project_relative_path: str,
+    local_access_paths: list[str],
+    provider_item_id: str,
+    provider_item_kind: str,
+    derived_from: list[str],
+) -> str:
+    provider_kind = provider_item_kind.strip().lower()
+    if provider_item_id.strip() and provider_kind in PROVIDER_NATIVE_ITEM_KINDS:
+        return "provider-native-source"
+    candidate_paths = [path, project_relative_path, *local_access_paths]
+    suffix = ""
+    for candidate in candidate_paths:
+        if candidate:
+            suffix = PurePosixPath(candidate).suffix.lower()
+            if suffix:
+                break
+    if derived_from and suffix in EXPORT_DERIVATIVE_SUFFIXES:
+        return "exported-derivative"
+    return "workspace-source"
+
+
+def artifact_family_entries(catalog: dict[str, object], family_key: str) -> list[dict[str, object]]:
+    entries: list[dict[str, object]] = []
+    for item in catalog.get("artifacts", []):
+        if not isinstance(item, dict):
+            continue
+        if normalize_optional_text(item.get("family_key", "")) == family_key:
+            entries.append(item)
+    return entries
+
+
+def choose_family_entry(entries: list[dict[str, object]], preferred_role: str | None = None) -> dict[str, object] | None:
+    if not entries:
+        return None
+    role_order = {
+        "provider-native-source": 3,
+        "workspace-source": 2,
+        "exported-derivative": 1,
+    }
+    if preferred_role is not None:
+        preferred = [item for item in entries if normalize_artifact_role(item.get("artifact_role", "")) == preferred_role]
+        if preferred:
+            entries = preferred
+    return max(
+        entries,
+        key=lambda item: (
+            role_order.get(normalize_artifact_role(item.get("artifact_role", "")), 0),
+            normalize_optional_timestamp(item.get("last_provider_sync_at", "")),
+            normalize_optional_timestamp(item.get("last_refreshed_at", "")),
+            normalize_optional_text(item.get("date", "")),
+            normalize_optional_text(item.get("title", "")),
+        ),
+    )
+
+
+def artifact_missing_provider_metadata(config: ProjectConfig, entry: dict[str, object]) -> list[str]:
+    missing: list[str] = []
+    storage_provider = normalize_optional_text(entry.get("storage_provider", "")) or config.storage_provider
+    if storage_provider != "google-drive":
+        return missing
+    if provider_metadata_is_missing(entry.get("provider_root_url", config.provider_root_url)):
+        missing.append("provider_root_url")
+    if provider_metadata_is_missing(entry.get("provider_root_id", config.provider_root_id)):
+        missing.append("provider_root_id")
+    if provider_metadata_is_missing(entry.get("provider_item_id", "")):
+        missing.append("provider_item_id")
+    provider_item_kind = normalize_optional_text(entry.get("provider_item_kind", "")).strip().lower()
+    if provider_metadata_is_missing(provider_item_kind) or provider_item_kind not in PROVIDER_NATIVE_ITEM_KINDS:
+        missing.append("provider_item_kind")
+    if provider_metadata_is_missing(entry.get("provider_item_url", "")):
+        missing.append("provider_item_url")
+    return missing
+
+
+def artifact_truth_summary(
+    config: ProjectConfig,
+    entry: dict[str, object],
+    *,
+    catalog: dict[str, object] | None = None,
+) -> dict[str, object]:
+    resolved_catalog = catalog or load_artifact_catalog(config)
+    family_key = normalize_optional_text(entry.get("family_key", "")) or artifact_entry_identity_key(entry)
+    family_entries = artifact_family_entries(resolved_catalog, family_key) or [entry]
+    collaboration_mode = "single-editor"
+    if any(normalize_collaboration_mode(item.get("collaboration_mode", "")) == "multi-editor" for item in family_entries):
+        collaboration_mode = "multi-editor"
+    source_of_truth = "auto"
+    for item in family_entries:
+        candidate = normalize_source_of_truth(item.get("source_of_truth", ""), default="auto")
+        if candidate != "auto":
+            source_of_truth = candidate
+            break
+    provider_entries = [item for item in family_entries if normalize_artifact_role(item.get("artifact_role", "")) == "provider-native-source"]
+    workspace_entries = [item for item in family_entries if normalize_artifact_role(item.get("artifact_role", "")) == "workspace-source"]
+    derivative_entries = [item for item in family_entries if normalize_artifact_role(item.get("artifact_role", "")) == "exported-derivative"]
+    if source_of_truth == "provider-native" or (source_of_truth == "auto" and collaboration_mode == "multi-editor"):
+        truth_source_type = "provider-native"
+    elif source_of_truth == "workspace":
+        truth_source_type = "workspace"
+    elif workspace_entries:
+        truth_source_type = "workspace"
+    elif provider_entries:
+        truth_source_type = "provider-native"
+    else:
+        truth_source_type = "exported-derivative"
+    truth_entry = None
+    if truth_source_type == "provider-native":
+        truth_entry = choose_family_entry(provider_entries, preferred_role="provider-native-source")
+    elif truth_source_type == "workspace":
+        truth_entry = choose_family_entry(workspace_entries, preferred_role="workspace-source")
+    if truth_entry is None:
+        fallback_entries = derivative_entries or family_entries
+        truth_entry = choose_family_entry(fallback_entries)
+    family_last_refreshed_at = max(
+        (normalize_optional_timestamp(item.get("last_refreshed_at", "")) for item in family_entries),
+        default="",
+    )
+    local_copy_last_refreshed_at = max(
+        (artifact_local_observed_at(config, item) for item in [*workspace_entries, *derivative_entries]),
+        default="",
+    )
+    family_last_provider_sync_at = max(
+        (
+            normalize_optional_timestamp(item.get("provider_modified_at", ""))
+            or normalize_optional_timestamp(item.get("last_provider_sync_at", ""))
+            for item in family_entries
+        ),
+        default="",
+    )
+    local_copy_stale_risk = False
+    if truth_source_type == "provider-native" and (workspace_entries or derivative_entries):
+        if family_last_provider_sync_at and (
+            not local_copy_last_refreshed_at or local_copy_last_refreshed_at < family_last_provider_sync_at
+        ):
+            local_copy_stale_risk = True
+        elif collaboration_mode == "multi-editor" and not family_last_provider_sync_at:
+            local_copy_stale_risk = True
+    missing_provider_metadata = artifact_missing_provider_metadata(config, truth_entry or entry) if truth_source_type == "provider-native" else []
+    if truth_source_type == "provider-native" and missing_provider_metadata:
+        freshness_status = "provider-metadata-missing"
+    elif truth_source_type == "provider-native":
+        freshness_status = "provider-native-current" if not local_copy_stale_risk else "local-copy-may-be-stale"
+    elif truth_source_type == "workspace":
+        freshness_status = "workspace-current"
+    else:
+        freshness_status = "derivative-only"
+    truth_role = normalize_artifact_role(truth_entry.get("artifact_role", ""), default="workspace-source") if truth_entry else "workspace-source"
+    truth_display_path = artifact_display_path(truth_entry) if isinstance(truth_entry, dict) else artifact_display_path(entry)
+    truth_project_relative_path = normalize_optional_text(truth_entry.get("project_relative_path", "")) if isinstance(truth_entry, dict) else ""
+    return {
+        "family_key": family_key,
+        "family_member_count": len(family_entries),
+        "family_roles": sorted(
+            {
+                normalize_artifact_role(item.get("artifact_role", ""), default="workspace-source")
+                for item in family_entries
+                if normalize_optional_text(item.get("id", ""))
+            }
+        ),
+        "collaboration_mode": collaboration_mode,
+        "source_of_truth": source_of_truth,
+        "truth_source_type": truth_source_type,
+        "truth_source_artifact_id": normalize_optional_text(truth_entry.get("id", "")) if isinstance(truth_entry, dict) else "",
+        "truth_source_role": truth_role,
+        "truth_source_path": truth_display_path,
+        "provider_target_path": truth_project_relative_path if truth_source_type == "provider-native" else "",
+        "provider_parent_relative_path": provider_parent_relative_path(truth_project_relative_path) if truth_source_type == "provider-native" else "",
+        "last_refreshed_at": family_last_refreshed_at,
+        "last_provider_sync_at": family_last_provider_sync_at,
+        "local_copy_stale_risk": local_copy_stale_risk,
+        "freshness_status": freshness_status,
+        "missing_provider_metadata": missing_provider_metadata,
+        "refresh_strategy": "provider-native-fetch" if truth_source_type == "provider-native" and not missing_provider_metadata else (
+            "register-provider-metadata" if missing_provider_metadata else "workspace-read"
+        ),
+        "provider_revision_id": normalize_optional_text(truth_entry.get("provider_revision_id", "")) if isinstance(truth_entry, dict) else "",
+        "provider_modified_at": normalize_optional_text(truth_entry.get("provider_modified_at", "")) if isinstance(truth_entry, dict) else "",
+        "provider_last_checked_at": normalize_optional_text(truth_entry.get("provider_last_checked_at", "")) if isinstance(truth_entry, dict) else "",
+        "provider_last_fetch_status": normalize_optional_text(truth_entry.get("provider_last_fetch_status", "")) if isinstance(truth_entry, dict) else "",
+        "provider_last_fetch_error": normalize_optional_text(truth_entry.get("provider_last_fetch_error", "")) if isinstance(truth_entry, dict) else "",
+        "provider_snapshot_path": normalize_optional_text(truth_entry.get("provider_snapshot_path", "")) if isinstance(truth_entry, dict) else "",
+        "truth_source_reason": normalize_optional_text(truth_entry.get("truth_source_reason", "")) if isinstance(truth_entry, dict) else "",
+        "minimal_register_action": (
+            "Re-register this artifact and fill provider_root_url, provider_root_id, provider_item_id, provider_item_kind, and provider_item_url."
+            if missing_provider_metadata
+            else ""
+        ),
+    }
+
+
+def default_freshness_policy(*, collaboration_mode: str, source_of_truth: str, artifact_role: str) -> str:
+    if artifact_role == "provider-native-source" or (collaboration_mode == "multi-editor" and source_of_truth == "provider-native"):
+        return "always-refresh-on-intent"
+    return "ttl"
+
+
+def default_freshness_ttl_seconds(*, collaboration_mode: str, source_of_truth: str, artifact_role: str) -> int:
+    if artifact_role == "provider-native-source" or (collaboration_mode == "multi-editor" and source_of_truth == "provider-native"):
+        return 300
+    return 3600
+
+
+def local_snapshot_revision_id_for_paths(config: ProjectConfig, local_access_paths: list[str]) -> str:
+    fingerprints: list[str] = []
+    for relative_path in local_access_paths:
+        candidate = config.root / relative_path
+        if not candidate.exists() or not candidate.is_file():
+            continue
+        stat = candidate.stat()
+        fingerprints.append(f"{relative_path}:{stat.st_size}:{stat.st_mtime_ns}")
+    if not fingerprints:
+        return ""
+    joined = "|".join(sorted(fingerprints))
+    return hashlib.sha256(joined.encode("utf-8")).hexdigest()[:20]
+
+
+def artifact_local_observed_at(config: ProjectConfig, entry: dict[str, object]) -> str:
+    observed: list[str] = []
+    for relative_path in artifact_local_access_paths(config, entry):
+        candidate = config.root / relative_path
+        if not candidate.exists() or not candidate.is_file():
+            continue
+        observed.append(datetime.fromtimestamp(candidate.stat().st_mtime, tz=timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z"))
+    last_refreshed_at = normalize_optional_timestamp(entry.get("last_refreshed_at", ""))
+    if last_refreshed_at:
+        observed.append(last_refreshed_at)
+    return max(observed, default="")
+
+
+def provider_snapshot_cache_path(config: ProjectConfig, artifact_id: str) -> Path:
+    safe_id = sanitize_source_id(artifact_id)
+    return config.provider_snapshot_root / f"{safe_id}.json"
+
+
+def write_provider_snapshot_cache(
+    config: ProjectConfig,
+    *,
+    artifact_id: str,
+    snapshot: ProviderSnapshot,
+    refreshed_at: str,
+) -> str:
+    cache_path = provider_snapshot_cache_path(config, artifact_id)
+    cache_path.parent.mkdir(parents=True, exist_ok=True)
+    payload = {
+        "version": VERSION,
+        "refreshed_at": refreshed_at,
+        "provider": snapshot.provider,
+        "provider_item_id": snapshot.provider_item_id,
+        "provider_item_kind": snapshot.provider_item_kind,
+        "provider_item_url": snapshot.provider_item_url,
+        "provider_title": snapshot.provider_title,
+        "provider_revision_id": snapshot.provider_revision_id,
+        "provider_modified_at": snapshot.provider_modified_at,
+        "provider_etag": snapshot.provider_etag,
+        "truth_source_reason": snapshot.truth_source_reason,
+        "normalized_content": snapshot.normalized_content,
+        "raw_metadata": snapshot.raw_metadata,
+    }
+    cache_path.write_text(json.dumps(payload, indent=2, ensure_ascii=True) + "\n", encoding="utf-8")
+    return cache_path.relative_to(config.root).as_posix()
+
+
+def artifact_search_haystack(item: dict[str, object]) -> str:
+    return " ".join(
+        [
+            normalize_optional_text(item.get("id", "")),
+            normalize_optional_text(item.get("kind", "")),
+            normalize_optional_text(item.get("title", "")),
+            normalize_optional_text(item.get("slot", "")),
+            artifact_display_path(item),
+            normalize_optional_text(item.get("project_relative_path", "")),
+            normalize_optional_text(item.get("provider_item_id", "")),
+            normalize_optional_text(item.get("provider_item_kind", "")),
+            normalize_optional_text(item.get("provider_item_url", "")),
+            normalize_optional_text(item.get("summary", "")),
+            normalize_optional_text(item.get("family_key", "")),
+            normalize_optional_text(item.get("collaboration_mode", "")),
+            normalize_optional_text(item.get("source_of_truth", "")),
+        ]
+    ).lower()
+
+
+def artifact_refresh_due(config: ProjectConfig, entry: dict[str, object], *, force: bool) -> bool:
+    if force:
+        return True
+    policy = normalize_optional_text(entry.get("freshness_policy", "")).strip().lower() or "ttl"
+    ttl_seconds_raw = normalize_optional_text(entry.get("freshness_ttl_seconds", ""))
+    try:
+        ttl_seconds = int(ttl_seconds_raw or "0")
+    except ValueError:
+        ttl_seconds = 0
+    if policy == "always-refresh-on-intent":
+        return True
+    if ttl_seconds <= 0:
+        return True
+    checked_at = normalize_optional_timestamp(entry.get("provider_last_checked_at", ""))
+    if not checked_at:
+        return True
+    checked_dt = datetime.fromisoformat(checked_at.replace("Z", "+00:00"))
+    now_dt = datetime.now(timezone.utc)
+    return (now_dt - checked_dt).total_seconds() >= ttl_seconds
+
+
+def resolve_artifact_refresh_candidates(
+    config: ProjectConfig,
+    *,
+    artifact_id: str | None = None,
+    family_key: str | None = None,
+    query: str | None = None,
+    all_collaborative: bool = False,
+    limit: int = 5,
+) -> list[dict[str, object]]:
+    catalog = load_artifact_catalog(config)
+    candidates: list[dict[str, object]] = []
+    if artifact_id:
+        item = find_registered_artifact_by_id(config, artifact_id)
+        if item is not None:
+            candidates.append(item)
+    elif family_key:
+        candidates.extend(artifact_family_entries(catalog, family_key))
+    else:
+        effective_query = (query or "").strip().lower()
+        for item in catalog.get("artifacts", []):
+            if not isinstance(item, dict):
+                continue
+            summary = artifact_truth_summary(config, item, catalog=catalog)
+            if summary["truth_source_type"] != "provider-native":
+                continue
+            if all_collaborative and summary["collaboration_mode"] != "multi-editor":
+                continue
+            if effective_query and effective_query not in artifact_search_haystack(item):
+                continue
+            candidates.append(item)
+    unique: dict[str, dict[str, object]] = {}
+    for item in candidates:
+        summary = artifact_truth_summary(config, item, catalog=catalog)
+        if summary["truth_source_type"] != "provider-native":
+            continue
+        key = summary["family_key"]
+        existing = unique.get(key)
+        if existing is None:
+            unique[key] = item
+            continue
+        existing_summary = artifact_truth_summary(config, existing, catalog=catalog)
+        if summary["collaboration_mode"] == "multi-editor" and existing_summary["collaboration_mode"] != "multi-editor":
+            unique[key] = item
+    ordered = list(unique.values())
+    ordered.sort(
+        key=lambda item: (
+            artifact_truth_summary(config, item, catalog=catalog)["collaboration_mode"] == "multi-editor",
+            artifact_truth_summary(config, item, catalog=catalog)["local_copy_stale_risk"],
+            normalize_optional_text(item.get("last_provider_sync_at", "")),
+            normalize_optional_text(item.get("title", "")),
+        ),
+        reverse=True,
+    )
+    return ordered[: max(1, limit)]
+
+
+def refresh_provider_artifact_entry(
+    config: ProjectConfig,
+    *,
+    entry: dict[str, object],
+    force: bool,
+) -> dict[str, object]:
+    catalog = load_artifact_catalog(config)
+    truth = artifact_truth_summary(config, entry, catalog=catalog)
+    truth_artifact_id = normalize_optional_text(truth.get("truth_source_artifact_id", ""))
+    provider_entry = None
+    if truth_artifact_id:
+        for item in catalog.get("artifacts", []):
+            if not isinstance(item, dict):
+                continue
+            if normalize_optional_text(item.get("id", "")) == truth_artifact_id:
+                provider_entry = item
+                break
+    if provider_entry is None:
+        provider_entry = choose_family_entry(artifact_family_entries(catalog, truth["family_key"]), preferred_role="provider-native-source")
+    if provider_entry is None:
+        return {
+            "artifact_id": normalize_optional_text(entry.get("id", "")),
+            "family_key": truth["family_key"],
+            "status": "skipped",
+            "reason": "no-provider-native-entry",
+        }
+    missing = artifact_missing_provider_metadata(config, provider_entry)
+    if missing:
+        now_timestamp = current_utc_timestamp()
+        provider_entry["provider_last_checked_at"] = now_timestamp
+        provider_entry["provider_last_fetch_status"] = "provider-metadata-incomplete"
+        provider_entry["provider_last_fetch_error"] = ",".join(missing)
+        write_artifact_catalog(config, catalog)
+        return {
+            "artifact_id": normalize_optional_text(provider_entry.get("id", "")),
+            "family_key": truth["family_key"],
+            "status": "blocked",
+            "reason": "provider-metadata-incomplete",
+            "missing_provider_metadata": missing,
+        }
+    if not artifact_refresh_due(config, provider_entry, force=force):
+        return {
+            "artifact_id": normalize_optional_text(provider_entry.get("id", "")),
+            "family_key": truth["family_key"],
+            "status": "skipped",
+            "reason": "freshness-ttl-not-expired",
+        }
+    refreshed_at = current_utc_timestamp()
+    try:
+        adapter = create_provider_adapter(
+            normalize_optional_text(provider_entry.get("storage_provider", "")) or config.storage_provider,
+            oauth_store_path=config.project_google_oauth_file,
+        )
+        snapshot = adapter.fetch_item(
+            provider_item_id=normalize_optional_text(provider_entry.get("provider_item_id", "")),
+            provider_item_kind=normalize_optional_text(provider_entry.get("provider_item_kind", "")),
+            provider_item_url=normalize_optional_text(provider_entry.get("provider_item_url", "")),
+        )
+    except ProviderAdapterError as exc:
+        provider_entry["provider_last_checked_at"] = refreshed_at
+        provider_entry["provider_last_fetch_status"] = exc.code
+        provider_entry["provider_last_fetch_error"] = exc.message
+        write_artifact_catalog(config, catalog)
+        return {
+            "artifact_id": normalize_optional_text(provider_entry.get("id", "")),
+            "family_key": truth["family_key"],
+            "status": "error",
+            "reason": exc.code,
+            "message": exc.message,
+            "retryable": exc.retryable,
+        }
+    provider_entry["title"] = normalize_optional_text(provider_entry.get("title", "")) or snapshot.provider_title
+    provider_entry["provider_item_url"] = snapshot.provider_item_url or normalize_optional_text(provider_entry.get("provider_item_url", ""))
+    provider_entry["last_refreshed_at"] = refreshed_at
+    provider_entry["last_provider_sync_at"] = snapshot.provider_modified_at or refreshed_at
+    provider_entry["provider_revision_id"] = snapshot.provider_revision_id
+    provider_entry["provider_modified_at"] = snapshot.provider_modified_at
+    provider_entry["provider_etag"] = snapshot.provider_etag
+    provider_entry["provider_last_checked_at"] = refreshed_at
+    provider_entry["provider_last_fetch_status"] = "ok"
+    provider_entry["provider_last_fetch_error"] = ""
+    provider_entry["truth_source_reason"] = snapshot.truth_source_reason
+    cache_path = write_provider_snapshot_cache(
+        config,
+        artifact_id=normalize_optional_text(provider_entry.get("id", "")),
+        snapshot=snapshot,
+        refreshed_at=refreshed_at,
+    )
+    provider_entry["provider_snapshot_path"] = cache_path
+    write_artifact_catalog(config, catalog)
+    return {
+        "artifact_id": normalize_optional_text(provider_entry.get("id", "")),
+        "family_key": truth["family_key"],
+        "status": "ok",
+        "reason": "provider-refreshed",
+        "provider_revision_id": snapshot.provider_revision_id,
+        "provider_modified_at": snapshot.provider_modified_at,
+        "provider_snapshot_path": cache_path,
+    }
+
+
+def refresh_provider_artifact_batch(
+    config: ProjectConfig,
+    *,
+    artifact_id: str | None = None,
+    family_key: str | None = None,
+    query: str | None = None,
+    all_collaborative: bool = False,
+    limit: int = 5,
+    force: bool = False,
+    event_type: str = "artifact.refresh",
+    event_summary_prefix: str = "Refreshed provider-native artifact truth sources",
+) -> dict[str, object]:
+    candidates = resolve_artifact_refresh_candidates(
+        config,
+        artifact_id=artifact_id,
+        family_key=family_key,
+        query=query,
+        all_collaborative=all_collaborative,
+        limit=limit,
+    )
+    results = [refresh_provider_artifact_entry(config, entry=item, force=force) for item in candidates]
+    refresh_kernel_state(
+        config,
+        event_type=event_type,
+        summary=f"{event_summary_prefix} ({sum(1 for item in results if item.get('status') == 'ok')} ok, {len(results)} attempted).",
+    )
+    return {
+        "attempted": len(candidates),
+        "ok": sum(1 for item in results if item.get("status") == "ok"),
+        "blocked": sum(1 for item in results if item.get("status") == "blocked"),
+        "errors": sum(1 for item in results if item.get("status") == "error"),
+        "skipped": sum(1 for item in results if item.get("status") == "skipped"),
+        "results": results,
+    }
+
+
 def provider_import_spec(provider_item_kind: str) -> dict[str, object]:
     spec = PROVIDER_IMPORT_KIND_SPECS.get(provider_item_kind.lower())
     if spec is None:
@@ -6614,26 +7584,69 @@ def provider_import_plan_path(config: ProjectConfig, *, record_date: str, slug: 
     return target_dir / f"{record_date}-{slug}-{provider_slug}-import.json"
 
 
+def provider_parent_relative_path(project_relative_path: str) -> str:
+    normalized = normalize_project_relative_path(project_relative_path) if project_relative_path else ""
+    if not normalized:
+        return ""
+    parent = PurePosixPath(normalized).parent.as_posix()
+    return "" if parent == "." else parent
+
+
+def slot_relative_provider_path(*, slot: str, date_value: str, title: str, slug: str | None = None) -> str:
+    slot_prefix = normalize_project_relative_path(slot or "delivery")
+    basename_slug = sanitize_slug(slug or title) or "item"
+    basename = f"{date_value}-{basename_slug}" if date_value else basename_slug
+    return PurePosixPath(slot_prefix, basename).as_posix()
+
+
+def provider_relative_path_from_local_candidate(config: ProjectConfig, *, candidate: str, slot: str) -> str:
+    normalized = normalize_project_relative_path(candidate)
+    pure = PurePosixPath(normalized)
+    if pure.suffix:
+        normalized = pure.with_suffix("").as_posix()
+    artifacts_prefix = ""
+    if config.artifacts_root.is_relative_to(config.root):
+        artifacts_prefix = config.artifacts_root.relative_to(config.root).as_posix()
+    if artifacts_prefix and (normalized == artifacts_prefix or normalized.startswith(f"{artifacts_prefix}/")):
+        trimmed = normalized[len(artifacts_prefix) :].lstrip("/")
+        return normalize_project_relative_path(trimmed) if trimmed else ""
+    slot_prefix = normalize_project_relative_path(slot) if slot else ""
+    if slot_prefix and (normalized == slot_prefix or normalized.startswith(f"{slot_prefix}/")):
+        return normalized
+    return ""
+
+
 def artifact_provider_relative_path(
+    config: ProjectConfig,
     entry: dict[str, object] | None,
     *,
+    slot: str,
+    date_value: str,
+    title: str,
+    slug: str | None = None,
     fallback_path: str,
     explicit_project_relative_path: str = "",
 ) -> str:
     explicit = normalize_project_relative_path(explicit_project_relative_path)
     if explicit:
         return explicit
-    candidate = ""
     if isinstance(entry, dict):
-        candidate = normalize_optional_text(entry.get("project_relative_path", "")) or normalize_optional_text(entry.get("path", ""))
-    if not candidate:
-        candidate = normalize_project_relative_path(fallback_path)
-    if not candidate:
-        return ""
-    pure = PurePosixPath(candidate)
-    if pure.suffix:
-        return pure.with_suffix("").as_posix()
-    return pure.as_posix()
+        entry_project_relative_path = normalize_optional_text(entry.get("project_relative_path", ""))
+        if entry_project_relative_path:
+            candidate = provider_relative_path_from_local_candidate(config, candidate=entry_project_relative_path, slot=slot)
+            if candidate:
+                return candidate
+            return normalize_project_relative_path(entry_project_relative_path)
+        entry_path = normalize_optional_text(entry.get("path", ""))
+        if entry_path:
+            candidate = provider_relative_path_from_local_candidate(config, candidate=entry_path, slot=slot)
+            if candidate:
+                return candidate
+    if fallback_path:
+        candidate = provider_relative_path_from_local_candidate(config, candidate=fallback_path, slot=slot)
+        if candidate:
+            return candidate
+    return slot_relative_provider_path(slot=slot, date_value=date_value, title=title, slug=slug)
 
 
 def artifact_register_command_preview(
@@ -6647,6 +7660,8 @@ def artifact_register_command_preview(
     project_relative_path: str,
     provider_item_kind: str,
     derived_from: list[str],
+    source_of_truth: str = "auto",
+    collaboration_mode: str = "single-editor",
 ) -> str:
     command: list[str] = [
         "python3",
@@ -6674,6 +7689,10 @@ def artifact_register_command_preview(
         command.extend(["--date", date_value])
     if summary.strip():
         command.extend(["--summary", summary.strip()])
+    if source_of_truth != "auto":
+        command.extend(["--source-of-truth", source_of_truth])
+    if collaboration_mode != "single-editor":
+        command.extend(["--collaboration-mode", collaboration_mode])
     for derived in derived_from:
         if derived:
             command.extend(["--derived-from", derived])
@@ -7076,6 +8095,13 @@ def materialize_or_register_bridge_artifact(
         provider_item_kind=default_provider_item_kind(config, has_local_path=True),
         provider_item_url="",
         derived_from=derived_from,
+        source_of_truth="workspace",
+        collaboration_mode=normalize_collaboration_mode(source_entry.get("collaboration_mode", ""), default="single-editor")
+        if isinstance(source_entry, dict)
+        else "single-editor",
+        artifact_role="exported-derivative",
+        last_refreshed_at=current_utc_timestamp(),
+        last_provider_sync_at=normalize_optional_timestamp(source_entry.get("last_provider_sync_at", "")) if isinstance(source_entry, dict) else "",
     )
     return (entry, output_path, created)
 
@@ -7179,6 +8205,11 @@ def artifact_import_plan(config: ProjectConfig, args: argparse.Namespace) -> int
                 provider_item_kind=default_provider_item_kind(config, has_local_path=True),
                 provider_item_url="",
                 derived_from=[],
+                source_of_truth="workspace",
+                collaboration_mode="single-editor",
+                artifact_role="workspace-source",
+                last_refreshed_at=current_utc_timestamp(),
+                last_provider_sync_at="",
             )
     else:
         summary = materialized_artifact_summary(
@@ -7204,9 +8235,23 @@ def artifact_import_plan(config: ProjectConfig, args: argparse.Namespace) -> int
         )
     bridge_path = artifact_display_path(bridge_entry)
     project_relative_path = artifact_provider_relative_path(
+        config,
         bridge_entry,
+        slot=slot,
+        date_value=record_date,
+        title=title,
+        slug=slug,
         fallback_path=bridge_path,
         explicit_project_relative_path=getattr(args, "project_relative_path", ""),
+    )
+    provider_parent_path = provider_parent_relative_path(project_relative_path)
+    bridge_collaboration_mode = normalize_collaboration_mode(
+        bridge_entry.get("collaboration_mode", "") if isinstance(bridge_entry, dict) else "",
+        default="single-editor",
+    )
+    bridge_source_of_truth = normalize_source_of_truth(
+        bridge_entry.get("source_of_truth", "") if isinstance(bridge_entry, dict) else "",
+        default="auto",
     )
     bridge_artifact_id = normalize_optional_text(bridge_entry.get("id", ""))
     derived_from = [bridge_artifact_id] if bridge_artifact_id else []
@@ -7224,6 +8269,8 @@ def artifact_import_plan(config: ProjectConfig, args: argparse.Namespace) -> int
         "provider_item_id": "<provider-item-id>",
         "provider_item_url": "<provider-item-url>",
         "derived_from": derived_from,
+        "source_of_truth": "provider-native" if bridge_collaboration_mode == "multi-editor" else bridge_source_of_truth,
+        "collaboration_mode": bridge_collaboration_mode,
     }
     plan = {
         "version": VERSION,
@@ -7244,6 +8291,7 @@ def artifact_import_plan(config: ProjectConfig, args: argparse.Namespace) -> int
             "bridge_path": bridge_path,
             "source_path": source_relative_path,
             "project_relative_path": project_relative_path,
+            "provider_parent_relative_path": provider_parent_path,
             "provider_root_id": provider_root_id,
             "provider_root_url": provider_root_url,
             "register_after_import": register_after_import,
@@ -7262,6 +8310,8 @@ def artifact_import_plan(config: ProjectConfig, args: argparse.Namespace) -> int
         project_relative_path=project_relative_path,
         provider_item_kind=provider_item_kind,
         derived_from=derived_from,
+        source_of_truth="provider-native" if bridge_collaboration_mode == "multi-editor" else bridge_source_of_truth,
+        collaboration_mode=bridge_collaboration_mode,
     )
     payload = {
         "command": "artifact.import-plan",
@@ -7298,6 +8348,8 @@ def handle_artifact_command(config: ProjectConfig, args: argparse.Namespace) -> 
         return artifact_import_plan(config, args)
     if args.artifact_command == "locate":
         return artifact_locate(config, args)
+    if args.artifact_command == "refresh":
+        return artifact_refresh(config, args)
     raise AssertionError("unreachable")
 
 
@@ -7336,6 +8388,11 @@ def artifact_create(config: ProjectConfig, args: argparse.Namespace) -> int:
         provider_item_kind=default_provider_item_kind(config, has_local_path=True),
         provider_item_url="",
         derived_from=[],
+        source_of_truth="workspace",
+        collaboration_mode="single-editor",
+        artifact_role="workspace-source",
+        last_refreshed_at=current_utc_timestamp(),
+        last_provider_sync_at="",
     )
     refresh_kernel_state(config, event_type="artifact.create", summary=f"Created {artifact_kind} artifact `{args.title}`.")
     if json_output_requested(args):
@@ -7351,11 +8408,11 @@ def artifact_create(config: ProjectConfig, args: argparse.Namespace) -> int:
 def artifact_register(config: ProjectConfig, args: argparse.Namespace) -> int:
     ensure_artifact_catalog(config)
     path, relative_path = resolve_artifact_registration_path(config, args.path)
-    project_relative_path = normalize_project_relative_path(args.project_relative_path) or relative_path
+    requested_project_relative_path = normalize_project_relative_path(args.project_relative_path)
     provider_item_id = normalize_optional_text(args.provider_item_id).strip()
     provider_item_kind = normalize_optional_text(args.provider_item_kind).strip()
     provider_item_url = normalize_optional_text(args.provider_item_url).strip()
-    if not relative_path and not project_relative_path and not provider_item_id:
+    if not relative_path and not requested_project_relative_path and not provider_item_id:
         raise SystemExit("Artifact registration requires --path, --project-relative-path, or --provider-item-id.")
     slot = artifact_slot_for_kind(config, args.kind.lower(), args.slot)
     summary_text = ""
@@ -7367,18 +8424,35 @@ def artifact_register(config: ProjectConfig, args: argparse.Namespace) -> int:
         summary_text = args.summary.strip()
     if args.date:
         date_value = normalize_record_date(args.date)
+    provisional_display_path = artifact_primary_path(
+        path=relative_path,
+        project_relative_path=requested_project_relative_path or relative_path,
+        provider_item_id=provider_item_id,
+        provider_item_kind=provider_item_kind,
+    )
+    default_title = path.name if path is not None else (PurePosixPath(provisional_display_path).name if provisional_display_path else provider_item_id or args.kind.lower())
+    resolved_title = args.title or default_title
+    project_relative_path = requested_project_relative_path or relative_path
+    if provider_item_id and not requested_project_relative_path:
+        project_relative_path = artifact_provider_relative_path(
+            config,
+            {"path": relative_path} if relative_path else None,
+            slot=slot,
+            date_value=date_value,
+            title=resolved_title,
+            fallback_path=relative_path,
+        )
     display_path = artifact_primary_path(
         path=relative_path,
         project_relative_path=project_relative_path,
         provider_item_id=provider_item_id,
         provider_item_kind=provider_item_kind,
     )
-    default_title = path.name if path is not None else (PurePosixPath(display_path).name if display_path else provider_item_id or args.kind.lower())
     entry = register_artifact_entry(
         config,
         path=display_path,
         artifact_kind=args.kind.lower(),
-        title=args.title or default_title,
+        title=resolved_title,
         slot=slot,
         summary=summary_text or f"{args.kind.lower()} artifact for {config.data['project']['name']}",
         date_value=date_value,
@@ -7388,6 +8462,11 @@ def artifact_register(config: ProjectConfig, args: argparse.Namespace) -> int:
         provider_item_kind=provider_item_kind or default_provider_item_kind(config, has_local_path=path is not None),
         provider_item_url=provider_item_url,
         derived_from=normalize_artifact_derived_from(args.derived_from),
+        source_of_truth=getattr(args, "source_of_truth", None),
+        collaboration_mode=getattr(args, "collaboration_mode", None),
+        artifact_role=getattr(args, "artifact_role", None),
+        last_refreshed_at=getattr(args, "last_refreshed_at", None),
+        last_provider_sync_at=getattr(args, "last_provider_sync_at", None),
     )
     refresh_kernel_state(config, event_type="artifact.register", summary=f"Registered artifact `{entry['title']}`.")
     if json_output_requested(args):
@@ -7401,9 +8480,22 @@ def artifact_register(config: ProjectConfig, args: argparse.Namespace) -> int:
 
 
 def artifact_locate(config: ProjectConfig, args: argparse.Namespace) -> int:
+    refresh_report = None
+    freshness_intent = detect_freshness_intent(args.q)
+    effective_query = strip_freshness_intent_phrases(args.q) if freshness_intent else args.q
+    if freshness_intent:
+        refresh_report = refresh_provider_artifact_batch(
+            config,
+            query=effective_query,
+            all_collaborative=False,
+            limit=max(args.limit, 5),
+            force=True,
+            event_type="artifact.refresh.intent",
+            event_summary_prefix="Refreshed provider-native truth sources before artifact locate",
+        )
     catalog = load_artifact_catalog(config)
     results: list[dict[str, object]] = []
-    query = args.q.strip().lower()
+    query = effective_query.strip().lower()
     for item in catalog.get("artifacts", []):
         if not isinstance(item, dict):
             continue
@@ -7427,18 +8519,88 @@ def artifact_locate(config: ProjectConfig, args: argparse.Namespace) -> int:
             continue
         result = dict(item)
         result["display_path"] = artifact_display_path(item)
+        result.update(artifact_truth_summary(config, item, catalog=catalog))
+        if freshness_intent and not candidate_is_freshness_relevant(result):
+            continue
         results.append(result)
-    results.sort(key=lambda item: (str(item.get("date", "")), str(item.get("kind", "")), str(item.get("display_path", ""))), reverse=True)
+    if freshness_intent:
+        results.sort(
+            key=lambda item: (
+                bool(item.get("local_copy_stale_risk")),
+                normalize_optional_text(item.get("freshness_status", "")) == "provider-metadata-missing",
+                normalize_optional_text(item.get("truth_source_type", "")) == "provider-native",
+                normalize_optional_text(item.get("last_provider_sync_at", "")),
+                normalize_optional_text(item.get("date", "")),
+                normalize_optional_text(item.get("display_path", "")),
+            ),
+            reverse=True,
+        )
+    else:
+        results.sort(key=lambda item: (str(item.get("date", "")), str(item.get("kind", "")), str(item.get("display_path", ""))), reverse=True)
     results = results[: max(1, args.limit)]
     if json_output_requested(args):
-        emit_json({"command": "artifact.locate", "status": "ok", "project": project_payload(config), "results": results})
+        emit_json(
+            {
+                "command": "artifact.locate",
+                "status": "ok",
+                "project": project_payload(config),
+                "freshness_intent_detected": freshness_intent,
+                "effective_query": effective_query,
+                "refresh": refresh_report,
+                "results": results,
+            }
+        )
         return 0
     print(f"{config.data['project']['name']} 的文件产物：" if locale_family(config.interaction_locale) == "zh" else f"Artifacts for {config.data['project']['name']}:")
     if not results:
         print("  暂无文件。" if locale_family(config.interaction_locale) == "zh" else "  No artifacts.")
         return 0
     for item in results:
-        print(f"  - [{item['kind']}] {item['title']} :: {item['display_path']} ({item['slot']})")
+        truth_suffix = f" truth={item['truth_source_type']}" if item.get("truth_source_type") else ""
+        refresh_suffix = f" refreshed={item['last_refreshed_at']}" if item.get("last_refreshed_at") else ""
+        stale_suffix = " local-copy-risk=true" if item.get("local_copy_stale_risk") else ""
+        provider_path_suffix = f" provider-path={item['provider_target_path']}" if item.get("provider_target_path") else ""
+        missing_suffix = ""
+        if item.get("missing_provider_metadata"):
+            missing_suffix = " missing=" + ",".join(str(value) for value in item["missing_provider_metadata"])
+        print(
+            f"  - [{item['kind']}] {item['title']} :: {item['display_path']} ({item['slot']})"
+            f"{truth_suffix}{refresh_suffix}{stale_suffix}{provider_path_suffix}{missing_suffix}"
+        )
+    return 0
+
+
+def artifact_refresh(config: ProjectConfig, args: argparse.Namespace) -> int:
+    query_value = None
+    if getattr(args, "q", None):
+        query_value = strip_freshness_intent_phrases(args.q) if detect_freshness_intent(args.q) else args.q
+    refresh_report = refresh_provider_artifact_batch(
+        config,
+        artifact_id=getattr(args, "artifact_id", None),
+        family_key=getattr(args, "family_key", None),
+        query=query_value,
+        all_collaborative=bool(getattr(args, "all_collaborative", False)),
+        limit=args.limit,
+        force=bool(getattr(args, "force", False)),
+        event_type="artifact.refresh.command",
+        event_summary_prefix="Refreshed provider-native artifact truth sources by explicit command",
+    )
+    payload = {
+        "command": "artifact.refresh",
+        "status": "ok",
+        "project": project_payload(config),
+        "refresh": refresh_report,
+    }
+    if json_output_requested(args):
+        emit_json(payload)
+        return 0
+    if locale_family(config.interaction_locale) == "zh":
+        print(f"已尝试刷新 {refresh_report['attempted']} 个 provider 文件族，成功 {refresh_report['ok']} 个。")
+    else:
+        print(f"Attempted provider refresh for {refresh_report['attempted']} artifact families, {refresh_report['ok']} succeeded.")
+    for item in refresh_report["results"]:
+        reason_suffix = f" ({item.get('reason', '')})" if item.get("reason") else ""
+        print(f"  - {item.get('artifact_id', item.get('family_key', 'unknown'))}: {item.get('status', 'unknown')}{reason_suffix}")
     return 0
 
 
@@ -7457,6 +8619,21 @@ def register_artifact_entry(
     provider_item_kind: str,
     provider_item_url: str,
     derived_from: list[str],
+    source_of_truth: str | None = None,
+    collaboration_mode: str | None = None,
+    artifact_role: str | None = None,
+    last_refreshed_at: str | None = None,
+    last_provider_sync_at: str | None = None,
+    provider_revision_id: str | None = None,
+    provider_modified_at: str | None = None,
+    provider_etag: str | None = None,
+    provider_last_checked_at: str | None = None,
+    provider_last_fetch_status: str | None = None,
+    provider_last_fetch_error: str | None = None,
+    provider_snapshot_path: str | None = None,
+    freshness_policy: str | None = None,
+    freshness_ttl_seconds: int | None = None,
+    truth_source_reason: str | None = None,
 ) -> dict[str, object]:
     catalog = load_artifact_catalog(config)
     project_relative = normalize_project_relative_path(project_relative_path) if project_relative_path else ""
@@ -7471,6 +8648,105 @@ def register_artifact_entry(
         provider_item_kind=provider_item_kind.strip(),
     )
     artifact_id = f"artifact:{sanitize_source_id(identity_key)}"
+    incoming_match = {
+        "path": normalized_path,
+        "project_relative_path": project_relative,
+        "provider_item_id": provider_item_id.strip(),
+        "provider_item_kind": provider_item_kind.strip(),
+        "storage_provider": config.storage_provider,
+        "provider_root_id": config.provider_root_id,
+        "identity_key": identity_key,
+    }
+    artifacts: list[dict[str, object]] = []
+    matched_existing: dict[str, object] | None = None
+    for item in catalog.get("artifacts", []):
+        if not isinstance(item, dict):
+            continue
+        if matched_existing is None and artifact_entries_match(item, incoming_match):
+            matched_existing = item
+            continue
+        artifacts.append(item)
+    resolved_role = normalize_artifact_role(
+        artifact_role if artifact_role is not None else matched_existing.get("artifact_role", "") if isinstance(matched_existing, dict) else "",
+        default="",
+    ) or infer_artifact_role(
+        path=normalized_path,
+        project_relative_path=project_relative,
+        local_access_paths=normalized_local_access_paths,
+        provider_item_id=provider_item_id.strip(),
+        provider_item_kind=provider_item_kind.strip(),
+        derived_from=derived_from,
+    )
+    resolved_source_of_truth = normalize_source_of_truth(
+        source_of_truth if source_of_truth is not None else matched_existing.get("source_of_truth", "") if isinstance(matched_existing, dict) else "",
+        default="auto",
+    )
+    resolved_collaboration_mode = normalize_collaboration_mode(
+        collaboration_mode if collaboration_mode is not None else matched_existing.get("collaboration_mode", "") if isinstance(matched_existing, dict) else "",
+        default="single-editor",
+    )
+    resolved_last_refreshed_at = normalize_optional_timestamp(
+        last_refreshed_at if last_refreshed_at is not None else matched_existing.get("last_refreshed_at", "") if isinstance(matched_existing, dict) else ""
+    ) or current_utc_timestamp()
+    resolved_last_provider_sync_at = normalize_optional_timestamp(
+        last_provider_sync_at if last_provider_sync_at is not None else matched_existing.get("last_provider_sync_at", "") if isinstance(matched_existing, dict) else ""
+    )
+    resolved_provider_modified_at = normalize_optional_timestamp(
+        provider_modified_at if provider_modified_at is not None else matched_existing.get("provider_modified_at", "") if isinstance(matched_existing, dict) else ""
+    )
+    resolved_provider_last_checked_at = normalize_optional_timestamp(
+        provider_last_checked_at if provider_last_checked_at is not None else matched_existing.get("provider_last_checked_at", "") if isinstance(matched_existing, dict) else ""
+    )
+    resolved_provider_revision_id = normalize_optional_text(
+        provider_revision_id if provider_revision_id is not None else matched_existing.get("provider_revision_id", "") if isinstance(matched_existing, dict) else ""
+    )
+    resolved_provider_etag = normalize_optional_text(
+        provider_etag if provider_etag is not None else matched_existing.get("provider_etag", "") if isinstance(matched_existing, dict) else ""
+    )
+    resolved_provider_last_fetch_status = normalize_optional_text(
+        provider_last_fetch_status if provider_last_fetch_status is not None else matched_existing.get("provider_last_fetch_status", "") if isinstance(matched_existing, dict) else ""
+    )
+    resolved_provider_last_fetch_error = normalize_optional_text(
+        provider_last_fetch_error if provider_last_fetch_error is not None else matched_existing.get("provider_last_fetch_error", "") if isinstance(matched_existing, dict) else ""
+    )
+    resolved_provider_snapshot_path = normalize_optional_text(
+        provider_snapshot_path if provider_snapshot_path is not None else matched_existing.get("provider_snapshot_path", "") if isinstance(matched_existing, dict) else ""
+    )
+    resolved_freshness_policy = normalize_optional_text(
+        freshness_policy if freshness_policy is not None else matched_existing.get("freshness_policy", "") if isinstance(matched_existing, dict) else ""
+    ) or default_freshness_policy(
+        collaboration_mode=resolved_collaboration_mode,
+        source_of_truth=resolved_source_of_truth,
+        artifact_role=resolved_role,
+    )
+    resolved_freshness_ttl_seconds = (
+        freshness_ttl_seconds
+        if freshness_ttl_seconds is not None
+        else int(matched_existing.get("freshness_ttl_seconds", 0) or 0) if isinstance(matched_existing, dict) else 0
+    ) or default_freshness_ttl_seconds(
+        collaboration_mode=resolved_collaboration_mode,
+        source_of_truth=resolved_source_of_truth,
+        artifact_role=resolved_role,
+    )
+    resolved_truth_source_reason = normalize_optional_text(
+        truth_source_reason if truth_source_reason is not None else matched_existing.get("truth_source_reason", "") if isinstance(matched_existing, dict) else ""
+    )
+    family_key = ""
+    for derived_id in derived_from:
+        parent = find_registered_artifact_by_id(config, derived_id)
+        if parent is None:
+            continue
+        family_key = normalize_optional_text(parent.get("family_key", "")) or normalize_optional_text(parent.get("identity_key", ""))
+        if family_key:
+            break
+    if not family_key and isinstance(matched_existing, dict):
+        family_key = normalize_optional_text(matched_existing.get("family_key", ""))
+    if not family_key and project_relative:
+        family_key = family_key_from_path(config.storage_provider, config.provider_root_id, project_relative)
+    if not family_key and normalized_local_access_paths:
+        family_key = family_key_from_path(config.storage_provider, config.provider_root_id, normalized_local_access_paths[0])
+    if not family_key:
+        family_key = identity_key
     entry: dict[str, object] = {
         "id": artifact_id,
         "kind": artifact_kind,
@@ -7492,16 +8768,24 @@ def register_artifact_entry(
         "provider_item_url": provider_item_url.strip(),
         "derived_from": derived_from,
         "identity_key": identity_key,
+        "family_key": family_key,
+        "artifact_role": resolved_role,
+        "source_of_truth": resolved_source_of_truth,
+        "collaboration_mode": resolved_collaboration_mode,
+        "last_refreshed_at": resolved_last_refreshed_at,
+        "last_provider_sync_at": resolved_last_provider_sync_at,
+        "provider_revision_id": resolved_provider_revision_id,
+        "provider_modified_at": resolved_provider_modified_at,
+        "provider_etag": resolved_provider_etag,
+        "provider_last_checked_at": resolved_provider_last_checked_at,
+        "provider_last_fetch_status": resolved_provider_last_fetch_status,
+        "provider_last_fetch_error": resolved_provider_last_fetch_error,
+        "provider_snapshot_path": resolved_provider_snapshot_path,
+        "freshness_policy": resolved_freshness_policy,
+        "freshness_ttl_seconds": resolved_freshness_ttl_seconds,
+        "local_snapshot_revision_id": local_snapshot_revision_id_for_paths(config, normalized_local_access_paths),
+        "truth_source_reason": resolved_truth_source_reason,
     }
-    artifacts: list[dict[str, object]] = []
-    matched_existing: dict[str, object] | None = None
-    for item in catalog.get("artifacts", []):
-        if not isinstance(item, dict):
-            continue
-        if matched_existing is None and artifact_entries_match(item, entry):
-            matched_existing = item
-            continue
-        artifacts.append(item)
     if matched_existing is not None:
         entry["id"] = str(matched_existing.get("id", artifact_id))
     artifacts.append(entry)
@@ -8636,6 +9920,7 @@ def render_export_catalog(config: ProjectConfig) -> str:
         {"path": config.data["paths"]["change_records_file"], "kind": "change-index", "project_owned": True},
         {"path": config.memory_setting("digest_file", ".sula/memory-digest.md"), "kind": "memory-digest", "project_owned": False},
         {"path": ".sula/exports/provider-imports", "kind": "provider-import-plans", "project_owned": False},
+        {"path": ".sula/cache/provider-snapshots", "kind": "provider-snapshots", "project_owned": False},
         {"path": ".sula/feedback/outbox/archives", "kind": "feedback-outbox", "project_owned": False},
     ]
     if config.profile == "sula-core":

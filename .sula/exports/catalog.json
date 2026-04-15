@@ -22,6 +22,11 @@
       "project_owned": false
     },
     {
+      "path": ".sula/cache/provider-snapshots",
+      "kind": "provider-snapshots",
+      "project_owned": false
+    },
+    {
       "path": ".sula/feedback/outbox/archives",
       "kind": "feedback-outbox",
       "project_owned": false

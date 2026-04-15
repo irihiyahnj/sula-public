@@ -39,6 +39,8 @@ This file is the primary instruction source for AI coding agents working in the 
 - Sula can encode formal document design policy in a first-class `[document_design]` manifest section, including source-first rules and reusable structure bundles for schedule, proposal, report, process, and training documents.
 - Sula can capture reusable managed-file fixes from adopted projects as portable feedback bundles, then ingest, review, and decide them in Sula Core before later rollout through normal versioned sync.
 - Sula can register provider-backed artifacts for Google Drive style workspaces, including stable fields such as `project_relative_path`, `provider_item_id`, `provider_item_kind`, `provider_item_url`, `derived_from`, and `identity_key`.
+- Sula can now track artifact-family truth sources and freshness for collaborative provider-backed files through fields such as `family_key`, `artifact_role`, `source_of_truth`, `collaboration_mode`, `last_refreshed_at`, and `last_provider_sync_at`.
+- Sula can now refresh provider-native Google Docs and Google Sheets in read-only mode through `artifact refresh`, cache normalized provider snapshots under `.sula/cache/provider-snapshots/`, and auto-trigger that refresh when freshness intent is detected.
 - Sula can materialize project-owned source files into import-friendly deliverables through `artifact materialize`.
 - Sula can prepare machine-readable provider import plans through `artifact import-plan`, including auto-generated `.docx` or `.xlsx` bridge artifacts when a Google Docs or Google Sheets import still needs a local handoff file.
 - `artifact create` can now render formal source-document bundles for `schedule`, `proposal` / `plan`, `report`, `process`, and `training` artifacts instead of falling back to a single generic shell.
@@ -54,6 +56,8 @@ This file is the primary instruction source for AI coding agents working in the 
   - `docs/change-records/2026-04-12-add-provider-backed-artifact-registration-identity.md`
   - `docs/change-records/2026-04-12-add-artifact-materialization-for-docs-and-sheets.md`
   - `docs/change-records/2026-04-12-add-provider-import-plans-for-google-docs-and-sheets.md`
+  - `docs/change-records/2026-04-12-add-truth-source-and-freshness-checks-for-collaborative-provider-artifacts.md`
+  - `docs/change-records/2026-04-12-add-provider-native-read-only-refresh-and-artifact-refresh-command.md`
 
 ## Out Of Scope For Now
 
