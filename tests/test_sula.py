@@ -272,21 +272,25 @@ class SulaCliTests(unittest.TestCase):
             self.assertEqual(result.returncode, 0, result.stderr)
             self.assertTrue((project_root / ".sula" / "project.toml").exists())
             self.assertTrue((project_root / ".sula" / "version.lock").exists())
-            self.assertTrue((project_root / "CODEX.md").exists())
+            self.assertTrue((project_root / "AGENTS.md").exists())
             self.assertTrue((project_root / "README.md").exists())
-            self.assertTrue((project_root / "docs" / "ops" / "document-design-principles.md").exists())
-            self.assertTrue((project_root / "docs" / "ops" / "project-memory.md").exists())
-            self.assertTrue((project_root / "docs" / "ops" / "release-checklist.md").exists())
-            self.assertTrue((project_root / "docs" / "runbooks" / "deploy-and-rollback.md").exists())
             self.assertTrue((project_root / "docs" / "change-records" / "_template.md").exists())
             self.assertTrue((project_root / "docs" / "releases" / "_template.md").exists())
             self.assertTrue((project_root / "docs" / "incidents" / "_template.md").exists())
             self.assertIn("python3 scripts/sula.py check --project-root .", (project_root / "AGENTS.md").read_text(encoding="utf-8"))
-            self.assertIn("python3 scripts/sula.py check --project-root .", (project_root / "CODEX.md").read_text(encoding="utf-8"))
+            self.assertIn(
+                "Additional Sula projection docs appear only when their packs are enabled.",
+                (project_root / "README.md").read_text(encoding="utf-8"),
+            )
+            self.assertFalse((project_root / "CODEX.md").exists())
+            self.assertFalse((project_root / "docs" / "ops").exists())
+            self.assertFalse((project_root / "docs" / "runbooks").exists())
 
             manifest = (project_root / ".sula" / "project.toml").read_text(encoding="utf-8")
             self.assertIn("[document_design]", manifest)
-            self.assertIn('principles_path = "docs/ops/document-design-principles.md"', manifest)
+            self.assertIn("[projection]", manifest)
+            self.assertIn('mode = "detached"', manifest)
+            self.assertIn('principles_path = "n/a"', manifest)
 
     def test_adopt_reports_plan_before_approval(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -312,7 +316,8 @@ class SulaCliTests(unittest.TestCase):
             self.assertIn("How to use Sula after adoption", result.stdout)
             self.assertTrue((project_root / ".sula" / "project.toml").exists())
             self.assertTrue((project_root / ".sula" / "version.lock").exists())
-            self.assertTrue((project_root / "CODEX.md").exists())
+            self.assertTrue((project_root / "AGENTS.md").exists())
+            self.assertFalse((project_root / "CODEX.md").exists())
             self.assertTrue((project_root / "docs" / "change-records").exists())
 
     def test_adopt_falls_back_to_generic_project_profile(self) -> None:
@@ -600,7 +605,9 @@ class SulaCliTests(unittest.TestCase):
             manifest = (project_root / ".sula" / "project.toml").read_text(encoding="utf-8")
             self.assertIn('profile = "generic-project"', manifest)
             self.assertIn('primary_branch = "n/a"', manifest)
-            self.assertTrue((project_root / "docs" / "runbooks" / "project-operations.md").exists())
+            self.assertIn('mode = "detached"', manifest)
+            self.assertTrue((project_root / "AGENTS.md").exists())
+            self.assertFalse((project_root / "docs" / "runbooks" / "project-operations.md").exists())
 
     def test_adopt_approve_json_emits_single_payload(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -2308,7 +2315,7 @@ class SulaCliTests(unittest.TestCase):
     def test_sync_dry_run_reports_changes_without_writing(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
             project_root = Path(tmpdir)
-            init_result = run_cli("init", "--project-root", str(project_root))
+            init_result = run_cli("init", "--project-root", str(project_root), "--projection-mode", "governed")
             self.assertEqual(init_result.returncode, 0, init_result.stderr)
 
             managed_file = project_root / "CODEX.md"
@@ -2323,10 +2330,129 @@ class SulaCliTests(unittest.TestCase):
             self.assertIn("Dry run only", result.stdout)
             self.assertEqual(managed_file.read_text(encoding="utf-8"), "local drift\n")
 
+    def test_projection_mode_switch_to_governed_materializes_deeper_surface(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            project_root = Path(tmpdir)
+            self.create_generic_project(project_root)
+
+            adopt_result = run_cli("adopt", "--project-root", str(project_root), "--approve")
+            self.assertEqual(adopt_result.returncode, 0, adopt_result.stderr)
+            self.assertFalse((project_root / "CODEX.md").exists())
+
+            mode_result = run_cli(
+                "projection",
+                "mode",
+                "--project-root",
+                str(project_root),
+                "--set",
+                "governed",
+                "--json",
+            )
+
+            self.assertEqual(mode_result.returncode, 0, mode_result.stderr)
+            payload = json.loads(mode_result.stdout)
+            self.assertEqual(payload["projection"]["mode"], "governed")
+            self.assertIn("ai-tooling", payload["projection"]["enabled_packs"])
+            self.assertTrue((project_root / "CODEX.md").exists())
+            self.assertTrue((project_root / "docs" / "ops" / "project-memory.md").exists())
+
+    def test_projection_enable_ai_tooling_auto_enables_ops_core(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            project_root = Path(tmpdir)
+            self.create_generic_project(project_root)
+
+            adopt_result = run_cli("adopt", "--project-root", str(project_root), "--approve")
+            self.assertEqual(adopt_result.returncode, 0, adopt_result.stderr)
+            self.assertFalse((project_root / "CODEX.md").exists())
+            self.assertFalse((project_root / "docs" / "README.md").exists())
+
+            enable_result = run_cli(
+                "projection",
+                "enable",
+                "--project-root",
+                str(project_root),
+                "--pack",
+                "ai-tooling",
+                "--json",
+            )
+
+            self.assertEqual(enable_result.returncode, 0, enable_result.stderr)
+            payload = json.loads(enable_result.stdout)
+            self.assertIn("ai-tooling", payload["projection"]["enabled_packs"])
+            self.assertIn("ops-core", payload["projection"]["enabled_packs"])
+            self.assertTrue((project_root / "CODEX.md").exists())
+            self.assertTrue((project_root / "docs" / "README.md").exists())
+
+    def test_projection_disable_ai_tooling_cleans_managed_surface(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            project_root = Path(tmpdir)
+            self.create_generic_project(project_root)
+
+            adopt_result = run_cli("adopt", "--project-root", str(project_root), "--projection-mode", "governed", "--approve")
+            self.assertEqual(adopt_result.returncode, 0, adopt_result.stderr)
+            self.assertTrue((project_root / "CODEX.md").exists())
+
+            disable_result = run_cli(
+                "projection",
+                "disable",
+                "--project-root",
+                str(project_root),
+                "--pack",
+                "ai-tooling",
+                "--json",
+            )
+
+            self.assertEqual(disable_result.returncode, 0, disable_result.stderr)
+            payload = json.loads(disable_result.stdout)
+            self.assertNotIn("ai-tooling", payload["projection"]["enabled_packs"])
+            self.assertFalse((project_root / "CODEX.md").exists())
+            self.assertTrue((project_root / "AGENTS.md").exists())
+
+    def test_projection_disable_rejects_pack_with_enabled_dependents(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            project_root = Path(tmpdir)
+            self.create_generic_project(project_root)
+
+            adopt_result = run_cli("adopt", "--project-root", str(project_root), "--projection-mode", "governed", "--approve")
+            self.assertEqual(adopt_result.returncode, 0, adopt_result.stderr)
+
+            disable_result = run_cli("projection", "disable", "--project-root", str(project_root), "--pack", "ops-core")
+
+            self.assertNotEqual(disable_result.returncode, 0)
+            self.assertIn("dependent packs remain enabled", disable_result.stderr)
+            self.assertTrue((project_root / "docs" / "README.md").exists())
+
+    def test_sync_defaults_legacy_consumer_without_projection_section_to_governed(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            project_root = Path(tmpdir)
+            self.create_generic_project(project_root)
+
+            adopt_result = run_cli("adopt", "--project-root", str(project_root), "--projection-mode", "governed", "--approve")
+            self.assertEqual(adopt_result.returncode, 0, adopt_result.stderr)
+            self.assertTrue((project_root / "CODEX.md").exists())
+
+            manifest_path = project_root / ".sula" / "project.toml"
+            manifest = manifest_path.read_text(encoding="utf-8")
+            projection_start = manifest.index("[projection]")
+            manifest_path.write_text(manifest[:projection_start].rstrip() + "\n", encoding="utf-8")
+
+            (project_root / "CODEX.md").unlink()
+
+            sync_result = run_cli("sync", "--project-root", str(project_root))
+
+            self.assertEqual(sync_result.returncode, 0, sync_result.stderr)
+            self.assertTrue((project_root / "CODEX.md").exists())
+
+            projection_result = run_cli("projection", "list", "--project-root", str(project_root), "--json")
+            self.assertEqual(projection_result.returncode, 0, projection_result.stderr)
+            payload = json.loads(projection_result.stdout)
+            self.assertEqual(payload["projection"]["mode"], "governed")
+            self.assertIn("ai-tooling", payload["projection"]["enabled_packs"])
+
     def test_sync_updates_managed_files_and_preserves_scaffold(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
             project_root = Path(tmpdir)
-            init_result = run_cli("init", "--project-root", str(project_root))
+            init_result = run_cli("init", "--project-root", str(project_root), "--projection-mode", "governed")
             self.assertEqual(init_result.returncode, 0, init_result.stderr)
 
             managed_file = project_root / "CODEX.md"
@@ -2346,7 +2472,7 @@ class SulaCliTests(unittest.TestCase):
     def test_doctor_reports_drift_and_lock_mismatch(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
             project_root = Path(tmpdir)
-            init_result = run_cli("init", "--project-root", str(project_root))
+            init_result = run_cli("init", "--project-root", str(project_root), "--projection-mode", "governed")
             self.assertEqual(init_result.returncode, 0, init_result.stderr)
 
             (project_root / "CODEX.md").write_text("local drift\n", encoding="utf-8")
@@ -2365,7 +2491,7 @@ class SulaCliTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmpdir:
             project_root = Path(tmpdir)
             self.create_generic_project(project_root)
-            adopt_result = run_cli("adopt", "--project-root", str(project_root), "--approve")
+            adopt_result = run_cli("adopt", "--project-root", str(project_root), "--projection-mode", "governed", "--approve")
             self.assertEqual(adopt_result.returncode, 0, adopt_result.stderr)
 
             (project_root / ".sula" / "events" / "log.jsonl").write_text("{bad json}\n", encoding="utf-8")
@@ -2498,8 +2624,8 @@ class SulaCliTests(unittest.TestCase):
             status_text = status_path.read_text(encoding="utf-8")
             status_path.write_text(
                 status_text.replace(
-                    f"- Initial Sula adoption is complete for this repository under the `generic-project` profile.",
-                    "- Initial Sula adoption is complete for this repository, and the daily Sula check gate is now required for state-sync work.",
+                    f"- Initial Sula adoption is complete for this repository under the `generic-project` profile in `detached` projection mode.",
+                    "- Initial Sula adoption is complete for this repository in detached projection mode, and the daily Sula check gate is now required for state-sync work.",
                 ),
                 encoding="utf-8",
             )
@@ -2579,7 +2705,7 @@ class SulaCliTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmpdir:
             project_root = Path(tmpdir)
             self.create_generic_project(project_root)
-            adopt_result = run_cli("adopt", "--project-root", str(project_root), "--approve")
+            adopt_result = run_cli("adopt", "--project-root", str(project_root), "--projection-mode", "governed", "--approve")
             self.assertEqual(adopt_result.returncode, 0, adopt_result.stderr)
 
             (project_root / "CODEX.md").write_text("local managed improvement\n", encoding="utf-8")
@@ -2626,7 +2752,7 @@ class SulaCliTests(unittest.TestCase):
             project_root = Path(project_tmpdir)
             core_root = Path(core_tmpdir)
             self.create_generic_project(project_root)
-            adopt_result = run_cli("adopt", "--project-root", str(project_root), "--approve")
+            adopt_result = run_cli("adopt", "--project-root", str(project_root), "--projection-mode", "governed", "--approve")
             self.assertEqual(adopt_result.returncode, 0, adopt_result.stderr)
 
             (project_root / "CODEX.md").write_text("local managed improvement\n", encoding="utf-8")

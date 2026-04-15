@@ -23,7 +23,7 @@ python3 scripts/sula.py onboard --project-root /path/to/project
 python3 scripts/sula.py onboard --project-root /path/to/project --accept-suggested --approve
 ```
 
-`onboard` asks the missing questions, explains what Sula will manage, and then applies adoption through the same manifest and kernel contract.
+`onboard` asks the missing questions, explains which kernel and visible projections Sula will manage, and then applies adoption through the same manifest and kernel contract.
 
 The lower-level inspect, report, approve flow remains:
 
@@ -55,12 +55,13 @@ If an adoption flow requires the user to remember internal paths, slot names, or
    - recommended profile
    - whether the report defaulted to `generic-project`
    - detected project facts
-   - managed files that will be created or overwritten
+   - selected projection mode
+   - visible projection files that will be created or overwritten
    - scaffold files that will be created or preserved
    - kernel files that will be created under `.sula/`
    - blockers and warnings
 3. Re-run with `--approve`.
-4. Review scaffold files:
+4. Review the default detached surface:
    - `AGENTS.md`
    - `README.md`
    - `CHANGE-RECORDS.md`
@@ -68,7 +69,8 @@ If an adoption flow requires the user to remember internal paths, slot names, or
    - `docs/change-records/_template.md`
    - `docs/releases/_template.md`
    - `docs/incidents/_template.md`
-5. Review managed files:
+5. If the project needs a deeper visible operating surface, promote it intentionally with `projection mode` or `projection enable`.
+6. Review collaborative or governed projection packs when they are enabled:
    - `CODEX.md`
    - `CLAUDE.md`
    - `GEMINI.md`
@@ -78,11 +80,11 @@ If an adoption flow requires the user to remember internal paths, slot names, or
    - `docs/ops/*`
    - `docs/ops/document-design-principles.md`
    - profile-managed docs
-6. Adjust project-specific facts in scaffold files.
-7. Create or migrate the first change record if useful for project onboarding history.
-8. Generate the first project memory digest if the team wants a fast recall layer.
-9. Run `sula doctor --strict` if the apply phase did not already leave the repository clean.
-10. Commit the adoption in the target repository.
+7. Adjust project-specific facts in scaffold files.
+8. Create or migrate the first change record if useful for project onboarding history.
+9. Generate the first project memory digest if the team wants a fast recall layer.
+10. Run `sula doctor --strict` if the apply phase did not already leave the repository clean.
+11. Commit the adoption in the target repository.
 
 If the project does not match a narrower profile safely, adopt it under `generic-project` first and refine later only when a more truthful reusable profile exists.
 
@@ -115,7 +117,7 @@ This keeps Google Drive in the storage adapter layer while letting the workflow 
 2. Read the current project rules before approval.
 3. Compare the reported operating-system diff against existing docs and project habits.
 4. Preserve project truth where it is already stronger than the scaffold.
-5. Approve only after the managed/scaffold boundary is clear.
+5. Approve only after the kernel, visible projection, and project-owned scaffold boundaries are clear.
 6. Migrate existing status, change history, release notes, and incident notes into the new memory layout only when that improves clarity.
 7. Commit adoption as a distinct batch so future rollback stays simple.
 
@@ -155,7 +157,7 @@ Pause adoption if:
 1. Run `sula remove --project-root /path/to/project`.
 2. Review the report:
    - `.sula/` kernel paths that will be removed
-   - managed files that will be removed
+   - registered visible projection files that will be removed
    - scaffold files that will remain project-owned
 3. Re-run with `--approve`.
 4. Review the resulting diff before committing the removal.

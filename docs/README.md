@@ -9,13 +9,13 @@ Sula manages the cross-project operational layer so this repository can benefit 
 ### 1. Hard Rules
 
 - [AGENTS.md](../AGENTS.md): repository-specific hard rules
-- [CODEX.md](../CODEX.md): Codex default execution adapter
+- `CODEX.md`, `CLAUDE.md`, `GEMINI.md`, `.github/copilot-instructions.md`, and `.cursor/rules/project.mdc`: AI adapters when the `ai-tooling` projection pack is enabled
 - [README.md](../README.md): product and architecture overview
 
 ### 2. Team Operation
 
 - [ops/team-operating-model.md](ops/team-operating-model.md): default request-to-delivery flow
-- [ops/document-design-principles.md](ops/document-design-principles.md): formal document structure rules
+- `ops/document-design-principles.md`: formal document structure rules when the `document-design` projection pack is enabled
 - [ops/request-template.md](ops/request-template.md): efficient request format
 - [ops/project-memory.md](ops/project-memory.md): how durable project memory is stored and updated
 - [ops/release-checklist.md](ops/release-checklist.md): pre-push and pre-release checks
@@ -24,12 +24,11 @@ Sula manages the cross-project operational layer so this repository can benefit 
 
 ### 3. System And Module Structure
 
-- [architecture/system-map.md](architecture/system-map.md)
-- [architecture/module-map.md](architecture/module-map.md)
+- `architecture/`: profile-specific architecture docs when the `profile-architecture` projection pack is enabled
 
 ### 4. Runbooks
 
-- [runbooks/](runbooks)
+- `runbooks/`: operational runbooks when the `profile-runbooks` projection pack is enabled
 
 ### 5. Traceability
 

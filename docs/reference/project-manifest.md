@@ -91,6 +91,11 @@ The safe baseline profile is `generic-project`. Narrower profiles can add more s
 - `interaction_locale`
 - `preserve_user_input_language`
 
+### `[projection]` (written by current Sula releases; optional for legacy consumers)
+
+- `mode`
+- `enabled_packs`
+
 ### `[document_design]` (optional but recommended)
 
 - `principles_path`
@@ -118,7 +123,10 @@ See [../../schema/project.example.toml](../../schema/project.example.toml).
 - `storage.workspace_root` is the current machine's access root for the adopted workspace. It should not be treated as the stable identity of provider-backed artifacts across devices.
 - The optional `[portfolio]` section lets a project register itself into a broader multi-project workspace without hard-coding that workspace into Sula Core.
 - The optional `[language]` section lets a project choose the language for Sula-generated docs, records, and human-readable command output while preserving user-authored text as-is.
-- The optional `[document_design]` section records how formal planning, proposal, report, process, and training documents should be structured, while keeping project-owned source files as the editable truth.
+- The `[projection]` section separates Sula's kernel capabilities from the repo-visible governance surface. New `generic-project` and `react-frontend-erpnext` adoptions default to `detached`, while current `sula-core` defaults to `governed`.
+- Legacy adopted projects may not have a `[projection]` section yet. Current Sula versions treat those repositories as `governed` until the manifest is rewritten, so existing visible docs continue to sync safely.
+- `enabled_packs` records which visible projection packs are active. Disabling a pack removes that pack's visible files from Sula ownership, but it does not turn off kernel capabilities such as `doctor`, `check`, `query`, `artifact`, or `feedback`.
+- The optional `[document_design]` section records how formal planning, proposal, report, process, and training documents should be structured, while keeping project-owned source files as the editable truth. When the `document-design` projection pack is disabled, `principles_path` may be set to `n/a`.
 - Project history stays in the project repository, not in the manifest.
 
 See [provider-backed-artifact-identity.md](provider-backed-artifact-identity.md) for the cross-device identity model behind provider-backed project files.

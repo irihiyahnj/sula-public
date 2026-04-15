@@ -164,6 +164,32 @@
       },
       "additionalProperties": false
     },
+    "projection": {
+      "type": "object",
+      "required": ["mode", "enabled_packs"],
+      "properties": {
+        "mode": {
+          "type": "string",
+          "enum": ["detached", "collaborative", "governed"]
+        },
+        "enabled_packs": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "project-memory",
+              "record-templates",
+              "document-design",
+              "ops-core",
+              "profile-architecture",
+              "profile-runbooks",
+              "ai-tooling"
+            ]
+          }
+        }
+      },
+      "additionalProperties": false
+    },
     "document_design": {
       "type": "object",
       "required": [

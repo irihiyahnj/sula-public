@@ -70,6 +70,7 @@ WORKFLOW_PACK_CHOICES = [
 ]
 STORAGE_PROVIDER_CHOICES = ["local-fs", "google-drive"]
 LANGUAGE_CHOICES = ["zh-CN", "en"]
+PROJECTION_MODE_CHOICES = ["detached", "collaborative", "governed"]
 FEEDBACK_KIND_CHOICES = ["bug", "improvement", "docs", "policy", "regression"]
 FEEDBACK_SEVERITY_CHOICES = ["low", "medium", "high", "critical"]
 FEEDBACK_DECISION_CHOICES = ["triaged", "accepted", "deferred", "rejected", "released"]
@@ -248,6 +249,10 @@ OPTIONAL_MANIFEST_SPEC = {
         "report_bundle": "string",
         "process_bundle": "string",
         "training_bundle": "string",
+    },
+    "projection": {
+        "mode": "string",
+        "enabled_packs": "string_list",
     },
 }
 
@@ -475,9 +480,23 @@ class ProjectConfig:
     def document_design_setting(self, key: str, default):
         return self.data.get("document_design", {}).get(key, default)
 
+    def projection_setting(self, key: str, default):
+        return self.data.get("projection", {}).get(key, default)
+
     @property
     def workflow_pack(self) -> str:
         return str(self.workflow_setting("pack", default_workflow_pack(self.profile)))
+
+    @property
+    def projection_mode(self) -> str:
+        return normalize_projection_mode(str(self.projection_setting("mode", default_projection_mode_for_existing_consumer(self.profile))))
+
+    @property
+    def enabled_projection_packs(self) -> list[str]:
+        explicit = self.projection_setting("enabled_packs", [])
+        if isinstance(explicit, list) and explicit:
+            return normalize_projection_packs(self.profile, explicit)
+        return default_projection_packs(self.profile, self.projection_mode)
 
     @property
     def workflow_stage(self) -> str:
@@ -606,6 +625,8 @@ class ProjectConfig:
             "REPORT_BUNDLE": self.document_bundle_for_genre("report"),
             "PROCESS_BUNDLE": self.document_bundle_for_genre("process"),
             "TRAINING_BUNDLE": self.document_bundle_for_genre("training"),
+            "PROJECTION_MODE": self.projection_mode,
+            "PROJECTION_PACKS": ", ".join(self.enabled_projection_packs),
             "CURRENT_DATE": date.today().isoformat(),
             "KERNEL_ADAPTERS": ", ".join(self.kernel_adapters()),
             "GIT_MODE": "enabled" if is_git_repository(self.root) else "not-required",
@@ -923,7 +944,7 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Sula project operating system manager")
     sub = parser.add_subparsers(dest="command", required=True)
 
-    init_cmd = sub.add_parser("init", help="Create manifest if missing and render managed/scaffold files")
+    init_cmd = sub.add_parser("init", help="Create manifest if missing and render the selected Sula projections")
     add_project_root_arg(init_cmd)
     init_cmd.add_argument("--name")
     init_cmd.add_argument("--slug")
@@ -932,7 +953,7 @@ def parse_args() -> argparse.Namespace:
     add_onboarding_metadata_args(init_cmd)
     init_cmd.add_argument("--json", action="store_true", help="Print JSON instead of human-readable output")
 
-    sync_cmd = sub.add_parser("sync", help="Sync managed files from Sula into a project")
+    sync_cmd = sub.add_parser("sync", help="Sync the enabled Sula projections into a project")
     add_project_root_arg(sync_cmd)
     sync_cmd.add_argument("--dry-run", action="store_true", help="Show the managed-file sync plan without writing")
     sync_cmd.add_argument("--json", action="store_true", help="Print JSON instead of human-readable output")
@@ -941,6 +962,28 @@ def parse_args() -> argparse.Namespace:
     add_project_root_arg(remove_cmd)
     remove_cmd.add_argument("--approve", action="store_true", help="Apply the removal plan after reporting it")
     remove_cmd.add_argument("--json", action="store_true", help="Print JSON instead of human-readable output")
+
+    projection_cmd = sub.add_parser("projection", help="Inspect and control visible Sula projection packs")
+    projection_sub = projection_cmd.add_subparsers(dest="projection_command", required=True)
+
+    projection_list_cmd = projection_sub.add_parser("list", help="List active and available projection packs")
+    add_project_root_arg(projection_list_cmd)
+    projection_list_cmd.add_argument("--json", action="store_true", help="Print JSON instead of human-readable output")
+
+    projection_mode_cmd = projection_sub.add_parser("mode", help="Switch the projection mode for this project")
+    add_project_root_arg(projection_mode_cmd)
+    projection_mode_cmd.add_argument("--set", dest="mode", choices=PROJECTION_MODE_CHOICES, required=True)
+    projection_mode_cmd.add_argument("--json", action="store_true", help="Print JSON instead of human-readable output")
+
+    projection_enable_cmd = projection_sub.add_parser("enable", help="Enable one visible projection pack and sync it")
+    add_project_root_arg(projection_enable_cmd)
+    projection_enable_cmd.add_argument("--pack", required=True)
+    projection_enable_cmd.add_argument("--json", action="store_true", help="Print JSON instead of human-readable output")
+
+    projection_disable_cmd = projection_sub.add_parser("disable", help="Disable one visible projection pack and clean managed leftovers")
+    add_project_root_arg(projection_disable_cmd)
+    projection_disable_cmd.add_argument("--pack", required=True)
+    projection_disable_cmd.add_argument("--json", action="store_true", help="Print JSON instead of human-readable output")
 
     query_cmd = sub.add_parser("query", help="Query project kernel state and sources")
     add_project_root_arg(query_cmd)
@@ -1206,6 +1249,7 @@ def add_project_root_arg(parser: argparse.ArgumentParser) -> None:
 def add_onboarding_metadata_args(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--content-locale")
     parser.add_argument("--interaction-locale")
+    parser.add_argument("--projection-mode", choices=PROJECTION_MODE_CHOICES)
     parser.add_argument("--workflow-pack")
     parser.add_argument("--workflow-stage")
     parser.add_argument("--storage-provider")
@@ -1235,6 +1279,8 @@ def project_payload(config: ProjectConfig) -> dict[str, object]:
         "name": config.data["project"]["name"],
         "slug": config.data["project"]["slug"],
         "profile": config.profile,
+        "projection_mode": config.projection_mode,
+        "enabled_projection_packs": config.enabled_projection_packs,
         "root": str(config.root),
         "workflow_pack": config.workflow_pack,
         "workflow_stage": config.workflow_stage,
@@ -1331,6 +1377,10 @@ def suggest_onboarding_answers(
     workflow_pack, workflow_reason = infer_workflow_pack(project_root, profile, package_data, readme_text)
     storage_provider, storage_reason = infer_storage_provider(project_root)
     content_locale, content_locale_reason = infer_content_locale(project_root, readme_text)
+    suggested_projection_mode = normalize_projection_mode(
+        getattr(args, "projection_mode", None),
+        default_projection_mode_for_new_manifest(profile),
+    )
     resolved_content_locale = normalize_locale(getattr(args, "content_locale", None) or content_locale)
     resolved_provider = getattr(args, "storage_provider", None) or storage_provider
     portfolio_workspace, workspace_reason = infer_portfolio_workspace(
@@ -1355,6 +1405,14 @@ def suggest_onboarding_answers(
         "interaction_locale": {
             "value": normalize_locale(getattr(args, "interaction_locale", None) or resolved_content_locale),
             "reason": "interactive prompts default to the same language as generated docs and records",
+        },
+        "projection_mode": {
+            "value": suggested_projection_mode,
+            "reason": (
+                "new projects default to the lowest visible Sula footprint first and can opt into deeper projections later"
+                if suggested_projection_mode == "detached"
+                else "this profile benefits from a deeper visible governance surface by default"
+            ),
         },
         "workflow_pack": {"value": getattr(args, "workflow_pack", None) or workflow_pack, "reason": workflow_reason},
         "workflow_stage": {
@@ -1438,6 +1496,12 @@ def onboarding_questions(
         choices=LANGUAGE_CHOICES,
         allow_custom=True,
     )
+    add_question(
+        "projection_mode",
+        "Sula 投影深度" if zh else "Sula projection depth",
+        required=True,
+        choices=PROJECTION_MODE_CHOICES,
+    )
     add_question("workflow_pack", "工作流包" if zh else "Workflow pack", required=True, choices=WORKFLOW_PACK_CHOICES)
     add_question("storage_provider", "存储提供方" if zh else "Storage provider", required=True, choices=STORAGE_PROVIDER_CHOICES)
     if provider_value == "google-drive":
@@ -1520,6 +1584,7 @@ def onboarding_summary_payload(
     storage = manifest["storage"]
     portfolio = manifest["portfolio"]
     language = manifest["language"]
+    projection = manifest.get("projection", {})
     zh = locale_family(str(language["interaction_locale"])) == "zh"
     artifacts_root = str(workflow["artifacts_root"])
     workflow_definition = workflow_pack_definition(str(workflow["pack"]))
@@ -1530,16 +1595,21 @@ def onboarding_summary_payload(
     }
     will_manage = [
         (
-            f"{len(report.managed_creates) + len(report.managed_updates)} 个 centrally managed operating files"
+            f"{len(report.managed_creates) + len(report.managed_updates)} 个可覆盖更新的 projection 文件"
             if zh
-            else f"{len(report.managed_creates) + len(report.managed_updates)} centrally managed operating files"
+            else f"{len(report.managed_creates) + len(report.managed_updates)} overwrite-capable projection files"
         ),
         (
-            f"{len(report.scaffold_creates)} 个 project-owned scaffold starters"
+            f"{len(report.scaffold_creates)} 个项目自有 scaffold 起始文件"
             if zh
             else f"{len(report.scaffold_creates)} project-owned scaffold starters"
         ),
         "`.sula/` 下的 kernel 状态，用于状态、对象、来源、事件与查询索引" if zh else "kernel state under `.sula/` for status, objects, sources, events, and query indexes",
+        (
+            f"当前 projection 模式为 `{projection.get('mode', 'detached')}`，已启用 {', '.join(projection.get('enabled_packs', [])) or 'none'}"
+            if zh
+            else f"projection mode `{projection.get('mode', 'detached')}` with visible packs {', '.join(projection.get('enabled_packs', [])) or 'none'}"
+        ),
         (
             f"通过 `{workflow['pack']}` workflow pack 在 `{artifacts_root}` 下进行文件路由"
             if zh
@@ -1578,6 +1648,10 @@ def onboarding_summary_payload(
             "slot_paths": slot_paths,
             "artifact_routes": workflow_definition.get("artifact_slots", {}),
         },
+        "projection": {
+            "mode": projection.get("mode", default_projection_mode_for_existing_consumer(str(manifest["project"]["profile"]))),
+            "enabled_packs": projection.get("enabled_packs", []),
+        },
         "storage": storage,
         "portfolio": portfolio,
         "language": language,
@@ -1599,6 +1673,7 @@ def print_onboarding_summary(summary: dict[str, object]) -> None:
     if zh:
         print(f"{summary['project_root']} 的 Sula 接入摘要")
         print(f"项目: {project['name']} [{summary['profile']}]")
+        print(f"投影模式: {summary['projection']['mode']} ({', '.join(summary['projection']['enabled_packs']) or 'none'})")
         print(f"工作流包: {workflow['pack']} (阶段: {workflow['stage']})")
         print(f"存储提供方: {storage['provider']} ({storage['sync_mode']})")
         print(f"Portfolio 工作区: {portfolio['workspace']} / 负责人: {portfolio['owner']}")
@@ -1607,6 +1682,7 @@ def print_onboarding_summary(summary: dict[str, object]) -> None:
     else:
         print(f"Sula onboarding summary for {summary['project_root']}")
         print(f"Project: {project['name']} [{summary['profile']}]")
+        print(f"Projection mode: {summary['projection']['mode']} ({', '.join(summary['projection']['enabled_packs']) or 'none'})")
         print(f"Workflow pack: {workflow['pack']} (stage: {workflow['stage']})")
         print(f"Storage provider: {storage['provider']} ({storage['sync_mode']})")
         print(f"Portfolio workspace: {portfolio['workspace']} / owner: {portfolio['owner']}")
@@ -1826,7 +1902,7 @@ def main() -> int:
     if args.command == "init":
         assert project_root is not None
         config = ensure_manifest(project_root, args)
-        apply_actions(collect_render_actions(config, include_scaffold=True))
+        apply_projection_state(config, collect_render_actions(config, include_scaffold=True))
         write_lockfile(config)
         refresh_kernel_state(config, event_type="init.applied", summary="Initialized Sula manifest and kernel state.")
         if getattr(args, "json", False):
@@ -1847,6 +1923,10 @@ def main() -> int:
         assert project_root is not None
         return remove_sula(project_root, args)
 
+    if args.command == "projection":
+        assert project_root is not None
+        return handle_projection_command(project_root, args)
+
     if args.command == "portfolio":
         return handle_portfolio_command(args)
 
@@ -1856,20 +1936,20 @@ def main() -> int:
     assert project_root is not None
     config = load_manifest(project_root)
     if args.command == "sync":
-        actions = collect_render_actions(config, include_scaffold=False)
+        actions = collect_render_actions(config, include_scaffold=True)
         if args.dry_run:
             if getattr(args, "json", False):
                 emit_json({"command": "sync", "status": "dry-run", "project": project_payload(config), "plan": sync_plan_payload(actions)})
                 return 0
             print_sync_plan(config, actions)
             return 0
-        apply_actions(actions)
+        apply_projection_state(config, actions)
         write_lockfile(config)
-        refresh_kernel_state(config, event_type="sync.applied", summary="Synchronized managed Sula files.")
+        refresh_kernel_state(config, event_type="sync.applied", summary="Synchronized enabled Sula projections.")
         if getattr(args, "json", False):
             emit_json({"command": "sync", "status": "ok", "project": project_payload(config), "plan": sync_plan_payload(actions)})
             return 0
-        print(f"Synchronized managed files for {config.data['project']['name']}")
+        print(f"Synchronized enabled projections for {config.data['project']['name']}")
         return 0
 
     if args.command == "doctor":
@@ -1914,6 +1994,7 @@ def build_manifest(args: argparse.Namespace) -> dict:
     slug = args.slug or "example-project"
     description = args.description or "Project adopted by Sula"
     profile = args.profile
+    projection = manifest_projection_config(args, profile)
     workflow = manifest_workflow_config(args, profile)
     storage = manifest_storage_config(args)
     portfolio = manifest_portfolio_config(args)
@@ -1968,7 +2049,8 @@ def build_manifest(args: argparse.Namespace) -> dict:
             "storage": storage,
             "portfolio": portfolio,
             "language": language,
-            "document_design": default_document_design_config(),
+            "document_design": default_document_design_config(projection_mode=projection["mode"]),
+            "projection": projection,
         }
     if profile == "generic-project":
         return {
@@ -2020,7 +2102,8 @@ def build_manifest(args: argparse.Namespace) -> dict:
             "storage": storage,
             "portfolio": portfolio,
             "language": language,
-            "document_design": default_document_design_config(),
+            "document_design": default_document_design_config(projection_mode=projection["mode"]),
+            "projection": projection,
         }
     return {
         "project": {
@@ -2071,7 +2154,8 @@ def build_manifest(args: argparse.Namespace) -> dict:
         "storage": storage,
         "portfolio": portfolio,
         "language": language,
-        "document_design": default_document_design_config(),
+        "document_design": default_document_design_config(projection_mode=projection["mode"]),
+        "projection": projection,
     }
 
 
@@ -2092,6 +2176,7 @@ def render_manifest(manifest: dict) -> str:
         "portfolio",
         "language",
         "document_design",
+        "projection",
     ]:
         if section_name not in manifest:
             continue
@@ -2138,9 +2223,18 @@ def manifest_language_config(args: argparse.Namespace) -> dict:
     }
 
 
-def default_document_design_config() -> dict:
+def manifest_projection_config(args: argparse.Namespace, profile: str) -> dict:
+    mode = normalize_projection_mode(getattr(args, "projection_mode", None), default_projection_mode_for_new_manifest(profile))
     return {
-        "principles_path": "docs/ops/document-design-principles.md",
+        "mode": mode,
+        "enabled_packs": default_projection_packs(profile, mode),
+    }
+
+
+def default_document_design_config(*, projection_mode: str) -> dict:
+    principles_path = "docs/ops/document-design-principles.md" if normalize_projection_mode(projection_mode) != "detached" else "n/a"
+    return {
+        "principles_path": principles_path,
         "source_first": True,
         "register_derived_artifacts": True,
         "preferred_source_format": "markdown",
@@ -2406,6 +2500,7 @@ def existing_consumer_payload(config: ProjectConfig) -> dict[str, object]:
         "next_commands": [
             "python3 scripts/sula.py doctor --project-root /path/to/project --strict",
             "python3 scripts/sula.py sync --project-root /path/to/project --dry-run",
+            "python3 scripts/sula.py projection list --project-root /path/to/project --json",
             "python3 scripts/sula.py status --project-root /path/to/project --json",
         ],
     }
@@ -2606,8 +2701,10 @@ def print_adoption_report(report: AdoptionReport) -> None:
     if report.config_data is not None:
         project = report.config_data["project"]
         repo = report.config_data["repository"]
+        projection = report.config_data.get("projection", {})
         print(f"Detected name: {project['name']}")
         print(f"Detected slug: {project['slug']}")
+        print(f"Projection mode: {projection.get('mode', default_projection_mode_for_existing_consumer(project['profile']))}")
         print(f"Primary branch: {repo['primary_branch']}")
         print(f"Deployment branch: {repo['deployment_branch']}")
     if report.detection_notes:
@@ -2664,6 +2761,7 @@ def build_generic_project_manifest(
     name = args.name or detect_project_name(project_root, package_data, readme_text)
     slug = args.slug or sanitize_slug(package_slug_or_name(project_root, package_data, name))
     description = args.description or detect_project_description(package_data, readme_text)
+    projection = manifest_projection_config(args, "generic-project")
     git_present = is_git_repository(project_root)
     primary_branch = detect_primary_branch(project_root) if git_present else "n/a"
     deployment_branch = primary_branch if git_present else "n/a"
@@ -2734,7 +2832,8 @@ def build_generic_project_manifest(
         "storage": manifest_storage_config(args),
         "portfolio": manifest_portfolio_config(args),
         "language": language,
-        "document_design": default_document_design_config(),
+        "document_design": default_document_design_config(projection_mode=projection["mode"]),
+        "projection": projection,
     }
 
 
@@ -2746,6 +2845,7 @@ def build_sula_core_manifest(project_root: Path, args: argparse.Namespace, detec
     )
     primary_branch = detect_primary_branch(project_root)
     language = manifest_language_config(args)
+    projection = manifest_projection_config(args, "sula-core")
     detection_notes.append("detected `sula-core` from repository layout and local Sula modules")
     return {
         "project": {
@@ -2796,7 +2896,8 @@ def build_sula_core_manifest(project_root: Path, args: argparse.Namespace, detec
         "storage": manifest_storage_config(args),
         "portfolio": manifest_portfolio_config(args),
         "language": language,
-        "document_design": default_document_design_config(),
+        "document_design": default_document_design_config(projection_mode=projection["mode"]),
+        "projection": projection,
     }
 
 
@@ -2825,6 +2926,7 @@ def build_react_erpnext_manifest(
     production_url = detect_production_url(package_data) or "https://example.com/"
     base_path = detect_base_path(production_url)
     language = manifest_language_config(args)
+    projection = manifest_projection_config(args, "react-frontend-erpnext")
     detection_notes.append("detected `react-frontend-erpnext` from repository paths and ERPNext/Frappe markers")
     return {
         "project": {
@@ -2876,7 +2978,8 @@ def build_react_erpnext_manifest(
         "storage": manifest_storage_config(args),
         "portfolio": manifest_portfolio_config(args),
         "language": language,
-        "document_design": default_document_design_config(),
+        "document_design": default_document_design_config(projection_mode=projection["mode"]),
+        "projection": projection,
     }
 
 
@@ -3249,7 +3352,7 @@ def apply_adoption(
     manifest_path = config.root / MANIFEST_PATH
     manifest_path.parent.mkdir(parents=True, exist_ok=True)
     manifest_path.write_text(render_manifest(report.config_data), encoding="utf-8")
-    apply_actions(report.actions)
+    apply_projection_state(config, report.actions)
     write_lockfile(config)
     finalize_adoption_traceability(config)
     generate_memory_digest(config, argparse.Namespace(output=None, stdout=False, json=False), emit_output=not json_mode)
@@ -3299,14 +3402,14 @@ def ensure_initial_status(config: ProjectConfig) -> None:
             "# 项目状态\n\n"
             f"- 最后更新: {today}\n\n"
             "## 摘要\n\n"
-            f"- 当前仓库已经以 `{config.profile}` 配置档完成了初始 Sula 接入。\n"
-            "- 仓库现在同时具备受管的操作系统层与项目自有的记忆脚手架。\n\n"
+            f"- 当前仓库已经以 `{config.profile}` 配置档和 `{config.projection_mode}` 投影模式完成了初始 Sula 接入。\n"
+            "- 仓库现在已经具备 `.sula/` 内核与当前投影模式对应的可见协作表面。\n\n"
             "## 健康状态\n\n"
             "- 状态: yellow\n"
             "- 原因: 接入已经完成，但团队仍应复核生成规则与被保留的项目自有文件。\n\n"
             "## 当前重点\n\n"
             "- 复核第一次 Sula 接入差异\n"
-            "- 确认 manifest 事实与项目自有脚手架内容\n\n"
+            "- 确认 manifest 事实与当前投影模式是否合适\n\n"
             "## 阻塞项\n\n"
             "- 无\n\n"
             "## 近期决策\n\n"
@@ -3321,14 +3424,14 @@ def ensure_initial_status(config: ProjectConfig) -> None:
             "# STATUS\n\n"
             f"- last updated: {today}\n\n"
             "## Summary\n\n"
-            f"- Initial Sula adoption is complete for this repository under the `{config.profile}` profile.\n"
-            "- The repository now has a managed operating-system layer and project-owned memory scaffolds.\n\n"
+            f"- Initial Sula adoption is complete for this repository under the `{config.profile}` profile in `{config.projection_mode}` projection mode.\n"
+            "- The repository now has the `.sula/` kernel plus the visible collaboration surface selected by the current projection mode.\n\n"
             "## Health\n\n"
             "- status: yellow\n"
             "- reason: adoption is complete, but the team should review generated rules and preserved project-owned files.\n\n"
             "## Current Focus\n\n"
             "- review the first Sula adoption diff\n"
-            "- confirm manifest facts and project-owned scaffold content\n\n"
+            "- confirm manifest facts and whether the current projection mode is the right fit\n\n"
             "## Blockers\n\n"
             "- none\n\n"
             "## Recent Decisions\n\n"
@@ -3352,9 +3455,9 @@ def ensure_adoption_record(config: ProjectConfig) -> None:
     config.change_record_directory.mkdir(parents=True, exist_ok=True)
     branch = detect_git_branch(config.root)
     summary = (
-        f"已按 `{config.profile}` 配置档接入 Sula，并生成初始的 managed/scaffold 操作系统层。"
+        f"已按 `{config.profile}` 配置档和 `{config.projection_mode}` 投影模式接入 Sula，并生成当前模式所需的内核与可见投影。"
         if zh
-        else f"Adopted Sula under the `{config.profile}` profile and generated the initial managed/scaffold operating-system layer."
+        else f"Adopted Sula under the `{config.profile}` profile in `{config.projection_mode}` projection mode and generated the required kernel plus visible projections."
     )
     if zh:
         content = (
@@ -3368,16 +3471,16 @@ def ensure_adoption_record(config: ProjectConfig) -> None:
             "## 背景\n\n"
             f"{summary}\n\n"
             "## 分析\n\n"
-            "- 仓库需要一个可复用的操作系统层，而不是零散的临时规则。\n"
-            "- 项目自有真相必须保留在本地，因此脚手架文件必须可审阅且可编辑。\n\n"
+            "- 仓库需要一个可复用的操作系统内核，而不是零散的临时规则。\n"
+            "- 可见治理表面应该是可选投影，而不是默认重写整个仓库。\n\n"
             "## 选定方案\n\n"
             f"- 使用 `{config.profile}` 配置档初始化 Sula\n"
-            "- 渲染 managed 文件，并在已有项目自有脚手架存在时予以保留\n"
+            f"- 按 `{config.projection_mode}` 投影模式渲染所需文件，并保留项目自有脚手架\n"
             "- 为状态与变更跟踪增加持久记忆结构\n\n"
             "## 执行\n\n"
             "- 创建项目 manifest 与 version lock\n"
-            "- 渲染 managed 规则、文档与 runbook\n"
-            "- 生成或保留脚手架状态与变更历史文件\n"
+            "- 初始化 `.sula/` 内核状态与投影登记\n"
+            "- 渲染当前投影模式需要的规则、文档与脚手架文件\n"
             "- 生成第一版 memory digest 以支持快速接管\n\n"
             "## 验证\n\n"
             "- 在批准前审阅 adoption report\n"
@@ -3389,10 +3492,10 @@ def ensure_adoption_record(config: ProjectConfig) -> None:
             "- 无运行时数据副作用\n"
             "- 仓库文档与治理文件被新增或更新\n\n"
             "## 后续\n\n"
-            "- 审阅生成的 managed 文件，并补齐项目特有硬规则\n"
+            "- 审阅当前投影模式是否合适，并按需要升级或收缩可见投影\n"
             "- 后续共享升级前先运行 `sula sync --dry-run`\n\n"
             "## 架构边界检查\n\n"
-            "- 最高规则影响: 仓库现在采用 Sula 作为可复用操作系统层，但未改写其业务真相\n"
+            "- 最高规则影响: 仓库现在采用 Sula 作为可复用操作系统内核，并把可见治理文件当作可选投影处理\n"
         )
     else:
         content = (
@@ -3406,16 +3509,16 @@ def ensure_adoption_record(config: ProjectConfig) -> None:
             "## Background\n\n"
             f"{summary}\n\n"
             "## Analysis\n\n"
-            "- The repository needed a reusable operating-system layer instead of ad hoc rules.\n"
-            "- Existing project-owned truth should stay local, so scaffold files must remain reviewable and editable.\n\n"
+            "- The repository needed a reusable operating-system kernel instead of ad hoc rules.\n"
+            "- The visible governance surface should remain optional projections instead of becoming a mandatory repo rewrite.\n\n"
             "## Chosen Plan\n\n"
             f"- initialize Sula with the `{config.profile}` profile\n"
-            "- render managed files and preserve project-owned scaffold files when they already exist\n"
+            f"- apply the `{config.projection_mode}` projection mode and preserve project-owned scaffold files when they already exist\n"
             "- add durable memory structures for status and change tracking\n\n"
             "## Execution\n\n"
             "- created the project manifest and version lock\n"
-            "- rendered managed rules, docs, and runbooks\n"
-            "- generated or preserved scaffold status and change-history files\n"
+            "- initialized the `.sula/` kernel and projection registry\n"
+            "- rendered the rules, docs, and scaffolds required by the selected projection mode\n"
             "- generated the first memory digest for fast recall\n\n"
             "## Verification\n\n"
             "- reviewed the adoption report before approval\n"
@@ -3427,10 +3530,10 @@ def ensure_adoption_record(config: ProjectConfig) -> None:
             "- no runtime data side-effects\n"
             "- repository docs and governance files were added or updated\n\n"
             "## Follow-up\n\n"
-            "- review generated managed files and fill in any project-specific hard rules\n"
+            "- review whether the current projection mode is the right fit and enable or disable packs intentionally\n"
             "- use `sula sync --dry-run` before future shared upgrades\n\n"
             "## Architecture Boundary Check\n\n"
-            "- highest rule impact: the repository now adopts Sula as its reusable operating-system layer without changing its business truth\n"
+            "- highest rule impact: the repository now adopts Sula as its reusable operating-system kernel while treating visible governance files as optional projections\n"
         )
     record_path.write_text(content, encoding="utf-8")
     update_change_records_index(config, record_path, today, title, summary)
@@ -3456,11 +3559,224 @@ def print_adoption_usage(config: ProjectConfig) -> None:
         print(f"  - add non-trivial history: {sula_command} record new --project-root {config.root} --title \"...\"")
         print(f"  - regenerate recall summary: {sula_command} memory digest --project-root {config.root}")
 
+
+def normalize_projection_mode(raw: str | None, default: str = "detached") -> str:
+    value = (raw or default).strip().lower()
+    return value if value in PROJECTION_MODE_CHOICES else default
+
+
+def default_projection_mode_for_new_manifest(profile: str) -> str:
+    if profile == "sula-core":
+        return "governed"
+    return "detached"
+
+
+def default_projection_mode_for_existing_consumer(profile: str) -> str:
+    del profile
+    return "governed"
+
+
+def projection_pack_descriptions() -> dict[str, str]:
+    return {
+        "project-memory": "Minimal project-facing memory files such as README, AGENTS, STATUS, and CHANGE-RECORDS.",
+        "record-templates": "Change, release, and incident record template scaffolds under docs/.",
+        "document-design": "Formal document design rules for source-first planning, proposal, report, process, and training docs.",
+        "ops-core": "Reusable operating docs such as team operating model, project memory, release checklist, and request template.",
+        "profile-architecture": "Profile-specific architecture maps.",
+        "profile-runbooks": "Profile-specific runbooks and operational guides.",
+        "ai-tooling": "AI tool instruction projections such as CODEX, CLAUDE, GEMINI, Copilot, and Cursor rules. Depends on ops-core.",
+    }
+
+
+def profile_available_projection_packs(profile: str) -> list[str]:
+    packs = ["project-memory", "record-templates"]
+    if (core_managed_dir() / "docs" / "ops" / "document-design-principles.md.tmpl").exists():
+        packs.append("document-design")
+    if any(path.is_file() for path in (core_managed_dir() / "docs" / "ops").glob("*.tmpl")):
+        packs.append("ops-core")
+    if (profile_managed_dir(profile) / "docs" / "architecture").exists():
+        packs.append("profile-architecture")
+    if (profile_managed_dir(profile) / "docs" / "runbooks").exists():
+        packs.append("profile-runbooks")
+    if any(
+        (core_managed_dir() / candidate).exists()
+        for candidate in [
+            "CODEX.md.tmpl",
+            "CLAUDE.md.tmpl",
+            "GEMINI.md.tmpl",
+            ".github/copilot-instructions.md.tmpl",
+            ".cursor/rules/project.mdc.tmpl",
+        ]
+    ):
+        packs.append("ai-tooling")
+    return packs
+
+
+def default_projection_packs(profile: str, mode: str) -> list[str]:
+    defaults = {
+        "detached": ["project-memory", "record-templates"],
+        "collaborative": ["project-memory", "record-templates", "document-design", "ops-core", "profile-architecture", "profile-runbooks"],
+        "governed": [
+            "project-memory",
+            "record-templates",
+            "document-design",
+            "ops-core",
+            "profile-architecture",
+            "profile-runbooks",
+            "ai-tooling",
+        ],
+    }
+    available = set(profile_available_projection_packs(profile))
+    return [pack for pack in defaults.get(normalize_projection_mode(mode), defaults["detached"]) if pack in available]
+
+
+def projection_pack_dependencies(pack: str) -> list[str]:
+    return {
+        "ai-tooling": ["ops-core"],
+    }.get(pack, [])
+
+
+def normalize_projection_packs(profile: str, packs: list[object]) -> list[str]:
+    available = set(profile_available_projection_packs(profile))
+    ordered: list[str] = []
+    seen: set[str] = set()
+
+    def add_pack(pack: str) -> None:
+        if not pack or pack in seen or pack not in available:
+            return
+        for dependency in projection_pack_dependencies(pack):
+            add_pack(dependency)
+        seen.add(pack)
+        ordered.append(pack)
+
+    for item in packs:
+        add_pack(str(item).strip())
+    return ordered
+
+
+def projection_pack_for_action(action: RenderAction) -> str | None:
+    relative = action.relative_path.as_posix()
+    if relative in {"README.md", "AGENTS.md", "STATUS.md", "CHANGE-RECORDS.md"}:
+        return "project-memory"
+    if relative.startswith("docs/change-records/") or relative.startswith("docs/releases/") or relative.startswith("docs/incidents/"):
+        return "record-templates"
+    if relative == "docs/ops/document-design-principles.md":
+        return "document-design"
+    if relative in {
+        "docs/README.md",
+        "docs/ops/architecture-exception-register.md",
+        "docs/ops/project-memory.md",
+        "docs/ops/release-checklist.md",
+        "docs/ops/request-template.md",
+        "docs/ops/smoke-test-checklist.md",
+        "docs/ops/team-operating-model.md",
+    }:
+        return "ops-core"
+    if relative.startswith("docs/architecture/"):
+        return "profile-architecture"
+    if relative.startswith("docs/runbooks/"):
+        return "profile-runbooks"
+    if relative in {
+        "CODEX.md",
+        "CLAUDE.md",
+        "GEMINI.md",
+        ".github/copilot-instructions.md",
+        ".cursor/rules/project.mdc",
+    }:
+        return "ai-tooling"
+    return None
+
+
+def projection_registry_path(config: ProjectConfig) -> Path:
+    return config.root / ".sula" / "projections" / "registry.json"
+
+
+def load_projection_registry(config: ProjectConfig) -> dict[str, object]:
+    path = projection_registry_path(config)
+    if not path.exists():
+        return {"version": VERSION, "mode": config.projection_mode, "packs": {}}
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError as exc:
+        raise SystemExit(f"Invalid projection registry JSON: {path} ({exc})")
+    if not isinstance(data, dict) or not isinstance(data.get("packs", {}), dict):
+        raise SystemExit(f"Malformed projection registry: {path}")
+    return data
+
+
+def save_projection_registry(config: ProjectConfig, registry: dict[str, object]) -> None:
+    path = projection_registry_path(config)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(registry, indent=2, ensure_ascii=True) + "\n", encoding="utf-8")
+
+
+def projection_registry_entries(actions: list[RenderAction]) -> dict[str, list[dict[str, object]]]:
+    entries: dict[str, list[dict[str, object]]] = {}
+    for action in actions:
+        pack = projection_pack_for_action(action)
+        if pack is None:
+            continue
+        entries.setdefault(pack, []).append(
+            {
+                "path": action.relative_path.as_posix(),
+                "managed": action.overwrite,
+                "origin": action.origin,
+            }
+        )
+    for values in entries.values():
+        values.sort(key=lambda item: (str(item["path"]), bool(item["managed"])))
+    return entries
+
+
+def remove_projection_path(path: Path, project_root: Path) -> None:
+    if not path.exists():
+        return
+    if path.is_dir():
+        shutil.rmtree(path)
+    else:
+        path.unlink()
+        remove_empty_parent_dirs(path.parent, project_root)
+
+
+def sync_projection_registry(config: ProjectConfig, actions: list[RenderAction]) -> None:
+    previous = load_projection_registry(config)
+    previous_packs = previous.get("packs", {})
+    current_packs = projection_registry_entries(actions)
+
+    previous_managed_paths = {
+        str(item.get("path", ""))
+        for items in previous_packs.values()
+        if isinstance(items, list)
+        for item in items
+        if isinstance(item, dict) and bool(item.get("managed")) and str(item.get("path", ""))
+    }
+    current_managed_paths = {
+        str(item.get("path", ""))
+        for items in current_packs.values()
+        if isinstance(items, list)
+        for item in items
+        if bool(item.get("managed")) and str(item.get("path", ""))
+    }
+    for relative_path in sorted(previous_managed_paths - current_managed_paths):
+        target = config.root / relative_path
+        if target.exists() and not target.is_relative_to(config.root / ".sula"):
+            remove_projection_path(target, config.root)
+
+    save_projection_registry(
+        config,
+        {
+            "version": VERSION,
+            "mode": config.projection_mode,
+            "packs": current_packs,
+        },
+    )
+
+
 def collect_render_actions(config: ProjectConfig, *, include_scaffold: bool) -> list[RenderAction]:
     tokens = config.token_map()
-    actions: list[RenderAction] = []
-    actions.extend(plan_template_tree(core_managed_dir(), config.root, tokens, overwrite=True, origin="core"))
-    actions.extend(
+    candidate_actions: list[RenderAction] = []
+    candidate_actions.extend(plan_template_tree(core_managed_dir(), config.root, tokens, overwrite=True, origin="core"))
+    candidate_actions.extend(
         plan_template_tree(
             profile_managed_dir(config.profile),
             config.root,
@@ -3470,7 +3786,7 @@ def collect_render_actions(config: ProjectConfig, *, include_scaffold: bool) -> 
         )
     )
     if include_scaffold:
-        actions.extend(
+        candidate_actions.extend(
             plan_template_tree(
                 core_scaffold_dir(),
                 config.root,
@@ -3479,7 +3795,7 @@ def collect_render_actions(config: ProjectConfig, *, include_scaffold: bool) -> 
                 origin="core-scaffold",
             )
         )
-        actions.extend(
+        candidate_actions.extend(
             plan_template_tree(
                 profile_scaffold_dir(config.profile),
                 config.root,
@@ -3488,6 +3804,15 @@ def collect_render_actions(config: ProjectConfig, *, include_scaffold: bool) -> 
                 origin=f"scaffold:{config.profile}",
             )
         )
+    enabled_packs = set(config.enabled_projection_packs)
+    actions: list[RenderAction] = []
+    for action in candidate_actions:
+        pack = projection_pack_for_action(action)
+        if pack is None or pack not in enabled_packs:
+            continue
+        if not include_scaffold and not action.overwrite:
+            continue
+        actions.append(action)
     return actions
 
 
@@ -3550,6 +3875,11 @@ def apply_actions(actions: list[RenderAction]) -> None:
             continue
         action.output_path.parent.mkdir(parents=True, exist_ok=True)
         action.output_path.write_text(action.rendered_text, encoding="utf-8")
+
+
+def apply_projection_state(config: ProjectConfig, actions: list[RenderAction]) -> None:
+    apply_actions(actions)
+    sync_projection_registry(config, collect_render_actions(config, include_scaffold=True))
 
 
 def classify_sync_impact(relative_path: Path) -> tuple[str, str]:
@@ -10242,6 +10572,122 @@ def render_export_catalog(config: ProjectConfig) -> str:
     return json.dumps(exports, indent=2, ensure_ascii=True) + "\n"
 
 
+def normalize_manifest_projection_data(data: dict) -> dict[str, object]:
+    profile = str(data.get("project", {}).get("profile", "generic-project"))
+    section = data.setdefault("projection", {})
+    assert isinstance(section, dict)
+    default_mode = default_projection_mode_for_existing_consumer(profile)
+    mode = normalize_projection_mode(str(section.get("mode", default_mode)), default_mode)
+    raw_packs = section.get("enabled_packs", [])
+    packs = normalize_projection_packs(profile, raw_packs if isinstance(raw_packs, list) else [])
+    if not packs:
+        packs = default_projection_packs(profile, mode)
+    section["mode"] = mode
+    section["enabled_packs"] = packs
+    document_design = data.setdefault("document_design", default_document_design_config(projection_mode=mode))
+    assert isinstance(document_design, dict)
+    principles_default = "docs/ops/document-design-principles.md"
+    current_principles = str(document_design.get("principles_path", "") or "").strip()
+    if "document-design" in packs:
+        if current_principles.lower() in NON_PATH_SENTINELS or not current_principles:
+            document_design["principles_path"] = principles_default
+    elif current_principles == principles_default:
+        document_design["principles_path"] = "n/a"
+    return section
+
+
+def write_manifest_data(project_root: Path, data: dict) -> ProjectConfig:
+    normalize_manifest_projection_data(data)
+    manifest_path = project_root / MANIFEST_PATH
+    manifest_path.parent.mkdir(parents=True, exist_ok=True)
+    manifest_path.write_text(render_manifest(data), encoding="utf-8")
+    return load_manifest(project_root)
+
+
+def projection_pack_state_payload(config: ProjectConfig) -> dict[str, object]:
+    enabled = set(config.enabled_projection_packs)
+    defaults = set(default_projection_packs(config.profile, config.projection_mode))
+    descriptions = projection_pack_descriptions()
+    return {
+        "mode": config.projection_mode,
+        "enabled_packs": config.enabled_projection_packs,
+        "available_packs": [
+            {
+                "id": pack,
+                "enabled": pack in enabled,
+                "default_for_mode": pack in defaults,
+                "description": descriptions.get(pack, "Sula projection pack."),
+            }
+            for pack in profile_available_projection_packs(config.profile)
+        ],
+    }
+
+
+def handle_projection_command(project_root: Path, args: argparse.Namespace) -> int:
+    config = load_manifest(project_root)
+    if args.projection_command == "list":
+        payload = {"command": "projection.list", "status": "ok", "project": project_payload(config), "projection": projection_pack_state_payload(config)}
+        if json_output_requested(args):
+            emit_json(payload)
+            return 0
+        print(f"Sula projections for {config.data['project']['name']}:")
+        print(f"  mode: {config.projection_mode}")
+        for item in payload["projection"]["available_packs"]:
+            state = "enabled" if item["enabled"] else "disabled"
+            default_suffix = " [default]" if item["default_for_mode"] else ""
+            print(f"  - {item['id']}: {state}{default_suffix} :: {item['description']}")
+        return 0
+
+    data = json.loads(json.dumps(config.data))
+    projection_data = normalize_manifest_projection_data(data)
+    packs = list(projection_data["enabled_packs"])
+
+    if args.projection_command == "mode":
+        projection_data["mode"] = args.mode
+        projection_data["enabled_packs"] = default_projection_packs(config.profile, args.mode)
+    elif args.projection_command == "enable":
+        if args.pack not in profile_available_projection_packs(config.profile):
+            raise SystemExit(f"Unknown projection pack for profile `{config.profile}`: {args.pack}")
+        if args.pack not in packs:
+            packs.append(args.pack)
+        projection_data["enabled_packs"] = normalize_projection_packs(config.profile, packs)
+    elif args.projection_command == "disable":
+        if args.pack not in profile_available_projection_packs(config.profile):
+            raise SystemExit(f"Unknown projection pack for profile `{config.profile}`: {args.pack}")
+        dependent_packs = [pack for pack in packs if pack != args.pack and args.pack in projection_pack_dependencies(pack)]
+        if dependent_packs:
+            raise SystemExit(
+                f"Cannot disable projection pack `{args.pack}` while dependent packs remain enabled: {', '.join(dependent_packs)}"
+            )
+        projection_data["enabled_packs"] = [pack for pack in packs if pack != args.pack]
+    else:
+        raise AssertionError("unreachable")
+
+    updated_config = write_manifest_data(project_root, data)
+    actions = collect_render_actions(updated_config, include_scaffold=True)
+    apply_projection_state(updated_config, actions)
+    write_lockfile(updated_config)
+    refresh_kernel_state(
+        updated_config,
+        event_type="projection.updated",
+        summary=f"Updated Sula projection settings via `{args.projection_command}`.",
+    )
+    payload = {
+        "command": f"projection.{args.projection_command}",
+        "status": "ok",
+        "project": project_payload(updated_config),
+        "projection": projection_pack_state_payload(updated_config),
+        "plan": sync_plan_payload(actions),
+    }
+    if json_output_requested(args):
+        emit_json(payload)
+        return 0
+    print(f"Updated Sula projection state for {updated_config.data['project']['name']}")
+    print(f"  mode: {updated_config.projection_mode}")
+    print(f"  enabled packs: {', '.join(updated_config.enabled_projection_packs) or 'none'}")
+    return 0
+
+
 def remove_sula(project_root: Path, args: argparse.Namespace) -> int:
     report = inspect_removal(project_root)
     if json_output_requested(args):
@@ -10276,22 +10722,46 @@ def inspect_removal(project_root: Path) -> RemovalReport:
         return RemovalReport(project_root, None, blockers, warnings, [], [], [])
 
     config = load_manifest(project_root)
-    managed_paths = sorted(
-        {
-            action.output_path
-            for action in collect_render_actions(config, include_scaffold=False)
-            if action.output_path.exists() and not action.output_path.is_relative_to(project_root / ".sula")
-        },
-        key=lambda path: path.as_posix(),
-    )
-    scaffold_paths = sorted(
-        {
-            action.output_path
-            for action in collect_render_actions(config, include_scaffold=True)
-            if not action.overwrite and action.output_path.exists()
-        },
-        key=lambda path: path.as_posix(),
-    )
+    registry_path = projection_registry_path(config)
+    if registry_path.exists():
+        registry = load_projection_registry(config)
+        managed_paths = sorted(
+            {
+                project_root / str(item.get("path", ""))
+                for items in registry.get("packs", {}).values()
+                if isinstance(items, list)
+                for item in items
+                if isinstance(item, dict) and bool(item.get("managed")) and str(item.get("path", ""))
+            },
+            key=lambda path: path.as_posix(),
+        )
+        scaffold_paths = sorted(
+            {
+                project_root / str(item.get("path", ""))
+                for items in registry.get("packs", {}).values()
+                if isinstance(items, list)
+                for item in items
+                if isinstance(item, dict) and not bool(item.get("managed")) and str(item.get("path", ""))
+            },
+            key=lambda path: path.as_posix(),
+        )
+    else:
+        managed_paths = sorted(
+            {
+                action.output_path
+                for action in collect_render_actions(config, include_scaffold=False)
+                if action.output_path.exists() and not action.output_path.is_relative_to(project_root / ".sula")
+            },
+            key=lambda path: path.as_posix(),
+        )
+        scaffold_paths = sorted(
+            {
+                action.output_path
+                for action in collect_render_actions(config, include_scaffold=True)
+                if not action.overwrite and action.output_path.exists()
+            },
+            key=lambda path: path.as_posix(),
+        )
     kernel_root = project_root / ".sula"
     if not kernel_root.exists():
         warnings.append("`.sula/` is already missing; only managed files can be removed")

@@ -11,7 +11,7 @@ Read [AGENTS.md](AGENTS.md) before proposing or generating changes.
 - Deployment branch is `main`.
 - Keep primary integration logic centralized in [scripts/sula.py](scripts/sula.py).
 - Use [docs/README.md](docs/README.md) as the documentation map.
-- Follow [docs/ops/document-design-principles.md](docs/ops/document-design-principles.md) for formal planning, proposal, report, process, and training documents.
+- If the project enables formal document design rules, follow them for planning, proposal, report, process, and training documents.
 - For substantial changes, validate with `python3 -m unittest discover -s tests -v`.
 
 If these instructions conflict with `AGENTS.md`, `AGENTS.md` wins.

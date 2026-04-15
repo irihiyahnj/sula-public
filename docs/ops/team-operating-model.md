@@ -35,7 +35,7 @@ Unless stated otherwise, Codex acts as:
 - keep primary orchestration logic centralized in [scripts/sula.py](../scripts/sula.py)
 - keep shared state or durable coordination centered in [registry/adopted-projects.toml](../registry/adopted-projects.toml)
 - keep the main project entry or operator-facing surface centered in [README.md](../README.md)
-- for formal planning, proposal, report, process, and training docs, follow [document-design-principles.md](document-design-principles.md)
+- if the `document-design` projection pack is enabled, follow its principles before drafting formal planning, proposal, report, process, and training docs
 - classify formal document genre before drafting and keep the source file as the editable truth
 
 ### 4. Verify

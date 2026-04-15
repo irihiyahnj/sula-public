@@ -21,15 +21,16 @@ Sula should capture durable patterns:
 
 It should not hard-code temporary project quirks as if they were universal.
 
-### Managed Files Must Stay Narrow
+### The Kernel Must Stay Separate From Visible Projections
 
-If Sula overwrites too much, it becomes dangerous.
+If Sula rewrites too much visible surface by default, it becomes dangerous.
 
-If it overwrites too little, it stops being useful.
+If it exposes too little structure, it stops being useful.
 
 The right split is:
 
-- Sula manages the operating system
+- Sula owns the `.sula/` kernel
+- visible governance files stay optional projection packs
 - the project owns its business facts
 
 ### Evolution Must Benefit Existing Projects
@@ -39,9 +40,10 @@ Sula is only valuable if improvements can be synced back into adopted repositori
 That is why Sula uses:
 
 - a stable manifest
-- managed templates
+- a namespaced kernel
+- optional projection packs
 - scaffold starters
-- doctor checks
+- doctor and check gates
 
 ### Profiles Before Premature Generalization
 

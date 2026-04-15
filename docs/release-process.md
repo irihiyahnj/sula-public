@@ -20,7 +20,7 @@ Before any version bump or tag:
 
 - Every adopted project must appear in [../registry/adopted-projects.toml](../registry/adopted-projects.toml) before broad rollout.
 - At least one canary project should receive each minor or major release first.
-- Breaking manifest or managed/scaffold contract changes require migration notes before release.
+- Breaking manifest or projection/ownership contract changes require migration notes before release.
 - If a managed template changes operational behavior, call that out explicitly in the changelog instead of hiding it inside wording updates.
 
 ## Recommended Release Sequence

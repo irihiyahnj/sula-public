@@ -7,6 +7,7 @@ It standardizes how projects define rules, accept requests, execute work, verify
 Sula is not a product template for one stack. It is a coordination layer with:
 
 - a reusable documentation and operations core
+- a namespaced `.sula/` kernel with detached-first visible projection packs
 - profile-specific templates for project families
 - a project manifest that captures each repository's facts
 - a guided zero-memory onboarding flow for first-time setup
@@ -53,7 +54,19 @@ This means adapters, workflow packs, and portfolio registration are not just tec
 
 ### 1. Sula Core
 
-Reusable docs and tool adapters that should evolve once and benefit many projects:
+Reusable kernel state and orchestration that should evolve once and benefit many projects:
+
+- `.sula/project.toml`
+- `.sula/version.lock`
+- `.sula/state/*`
+- `.sula/indexes/*`
+- `.sula/objects/*`
+- `.sula/cache/*`
+- `scripts/sula.py`
+
+### 2. Projection Packs
+
+Optional repo-visible surfaces rendered from the same kernel:
 
 - `CODEX.md`
 - `CLAUDE.md`
@@ -62,8 +75,19 @@ Reusable docs and tool adapters that should evolve once and benefit many project
 - `.cursor/rules/project.mdc`
 - `docs/README.md`
 - `docs/ops/*`
+- `docs/architecture/*`
+- `docs/runbooks/*`
+- `README.md`
+- `AGENTS.md`
+- `STATUS.md`
+- `CHANGE-RECORDS.md`
+- `docs/change-records/*`
+- `docs/releases/*`
+- `docs/incidents/*`
 
-### 2. Profile
+New `generic-project` and `react-frontend-erpnext` adoptions default to the lowest visible footprint first: `detached`. `sula-core` defaults to `governed`.
+
+### 3. Profile
 
 A profile is a reusable project-family layer.
 
@@ -75,11 +99,11 @@ Current profiles:
 
 Profiles provide:
 
-- managed architecture docs
-- managed runbooks
+- optional architecture projections
+- optional runbook projections
 - scaffold starters for project-owned files
 
-### 3. Project Manifest
+### 4. Project Manifest
 
 Each adopted project keeps a local `.sula/project.toml` that defines:
 
@@ -90,16 +114,18 @@ Each adopted project keeps a local `.sula/project.toml` that defines:
 - key source paths
 - deploy expectations
 - auth/session semantics
+- projection mode and enabled visible packs
 - workflow pack, storage adapter, and portfolio registration metadata
 
-### 4. Managed vs Scaffold Files
+### 5. Kernel, Projections, And Project-Owned Files
 
-Sula distinguishes two classes of files:
+Sula distinguishes three surfaces:
 
-- managed files: overwritten by `sync`
+- kernel files: namespaced state under `.sula/`
+- projection files: visible docs and tool instructions rendered only for enabled packs
 - scaffold files: generated once if missing, then owned by the project
 
-This avoids centralizing project truth that should remain local.
+This keeps the core system portable while avoiding accidental ownership grabs over project truth.
 
 ## Repository Layout
 
@@ -141,7 +167,9 @@ python3 scripts/sula.py onboard --project-root /path/to/project
 python3 scripts/sula.py onboard --project-root /path/to/project --accept-suggested --approve
 ```
 
-`onboard` asks the missing questions, including the default language for generated docs and records, proposes workflow/storage/portfolio answers, explains what Sula will manage, and can apply adoption immediately after confirmation.
+`onboard` asks the missing questions, including the default language for generated docs and records, proposes workflow/storage/portfolio answers, explains the initial projection depth, and can apply adoption immediately after confirmation.
+
+New `generic-project` and `react-frontend-erpnext` repositories start in `detached` mode by default, so the `.sula/` kernel lands first and deeper visible governance can be enabled later. `sula-core` starts in `governed` mode because it is the source repository.
 
 ### Launch From The Site Contract
 
@@ -212,6 +240,24 @@ python3 scripts/sula.py check --project-root /path/to/project
 Use `--dry-run` before every real sync so you can review which managed files would change and how risky they are.
 Use `check` as the daily close-out gate after changing `STATUS.md`, `CHANGE-RECORDS.md`, `docs/change-records/*`, or generated `.sula/*` state; only `SULA CHECK OK` counts as a finished state-sync update.
 
+### Control Visible Projections
+
+```bash
+python3 scripts/sula.py projection list --project-root /path/to/project
+python3 scripts/sula.py projection mode --project-root /path/to/project --set collaborative
+python3 scripts/sula.py projection mode --project-root /path/to/project --set governed
+python3 scripts/sula.py projection enable --project-root /path/to/project --pack ai-tooling
+python3 scripts/sula.py projection disable --project-root /path/to/project --pack ai-tooling
+```
+
+Projection modes describe how much repo-visible governance Sula should materialize, not which kernel abilities exist:
+
+- `detached`: keep the kernel plus minimal project-facing memory files and record templates
+- `collaborative`: add reusable operating docs, document-design rules, architecture maps, and runbooks
+- `governed`: add AI tool instruction projections and the deepest visible governance surface
+
+All modes keep the same kernel-level capabilities such as `doctor`, `check`, `query`, `artifact`, `portfolio`, `feedback`, and `remove`.
+
 ### Remove Sula from a project
 
 ```bash
@@ -219,7 +265,7 @@ python3 scripts/sula.py remove --project-root /path/to/project
 python3 scripts/sula.py remove --project-root /path/to/project --approve
 ```
 
-The report shows which namespaced kernel files and managed docs will be removed, and which scaffold files will stay project-owned.
+The report shows which namespaced kernel files and registered visible projections will be removed, and which scaffold files will stay project-owned.
 
 ### Create durable project memory
 

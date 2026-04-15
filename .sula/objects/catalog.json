@@ -3750,6 +3750,27 @@
       "date": null
     },
     {
+      "id": "object:source:examples-okoktoto-docs-ops-document-design-principles-md",
+      "kind": "document",
+      "title": "document-design-principles.md",
+      "summary": "This file defines how formal planning, proposal, report, process, and training documents should be structured in `OKOKTOTO v5`.",
+      "status": "indexed",
+      "path": "examples/okoktoto/docs/ops/document-design-principles.md",
+      "source_paths": [
+        "examples/okoktoto/docs/ops/document-design-principles.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
       "id": "object:source:examples-okoktoto-docs-ops-project-memory-md",
       "kind": "document",
       "title": "project-memory.md",

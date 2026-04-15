@@ -908,6 +908,11 @@
       "type": "derived-from"
     },
     {
+      "from": "object:source:examples-okoktoto-docs-ops-document-design-principles-md",
+      "to": "source:examples-okoktoto-docs-ops-document-design-principles-md",
+      "type": "derived-from"
+    },
+    {
       "from": "object:source:examples-okoktoto-docs-ops-project-memory-md",
       "to": "source:examples-okoktoto-docs-ops-project-memory-md",
       "type": "derived-from"

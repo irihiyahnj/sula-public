@@ -28,7 +28,7 @@ If any tool-specific file conflicts with this file, `AGENTS.md` wins.
 - Keep change-record rules in [{{CHANGE_RECORDS_FILE}}]({{CHANGE_RECORDS_FILE}}).
 - If work touches `STATUS.md`, `CHANGE-RECORDS.md`, `docs/change-records/*`, `.sula/state/current.md`, `.sula/events/log.jsonl`, or `.sula/memory-digest.md`, finish by running `python3 scripts/sula.py check --project-root .`.
 - Treat `SULA CHECK OK` as the completion gate for state-sync work, and prefer rebuilding generated `.sula/*` files through Sula commands instead of hand-editing them.
-- Update `docs/README.md` when adding durable docs.
+- If this project enables deeper visible Sula docs later, keep their maps and operating docs updated in the same change.
 
 ## Commands
 

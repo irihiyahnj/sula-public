@@ -85,8 +85,9 @@ python3 scripts/sula.py adopt --project-root /path/to/project --approve --json
 - recommended profile
 - whether `generic-project` was selected as a safe fallback
 - detected project facts
-- managed files that will be created
-- managed files that will be overwritten
+- selected projection mode
+- visible projection files that will be created
+- visible projection files that will be overwritten
 - scaffold files that will be created
 - scaffold files that will be preserved
 - kernel files that will be created under `.sula/`
@@ -96,7 +97,7 @@ python3 scripts/sula.py adopt --project-root /path/to/project --approve --json
 
 - create the manifest and lockfile
 - create or refresh the `.sula/` kernel state
-- render managed files
+- render the visible files required by the current projection mode
 - preserve existing scaffold truth where appropriate
 - create the initial adoption traceability
 - validate the result

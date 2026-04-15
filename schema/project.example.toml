@@ -70,8 +70,12 @@ content_locale = "zh-CN"
 interaction_locale = "zh-CN"
 preserve_user_input_language = true
 
+[projection]
+mode = "detached"
+enabled_packs = ["project-memory", "record-templates"]
+
 [document_design]
-principles_path = "docs/ops/document-design-principles.md"
+principles_path = "n/a"
 source_first = true
 register_derived_artifacts = true
 preferred_source_format = "markdown"
