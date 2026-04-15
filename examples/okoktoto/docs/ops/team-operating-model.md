@@ -35,11 +35,15 @@ Unless stated otherwise, Codex acts as:
 - keep primary orchestration logic centralized in [src/api/erpnext.ts](../src/api/erpnext.ts)
 - keep shared state or durable coordination centered in [src/store/useStore.ts](../src/store/useStore.ts)
 - keep the main project entry or operator-facing surface centered in [src/App.tsx](../src/App.tsx)
+- for formal planning, proposal, report, process, and training docs, follow [document-design-principles.md](document-design-principles.md)
+- classify formal document genre before drafting and keep the source file as the editable truth
 
 ### 4. Verify
 
 - docs-only changes: verify references, traceability, and structure
+- formal document changes: verify the genre-specific bundle is present and any derived deliverables stay traceable
 - code changes: run validation proportional to the change
+- if current-state or memory files changed, run `python3 scripts/sula.py check --project-root .` and require `SULA CHECK OK`
 - release candidates: apply release and smoke checklists
 
 ### 5. Release Gate
@@ -58,7 +62,9 @@ Before recommending deployment, explicitly answer:
 - update `CHANGE-RECORDS.md`
 - add or update `docs/change-records/*`
 - add release or incident records when risk history matters
+- if a reusable Sula-managed problem was fixed locally, capture a feedback bundle before leaving the project on a one-off managed drift
 - regenerate `.sula/memory-digest.md` after non-trivial changes if the project uses it
+- prefer rebuilding `.sula/state/current.md`, `.sula/events/log.jsonl`, and `.sula/memory-digest.md` through Sula commands instead of editing them manually
 
 ## Definition Of Done
 

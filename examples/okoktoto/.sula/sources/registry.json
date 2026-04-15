@@ -151,7 +151,7 @@
     "exists": true,
     "source_of_truth": true,
     "discovered": true,
-    "size_bytes": 699,
+    "size_bytes": 861,
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
@@ -216,7 +216,7 @@
     "exists": true,
     "source_of_truth": true,
     "discovered": true,
-    "size_bytes": 681,
+    "size_bytes": 1042,
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
@@ -232,7 +232,7 @@
     "exists": true,
     "source_of_truth": true,
     "discovered": true,
-    "size_bytes": 1094,
+    "size_bytes": 1844,
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
@@ -248,7 +248,7 @@
     "exists": true,
     "source_of_truth": true,
     "discovered": true,
-    "size_bytes": 647,
+    "size_bytes": 998,
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
@@ -297,7 +297,7 @@
     "exists": true,
     "source_of_truth": true,
     "discovered": true,
-    "size_bytes": 2010,
+    "size_bytes": 2144,
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
@@ -457,13 +457,29 @@
     ]
   },
   {
+    "id": "source:docs-ops-document-design-principles-md",
+    "kind": "document",
+    "path": "docs/ops/document-design-principles.md",
+    "exists": true,
+    "source_of_truth": true,
+    "discovered": true,
+    "size_bytes": 2466,
+    "anchor_strategy": "heading-or-line",
+    "adapters": [
+      "generic-project",
+      "local-fs",
+      "docs",
+      "repo"
+    ]
+  },
+  {
     "id": "source:docs-ops-project-memory-md",
     "kind": "document",
     "path": "docs/ops/project-memory.md",
     "exists": true,
     "source_of_truth": true,
     "discovered": true,
-    "size_bytes": 1755,
+    "size_bytes": 2089,
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
@@ -479,7 +495,7 @@
     "exists": true,
     "source_of_truth": true,
     "discovered": true,
-    "size_bytes": 975,
+    "size_bytes": 1078,
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
@@ -495,7 +511,7 @@
     "exists": true,
     "source_of_truth": true,
     "discovered": true,
-    "size_bytes": 994,
+    "size_bytes": 1270,
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
@@ -527,7 +543,7 @@
     "exists": true,
     "source_of_truth": true,
     "discovered": true,
-    "size_bytes": 2064,
+    "size_bytes": 2831,
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",

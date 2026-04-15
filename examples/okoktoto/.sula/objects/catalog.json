@@ -1,5 +1,5 @@
 {
-  "version": "0.10.0",
+  "version": "0.11.0",
   "profile": "react-frontend-erpnext",
   "objects": [
     {
@@ -716,6 +716,27 @@
       "path": "docs/ops/architecture-exception-register.md",
       "source_paths": [
         "docs/ops/architecture-exception-register.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:docs-ops-document-design-principles-md",
+      "kind": "document",
+      "title": "document-design-principles.md",
+      "summary": "This file defines how formal planning, proposal, report, process, and training documents should be structured in `OKOKTOTO v5`.",
+      "status": "indexed",
+      "path": "docs/ops/document-design-principles.md",
+      "source_paths": [
+        "docs/ops/document-design-principles.md"
       ],
       "adapters": [
         "generic-project",

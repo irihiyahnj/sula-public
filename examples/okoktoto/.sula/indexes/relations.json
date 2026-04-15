@@ -1,5 +1,5 @@
 {
-  "version": "0.10.0",
+  "version": "0.11.0",
   "profile": "react-frontend-erpnext",
   "relations": [
     {
@@ -180,6 +180,11 @@
     {
       "from": "object:source:docs-ops-architecture-exception-register-md",
       "to": "source:docs-ops-architecture-exception-register-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "object:source:docs-ops-document-design-principles-md",
+      "to": "source:docs-ops-document-design-principles-md",
       "type": "derived-from"
     },
     {

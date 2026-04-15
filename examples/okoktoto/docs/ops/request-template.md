@@ -37,6 +37,15 @@ This template reduces back-and-forth. It is not mandatory, but it is the fastest
 <working branch only / ready for deployment branch / do not deploy>
 ```
 
+## Formal Document Add-on
+
+When the request is for a schedule, proposal, report, process, or training document, add:
+
+1. document genre
+2. source-of-truth file path
+3. required delivery formats (`.md`, `.docx`, `.xlsx`, Google Doc, Google Sheet)
+4. audience and review owner
+
 ## Default Assumptions
 
 If not specified otherwise:

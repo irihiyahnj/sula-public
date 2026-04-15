@@ -11,6 +11,7 @@ Read [AGENTS.md](AGENTS.md) before proposing or generating changes.
 - Deployment branch is `okoktoto-v5`.
 - Keep primary integration logic centralized in [src/api/erpnext.ts](src/api/erpnext.ts).
 - Use [docs/README.md](docs/README.md) as the documentation map.
+- Follow [docs/ops/document-design-principles.md](docs/ops/document-design-principles.md) for formal planning, proposal, report, process, and training documents.
 - For substantial changes, validate with `npm run build`.
 
 If these instructions conflict with `AGENTS.md`, `AGENTS.md` wins.

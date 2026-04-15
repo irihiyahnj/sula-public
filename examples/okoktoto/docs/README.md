@@ -15,6 +15,7 @@ Sula manages the cross-project operational layer so this repository can benefit 
 ### 2. Team Operation
 
 - [ops/team-operating-model.md](ops/team-operating-model.md): default request-to-delivery flow
+- [ops/document-design-principles.md](ops/document-design-principles.md): formal document structure rules
 - [ops/request-template.md](ops/request-template.md): efficient request format
 - [ops/project-memory.md](ops/project-memory.md): how durable project memory is stored and updated
 - [ops/release-checklist.md](ops/release-checklist.md): pre-push and pre-release checks
@@ -44,7 +45,7 @@ Sula manages the cross-project operational layer so this repository can benefit 
 | Layer | Role |
 | --- | --- |
 | Rules | Hard constraints and AI alignment |
-| Ops | Intake, execution, verification, release, exceptions |
+| Ops | Intake, execution, verification, release, exceptions, and formal document design |
 | Architecture | Durable structure and module boundaries |
 | Runbooks | High-risk operational knowledge |
 | Traceability | Status, decisions, release reasoning, incident context |

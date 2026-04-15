@@ -11,3 +11,5 @@
 {"timestamp": "2026-04-12T07:46:20Z", "event_type": "sync.applied", "summary": "Synchronized managed Sula files.", "profile": "react-frontend-erpnext", "project": "okoktoto-v5"}
 {"timestamp": "2026-04-12T08:30:22Z", "event_type": "sync.applied", "summary": "Synchronized managed Sula files.", "profile": "react-frontend-erpnext", "project": "okoktoto-v5"}
 {"timestamp": "2026-04-12T10:18:02Z", "event_type": "sync.applied", "summary": "Synchronized managed Sula files.", "profile": "react-frontend-erpnext", "project": "okoktoto-v5"}
+{"timestamp": "2026-04-15T03:03:27Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "react-frontend-erpnext", "project": "okoktoto-v5"}
+{"timestamp": "2026-04-15T03:03:28Z", "event_type": "sync.applied", "summary": "Synchronized managed Sula files.", "profile": "react-frontend-erpnext", "project": "okoktoto-v5"}
