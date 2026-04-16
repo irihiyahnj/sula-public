@@ -18,6 +18,7 @@ All notable changes to Sula Core should be recorded here with explicit sync impa
 - freshness-intent `query` and `artifact locate` now attempt a real provider refresh before returning results when provider metadata and access are available
 - provider-native registration and import planning now default Google Docs or Sheets target paths from workflow slots like `delivery/...` instead of treating the provider root as the implicit destination
 - state-sync workflows now expect `SULA CHECK OK` before completion, with generated `.sula/*` state rebuilt through Sula commands instead of hand edits
+- discovered source registry ids now preserve Unicode path distinctions, and `doctor --strict` fails fast when duplicate source ids are already present instead of letting sqlite rebuild crash later
 
 ### Sync Impact
 
@@ -25,6 +26,7 @@ All notable changes to Sula Core should be recorded here with explicit sync impa
 - collaborative Drive-based projects can now distinguish provider-native truth from local sync copies and exported derivatives without relying on one project-specific prompt ritual
 - projects that want live provider refresh can now supply a read-only Google access token through `SULA_GOOGLE_ACCESS_TOKEN` without introducing a mandatory third-party dependency
 - adopted projects that sync to this version gain a reusable daily close-out gate for status and memory updates instead of relying on project-local scripts
+- adopted projects with Unicode-named source files now rebuild `.sula/sources/registry.json` and sqlite cache safely on next sync or kernel refresh instead of risking duplicate `source:` ids
 
 ## 0.11.0 - 2026-04-12
 

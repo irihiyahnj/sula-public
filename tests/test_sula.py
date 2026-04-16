@@ -154,6 +154,12 @@ class SulaCliTests(unittest.TestCase):
             encoding="utf-8",
         )
 
+    def create_chinese_source_collision_project(self, project_root: Path) -> None:
+        self.create_chinese_project(project_root)
+        (project_root / "文档" / "合同").mkdir(parents=True, exist_ok=True)
+        (project_root / "文档" / "合同" / "草案.md").write_text("# 草案\n", encoding="utf-8")
+        (project_root / "文档" / "合同" / "终稿.md").write_text("# 终稿\n", encoding="utf-8")
+
     def create_react_erpnext_repo(self, project_root: Path) -> None:
         (project_root / "src" / "api").mkdir(parents=True, exist_ok=True)
         (project_root / "src" / "store").mkdir(parents=True, exist_ok=True)
@@ -548,6 +554,24 @@ Canary verification fixtures need at least one non-placeholder change record so 
 
             doctor_result = run_cli("doctor", "--project-root", str(project_root), "--strict")
             self.assertEqual(doctor_result.returncode, 0, doctor_result.stderr)
+
+    def test_adopt_handles_chinese_source_paths_without_duplicate_registry_ids(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            project_root = Path(tmpdir)
+            self.create_chinese_source_collision_project(project_root)
+
+            adopt_result = run_cli("adopt", "--project-root", str(project_root), "--approve")
+
+            self.assertEqual(adopt_result.returncode, 0, adopt_result.stderr)
+            registry = json.loads((project_root / ".sula" / "sources" / "registry.json").read_text(encoding="utf-8"))
+            discovered = [item for item in registry if item.get("discovered")]
+            discovered_ids = [item["id"] for item in discovered]
+            self.assertEqual(len(discovered_ids), len(set(discovered_ids)))
+            contract_entries = {item["path"]: item["id"] for item in discovered if item["path"].startswith("文档/合同/")}
+            self.assertEqual(set(contract_entries), {"文档/合同/草案.md", "文档/合同/终稿.md"})
+            self.assertNotEqual(contract_entries["文档/合同/草案.md"], contract_entries["文档/合同/终稿.md"])
+            self.assertTrue(contract_entries["文档/合同/草案.md"].startswith("source:文档-合同-草案-md"))
+            self.assertTrue(contract_entries["文档/合同/终稿.md"].startswith("source:文档-合同-终稿-md"))
 
     def test_chinese_locale_artifact_title_generates_stable_file_and_chinese_content(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -2984,6 +3008,24 @@ notes = "Fixture"
             self.assertNotEqual(result.returncode, 0)
             self.assertIn("Kernel issues:", result.stdout)
             self.assertIn("references unknown adapters", result.stdout)
+
+    def test_doctor_reports_duplicate_source_ids_in_registry(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            project_root = Path(tmpdir)
+            self.create_generic_project(project_root)
+            adopt_result = run_cli("adopt", "--project-root", str(project_root), "--approve")
+            self.assertEqual(adopt_result.returncode, 0, adopt_result.stderr)
+
+            registry_path = project_root / ".sula" / "sources" / "registry.json"
+            registry = json.loads(registry_path.read_text(encoding="utf-8"))
+            registry[1]["id"] = registry[0]["id"]
+            registry_path.write_text(json.dumps(registry, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+
+            result = run_cli("doctor", "--project-root", str(project_root), "--strict")
+
+            self.assertNotEqual(result.returncode, 0)
+            self.assertIn("Kernel issues:", result.stdout)
+            self.assertIn("duplicate source ids detected", result.stdout)
 
     def test_doctor_reports_invalid_relation_index(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:

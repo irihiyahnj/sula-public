@@ -20,6 +20,7 @@ import sqlite3
 import subprocess
 import sys
 import tempfile
+import unicodedata
 import zipfile
 
 from sula_providers import ProviderAdapterError, ProviderSnapshot, create_provider_adapter
@@ -5332,6 +5333,23 @@ def collect_kernel_doctor_report(config: ProjectConfig) -> tuple[list[str], list
             if not isinstance(registry, list) or not registry:
                 errors.append(f"source registry is empty or malformed: {registry_path}")
             else:
+                source_ids: set[str] = set()
+                duplicate_source_ids: set[str] = set()
+                malformed_source_entry = False
+                for item in registry:
+                    if not isinstance(item, dict) or not isinstance(item.get("id"), str) or not isinstance(item.get("path"), str):
+                        errors.append(f"source registry entry is malformed: {registry_path}")
+                        malformed_source_entry = True
+                        break
+                    source_id = item["id"]
+                    if source_id in source_ids:
+                        duplicate_source_ids.add(source_id)
+                    source_ids.add(source_id)
+                if duplicate_source_ids:
+                    duplicates = ", ".join(f"`{item}`" for item in sorted(duplicate_source_ids))
+                    errors.append(f"{registry_path}: duplicate source ids detected {duplicates}")
+                if malformed_source_entry:
+                    registry = []
                 discovered_entries = [item for item in registry if isinstance(item, dict) and item.get("discovered")]
                 if not discovered_entries:
                     warnings.append(f"{registry_path}: no discovered project sources were indexed")
@@ -5905,11 +5923,12 @@ def build_source_registry(config: ProjectConfig) -> list[dict[str, object]]:
 
 def discover_project_sources(config: ProjectConfig) -> list[dict[str, object]]:
     entries: list[dict[str, object]] = []
+    seen_ids: set[str] = set()
     for path in iter_discoverable_files(config.root):
         relative_path = path.relative_to(config.root).as_posix()
         entries.append(
             {
-                "id": f"source:{sanitize_source_id(relative_path)}",
+                "id": stable_source_registry_id(relative_path, seen_ids),
                 "kind": detect_source_kind(relative_path),
                 "path": relative_path,
                 "exists": True,
@@ -5937,9 +5956,50 @@ def iter_discoverable_files(project_root: Path):
         yield path
 
 
+def normalize_safe_id_text(value: str) -> str:
+    return unicodedata.normalize("NFKC", value).strip().casefold()
+
+
+def unicode_safe_slug(value: str) -> str:
+    characters: list[str] = []
+    pending_separator = False
+    for char in value:
+        if char.isalnum():
+            characters.append(char)
+            pending_separator = False
+            continue
+        if characters and not pending_separator:
+            characters.append("-")
+            pending_separator = True
+    return "".join(characters).strip("-")
+
+
 def sanitize_source_id(relative_path: str) -> str:
-    sanitized = re.sub(r"[^a-z0-9]+", "-", relative_path.lower()).strip("-")
-    return sanitized or "root"
+    normalized = normalize_safe_id_text(relative_path)
+    if not normalized:
+        return "root"
+    if normalized.isascii():
+        sanitized = re.sub(r"[^a-z0-9]+", "-", normalized).strip("-")
+        return sanitized or "root"
+    sanitized = unicode_safe_slug(normalized)
+    if sanitized:
+        return sanitized
+    return f"item-{hashlib.sha1(normalized.encode('utf-8')).hexdigest()[:10]}"
+
+
+def stable_source_registry_id(relative_path: str, seen_ids: set[str]) -> str:
+    base_id = f"source:{sanitize_source_id(relative_path)}"
+    if base_id not in seen_ids:
+        seen_ids.add(base_id)
+        return base_id
+    digest = hashlib.sha1(normalize_safe_id_text(relative_path).encode("utf-8")).hexdigest()[:10]
+    candidate = f"{base_id}-{digest}"
+    suffix = 2
+    while candidate in seen_ids:
+        candidate = f"{base_id}-{digest}-{suffix}"
+        suffix += 1
+    seen_ids.add(candidate)
+    return candidate
 
 
 def detect_source_kind(relative_path: str) -> str:
