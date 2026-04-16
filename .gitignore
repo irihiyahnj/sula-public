@@ -1,7 +1,0 @@
-__pycache__/
-*.pyc
-.DS_Store
-**/.sula/memory-digest.md
-**/.sula/cache/*
-!**/.sula/cache/README.md
-**/.sula/local/*
