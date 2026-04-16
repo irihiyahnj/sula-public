@@ -4,6 +4,10 @@ All notable changes to Sula Core should be recorded here with explicit sync impa
 
 ## Unreleased
 
+- no entries yet
+
+## 0.12.0 - 2026-04-16
+
 ### Added
 
 - truth-source and freshness metadata for collaborative artifact families, including `family_key`, `artifact_role`, `source_of_truth`, `collaboration_mode`, `last_refreshed_at`, and `last_provider_sync_at`

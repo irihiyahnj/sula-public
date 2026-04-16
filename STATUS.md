@@ -23,6 +23,7 @@
 - The next UX milestone is now implemented too: `onboard` provides a zero-memory interview flow that asks setup questions, explains what Sula will manage, and then applies adoption through the same kernel contract.
 - The next launch milestone is now implemented too: the public site exposes `/launch/`, a machine-readable launcher descriptor, and a downloadable `bootstrap.py` shim so startup no longer depends on guessing local commands.
 - The feedback-bundle lifecycle is now released in the Git-backed Sula 0.11.0 source state: adopted projects can capture reusable local Sula fixes as feedback bundles, and Sula Core can ingest, review, and release them through a central queue.
+- Sula 0.12.0 is now released in source form, bundling truth-source freshness checks, the daily `check` workflow, stronger workflow/release governance, and Unicode-safe discovered source ids into one downstream sync target.
 - Sula now has registry-backed in-repo canary verification across `sula-core`, `software-delivery`, `generic-project`, and `client-service`-style examples, plus public-release readiness and export commands that isolate remaining publication risk to git history rather than content drift.
 - Sula now has a chosen default public-release path: keep this repository as the private pre-public lineage, publish a fresh public repository from `release export-public`, and only then point the site descriptor at the public source.
 - The fresh public source now exists at `irihiyahnj/sula-public`, so `https://sula.1stp.monster/launch/` can resolve a real canonical clone source instead of depending on a local checkout.
@@ -77,11 +78,13 @@
 - 2026-04-16: added [Complete workflow close, canary verification, and release readiness](docs/change-records/2026-04-16-complete-workflow-close-canary-and-release-readiness.md)
 - 2026-04-16: added [Choose fresh public repository as the default release path](docs/change-records/2026-04-16-choose-fresh-public-repository-as-the-default-release-path.md)
 - 2026-04-16: added [Publish the fresh public Sula source](docs/change-records/2026-04-16-publish-the-fresh-public-sula-source.md)
+- 2026-04-16: released [Sula 0.12.0 freshness, workflow, and Unicode source-id fixes](docs/releases/2026-04-16-release-sula-0-12-0-freshness-workflow-and-unicode-source-id-fixes.md)
 - 2026-04-12: added [Add guided onboarding and zero-memory setup flow](docs/change-records/2026-04-12-add-guided-onboarding-and-zero-memory-setup-flow.md)
 - 2026-04-12: added [Add site launch contract and canonical bootstrap shim](docs/change-records/2026-04-12-add-site-launch-contract-and-canonical-bootstrap-shim.md)
 - 2026-04-12: added [Add feedback bundles and Sula Core review workflow](docs/change-records/2026-04-12-add-feedback-bundles-and-core-review-workflow.md)
 - 2026-04-12: released [Sula 0.11.0 formal document workflows and feedback bundles](docs/releases/2026-04-12-release-sula-0-11-0-formal-document-workflows-and-feedback-bundles.md)
 
+- 2026-04-16: added release record [Release Sula 0.12.0 freshness, workflow, and Unicode source-id fixes](docs/releases/2026-04-16-release-sula-0-12-0-freshness-workflow-and-unicode-source-id-fixes.md)
 - 2026-04-12: added release record [Release Sula 0.11.0 formal document workflows and feedback bundles](docs/releases/2026-04-12-release-sula-0-11-0-formal-document-workflows-and-feedback-bundles.md)
 ## Next Review
 

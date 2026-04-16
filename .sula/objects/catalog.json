@@ -1,5 +1,5 @@
 {
-  "version": "0.11.0",
+  "version": "0.12.0",
   "profile": "sula-core",
   "objects": [
     {
@@ -31,7 +31,7 @@
       "id": "state:current",
       "kind": "state",
       "title": "Current Project State",
-      "summary": "- Sula now manages itself as a first-class `sula-core` consumer while still acting as the source repository for reusable operating-system assets.\n- The repository has memory-aware governance, an in-repo canary, a root self-adoption path, and an approval-based adoption agent for bringing new repositories under Sula.\n- Public-release governance is now in place, and the remaining blocker is historical lineage cleanup rather than working-tree quality.\n- The future `sula.1stp.monster` landing page is now represented by real static site assets with canonical long-form bootstrap prompts and protocol pages.\n- The bootstrap site is now live on both `https://sula.fly.dev/` and `https://sula.1stp.monster/`, with the public bootstrap contract explicitly handling existing Sula consumers and canonical tool-source resolution.\n- Sula now has a recorded vNext architecture target for a `generic-project` kernel, adapter bundles, scientific retrieval, and first-class removal semantics.\n- The first milestone of that direction is now implemented: unknown and non-Git projects can adopt through `generic-project`, `.sula/` holds kernel artifacts, and removal has a report-first command.\n- The second milestone is now implemented as well: local retrieval can rebuild from SQLite, kernel objects cover task/decision/risk/person/agreement/milestone shapes, and query supports stronger filters plus timeline output.\n- The next operating milestone is now implemented too: machine-readable CLI responses, workflow/storage/portfolio manifest sections, artifact routing, and portfolio registration are available for non-code client projects.\n- Drive-synced projects can now describe `google-drive` as an adapter instead of pretending that storage provider is a project type, which keeps the kernel portable for future providers.\n- Collaborative provider-backed artifact families can now declare their truth source, refresh state, and stale-local-copy risk, so Sula can prefer shared Google-native facts when users ask for the latest version in natural language.\n- Sula now has a real read-only provider refresh path for Google Docs and Google Sheets, plus `artifact refresh` and cached provider snapshots, so freshness intent can trigger an actual provider metadata refresh instead of only local re-ranking.\n- Sula now has a first-class daily `check` workflow, so state-sync work can fail fast when `.sula/state/current.md` or `.sula/memory-digest.md` drift away from the current status and change records.\n- Formal document design is now a first-class Sula capability: adopted projects can carry reusable source-first structure bundles for schedule, proposal, report, process, and training documents instead of relying on one-off prompt instructions.\n- Sula now has a documented proposal for absorbing long-term value from workflow systems like `obra/superpowers` through manifest-driven capability contracts instead of platform-specific skill lock-in.\n- Sula now implements the first workflow-capability slice from that proposal: manifest-level workflow rigor policy plus source-first `spec`, `plan`, and `review` scaffolds under `docs/workflows/`.\n- Sula now completes that workflow slice with first-class `workflow branch` and `workflow close` commands, so complex work can move from policy assessment to explicit closeout readiness.\n- The next UX milestone is now implemented too: `onboard` provides a zero-memory interview flow that asks setup questions, explains what Sula will manage, and then applies adoption through the same kernel contract.\n- The next launch milestone is now implemented too: the public site exposes `/launch/`, a machine-readable launcher descriptor, and a downloadable `bootstrap.py` shim so startup no longer depends on guessing local commands.\n- The feedback-bundle lifecycle is now released in the Git-backed Sula 0.11.0 source state: adopted projects can capture reusable local Sula fixes as feedback bundles, and Sula Core can ingest, review, and release them through a central queue.\n- Sula now has registry-backed in-repo canary verification across `sula-core`, `software-delivery`, `generic-project`, and `client-service`-style examples, plus public-release readiness and export commands that isolate remaining publication risk to git history rather than content drift.\n- Sula now has a chosen default public-release path: keep this repository as the private pre-public lineage, publish a fresh public repository from `release export-public`, and only then point the site descriptor at the public source.\n- The fresh public source now exists at `irihiyahnj/sula-public`, so `https://sula.1stp.monster/launch/` can resolve a real canonical clone source instead of depending on a local checkout.",
+      "summary": "- Sula now manages itself as a first-class `sula-core` consumer while still acting as the source repository for reusable operating-system assets.\n- The repository has memory-aware governance, an in-repo canary, a root self-adoption path, and an approval-based adoption agent for bringing new repositories under Sula.\n- Public-release governance is now in place, and the remaining blocker is historical lineage cleanup rather than working-tree quality.\n- The future `sula.1stp.monster` landing page is now represented by real static site assets with canonical long-form bootstrap prompts and protocol pages.\n- The bootstrap site is now live on both `https://sula.fly.dev/` and `https://sula.1stp.monster/`, with the public bootstrap contract explicitly handling existing Sula consumers and canonical tool-source resolution.\n- Sula now has a recorded vNext architecture target for a `generic-project` kernel, adapter bundles, scientific retrieval, and first-class removal semantics.\n- The first milestone of that direction is now implemented: unknown and non-Git projects can adopt through `generic-project`, `.sula/` holds kernel artifacts, and removal has a report-first command.\n- The second milestone is now implemented as well: local retrieval can rebuild from SQLite, kernel objects cover task/decision/risk/person/agreement/milestone shapes, and query supports stronger filters plus timeline output.\n- The next operating milestone is now implemented too: machine-readable CLI responses, workflow/storage/portfolio manifest sections, artifact routing, and portfolio registration are available for non-code client projects.\n- Drive-synced projects can now describe `google-drive` as an adapter instead of pretending that storage provider is a project type, which keeps the kernel portable for future providers.\n- Collaborative provider-backed artifact families can now declare their truth source, refresh state, and stale-local-copy risk, so Sula can prefer shared Google-native facts when users ask for the latest version in natural language.\n- Sula now has a real read-only provider refresh path for Google Docs and Google Sheets, plus `artifact refresh` and cached provider snapshots, so freshness intent can trigger an actual provider metadata refresh instead of only local re-ranking.\n- Sula now has a first-class daily `check` workflow, so state-sync work can fail fast when `.sula/state/current.md` or `.sula/memory-digest.md` drift away from the current status and change records.\n- Formal document design is now a first-class Sula capability: adopted projects can carry reusable source-first structure bundles for schedule, proposal, report, process, and training documents instead of relying on one-off prompt instructions.\n- Sula now has a documented proposal for absorbing long-term value from workflow systems like `obra/superpowers` through manifest-driven capability contracts instead of platform-specific skill lock-in.\n- Sula now implements the first workflow-capability slice from that proposal: manifest-level workflow rigor policy plus source-first `spec`, `plan`, and `review` scaffolds under `docs/workflows/`.\n- Sula now completes that workflow slice with first-class `workflow branch` and `workflow close` commands, so complex work can move from policy assessment to explicit closeout readiness.\n- The next UX milestone is now implemented too: `onboard` provides a zero-memory interview flow that asks setup questions, explains what Sula will manage, and then applies adoption through the same kernel contract.\n- The next launch milestone is now implemented too: the public site exposes `/launch/`, a machine-readable launcher descriptor, and a downloadable `bootstrap.py` shim so startup no longer depends on guessing local commands.\n- The feedback-bundle lifecycle is now released in the Git-backed Sula 0.11.0 source state: adopted projects can capture reusable local Sula fixes as feedback bundles, and Sula Core can ingest, review, and release them through a central queue.\n- Sula 0.12.0 is now released in source form, bundling truth-source freshness checks, the daily `check` workflow, stronger workflow/release governance, and Unicode-safe discovered source ids into one downstream sync target.\n- Sula now has registry-backed in-repo canary verification across `sula-core`, `software-delivery`, `generic-project`, and `client-service`-style examples, plus public-release readiness and export commands that isolate remaining publication risk to git history rather than content drift.\n- Sula now has a chosen default public-release path: keep this repository as the private pre-public lineage, publish a fresh public repository from `release export-public`, and only then point the site descriptor at the public source.\n- The fresh public source now exists at `irihiyahnj/sula-public`, so `https://sula.1stp.monster/launch/` can resolve a real canonical clone source instead of depending on a local checkout.",
       "status": "current",
       "path": "STATUS.md",
       "source_paths": [
@@ -767,6 +767,26 @@
       "date": "2026-04-16"
     },
     {
+      "id": "decision:status:2026-04-16-released-sula-0-12-0-freshness-workflow-and-unicode-source-id-fixes-docs-releases-2026-04-16-release-sula-0-12-0-freshness-workflow-and-unicode-source-id-fixes-md",
+      "kind": "decision",
+      "title": "2026-04-16: released [Sula 0.12.0 freshness, workflow, and Unicode source-id...",
+      "summary": "2026-04-16: released [Sula 0.12.0 freshness, workflow, and Unicode source-id fixes](docs/releases/2026-04-16-release-sula-0-12-0-freshness-workflow-and-unicode-source-id-fixes.md)",
+      "status": "decided",
+      "path": "STATUS.md",
+      "source_paths": [
+        "STATUS.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "recent-decision",
+        "status"
+      ],
+      "date": "2026-04-16"
+    },
+    {
       "id": "decision:status:2026-04-12-added-add-guided-onboarding-and-zero-memory-setup-flow-docs-change-records-2026-04-12-add-guided-onboarding-and-zero-memory-setup-flow-md",
       "kind": "decision",
       "title": "2026-04-12: added [Add guided onboarding and zero-memory setup flow](docs/cha...",
@@ -845,6 +865,26 @@
         "status"
       ],
       "date": "2026-04-12"
+    },
+    {
+      "id": "decision:status:2026-04-16-added-release-record-release-sula-0-12-0-freshness-workflow-and-unicode-source-id-fixes-docs-releases-2026-04-16-release-sula-0-12-0-freshness-workflow-and-unicode-source-id-fixes-md",
+      "kind": "decision",
+      "title": "2026-04-16: added release record [Release Sula 0.12.0 freshness, workflow, an...",
+      "summary": "2026-04-16: added release record [Release Sula 0.12.0 freshness, workflow, and Unicode source-id fixes](docs/releases/2026-04-16-release-sula-0-12-0-freshness-workflow-and-unicode-source-id-fixes.md)",
+      "status": "decided",
+      "path": "STATUS.md",
+      "source_paths": [
+        "STATUS.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "recent-decision",
+        "status"
+      ],
+      "date": "2026-04-16"
     },
     {
       "id": "decision:status:2026-04-12-added-release-record-release-sula-0-11-0-formal-document-workflows-and-feedback-bundles-docs-releases-2026-04-12-release-sula-0-11-0-formal-document-workflows-and-feedback-bundles-md",
@@ -961,6 +1001,25 @@
       ],
       "tags": [
         "agreement"
+      ],
+      "date": "2026-04-16"
+    },
+    {
+      "id": "change:2026-04-16-fix-unicode-source-id-collisions",
+      "kind": "change",
+      "title": "Fix Unicode source id collisions in discovered source registry",
+      "summary": "- date: 2026-04-16 - executor: Codex - branch: main - related commit(s): pending - status: completed",
+      "status": "recorded",
+      "path": "docs/change-records/2026-04-16-fix-unicode-source-id-collisions.md",
+      "source_paths": [
+        "docs/change-records/2026-04-16-fix-unicode-source-id-collisions.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "change"
       ],
       "date": "2026-04-16"
     },
@@ -1647,6 +1706,104 @@
         "change"
       ],
       "date": "2026-04-11"
+    },
+    {
+      "id": "release:2026-04-16-release-sula-0-12-0-freshness-workflow-and-unicode-source-id-fixes",
+      "kind": "release",
+      "title": "Release Sula 0.12.0 freshness, workflow, and Unicode source-id fixes",
+      "summary": "- date: 2026-04-16 - executor: Codex - branch: main - status: released",
+      "status": "recorded",
+      "path": "docs/releases/2026-04-16-release-sula-0-12-0-freshness-workflow-and-unicode-source-id-fixes.md",
+      "source_paths": [
+        "docs/releases/2026-04-16-release-sula-0-12-0-freshness-workflow-and-unicode-source-id-fixes.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "release"
+      ],
+      "date": "2026-04-16"
+    },
+    {
+      "id": "milestone:2026-04-16-release-sula-0-12-0-freshness-workflow-and-unicode-source-id-fixes",
+      "kind": "milestone",
+      "title": "Release Sula 0.12.0 freshness, workflow, and Unicode source-id fixes",
+      "summary": "- date: 2026-04-16 - executor: Codex - branch: main - status: released",
+      "status": "shipped",
+      "path": "docs/releases/2026-04-16-release-sula-0-12-0-freshness-workflow-and-unicode-source-id-fixes.md",
+      "source_paths": [
+        "docs/releases/2026-04-16-release-sula-0-12-0-freshness-workflow-and-unicode-source-id-fixes.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "release-milestone"
+      ],
+      "date": "2026-04-16"
+    },
+    {
+      "id": "risk:docs-releases-2026-04-16-release-sula-0-12-0-freshness-workflow-and-unicode-source-id-fixes-md:adopted-projects-that-sync-to-this-release-may-see-a-broader-managed-guidance-surface-and-stricter-daily-close-out-expectations-so-rollout-should-still-review-the-changed-docs-and-commands-instead-of-assuming-a-no-op-patch",
+      "kind": "risk",
+      "title": "adopted projects that sync to this release may see a broader managed guidance...",
+      "summary": "adopted projects that sync to this release may see a broader managed guidance surface and stricter daily close-out expectations, so rollout should still review the changed docs and commands instead of assuming a no-op patch",
+      "status": "open",
+      "path": "docs/releases/2026-04-16-release-sula-0-12-0-freshness-workflow-and-unicode-source-id-fixes.md",
+      "source_paths": [
+        "docs/releases/2026-04-16-release-sula-0-12-0-freshness-workflow-and-unicode-source-id-fixes.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "risk",
+        "section-object"
+      ],
+      "date": "2026-04-16"
+    },
+    {
+      "id": "risk:docs-releases-2026-04-16-release-sula-0-12-0-freshness-workflow-and-unicode-source-id-fixes-md:projects-with-existing-unicode-heavy-source-trees-will-rebuild-discovered-source-ids-on-the-next-sync-which-is-the-desired-repair-path-but-may-change-cached-low-signal-query-identities",
+      "kind": "risk",
+      "title": "projects with existing Unicode-heavy source trees will rebuild discovered `so...",
+      "summary": "projects with existing Unicode-heavy source trees will rebuild discovered `source:` ids on the next sync, which is the desired repair path but may change cached low-signal query identities",
+      "status": "open",
+      "path": "docs/releases/2026-04-16-release-sula-0-12-0-freshness-workflow-and-unicode-source-id-fixes.md",
+      "source_paths": [
+        "docs/releases/2026-04-16-release-sula-0-12-0-freshness-workflow-and-unicode-source-id-fixes.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "risk",
+        "section-object"
+      ],
+      "date": "2026-04-16"
+    },
+    {
+      "id": "risk:docs-releases-2026-04-16-release-sula-0-12-0-freshness-workflow-and-unicode-source-id-fixes-md:public-bootstrap-users-should-only-treat-this-release-as-externally-available-after-the-published-public-source-and-hosted-site-descriptor-are-updated-to-the-same-source-state",
+      "kind": "risk",
+      "title": "public bootstrap users should only treat this release as externally available...",
+      "summary": "public bootstrap users should only treat this release as externally available after the published public source and hosted site descriptor are updated to the same source state",
+      "status": "open",
+      "path": "docs/releases/2026-04-16-release-sula-0-12-0-freshness-workflow-and-unicode-source-id-fixes.md",
+      "source_paths": [
+        "docs/releases/2026-04-16-release-sula-0-12-0-freshness-workflow-and-unicode-source-id-fixes.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "risk",
+        "section-object"
+      ],
+      "date": "2026-04-16"
     },
     {
       "id": "release:2026-04-12-release-sula-0-11-0-formal-document-workflows-and-feedback-bundles",
@@ -3012,6 +3169,28 @@
       "date": "2026-04-16"
     },
     {
+      "id": "object:source:docs-change-records-2026-04-16-fix-unicode-source-id-collisions-md",
+      "kind": "document",
+      "title": "2026-04-16-fix-unicode-source-id-collisions.md",
+      "summary": "- date: 2026-04-16 - executor: Codex - branch: main - related commit(s): pending - status: completed",
+      "status": "indexed",
+      "path": "docs/change-records/2026-04-16-fix-unicode-source-id-collisions.md",
+      "source_paths": [
+        "docs/change-records/2026-04-16-fix-unicode-source-id-collisions.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "memory",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": "2026-04-16"
+    },
+    {
       "id": "object:source:docs-change-records-2026-04-16-publish-the-fresh-public-sula-source-md",
       "kind": "document",
       "title": "2026-04-16-publish-the-fresh-public-sula-source.md",
@@ -3679,6 +3858,29 @@
         "source"
       ],
       "date": "2026-04-12"
+    },
+    {
+      "id": "object:source:docs-releases-2026-04-16-release-sula-0-12-0-freshness-workflow-and-unicode-source-id-fixes-md",
+      "kind": "document",
+      "title": "2026-04-16-release-sula-0-12-0-freshness-workflow-and-unicode-source-id-fixes.md",
+      "summary": "- date: 2026-04-16 - executor: Codex - branch: main - status: released",
+      "status": "indexed",
+      "path": "docs/releases/2026-04-16-release-sula-0-12-0-freshness-workflow-and-unicode-source-id-fixes.md",
+      "source_paths": [
+        "docs/releases/2026-04-16-release-sula-0-12-0-freshness-workflow-and-unicode-source-id-fixes.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "memory",
+        "repo",
+        "release"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": "2026-04-16"
     },
     {
       "id": "object:source:docs-releases-readme-md",
@@ -5250,7 +5452,7 @@
       "id": "object:source:registry-feedback-catalog-json",
       "kind": "config",
       "title": "catalog.json",
-      "summary": "{ \"version\": \"0.11.0\", \"updated_at\": \"\", \"items\": [] }",
+      "summary": "{ \"version\": \"0.12.0\", \"updated_at\": \"\", \"items\": [] }",
       "status": "indexed",
       "path": "registry/feedback/catalog.json",
       "source_paths": [
@@ -5576,7 +5778,7 @@
       "id": "object:source:site-sula-json",
       "kind": "config",
       "title": "sula.json",
-      "summary": "{ \"name\": \"Sula\", \"kind\": \"project-operating-system\", \"version\": \"0.11.0\", \"status\": \"public-source-published\", \"homepage_url\": \"https://sula.1stp.monster/\", \"launch_url\": \"https://sula.1stp.monster/launch/\", \"bootstrap_url\": \"https://sula.",
+      "summary": "{ \"name\": \"Sula\", \"kind\": \"project-operating-system\", \"version\": \"0.12.0\", \"status\": \"public-source-published\", \"homepage_url\": \"https://sula.1stp.monster/\", \"launch_url\": \"https://sula.1stp.monster/launch/\", \"bootstrap_url\": \"https://sula.",
       "status": "indexed",
       "path": "site/sula.json",
       "source_paths": [

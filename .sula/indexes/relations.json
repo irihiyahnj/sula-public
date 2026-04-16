@@ -1,5 +1,5 @@
 {
-  "version": "0.11.0",
+  "version": "0.12.0",
   "profile": "sula-core",
   "relations": [
     {
@@ -198,6 +198,11 @@
       "type": "derived-from"
     },
     {
+      "from": "decision:status:2026-04-16-released-sula-0-12-0-freshness-workflow-and-unicode-source-id-fixes-docs-releases-2026-04-16-release-sula-0-12-0-freshness-workflow-and-unicode-source-id-fixes-md",
+      "to": "source:status-md",
+      "type": "derived-from"
+    },
+    {
       "from": "decision:status:2026-04-12-added-add-guided-onboarding-and-zero-memory-setup-flow-docs-change-records-2026-04-12-add-guided-onboarding-and-zero-memory-setup-flow-md",
       "to": "source:status-md",
       "type": "derived-from"
@@ -214,6 +219,11 @@
     },
     {
       "from": "decision:status:2026-04-12-released-sula-0-11-0-formal-document-workflows-and-feedback-bundles-docs-releases-2026-04-12-release-sula-0-11-0-formal-document-workflows-and-feedback-bundles-md",
+      "to": "source:status-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "decision:status:2026-04-16-added-release-record-release-sula-0-12-0-freshness-workflow-and-unicode-source-id-fixes-docs-releases-2026-04-16-release-sula-0-12-0-freshness-workflow-and-unicode-source-id-fixes-md",
       "to": "source:status-md",
       "type": "derived-from"
     },
@@ -245,6 +255,11 @@
     {
       "from": "agreement:2026-04-16-publish-the-fresh-public-sula-source",
       "to": "source:docs-change-records-2026-04-16-publish-the-fresh-public-sula-source-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "change:2026-04-16-fix-unicode-source-id-collisions",
+      "to": "source:docs-change-records-2026-04-16-fix-unicode-source-id-collisions-md",
       "type": "derived-from"
     },
     {
@@ -425,6 +440,31 @@
     {
       "from": "change:2026-04-11-add-adoption-agent-flow-for-one-sentence-onboarding",
       "to": "source:docs-change-records-2026-04-11-add-adoption-agent-flow-for-one-sentence-onboarding-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "release:2026-04-16-release-sula-0-12-0-freshness-workflow-and-unicode-source-id-fixes",
+      "to": "source:docs-releases-2026-04-16-release-sula-0-12-0-freshness-workflow-and-unicode-source-id-fixes-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "milestone:2026-04-16-release-sula-0-12-0-freshness-workflow-and-unicode-source-id-fixes",
+      "to": "source:docs-releases-2026-04-16-release-sula-0-12-0-freshness-workflow-and-unicode-source-id-fixes-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "risk:docs-releases-2026-04-16-release-sula-0-12-0-freshness-workflow-and-unicode-source-id-fixes-md:adopted-projects-that-sync-to-this-release-may-see-a-broader-managed-guidance-surface-and-stricter-daily-close-out-expectations-so-rollout-should-still-review-the-changed-docs-and-commands-instead-of-assuming-a-no-op-patch",
+      "to": "source:docs-releases-2026-04-16-release-sula-0-12-0-freshness-workflow-and-unicode-source-id-fixes-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "risk:docs-releases-2026-04-16-release-sula-0-12-0-freshness-workflow-and-unicode-source-id-fixes-md:projects-with-existing-unicode-heavy-source-trees-will-rebuild-discovered-source-ids-on-the-next-sync-which-is-the-desired-repair-path-but-may-change-cached-low-signal-query-identities",
+      "to": "source:docs-releases-2026-04-16-release-sula-0-12-0-freshness-workflow-and-unicode-source-id-fixes-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "risk:docs-releases-2026-04-16-release-sula-0-12-0-freshness-workflow-and-unicode-source-id-fixes-md:public-bootstrap-users-should-only-treat-this-release-as-externally-available-after-the-published-public-source-and-hosted-site-descriptor-are-updated-to-the-same-source-state",
+      "to": "source:docs-releases-2026-04-16-release-sula-0-12-0-freshness-workflow-and-unicode-source-id-fixes-md",
       "type": "derived-from"
     },
     {
@@ -743,6 +783,11 @@
       "type": "derived-from"
     },
     {
+      "from": "object:source:docs-change-records-2026-04-16-fix-unicode-source-id-collisions-md",
+      "to": "source:docs-change-records-2026-04-16-fix-unicode-source-id-collisions-md",
+      "type": "derived-from"
+    },
+    {
       "from": "object:source:docs-change-records-2026-04-16-publish-the-fresh-public-sula-source-md",
       "to": "source:docs-change-records-2026-04-16-publish-the-fresh-public-sula-source-md",
       "type": "derived-from"
@@ -895,6 +940,11 @@
     {
       "from": "agreement:source:docs-releases-2026-04-12-release-sula-0-11-0-formal-document-workflows-and-feedback-bundles-md",
       "to": "source:docs-releases-2026-04-12-release-sula-0-11-0-formal-document-workflows-and-feedback-bundles-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "object:source:docs-releases-2026-04-16-release-sula-0-12-0-freshness-workflow-and-unicode-source-id-fixes-md",
+      "to": "source:docs-releases-2026-04-16-release-sula-0-12-0-freshness-workflow-and-unicode-source-id-fixes-md",
       "type": "derived-from"
     },
     {

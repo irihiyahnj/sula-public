@@ -310,7 +310,7 @@ python3 scripts/sula.py feedback decide \
   --feedback-id <feedback-id> \
   --decision accepted \
   --note "Absorb this into the shared release path." \
-  --target-version 0.11.0 \
+  --target-version 0.12.0 \
   --json
 ```
 
@@ -482,7 +482,7 @@ This searches the local kernel object catalog, source registry, and event timeli
 
 ## Current Version
 
-Sula version: `0.11.0`
+Sula version: `0.12.0`
 
 Versioning rules are in [docs/versioning.md](docs/versioning.md).
 
