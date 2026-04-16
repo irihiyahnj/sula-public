@@ -1,0 +1,160 @@
+{
+  "version": "0.11.0",
+  "mode": "governed",
+  "packs": {
+    "ai-tooling": [
+      {
+        "path": ".cursor/rules/project.mdc",
+        "managed": true,
+        "origin": "core"
+      },
+      {
+        "path": ".github/copilot-instructions.md",
+        "managed": true,
+        "origin": "core"
+      },
+      {
+        "path": "CLAUDE.md",
+        "managed": true,
+        "origin": "core"
+      },
+      {
+        "path": "CODEX.md",
+        "managed": true,
+        "origin": "core"
+      },
+      {
+        "path": "GEMINI.md",
+        "managed": true,
+        "origin": "core"
+      }
+    ],
+    "ops-core": [
+      {
+        "path": "docs/README.md",
+        "managed": true,
+        "origin": "core"
+      },
+      {
+        "path": "docs/ops/architecture-exception-register.md",
+        "managed": true,
+        "origin": "core"
+      },
+      {
+        "path": "docs/ops/project-memory.md",
+        "managed": true,
+        "origin": "core"
+      },
+      {
+        "path": "docs/ops/release-checklist.md",
+        "managed": true,
+        "origin": "core"
+      },
+      {
+        "path": "docs/ops/request-template.md",
+        "managed": true,
+        "origin": "core"
+      },
+      {
+        "path": "docs/ops/smoke-test-checklist.md",
+        "managed": true,
+        "origin": "core"
+      },
+      {
+        "path": "docs/ops/team-operating-model.md",
+        "managed": true,
+        "origin": "core"
+      }
+    ],
+    "document-design": [
+      {
+        "path": "docs/ops/document-design-principles.md",
+        "managed": true,
+        "origin": "core"
+      }
+    ],
+    "profile-architecture": [
+      {
+        "path": "docs/architecture/module-map.md",
+        "managed": true,
+        "origin": "profile:react-frontend-erpnext"
+      },
+      {
+        "path": "docs/architecture/system-map.md",
+        "managed": true,
+        "origin": "profile:react-frontend-erpnext"
+      }
+    ],
+    "profile-runbooks": [
+      {
+        "path": "docs/runbooks/auth-and-session.md",
+        "managed": true,
+        "origin": "profile:react-frontend-erpnext"
+      },
+      {
+        "path": "docs/runbooks/deploy-and-rollback.md",
+        "managed": true,
+        "origin": "profile:react-frontend-erpnext"
+      },
+      {
+        "path": "docs/runbooks/erpnext-integration.md",
+        "managed": true,
+        "origin": "profile:react-frontend-erpnext"
+      }
+    ],
+    "record-templates": [
+      {
+        "path": "docs/change-records/README.md",
+        "managed": false,
+        "origin": "core-scaffold"
+      },
+      {
+        "path": "docs/change-records/_template.md",
+        "managed": false,
+        "origin": "core-scaffold"
+      },
+      {
+        "path": "docs/incidents/README.md",
+        "managed": false,
+        "origin": "core-scaffold"
+      },
+      {
+        "path": "docs/incidents/_template.md",
+        "managed": false,
+        "origin": "core-scaffold"
+      },
+      {
+        "path": "docs/releases/README.md",
+        "managed": false,
+        "origin": "core-scaffold"
+      },
+      {
+        "path": "docs/releases/_template.md",
+        "managed": false,
+        "origin": "core-scaffold"
+      }
+    ],
+    "project-memory": [
+      {
+        "path": "AGENTS.md",
+        "managed": false,
+        "origin": "scaffold:react-frontend-erpnext"
+      },
+      {
+        "path": "CHANGE-RECORDS.md",
+        "managed": false,
+        "origin": "scaffold:react-frontend-erpnext"
+      },
+      {
+        "path": "README.md",
+        "managed": false,
+        "origin": "scaffold:react-frontend-erpnext"
+      },
+      {
+        "path": "STATUS.md",
+        "managed": false,
+        "origin": "scaffold:react-frontend-erpnext"
+      }
+    ]
+  }
+}

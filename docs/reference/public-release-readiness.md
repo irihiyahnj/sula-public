@@ -50,6 +50,8 @@ Adopted repositories are affected only when maintainers intentionally:
 ## Recommended Public Launch Sequence
 
 1. choose the public repository location and license
-2. publish from a clean Sula-only history
-3. point docs and the future bootstrap domain at that public source
-4. verify canary adoption still passes from the public release lineage
+2. run `python3 scripts/sula.py release readiness --project-root .`
+3. export a clean tracked-file tree with `python3 scripts/sula.py release export-public --project-root . --output /tmp/sula-public`
+4. publish from that clean Sula-only tree in a fresh public repository or after a sanitized-history rewrite
+5. point docs and the future bootstrap domain at that public source
+6. verify canary adoption still passes from the public release lineage

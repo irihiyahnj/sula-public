@@ -67,7 +67,7 @@
       ],
       "provider": "local-fs",
       "sync_mode": "local-only",
-      "workspace_root": "/Users/jing/Library/CloudStorage/GoogleDrive-hr.rrrrrr@gmail.com/My Drive/workspace/projectdev/sula",
+      "workspace_root": ".",
       "provider_root_url": "local-only",
       "provider_root_id": "n/a"
     },

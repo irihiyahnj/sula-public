@@ -247,7 +247,7 @@
     "exists": true,
     "source_of_truth": true,
     "discovered": true,
-    "size_bytes": 8847,
+    "size_bytes": 9219,
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
@@ -393,7 +393,7 @@
     "exists": true,
     "source_of_truth": true,
     "discovered": true,
-    "size_bytes": 9633,
+    "size_bytes": 10426,
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
@@ -894,6 +894,24 @@
     ]
   },
   {
+    "id": "source:docs-change-records-2026-04-16-complete-workflow-close-canary-and-release-readiness-md",
+    "kind": "document",
+    "path": "docs/change-records/2026-04-16-complete-workflow-close-canary-and-release-readiness.md",
+    "exists": true,
+    "source_of_truth": true,
+    "discovered": true,
+    "size_bytes": 3504,
+    "anchor_strategy": "heading-or-line",
+    "adapters": [
+      "generic-project",
+      "local-fs",
+      "docs",
+      "memory",
+      "repo",
+      "release"
+    ]
+  },
+  {
     "id": "source:docs-change-records-2026-04-16-document-superpowers-capability-absorption-plan-md",
     "kind": "document",
     "path": "docs/change-records/2026-04-16-document-superpowers-capability-absorption-plan.md",
@@ -1130,7 +1148,7 @@
     "exists": true,
     "source_of_truth": true,
     "discovered": true,
-    "size_bytes": 1097,
+    "size_bytes": 1237,
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
@@ -1210,7 +1228,7 @@
     "exists": true,
     "source_of_truth": true,
     "discovered": true,
-    "size_bytes": 11100,
+    "size_bytes": 11060,
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
@@ -1226,7 +1244,7 @@
     "exists": true,
     "source_of_truth": true,
     "discovered": true,
-    "size_bytes": 1965,
+    "size_bytes": 2231,
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
@@ -1291,7 +1309,7 @@
     "exists": true,
     "source_of_truth": true,
     "discovered": true,
-    "size_bytes": 2007,
+    "size_bytes": 2057,
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
@@ -1362,7 +1380,7 @@
     "exists": true,
     "source_of_truth": true,
     "discovered": true,
-    "size_bytes": 1114,
+    "size_bytes": 1130,
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
@@ -1406,13 +1424,383 @@
     ]
   },
   {
+    "id": "source:examples-client-service-gdrive-agents-md",
+    "kind": "document",
+    "path": "examples/client-service-gdrive/AGENTS.md",
+    "exists": true,
+    "source_of_truth": true,
+    "discovered": true,
+    "size_bytes": 1803,
+    "anchor_strategy": "heading-or-line",
+    "adapters": [
+      "generic-project",
+      "local-fs",
+      "docs",
+      "repo"
+    ]
+  },
+  {
+    "id": "source:examples-client-service-gdrive-change-records-md",
+    "kind": "document",
+    "path": "examples/client-service-gdrive/CHANGE-RECORDS.md",
+    "exists": true,
+    "source_of_truth": true,
+    "discovered": true,
+    "size_bytes": 812,
+    "anchor_strategy": "heading-or-line",
+    "adapters": [
+      "generic-project",
+      "local-fs",
+      "docs",
+      "repo"
+    ]
+  },
+  {
+    "id": "source:examples-client-service-gdrive-readme-md",
+    "kind": "document",
+    "path": "examples/client-service-gdrive/README.md",
+    "exists": true,
+    "source_of_truth": true,
+    "discovered": true,
+    "size_bytes": 735,
+    "anchor_strategy": "heading-or-line",
+    "adapters": [
+      "generic-project",
+      "local-fs",
+      "docs",
+      "repo"
+    ]
+  },
+  {
+    "id": "source:examples-client-service-gdrive-status-md",
+    "kind": "document",
+    "path": "examples/client-service-gdrive/STATUS.md",
+    "exists": true,
+    "source_of_truth": true,
+    "discovered": true,
+    "size_bytes": 1031,
+    "anchor_strategy": "heading-or-line",
+    "adapters": [
+      "generic-project",
+      "local-fs",
+      "docs",
+      "repo"
+    ]
+  },
+  {
+    "id": "source:examples-client-service-gdrive-docs-change-records-2026-04-16-promote-client-service-drive-example-into-canary-md",
+    "kind": "document",
+    "path": "examples/client-service-gdrive/docs/change-records/2026-04-16-promote-client-service-drive-example-into-canary.md",
+    "exists": true,
+    "source_of_truth": true,
+    "discovered": true,
+    "size_bytes": 1699,
+    "anchor_strategy": "heading-or-line",
+    "adapters": [
+      "generic-project",
+      "local-fs",
+      "docs",
+      "memory",
+      "repo"
+    ]
+  },
+  {
+    "id": "source:examples-client-service-gdrive-docs-change-records-readme-md",
+    "kind": "document",
+    "path": "examples/client-service-gdrive/docs/change-records/README.md",
+    "exists": true,
+    "source_of_truth": true,
+    "discovered": true,
+    "size_bytes": 333,
+    "anchor_strategy": "heading-or-line",
+    "adapters": [
+      "generic-project",
+      "local-fs",
+      "docs",
+      "memory",
+      "repo"
+    ]
+  },
+  {
+    "id": "source:examples-client-service-gdrive-docs-change-records-template-md",
+    "kind": "document",
+    "path": "examples/client-service-gdrive/docs/change-records/_template.md",
+    "exists": true,
+    "source_of_truth": true,
+    "discovered": true,
+    "size_bytes": 555,
+    "anchor_strategy": "heading-or-line",
+    "adapters": [
+      "generic-project",
+      "local-fs",
+      "docs",
+      "memory",
+      "repo"
+    ]
+  },
+  {
+    "id": "source:examples-client-service-gdrive-docs-incidents-readme-md",
+    "kind": "document",
+    "path": "examples/client-service-gdrive/docs/incidents/README.md",
+    "exists": true,
+    "source_of_truth": true,
+    "discovered": true,
+    "size_bytes": 171,
+    "anchor_strategy": "heading-or-line",
+    "adapters": [
+      "generic-project",
+      "local-fs",
+      "docs",
+      "memory",
+      "repo"
+    ]
+  },
+  {
+    "id": "source:examples-client-service-gdrive-docs-incidents-template-md",
+    "kind": "document",
+    "path": "examples/client-service-gdrive/docs/incidents/_template.md",
+    "exists": true,
+    "source_of_truth": true,
+    "discovered": true,
+    "size_bytes": 316,
+    "anchor_strategy": "heading-or-line",
+    "adapters": [
+      "generic-project",
+      "local-fs",
+      "docs",
+      "memory",
+      "repo"
+    ]
+  },
+  {
+    "id": "source:examples-client-service-gdrive-docs-releases-readme-md",
+    "kind": "document",
+    "path": "examples/client-service-gdrive/docs/releases/README.md",
+    "exists": true,
+    "source_of_truth": true,
+    "discovered": true,
+    "size_bytes": 203,
+    "anchor_strategy": "heading-or-line",
+    "adapters": [
+      "generic-project",
+      "local-fs",
+      "docs",
+      "memory",
+      "repo",
+      "release"
+    ]
+  },
+  {
+    "id": "source:examples-client-service-gdrive-docs-releases-template-md",
+    "kind": "document",
+    "path": "examples/client-service-gdrive/docs/releases/_template.md",
+    "exists": true,
+    "source_of_truth": true,
+    "discovered": true,
+    "size_bytes": 277,
+    "anchor_strategy": "heading-or-line",
+    "adapters": [
+      "generic-project",
+      "local-fs",
+      "docs",
+      "memory",
+      "repo",
+      "release"
+    ]
+  },
+  {
+    "id": "source:examples-field-ops-generic-agents-md",
+    "kind": "document",
+    "path": "examples/field-ops-generic/AGENTS.md",
+    "exists": true,
+    "source_of_truth": true,
+    "discovered": true,
+    "size_bytes": 1791,
+    "anchor_strategy": "heading-or-line",
+    "adapters": [
+      "generic-project",
+      "local-fs",
+      "docs",
+      "repo"
+    ]
+  },
+  {
+    "id": "source:examples-field-ops-generic-change-records-md",
+    "kind": "document",
+    "path": "examples/field-ops-generic/CHANGE-RECORDS.md",
+    "exists": true,
+    "source_of_truth": true,
+    "discovered": true,
+    "size_bytes": 820,
+    "anchor_strategy": "heading-or-line",
+    "adapters": [
+      "generic-project",
+      "local-fs",
+      "docs",
+      "repo"
+    ]
+  },
+  {
+    "id": "source:examples-field-ops-generic-readme-md",
+    "kind": "document",
+    "path": "examples/field-ops-generic/README.md",
+    "exists": true,
+    "source_of_truth": true,
+    "discovered": true,
+    "size_bytes": 722,
+    "anchor_strategy": "heading-or-line",
+    "adapters": [
+      "generic-project",
+      "local-fs",
+      "docs",
+      "repo"
+    ]
+  },
+  {
+    "id": "source:examples-field-ops-generic-status-md",
+    "kind": "document",
+    "path": "examples/field-ops-generic/STATUS.md",
+    "exists": true,
+    "source_of_truth": true,
+    "discovered": true,
+    "size_bytes": 998,
+    "anchor_strategy": "heading-or-line",
+    "adapters": [
+      "generic-project",
+      "local-fs",
+      "docs",
+      "repo"
+    ]
+  },
+  {
+    "id": "source:examples-field-ops-generic-docs-change-records-2026-04-16-promote-field-ops-example-into-generic-project-canary-md",
+    "kind": "document",
+    "path": "examples/field-ops-generic/docs/change-records/2026-04-16-promote-field-ops-example-into-generic-project-canary.md",
+    "exists": true,
+    "source_of_truth": true,
+    "discovered": true,
+    "size_bytes": 1592,
+    "anchor_strategy": "heading-or-line",
+    "adapters": [
+      "generic-project",
+      "local-fs",
+      "docs",
+      "memory",
+      "repo"
+    ]
+  },
+  {
+    "id": "source:examples-field-ops-generic-docs-change-records-readme-md",
+    "kind": "document",
+    "path": "examples/field-ops-generic/docs/change-records/README.md",
+    "exists": true,
+    "source_of_truth": true,
+    "discovered": true,
+    "size_bytes": 333,
+    "anchor_strategy": "heading-or-line",
+    "adapters": [
+      "generic-project",
+      "local-fs",
+      "docs",
+      "memory",
+      "repo"
+    ]
+  },
+  {
+    "id": "source:examples-field-ops-generic-docs-change-records-template-md",
+    "kind": "document",
+    "path": "examples/field-ops-generic/docs/change-records/_template.md",
+    "exists": true,
+    "source_of_truth": true,
+    "discovered": true,
+    "size_bytes": 555,
+    "anchor_strategy": "heading-or-line",
+    "adapters": [
+      "generic-project",
+      "local-fs",
+      "docs",
+      "memory",
+      "repo"
+    ]
+  },
+  {
+    "id": "source:examples-field-ops-generic-docs-incidents-readme-md",
+    "kind": "document",
+    "path": "examples/field-ops-generic/docs/incidents/README.md",
+    "exists": true,
+    "source_of_truth": true,
+    "discovered": true,
+    "size_bytes": 171,
+    "anchor_strategy": "heading-or-line",
+    "adapters": [
+      "generic-project",
+      "local-fs",
+      "docs",
+      "memory",
+      "repo"
+    ]
+  },
+  {
+    "id": "source:examples-field-ops-generic-docs-incidents-template-md",
+    "kind": "document",
+    "path": "examples/field-ops-generic/docs/incidents/_template.md",
+    "exists": true,
+    "source_of_truth": true,
+    "discovered": true,
+    "size_bytes": 316,
+    "anchor_strategy": "heading-or-line",
+    "adapters": [
+      "generic-project",
+      "local-fs",
+      "docs",
+      "memory",
+      "repo"
+    ]
+  },
+  {
+    "id": "source:examples-field-ops-generic-docs-releases-readme-md",
+    "kind": "document",
+    "path": "examples/field-ops-generic/docs/releases/README.md",
+    "exists": true,
+    "source_of_truth": true,
+    "discovered": true,
+    "size_bytes": 203,
+    "anchor_strategy": "heading-or-line",
+    "adapters": [
+      "generic-project",
+      "local-fs",
+      "docs",
+      "memory",
+      "repo",
+      "release"
+    ]
+  },
+  {
+    "id": "source:examples-field-ops-generic-docs-releases-template-md",
+    "kind": "document",
+    "path": "examples/field-ops-generic/docs/releases/_template.md",
+    "exists": true,
+    "source_of_truth": true,
+    "discovered": true,
+    "size_bytes": 277,
+    "anchor_strategy": "heading-or-line",
+    "adapters": [
+      "generic-project",
+      "local-fs",
+      "docs",
+      "memory",
+      "repo",
+      "release"
+    ]
+  },
+  {
     "id": "source:examples-okoktoto-github-copilot-instructions-md",
     "kind": "document",
     "path": "examples/okoktoto/.github/copilot-instructions.md",
     "exists": true,
     "source_of_truth": true,
     "discovered": true,
-    "size_bytes": 861,
+    "size_bytes": 831,
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
@@ -1475,7 +1863,7 @@
     "exists": true,
     "source_of_truth": true,
     "discovered": true,
-    "size_bytes": 1042,
+    "size_bytes": 1022,
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
@@ -1491,7 +1879,7 @@
     "exists": true,
     "source_of_truth": true,
     "discovered": true,
-    "size_bytes": 1844,
+    "size_bytes": 1814,
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
@@ -1507,7 +1895,7 @@
     "exists": true,
     "source_of_truth": true,
     "discovered": true,
-    "size_bytes": 998,
+    "size_bytes": 971,
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
@@ -1555,7 +1943,7 @@
     "exists": true,
     "source_of_truth": true,
     "discovered": true,
-    "size_bytes": 2144,
+    "size_bytes": 2444,
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
@@ -1802,7 +2190,7 @@
     "exists": true,
     "source_of_truth": true,
     "discovered": true,
-    "size_bytes": 2831,
+    "size_bytes": 2847,
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
@@ -1980,7 +2368,7 @@
     "exists": true,
     "source_of_truth": true,
     "discovered": true,
-    "size_bytes": 1279,
+    "size_bytes": 2282,
     "anchor_strategy": "line",
     "adapters": [
       "generic-project",
@@ -2059,7 +2447,7 @@
     "exists": true,
     "source_of_truth": true,
     "discovered": true,
-    "size_bytes": 505419,
+    "size_bytes": 531645,
     "anchor_strategy": "line",
     "adapters": [
       "generic-project",
@@ -2274,7 +2662,7 @@
     "exists": true,
     "source_of_truth": true,
     "discovered": true,
-    "size_bytes": 135230,
+    "size_bytes": 144762,
     "anchor_strategy": "line",
     "adapters": [
       "generic-project",

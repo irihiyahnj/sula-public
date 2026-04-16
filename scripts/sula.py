@@ -1149,6 +1149,49 @@ def parse_args() -> argparse.Namespace:
     workflow_scaffold_cmd.add_argument("--summary", default="")
     workflow_scaffold_cmd.add_argument("--json", action="store_true", help="Print JSON instead of human-readable output")
 
+    workflow_branch_cmd = workflow_sub.add_parser("branch", help="Plan or create the workspace-isolation branch/worktree for a task")
+    add_project_root_arg(workflow_branch_cmd)
+    workflow_branch_cmd.add_argument("--task", required=True, help="Task description used to derive the branch or worktree name")
+    workflow_branch_cmd.add_argument("--slug", help="Optional slug override for the branch or worktree name")
+    workflow_branch_cmd.add_argument("--create", action="store_true", help="Create the branch or worktree instead of only planning it")
+    workflow_branch_cmd.add_argument("--base-branch", help="Optional base branch override")
+    workflow_branch_cmd.add_argument("--worktree-root", help="Optional worktree directory root for worktree isolation")
+    workflow_branch_cmd.add_argument("--json", action="store_true", help="Print JSON instead of human-readable output")
+
+    workflow_close_cmd = workflow_sub.add_parser("close", help="Evaluate whether a task is ready to close under the project's workflow policy")
+    add_project_root_arg(workflow_close_cmd)
+    workflow_close_cmd.add_argument("--task", required=True, help="Task description used to derive required workflow artifacts")
+    workflow_close_cmd.add_argument("--slug", help="Optional slug override for matching workflow documents")
+    workflow_close_cmd.add_argument("--doctor-strict", action="store_true", help="Also require `doctor --strict` to pass")
+    workflow_close_cmd.add_argument("--json", action="store_true", help="Print JSON instead of human-readable output")
+
+    canary_cmd = sub.add_parser("canary", help="Inspect and verify rollout canaries from the adopted-project registry")
+    canary_sub = canary_cmd.add_subparsers(dest="canary_command", required=True)
+
+    canary_list_cmd = canary_sub.add_parser("list", help="List canary projects from the adoption registry")
+    add_project_root_arg(canary_list_cmd)
+    canary_list_cmd.add_argument("--json", action="store_true", help="Print JSON instead of human-readable output")
+
+    canary_verify_cmd = canary_sub.add_parser("verify", help="Run sync/doctor/check against local canary projects")
+    add_project_root_arg(canary_verify_cmd)
+    canary_verify_group = canary_verify_cmd.add_mutually_exclusive_group()
+    canary_verify_group.add_argument("--slug", action="append", default=[], help="Only verify one or more specific canary slugs")
+    canary_verify_group.add_argument("--all", action="store_true", help="Verify all registry entries that are marked as canaries")
+    canary_verify_cmd.add_argument("--json", action="store_true", help="Print JSON instead of human-readable output")
+
+    release_cmd = sub.add_parser("release", help="Audit release readiness and prepare clean public-release exports")
+    release_sub = release_cmd.add_subparsers(dest="release_command", required=True)
+
+    release_readiness_cmd = release_sub.add_parser("readiness", help="Audit current-tree, canary, and public-release readiness")
+    add_project_root_arg(release_readiness_cmd)
+    release_readiness_cmd.add_argument("--json", action="store_true", help="Print JSON instead of human-readable output")
+
+    release_export_cmd = release_sub.add_parser("export-public", help="Export a clean tracked-file tree for a fresh public repository")
+    add_project_root_arg(release_export_cmd)
+    release_export_cmd.add_argument("--output", required=True, help="Destination directory for the clean export")
+    release_export_cmd.add_argument("--overwrite", action="store_true", help="Overwrite the destination if it already exists")
+    release_export_cmd.add_argument("--json", action="store_true", help="Print JSON instead of human-readable output")
+
     artifact_cmd = sub.add_parser("artifact", help="Create, register, and locate project artifacts")
     artifact_sub = artifact_cmd.add_subparsers(dest="artifact_command", required=True)
     artifact_create_cmd = artifact_sub.add_parser("create", help="Create a managed project artifact in the workflow slot")
@@ -2062,6 +2105,14 @@ def main() -> int:
 
     if args.command == "feedback":
         return handle_feedback_command(args)
+
+    if args.command == "canary":
+        assert project_root is not None
+        return handle_canary_command(project_root, args)
+
+    if args.command == "release":
+        assert project_root is not None
+        return handle_release_command(project_root, args)
 
     assert project_root is not None
     config = load_manifest(project_root)
@@ -3312,6 +3363,340 @@ def run_git(project_root: Path, args: list[str]) -> subprocess.CompletedProcess[
         )
     except OSError:
         return None
+
+
+def is_clean_git_worktree(project_root: Path) -> bool:
+    result = run_git(project_root, ["status", "--short"])
+    return result is not None and result.returncode == 0 and not result.stdout.strip()
+
+
+def parse_table_array_toml(text: str, table_name: str) -> list[dict[str, object]]:
+    entries: list[dict[str, object]] = []
+    current: dict[str, object] | None = None
+    marker = f"[[{table_name}]]"
+    for raw_line in text.splitlines():
+        line = raw_line.strip()
+        if not line or line.startswith("#"):
+            continue
+        if line == marker:
+            current = {}
+            entries.append(current)
+            continue
+        if current is None or "=" not in line:
+            continue
+        key, value = line.split("=", 1)
+        current[key.strip()] = parse_toml_value(value.strip())
+    return entries
+
+
+def load_adoption_registry(project_root: Path) -> list[dict[str, object]]:
+    registry_path = project_root / "registry" / "adopted-projects.toml"
+    if not registry_path.exists():
+        return []
+    try:
+        return [item for item in parse_table_array_toml(registry_path.read_text(encoding="utf-8"), "project") if isinstance(item, dict)]
+    except SystemExit as exc:
+        raise SystemExit(f"Invalid adoption registry: {registry_path} ({exc})")
+
+
+def adoption_registry_canaries(project_root: Path) -> list[dict[str, object]]:
+    canaries: list[dict[str, object]] = []
+    for entry in load_adoption_registry(project_root):
+        if bool(entry.get("canary", False)):
+            canaries.append(entry)
+    return canaries
+
+
+def resolve_registry_local_root(project_root: Path, entry: dict[str, object]) -> Path | None:
+    local_root = normalize_optional_text(entry.get("local_root", ""))
+    if local_root:
+        path = Path(local_root)
+        return (project_root / path).resolve() if not path.is_absolute() else path
+    repository = normalize_optional_text(entry.get("repository", ""))
+    if repository == "in-repo example":
+        slug = normalize_optional_text(entry.get("slug", ""))
+        if slug == "okoktoto-v5-example":
+            return (project_root / "examples" / "okoktoto").resolve()
+    if normalize_optional_text(entry.get("slug", "")) == "sula-root":
+        return project_root.resolve()
+    return None
+
+
+def validate_canary_registry_coverage(project_root: Path) -> tuple[list[str], list[dict[str, object]]]:
+    entries = load_adoption_registry(project_root)
+    canaries = [entry for entry in entries if bool(entry.get("canary", False))]
+    covered_profiles = {normalize_optional_text(entry.get("profile", "")) for entry in canaries}
+    expected_profiles = {
+        normalize_optional_text(entry.get("profile", ""))
+        for entry in entries
+        if normalize_optional_text(entry.get("sync_status", "")) != "retired"
+    }
+    expected_profiles.discard("")
+    missing = [profile for profile in sorted(expected_profiles) if profile not in covered_profiles]
+    return missing, canaries
+
+
+def run_sula_subcommand(subcommand: list[str], *, cwd: Path) -> subprocess.CompletedProcess[str]:
+    return subprocess.run(
+        [sys.executable, str(SULA_ROOT / "scripts" / "sula.py"), *subcommand],
+        cwd=str(SULA_ROOT),
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+
+
+def canary_verification_report(project_root: Path, entry: dict[str, object]) -> dict[str, object]:
+    slug = normalize_optional_text(entry.get("slug", ""))
+    local_root = resolve_registry_local_root(project_root, entry)
+    if local_root is None:
+        return {
+            "slug": slug,
+            "name": normalize_optional_text(entry.get("name", "")),
+            "status": "missing-local-root",
+            "local_root": "",
+            "checks": [],
+            "issues": ["registry entry does not declare a resolvable local_root"],
+        }
+    if not local_root.exists():
+        return {
+            "slug": slug,
+            "name": normalize_optional_text(entry.get("name", "")),
+            "status": "missing-local-root",
+            "local_root": str(local_root),
+            "checks": [],
+            "issues": [f"local_root does not exist: {local_root}"],
+        }
+    checks = [
+        ("sync_dry_run", ["sync", "--project-root", str(local_root), "--dry-run"]),
+        ("doctor_strict", ["doctor", "--project-root", str(local_root), "--strict"]),
+        ("check", ["check", "--project-root", str(local_root)]),
+    ]
+    results: list[dict[str, object]] = []
+    issues: list[str] = []
+    overall = "ok"
+    for label, command in checks:
+        completed = run_sula_subcommand(command, cwd=project_root)
+        passed = completed.returncode == 0
+        results.append(
+            {
+                "name": label,
+                "passed": passed,
+                "command": " ".join(command),
+                "stdout": completed.stdout.strip(),
+                "stderr": completed.stderr.strip(),
+            }
+        )
+        if not passed:
+            overall = "failed"
+            issues.append(f"{label} failed")
+    return {
+        "slug": slug,
+        "name": normalize_optional_text(entry.get("name", "")),
+        "status": overall,
+        "local_root": str(local_root),
+        "checks": results,
+        "issues": issues,
+    }
+
+
+def handle_canary_command(project_root: Path, args: argparse.Namespace) -> int:
+    canaries = adoption_registry_canaries(project_root)
+    if args.canary_command == "list":
+        payload = []
+        for entry in canaries:
+            local_root = resolve_registry_local_root(project_root, entry)
+            payload.append(
+                {
+                    "slug": normalize_optional_text(entry.get("slug", "")),
+                    "name": normalize_optional_text(entry.get("name", "")),
+                    "profile": normalize_optional_text(entry.get("profile", "")),
+                    "sync_status": normalize_optional_text(entry.get("sync_status", "")),
+                    "owner": normalize_optional_text(entry.get("owner", "")),
+                    "local_root": str(local_root) if local_root else "",
+                    "notes": normalize_optional_text(entry.get("notes", "")),
+                }
+            )
+        if json_output_requested(args):
+            emit_json({"command": "canary.list", "status": "ok", "project_root": str(project_root), "canaries": payload})
+            return 0
+        print(f"Canaries for {project_root}")
+        for item in payload:
+            print(f"  - {item['slug']} [{item['profile']}] :: {item['local_root'] or 'unresolved'}")
+        if not payload:
+            print("  No canaries.")
+        return 0
+    if args.canary_command == "verify":
+        selected = canaries if args.all or not args.slug else [entry for entry in canaries if normalize_optional_text(entry.get("slug", "")) in set(args.slug)]
+        reports = [canary_verification_report(project_root, entry) for entry in selected]
+        passed = all(item["status"] == "ok" for item in reports) if reports else False
+        missing_profiles, _ = validate_canary_registry_coverage(project_root)
+        payload = {
+            "command": "canary.verify",
+            "status": "ok" if passed and not missing_profiles else "failed",
+            "project_root": str(project_root),
+            "missing_canary_profiles": missing_profiles,
+            "reports": reports,
+        }
+        if json_output_requested(args):
+            emit_json(payload)
+            return 0 if payload["status"] == "ok" else 1
+        print(f"Canary verification for {project_root}")
+        if missing_profiles:
+            print(f"  Missing canary profiles: {', '.join(missing_profiles)}")
+        for item in reports:
+            print(f"  - {item['slug']}: {item['status']}")
+        return 0 if payload["status"] == "ok" else 1
+    raise AssertionError("unreachable")
+
+
+def tracked_files_for_release(project_root: Path) -> list[Path]:
+    result = run_git(project_root, ["ls-files"])
+    if result is not None and result.returncode == 0:
+        return [project_root / line.strip() for line in result.stdout.splitlines() if line.strip()]
+    files: list[Path] = []
+    for path in project_root.rglob("*"):
+        if not path.is_file():
+            continue
+        if ".git" in path.parts:
+            continue
+        files.append(path)
+    return files
+
+
+def scan_public_release_content(project_root: Path) -> tuple[list[str], list[str], list[str]]:
+    local_paths: list[str] = []
+    cloud_refs: list[str] = []
+    secret_like: list[str] = []
+    patterns = [
+        (re.compile(r"/Users/[^/\s]+/(Library/CloudStorage|Documents|Desktop|Downloads|workspace)[^\s]*"), local_paths),
+        (re.compile(r"CloudStorage/GoogleDrive-[^/\s]+@|GoogleDrive-[^/\s]+@"), cloud_refs),
+        (re.compile(r"-----BEGIN (RSA|EC|OPENSSH|DSA) PRIVATE KEY-----"), secret_like),
+        (re.compile(r"AIza[0-9A-Za-z_\-]{20,}"), secret_like),
+        (re.compile(r"sk-[0-9A-Za-z]{20,}"), secret_like),
+    ]
+    for path in tracked_files_for_release(project_root):
+        try:
+            text = path.read_text(encoding="utf-8")
+        except (UnicodeDecodeError, OSError):
+            continue
+        for pattern, bucket in patterns:
+            if pattern.search(text):
+                bucket.append(path.relative_to(project_root).as_posix())
+    return sorted(set(local_paths)), sorted(set(cloud_refs)), sorted(set(secret_like))
+
+
+def public_governance_paths(project_root: Path) -> list[str]:
+    required = [
+        "README.md",
+        "CONTRIBUTING.md",
+        "SECURITY.md",
+        "CODE_OF_CONDUCT.md",
+        ".github/pull_request_template.md",
+        "docs/reference/public-release-readiness.md",
+        "site/sula.json",
+        "site/launch/bootstrap.py",
+    ]
+    return [item for item in required if not (project_root / item).exists()]
+
+
+def git_history_release_issues(project_root: Path) -> list[str]:
+    issues: list[str] = []
+    email_result = run_git(project_root, ["log", "--format=%ae"])
+    if email_result is not None and email_result.returncode == 0:
+        emails = {line.strip() for line in email_result.stdout.splitlines() if line.strip()}
+        if any(email.endswith("@MacBook-Pro.local") for email in emails):
+            issues.append("git history still contains local-author metadata such as @MacBook-Pro.local")
+    return issues
+
+
+def release_readiness_payload(project_root: Path) -> dict[str, object]:
+    missing_governance = public_governance_paths(project_root)
+    local_paths, cloud_refs, secret_like = scan_public_release_content(project_root)
+    history_issues = git_history_release_issues(project_root)
+    missing_profiles, canaries = validate_canary_registry_coverage(project_root)
+    canary_reports = [canary_verification_report(project_root, entry) for entry in canaries]
+    canaries_ok = bool(canary_reports) and all(item["status"] == "ok" for item in canary_reports)
+    issues: list[str] = []
+    issues.extend(f"missing governance file: {item}" for item in missing_governance)
+    issues.extend(f"tracked local path reference found in: {item}" for item in local_paths)
+    issues.extend(f"tracked cloud-drive reference found in: {item}" for item in cloud_refs)
+    issues.extend(f"tracked secret-like material found in: {item}" for item in secret_like)
+    issues.extend(history_issues)
+    issues.extend(f"missing canary profile coverage: {item}" for item in missing_profiles)
+    if not canaries_ok:
+        issues.append("one or more canary verification runs failed")
+    status_result = run_git(project_root, ["status", "--short"]) if is_git_repository(project_root) else None
+    clean_worktree = bool(status_result is None or (status_result.returncode == 0 and not status_result.stdout.strip()))
+    if not clean_worktree:
+        issues.append("working tree is not clean")
+    return {
+        "project_root": str(project_root),
+        "ready": not issues,
+        "missing_governance_files": missing_governance,
+        "local_path_refs": local_paths,
+        "cloud_drive_refs": cloud_refs,
+        "secret_like_refs": secret_like,
+        "history_issues": history_issues,
+        "missing_canary_profiles": missing_profiles,
+        "canary_reports": canary_reports,
+        "clean_worktree": clean_worktree,
+        "issues": issues,
+    }
+
+
+def export_public_release_tree(project_root: Path, output_root: Path, *, overwrite: bool) -> dict[str, object]:
+    if output_root.exists():
+        if not overwrite:
+            raise SystemExit(f"Output already exists: {output_root}")
+        shutil.rmtree(output_root)
+    output_root.mkdir(parents=True, exist_ok=True)
+    tracked = tracked_files_for_release(project_root)
+    copied: list[str] = []
+    for source in tracked:
+        relative = source.relative_to(project_root)
+        destination = output_root / relative
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(source, destination)
+        copied.append(relative.as_posix())
+    manifest_lines = [
+        "# Sula Public Export",
+        "",
+        f"- generated_on: {datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')}",
+        f"- source_root: {project_root}",
+        f"- file_count: {len(copied)}",
+        "",
+        "This export intentionally omits git history so maintainers can create a fresh public repository from a clean tracked-file tree.",
+        "",
+    ]
+    (output_root / "PUBLIC-EXPORT.md").write_text("\n".join(manifest_lines), encoding="utf-8")
+    return {"output_root": str(output_root), "file_count": len(copied), "manifest": "PUBLIC-EXPORT.md"}
+
+
+def handle_release_command(project_root: Path, args: argparse.Namespace) -> int:
+    if args.release_command == "readiness":
+        payload = release_readiness_payload(project_root)
+        wrapped = {"command": "release.readiness", "status": "ok" if payload["ready"] else "failed", **payload}
+        if json_output_requested(args):
+            emit_json(wrapped)
+            return 0 if payload["ready"] else 1
+        print(f"Release readiness for {project_root}")
+        print(f"  Ready: {'yes' if payload['ready'] else 'no'}")
+        for issue in payload["issues"]:
+            print(f"  - {issue}")
+        return 0 if payload["ready"] else 1
+    if args.release_command == "export-public":
+        output_root = Path(args.output).expanduser().resolve()
+        payload = export_public_release_tree(project_root, output_root, overwrite=bool(args.overwrite))
+        wrapped = {"command": "release.export-public", "status": "ok", **payload}
+        if json_output_requested(args):
+            emit_json(wrapped)
+            return 0
+        print(f"Exported clean public-release tree to {output_root}")
+        print(f"  - files: {payload['file_count']}")
+        print(f"  - manifest: {payload['manifest']}")
+        return 0
+    raise AssertionError("unreachable")
 
 
 def detect_first_existing_path(project_root: Path, candidates: list[str]) -> str | None:
@@ -5423,7 +5808,7 @@ def build_adapter_catalog(config: ProjectConfig) -> list[dict[str, object]]:
         if adapter in {"local-fs", "google-drive"}:
             item["provider"] = config.storage_provider
             item["sync_mode"] = config.storage_sync_mode
-            item["workspace_root"] = str(config.storage_workspace_root)
+            item["workspace_root"] = str(config.storage_setting("workspace_root", "."))
             item["provider_root_url"] = config.provider_root_url
             item["provider_root_id"] = config.provider_root_id
         adapters.append(item)
@@ -9173,6 +9558,10 @@ def handle_workflow_command(config: ProjectConfig, args: argparse.Namespace) -> 
         return workflow_assess(config, args)
     if args.workflow_command == "scaffold":
         return workflow_scaffold(config, args)
+    if args.workflow_command == "branch":
+        return workflow_branch(config, args)
+    if args.workflow_command == "close":
+        return workflow_close(config, args)
     raise AssertionError("unreachable")
 
 
@@ -9392,6 +9781,158 @@ def workflow_scaffold(config: ProjectConfig, args: argparse.Namespace) -> int:
         return 0
     print(f"Created workflow {kind} at {output_path}")
     return 0
+
+
+def workflow_branch_payload(config: ProjectConfig, task: str, slug_override: str | None, base_branch_override: str | None) -> dict[str, object]:
+    task_slug = sanitize_slug(slug_override or task)
+    prefix = str(config.data["repository"]["working_branch_prefix"])
+    branch_name = f"{prefix}{task_slug}" if prefix else task_slug
+    base_branch = base_branch_override or normalize_optional_text(config.data["repository"]["primary_branch"]) or detect_primary_branch(config.root)
+    if base_branch in NON_PATH_SENTINELS:
+        base_branch = detect_primary_branch(config.root)
+    isolation = config.workflow_workspace_isolation
+    worktree_root = config.root.parent / f"{config.root.name}-{task_slug}"
+    payload = {
+        "task": task,
+        "slug": task_slug,
+        "isolation": isolation,
+        "branch_name": branch_name,
+        "base_branch": base_branch,
+        "current_branch": detect_git_branch(config.root) if is_git_repository(config.root) else "n/a",
+        "worktree_path": str(worktree_root),
+        "create_command": "",
+    }
+    if isolation == "branch":
+        payload["create_command"] = f"git switch -c {branch_name} {base_branch}"
+    elif isolation == "worktree":
+        payload["create_command"] = f"git worktree add {shlex.quote(str(worktree_root))} -b {branch_name} {base_branch}"
+    return payload
+
+
+def workflow_branch(config: ProjectConfig, args: argparse.Namespace) -> int:
+    payload = workflow_branch_payload(config, args.task, args.slug, args.base_branch)
+    if args.worktree_root:
+        payload["worktree_path"] = str(Path(args.worktree_root).expanduser().resolve())
+        if payload["isolation"] == "worktree":
+            payload["create_command"] = f"git worktree add {shlex.quote(payload['worktree_path'])} -b {payload['branch_name']} {payload['base_branch']}"
+    status = "planned"
+    created_root = ""
+    if args.create:
+        if payload["isolation"] == "none":
+            status = "noop"
+        elif not is_git_repository(config.root):
+            raise SystemExit("workflow branch creation requires a git repository")
+        elif payload["isolation"] == "branch":
+            completed = run_git(config.root, ["switch", "-c", str(payload["branch_name"]), str(payload["base_branch"])])
+            if completed is None or completed.returncode != 0:
+                raise SystemExit(completed.stderr.strip() if completed is not None else "git is not available")
+            status = "created"
+        elif payload["isolation"] == "worktree":
+            worktree_path = Path(str(payload["worktree_path"]))
+            worktree_path.parent.mkdir(parents=True, exist_ok=True)
+            completed = run_git(
+                config.root,
+                ["worktree", "add", str(worktree_path), "-b", str(payload["branch_name"]), str(payload["base_branch"])],
+            )
+            if completed is None or completed.returncode != 0:
+                raise SystemExit(completed.stderr.strip() if completed is not None else "git is not available")
+            status = "created"
+            created_root = str(worktree_path)
+    wrapped = {
+        "command": "workflow.branch",
+        "status": status,
+        "project": project_payload(config),
+        "workflow_branch": {
+            **payload,
+            "created_root": created_root,
+        },
+    }
+    if json_output_requested(args):
+        emit_json(wrapped)
+        return 0
+    print(f"Workflow branch for {config.data['project']['name']}")
+    print(f"  Isolation: {payload['isolation']}")
+    print(f"  Branch: {payload['branch_name']}")
+    if payload["isolation"] == "worktree":
+        print(f"  Worktree: {payload['worktree_path']}")
+    print(f"  Status: {status}")
+    return 0
+
+
+def workflow_artifact_matches_slug(config: ProjectConfig, item: dict[str, object], slug: str, kind: str) -> bool:
+    if normalize_optional_text(item.get("kind", "")) != kind:
+        return False
+    path = normalize_optional_text(item.get("path", ""))
+    docs_root = config.workflow_docs_root.relative_to(config.root).as_posix() if config.workflow_docs_root.is_relative_to(config.root) else "docs/workflows"
+    return path.startswith(f"{docs_root}/") and slug in path
+
+
+def workflow_close(config: ProjectConfig, args: argparse.Namespace) -> int:
+    assessment = workflow_assessment_payload(config, args.task)
+    slug = sanitize_slug(args.slug or args.task)
+    catalog = load_artifact_catalog(config)
+    required_kinds = list(assessment["recommended"]["scaffolds"])
+    matched: dict[str, dict[str, object]] = {}
+    for kind in required_kinds:
+        for item in catalog.get("artifacts", []):
+            if isinstance(item, dict) and workflow_artifact_matches_slug(config, item, slug, kind):
+                matched[kind] = item
+                break
+    missing = [kind for kind in required_kinds if kind not in matched]
+    doctor_code = doctor(config, strict=bool(args.doctor_strict), emit_output=False)
+    check_code = daily_check(config, emit_output=False)
+    branch_name = detect_git_branch(config.root) if is_git_repository(config.root) else "n/a"
+    clean = is_clean_git_worktree(config.root) if is_git_repository(config.root) else True
+    primary_branch = normalize_optional_text(config.data["repository"]["primary_branch"]) or detect_primary_branch(config.root)
+    blocked_reasons: list[str] = []
+    if missing:
+        blocked_reasons.append(f"missing workflow documents: {', '.join(missing)}")
+    if check_code != 0:
+        blocked_reasons.append("sula check is failing")
+    if args.doctor_strict and doctor_code != 0:
+        blocked_reasons.append("doctor --strict is failing")
+    if config.workflow_workspace_isolation in {"branch", "worktree"} and is_git_repository(config.root) and branch_name == primary_branch:
+        blocked_reasons.append(f"still on protected branch `{primary_branch}`")
+    if blocked_reasons:
+        status = "blocked"
+    elif is_git_repository(config.root) and not clean:
+        status = "pr-needed"
+    else:
+        status = "merge-ready"
+    payload = {
+        "command": "workflow.close",
+        "status": status,
+        "project": project_payload(config),
+        "task": args.task,
+        "slug": slug,
+        "required_documents": required_kinds,
+        "matched_documents": {
+            kind: normalize_optional_text(item.get("path", ""))
+            for kind, item in matched.items()
+        },
+        "missing_documents": missing,
+        "git": {
+            "is_repository": is_git_repository(config.root),
+            "current_branch": branch_name,
+            "primary_branch": primary_branch,
+            "clean_worktree": clean,
+        },
+        "checks": {
+            "check_passed": check_code == 0,
+            "doctor_strict_required": bool(args.doctor_strict),
+            "doctor_strict_passed": doctor_code == 0,
+        },
+        "issues": blocked_reasons,
+    }
+    if json_output_requested(args):
+        emit_json(payload)
+        return 0 if status != "blocked" else 1
+    print(f"Workflow close for {config.data['project']['name']}")
+    print(f"  Status: {status}")
+    if blocked_reasons:
+        for item in blocked_reasons:
+            print(f"  - {item}")
+    return 0 if status != "blocked" else 1
 
 
 def handle_artifact_command(config: ProjectConfig, args: argparse.Namespace) -> int:

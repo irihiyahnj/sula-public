@@ -12,8 +12,8 @@ Before any version bump or tag:
 2. update [CHANGELOG.md](../CHANGELOG.md) with a `Sync Impact` section
 3. review [../registry/feedback/catalog.json](../registry/feedback/catalog.json) and triage reusable feedback targeted for this release
 4. run `python3 -m unittest discover -s tests -v`
-5. review `python3 scripts/sula.py sync --project-root <project> --dry-run` against each canary project
-6. run `python3 scripts/sula.py doctor --project-root <project> --strict` on each canary project after sync
+5. run `python3 scripts/sula.py canary verify --project-root . --all`
+6. review `python3 scripts/sula.py sync --project-root <project> --dry-run` against any additional external canary projects that are not addressable through `local_root`
 7. regenerate any canary `memory digest` outputs that are committed by policy
 
 ## Rollout Rules
@@ -28,7 +28,7 @@ Before any version bump or tag:
 1. finish implementation and tests on a working branch
 2. update docs, changelog, and registry metadata
 3. bump [../VERSION](../VERSION)
-4. run canary dry-runs and canary doctor checks
+4. run `python3 scripts/sula.py canary verify --project-root . --all`
 5. tag the release
 6. sync canary repositories
 7. mark shipped feedback items as `released`

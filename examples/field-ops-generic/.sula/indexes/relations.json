@@ -1,0 +1,116 @@
+{
+  "version": "0.11.0",
+  "profile": "generic-project",
+  "relations": [
+    {
+      "from": "project:field-ops-generic-canary",
+      "to": "project-manifest",
+      "type": "derived-from"
+    },
+    {
+      "from": "project:field-ops-generic-canary",
+      "to": "source:status-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "state:current",
+      "to": "source:status-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "task:status:keep-the-generic-project-canary-aligned-with-current-managed-templates",
+      "to": "source:status-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "task:status:use-it-as-a-local-rollout-target-before-broader-generic-project-sync-changes",
+      "to": "source:status-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "decision:status:2026-04-16-promoted-this-example-into-a-generic-project-rollout-canary-for-local-sula-verification",
+      "to": "source:status-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "decision:status:2026-04-16-added-promote-field-ops-example-into-generic-project-canary-docs-change-records-2026-04-16-promote-field-ops-example-into-generic-project-canary-md",
+      "to": "source:status-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "person:status:sula-core-maintainers",
+      "to": "source:status-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "milestone:status:next-review:2026-04-23",
+      "to": "source:status-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "change:2026-04-16-promote-field-ops-example-into-generic-project-canary",
+      "to": "source:docs-change-records-2026-04-16-promote-field-ops-example-into-generic-project-canary-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "object:source:agents-md",
+      "to": "source:agents-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "object:source:change-records-md",
+      "to": "source:change-records-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "object:source:readme-md",
+      "to": "source:readme-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "object:source:status-md",
+      "to": "source:status-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "object:source:docs-change-records-2026-04-16-promote-field-ops-example-into-generic-project-canary-md",
+      "to": "source:docs-change-records-2026-04-16-promote-field-ops-example-into-generic-project-canary-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "object:source:docs-change-records-readme-md",
+      "to": "source:docs-change-records-readme-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "object:source:docs-change-records-template-md",
+      "to": "source:docs-change-records-template-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "object:source:docs-incidents-readme-md",
+      "to": "source:docs-incidents-readme-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "object:source:docs-incidents-template-md",
+      "to": "source:docs-incidents-template-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "object:source:docs-releases-readme-md",
+      "to": "source:docs-releases-readme-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "object:source:docs-releases-template-md",
+      "to": "source:docs-releases-template-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "risk:docs-releases-template-md:fill-in-risks",
+      "to": "source:docs-releases-template-md",
+      "type": "derived-from"
+    }
+  ]
+}

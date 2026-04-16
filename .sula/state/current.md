@@ -23,9 +23,11 @@
 - Formal document design is now a first-class Sula capability: adopted projects can carry reusable source-first structure bundles for schedule, proposal, report, process, and training documents instead of relying on one-off prompt instructions.
 - Sula now has a documented proposal for absorbing long-term value from workflow systems like `obra/superpowers` through manifest-driven capability contracts instead of platform-specific skill lock-in.
 - Sula now implements the first workflow-capability slice from that proposal: manifest-level workflow rigor policy plus source-first `spec`, `plan`, and `review` scaffolds under `docs/workflows/`.
+- Sula now completes that workflow slice with first-class `workflow branch` and `workflow close` commands, so complex work can move from policy assessment to explicit closeout readiness.
 - The next UX milestone is now implemented too: `onboard` provides a zero-memory interview flow that asks setup questions, explains what Sula will manage, and then applies adoption through the same kernel contract.
 - The next launch milestone is now implemented too: the public site exposes `/launch/`, a machine-readable launcher descriptor, and a downloadable `bootstrap.py` shim so startup no longer depends on guessing local commands.
 - The feedback-bundle lifecycle is now released in the Git-backed Sula 0.11.0 source state: adopted projects can capture reusable local Sula fixes as feedback bundles, and Sula Core can ingest, review, and release them through a central queue.
+- Sula now has registry-backed in-repo canary verification across `sula-core`, `software-delivery`, `generic-project`, and `client-service`-style examples, plus public-release readiness and export commands that isolate remaining publication risk to git history rather than content drift.
 
 ## Health
 
@@ -36,15 +38,17 @@
 
 - choose the public release path: sanitized history rewrite or fresh public repository
 - validate the new `adopt` flow against the first external repository
+- run the first external canaries through the new `canary verify` contract
 - keep `sula-core` and `react-frontend-erpnext` profiles aligned with real usage
 - validate the new `generic-project` and `remove` flows against external canaries
 - validate portfolio registration, artifact routing, and `google-drive` local-sync behavior against the first real client-service workspace
 - validate the new formal-document bundles against the first real planning-heavy client workspace and confirm where Google Docs import needs richer tabular bridge defaults
 - validate the released feedback-bundle lifecycle through the first external adopted project and the first real Sula Core feedback item that flows through the queue end to end
-- validate the new workflow policy defaults and `docs/workflows` scaffolds against the first external software-delivery canary before adding `workflow branch` or `workflow close`
+- validate the now-complete workflow policy, scaffold, branch, and close loop against the first external software-delivery canary
 - turn the recorded vNext architecture into stronger adapter composition and better result quality over the new SQLite-backed retrieval path
 - maintain clear approval reporting so managed/scaffold boundaries remain obvious during onboarding
 - keep the public bootstrap contract aligned with real consumer behavior and protocol failures seen in live use
+- dry-run `release export-public` into the eventual fresh public repository path if history rewriting is rejected
 
 ## Blockers
 
@@ -71,6 +75,7 @@
 - 2026-04-15: added [Add daily Sula check workflow for state-sync verification](docs/change-records/2026-04-15-add-daily-sula-check-workflow-for-state-sync-verification.md)
 - 2026-04-16: added [Document Superpowers capability absorption plan](docs/change-records/2026-04-16-document-superpowers-capability-absorption-plan.md)
 - 2026-04-16: added [Add workflow policy and source-first workflow scaffolds](docs/change-records/2026-04-16-add-workflow-policy-and-source-first-workflow-scaffolds.md)
+- 2026-04-16: added [Complete workflow close, canary verification, and release readiness](docs/change-records/2026-04-16-complete-workflow-close-canary-and-release-readiness.md)
 - 2026-04-12: added [Add guided onboarding and zero-memory setup flow](docs/change-records/2026-04-12-add-guided-onboarding-and-zero-memory-setup-flow.md)
 - 2026-04-12: added [Add site launch contract and canonical bootstrap shim](docs/change-records/2026-04-12-add-site-launch-contract-and-canonical-bootstrap-shim.md)
 - 2026-04-12: added [Add feedback bundles and Sula Core review workflow](docs/change-records/2026-04-12-add-feedback-bundles-and-core-review-workflow.md)

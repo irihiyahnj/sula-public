@@ -24,6 +24,7 @@ Each `[[project]]` entry should record:
 - `current_sula_version`
 - `sync_status`
 - `canary`
+- `local_root`
 - `owner`
 - `notes`
 
@@ -32,5 +33,6 @@ Each `[[project]]` entry should record:
 - Add a project to the registry before its first production sync from Sula Core.
 - Mark at least one project per active profile as `canary = true`.
 - If no external canary exists yet, an in-repo example can act as a temporary canary, but it should be labeled clearly in `notes`.
+- Set `local_root` whenever Sula Core should be able to run automated canary verification commands against a local checkout.
 - Update `current_sula_version` after every successful sync batch.
 - Use `sync_status` to distinguish planned, canary, active, paused, or retired projects.

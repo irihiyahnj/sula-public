@@ -10,7 +10,7 @@ If this file conflicts with `AGENTS.md`, `AGENTS.md` wins.
 - Treat user requests as end-to-end delivery requests unless the user explicitly asks only for analysis, brainstorming, or a plan.
 - Use [docs/README.md](docs/README.md) as the documentation map.
 - Follow [docs/ops/team-operating-model.md](docs/ops/team-operating-model.md) as the default execution flow.
-- Follow [docs/ops/document-design-principles.md](docs/ops/document-design-principles.md) for formal planning, proposal, report, process, and training documents.
+- If the project enables formal document design rules, follow them for planning, proposal, report, process, and training documents.
 
 ## Critical Reminders
 

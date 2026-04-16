@@ -31,7 +31,7 @@
       "id": "state:current",
       "kind": "state",
       "title": "Current Project State",
-      "summary": "- Sula now manages itself as a first-class `sula-core` consumer while still acting as the source repository for reusable operating-system assets.\n- The repository has memory-aware governance, an in-repo canary, a root self-adoption path, and an approval-based adoption agent for bringing new repositories under Sula.\n- Public-release governance is now in place, and the remaining blocker is historical lineage cleanup rather than working-tree quality.\n- The future `sula.1stp.monster` landing page is now represented by real static site assets with canonical long-form bootstrap prompts and protocol pages.\n- The bootstrap site is now live on both `https://sula.fly.dev/` and `https://sula.1stp.monster/`, with the public bootstrap contract explicitly handling existing Sula consumers and canonical tool-source resolution.\n- Sula now has a recorded vNext architecture target for a `generic-project` kernel, adapter bundles, scientific retrieval, and first-class removal semantics.\n- The first milestone of that direction is now implemented: unknown and non-Git projects can adopt through `generic-project`, `.sula/` holds kernel artifacts, and removal has a report-first command.\n- The second milestone is now implemented as well: local retrieval can rebuild from SQLite, kernel objects cover task/decision/risk/person/agreement/milestone shapes, and query supports stronger filters plus timeline output.\n- The next operating milestone is now implemented too: machine-readable CLI responses, workflow/storage/portfolio manifest sections, artifact routing, and portfolio registration are available for non-code client projects.\n- Drive-synced projects can now describe `google-drive` as an adapter instead of pretending that storage provider is a project type, which keeps the kernel portable for future providers.\n- Collaborative provider-backed artifact families can now declare their truth source, refresh state, and stale-local-copy risk, so Sula can prefer shared Google-native facts when users ask for the latest version in natural language.\n- Sula now has a real read-only provider refresh path for Google Docs and Google Sheets, plus `artifact refresh` and cached provider snapshots, so freshness intent can trigger an actual provider metadata refresh instead of only local re-ranking.\n- Sula now has a first-class daily `check` workflow, so state-sync work can fail fast when `.sula/state/current.md` or `.sula/memory-digest.md` drift away from the current status and change records.\n- Formal document design is now a first-class Sula capability: adopted projects can carry reusable source-first structure bundles for schedule, proposal, report, process, and training documents instead of relying on one-off prompt instructions.\n- Sula now has a documented proposal for absorbing long-term value from workflow systems like `obra/superpowers` through manifest-driven capability contracts instead of platform-specific skill lock-in.\n- Sula now implements the first workflow-capability slice from that proposal: manifest-level workflow rigor policy plus source-first `spec`, `plan`, and `review` scaffolds under `docs/workflows/`.\n- The next UX milestone is now implemented too: `onboard` provides a zero-memory interview flow that asks setup questions, explains what Sula will manage, and then applies adoption through the same kernel contract.\n- The next launch milestone is now implemented too: the public site exposes `/launch/`, a machine-readable launcher descriptor, and a downloadable `bootstrap.py` shim so startup no longer depends on guessing local commands.\n- The feedback-bundle lifecycle is now released in the Git-backed Sula 0.11.0 source state: adopted projects can capture reusable local Sula fixes as feedback bundles, and Sula Core can ingest, review, and release them through a central queue.",
+      "summary": "- Sula now manages itself as a first-class `sula-core` consumer while still acting as the source repository for reusable operating-system assets.\n- The repository has memory-aware governance, an in-repo canary, a root self-adoption path, and an approval-based adoption agent for bringing new repositories under Sula.\n- Public-release governance is now in place, and the remaining blocker is historical lineage cleanup rather than working-tree quality.\n- The future `sula.1stp.monster` landing page is now represented by real static site assets with canonical long-form bootstrap prompts and protocol pages.\n- The bootstrap site is now live on both `https://sula.fly.dev/` and `https://sula.1stp.monster/`, with the public bootstrap contract explicitly handling existing Sula consumers and canonical tool-source resolution.\n- Sula now has a recorded vNext architecture target for a `generic-project` kernel, adapter bundles, scientific retrieval, and first-class removal semantics.\n- The first milestone of that direction is now implemented: unknown and non-Git projects can adopt through `generic-project`, `.sula/` holds kernel artifacts, and removal has a report-first command.\n- The second milestone is now implemented as well: local retrieval can rebuild from SQLite, kernel objects cover task/decision/risk/person/agreement/milestone shapes, and query supports stronger filters plus timeline output.\n- The next operating milestone is now implemented too: machine-readable CLI responses, workflow/storage/portfolio manifest sections, artifact routing, and portfolio registration are available for non-code client projects.\n- Drive-synced projects can now describe `google-drive` as an adapter instead of pretending that storage provider is a project type, which keeps the kernel portable for future providers.\n- Collaborative provider-backed artifact families can now declare their truth source, refresh state, and stale-local-copy risk, so Sula can prefer shared Google-native facts when users ask for the latest version in natural language.\n- Sula now has a real read-only provider refresh path for Google Docs and Google Sheets, plus `artifact refresh` and cached provider snapshots, so freshness intent can trigger an actual provider metadata refresh instead of only local re-ranking.\n- Sula now has a first-class daily `check` workflow, so state-sync work can fail fast when `.sula/state/current.md` or `.sula/memory-digest.md` drift away from the current status and change records.\n- Formal document design is now a first-class Sula capability: adopted projects can carry reusable source-first structure bundles for schedule, proposal, report, process, and training documents instead of relying on one-off prompt instructions.\n- Sula now has a documented proposal for absorbing long-term value from workflow systems like `obra/superpowers` through manifest-driven capability contracts instead of platform-specific skill lock-in.\n- Sula now implements the first workflow-capability slice from that proposal: manifest-level workflow rigor policy plus source-first `spec`, `plan`, and `review` scaffolds under `docs/workflows/`.\n- Sula now completes that workflow slice with first-class `workflow branch` and `workflow close` commands, so complex work can move from policy assessment to explicit closeout readiness.\n- The next UX milestone is now implemented too: `onboard` provides a zero-memory interview flow that asks setup questions, explains what Sula will manage, and then applies adoption through the same kernel contract.\n- The next launch milestone is now implemented too: the public site exposes `/launch/`, a machine-readable launcher descriptor, and a downloadable `bootstrap.py` shim so startup no longer depends on guessing local commands.\n- The feedback-bundle lifecycle is now released in the Git-backed Sula 0.11.0 source state: adopted projects can capture reusable local Sula fixes as feedback bundles, and Sula Core can ingest, review, and release them through a central queue.\n- Sula now has registry-backed in-repo canary verification across `sula-core`, `software-delivery`, `generic-project`, and `client-service`-style examples, plus public-release readiness and export commands that isolate remaining publication risk to git history rather than content drift.",
       "status": "current",
       "path": "STATUS.md",
       "source_paths": [
@@ -71,6 +71,26 @@
       "kind": "task",
       "title": "validate the new `adopt` flow against the first external repository",
       "summary": "validate the new `adopt` flow against the first external repository",
+      "status": "open",
+      "path": "STATUS.md",
+      "source_paths": [
+        "STATUS.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "current-focus",
+        "status"
+      ],
+      "date": "2026-04-16"
+    },
+    {
+      "id": "task:status:run-the-first-external-canaries-through-the-new-canary-verify-contract",
+      "kind": "task",
+      "title": "run the first external canaries through the new `canary verify` contract",
+      "summary": "run the first external canaries through the new `canary verify` contract",
       "status": "open",
       "path": "STATUS.md",
       "source_paths": [
@@ -187,10 +207,10 @@
       "date": "2026-04-16"
     },
     {
-      "id": "task:status:validate-the-new-workflow-policy-defaults-and-docs-workflows-scaffolds-against-the-first-external-software-delivery-canary-before-adding-workflow-branch-or-workflow-close",
+      "id": "task:status:validate-the-now-complete-workflow-policy-scaffold-branch-and-close-loop-against-the-first-external-software-delivery-canary",
       "kind": "task",
-      "title": "validate the new workflow policy defaults and `docs/workflows` scaffolds agai...",
-      "summary": "validate the new workflow policy defaults and `docs/workflows` scaffolds against the first external software-delivery canary before adding `workflow branch` or `workflow close`",
+      "title": "validate the now-complete workflow policy, scaffold, branch, and close loop a...",
+      "summary": "validate the now-complete workflow policy, scaffold, branch, and close loop against the first external software-delivery canary",
       "status": "open",
       "path": "STATUS.md",
       "source_paths": [
@@ -251,6 +271,26 @@
       "kind": "task",
       "title": "keep the public bootstrap contract aligned with real consumer behavior and pr...",
       "summary": "keep the public bootstrap contract aligned with real consumer behavior and protocol failures seen in live use",
+      "status": "open",
+      "path": "STATUS.md",
+      "source_paths": [
+        "STATUS.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "current-focus",
+        "status"
+      ],
+      "date": "2026-04-16"
+    },
+    {
+      "id": "task:status:dry-run-release-export-public-into-the-eventual-fresh-public-repository-path-if-history-rewriting-is-rejected",
+      "kind": "task",
+      "title": "dry-run `release export-public` into the eventual fresh public repository pat...",
+      "summary": "dry-run `release export-public` into the eventual fresh public repository path if history rewriting is rejected",
       "status": "open",
       "path": "STATUS.md",
       "source_paths": [
@@ -647,6 +687,26 @@
       "date": "2026-04-16"
     },
     {
+      "id": "decision:status:2026-04-16-added-complete-workflow-close-canary-verification-and-release-readiness-docs-change-records-2026-04-16-complete-workflow-close-canary-and-release-readiness-md",
+      "kind": "decision",
+      "title": "2026-04-16: added [Complete workflow close, canary verification, and release...",
+      "summary": "2026-04-16: added [Complete workflow close, canary verification, and release readiness](docs/change-records/2026-04-16-complete-workflow-close-canary-and-release-readiness.md)",
+      "status": "decided",
+      "path": "STATUS.md",
+      "source_paths": [
+        "STATUS.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "recent-decision",
+        "status"
+      ],
+      "date": "2026-04-16"
+    },
+    {
       "id": "decision:status:2026-04-12-added-add-guided-onboarding-and-zero-memory-setup-flow-docs-change-records-2026-04-12-add-guided-onboarding-and-zero-memory-setup-flow-md",
       "kind": "decision",
       "title": "2026-04-12: added [Add guided onboarding and zero-memory setup flow](docs/cha...",
@@ -822,6 +882,44 @@
       ],
       "tags": [
         "change"
+      ],
+      "date": "2026-04-16"
+    },
+    {
+      "id": "change:2026-04-16-complete-workflow-close-canary-and-release-readiness",
+      "kind": "change",
+      "title": "Complete workflow close, canary verification, and release readiness",
+      "summary": "- date: 2026-04-16 - executor: Codex - branch: main - related commit(s): pending - status: completed",
+      "status": "recorded",
+      "path": "docs/change-records/2026-04-16-complete-workflow-close-canary-and-release-readiness.md",
+      "source_paths": [
+        "docs/change-records/2026-04-16-complete-workflow-close-canary-and-release-readiness.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "change"
+      ],
+      "date": "2026-04-16"
+    },
+    {
+      "id": "agreement:2026-04-16-complete-workflow-close-canary-and-release-readiness",
+      "kind": "agreement",
+      "title": "Complete workflow close, canary verification, and release readiness",
+      "summary": "- date: 2026-04-16 - executor: Codex - branch: main - related commit(s): pending - status: completed",
+      "status": "active",
+      "path": "docs/change-records/2026-04-16-complete-workflow-close-canary-and-release-readiness.md",
+      "source_paths": [
+        "docs/change-records/2026-04-16-complete-workflow-close-canary-and-release-readiness.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "agreement"
       ],
       "date": "2026-04-16"
     },
@@ -2705,6 +2803,53 @@
       "date": "2026-04-16"
     },
     {
+      "id": "object:source:docs-change-records-2026-04-16-complete-workflow-close-canary-and-release-readiness-md",
+      "kind": "document",
+      "title": "2026-04-16-complete-workflow-close-canary-and-release-readiness.md",
+      "summary": "- date: 2026-04-16 - executor: Codex - branch: main - related commit(s): pending - status: completed",
+      "status": "indexed",
+      "path": "docs/change-records/2026-04-16-complete-workflow-close-canary-and-release-readiness.md",
+      "source_paths": [
+        "docs/change-records/2026-04-16-complete-workflow-close-canary-and-release-readiness.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "memory",
+        "repo",
+        "release"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": "2026-04-16"
+    },
+    {
+      "id": "agreement:source:docs-change-records-2026-04-16-complete-workflow-close-canary-and-release-readiness-md",
+      "kind": "agreement",
+      "title": "Complete workflow close, canary verification, and release readiness",
+      "summary": "- date: 2026-04-16 - executor: Codex - branch: main - related commit(s): pending - status: completed",
+      "status": "active",
+      "path": "docs/change-records/2026-04-16-complete-workflow-close-canary-and-release-readiness.md",
+      "source_paths": [
+        "docs/change-records/2026-04-16-complete-workflow-close-canary-and-release-readiness.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "memory",
+        "repo",
+        "release"
+      ],
+      "tags": [
+        "agreement",
+        "source"
+      ],
+      "date": "2026-04-16"
+    },
+    {
       "id": "object:source:docs-change-records-2026-04-16-document-superpowers-capability-absorption-plan-md",
       "kind": "document",
       "title": "2026-04-16-document-superpowers-capability-absorption-plan.md",
@@ -3505,6 +3650,534 @@
       "tags": [
         "agreement",
         "source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:examples-client-service-gdrive-agents-md",
+      "kind": "document",
+      "title": "AGENTS.md",
+      "summary": "This file is the primary instruction source for AI agents working in this project.",
+      "status": "indexed",
+      "path": "examples/client-service-gdrive/AGENTS.md",
+      "source_paths": [
+        "examples/client-service-gdrive/AGENTS.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:examples-client-service-gdrive-change-records-md",
+      "kind": "document",
+      "title": "CHANGE-RECORDS.md",
+      "summary": "This file is the index for non-trivial project changes.",
+      "status": "indexed",
+      "path": "examples/client-service-gdrive/CHANGE-RECORDS.md",
+      "source_paths": [
+        "examples/client-service-gdrive/CHANGE-RECORDS.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:examples-client-service-gdrive-readme-md",
+      "kind": "document",
+      "title": "README.md",
+      "summary": "Client-service canary with Google Drive adapter metadata",
+      "status": "indexed",
+      "path": "examples/client-service-gdrive/README.md",
+      "source_paths": [
+        "examples/client-service-gdrive/README.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:examples-client-service-gdrive-status-md",
+      "kind": "document",
+      "title": "STATUS.md",
+      "summary": "- last updated: 2026-04-16",
+      "status": "indexed",
+      "path": "examples/client-service-gdrive/STATUS.md",
+      "source_paths": [
+        "examples/client-service-gdrive/STATUS.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": "2026-04-16"
+    },
+    {
+      "id": "object:source:examples-client-service-gdrive-docs-change-records-2026-04-16-promote-client-service-drive-example-into-canary-md",
+      "kind": "document",
+      "title": "2026-04-16-promote-client-service-drive-example-into-canary.md",
+      "summary": "- date: 2026-04-16 - executor: Codex - branch: main - related commit(s): pending - status: completed",
+      "status": "indexed",
+      "path": "examples/client-service-gdrive/docs/change-records/2026-04-16-promote-client-service-drive-example-into-canary.md",
+      "source_paths": [
+        "examples/client-service-gdrive/docs/change-records/2026-04-16-promote-client-service-drive-example-into-canary.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "memory",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": "2026-04-16"
+    },
+    {
+      "id": "object:source:examples-client-service-gdrive-docs-change-records-readme-md",
+      "kind": "document",
+      "title": "README.md",
+      "summary": "Store detailed non-trivial change records in this directory.",
+      "status": "indexed",
+      "path": "examples/client-service-gdrive/docs/change-records/README.md",
+      "source_paths": [
+        "examples/client-service-gdrive/docs/change-records/README.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "memory",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:examples-client-service-gdrive-docs-change-records-template-md",
+      "kind": "document",
+      "title": "_template.md",
+      "summary": "- date: {{DATE}} - executor: {{EXECUTOR}} - branch: {{BRANCH}} - related commit(s): {{RELATED_COMMITS}} - status: {{STATUS}}",
+      "status": "indexed",
+      "path": "examples/client-service-gdrive/docs/change-records/_template.md",
+      "source_paths": [
+        "examples/client-service-gdrive/docs/change-records/_template.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "memory",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:examples-client-service-gdrive-docs-incidents-readme-md",
+      "kind": "document",
+      "title": "README.md",
+      "summary": "Store incident or recovery history in this directory.",
+      "status": "indexed",
+      "path": "examples/client-service-gdrive/docs/incidents/README.md",
+      "source_paths": [
+        "examples/client-service-gdrive/docs/incidents/README.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "memory",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:examples-client-service-gdrive-docs-incidents-template-md",
+      "kind": "document",
+      "title": "_template.md",
+      "summary": "- date: {{DATE}} - executor: {{EXECUTOR}} - branch: {{BRANCH}} - status: {{STATUS}}",
+      "status": "indexed",
+      "path": "examples/client-service-gdrive/docs/incidents/_template.md",
+      "source_paths": [
+        "examples/client-service-gdrive/docs/incidents/_template.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "memory",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:examples-client-service-gdrive-docs-releases-readme-md",
+      "kind": "document",
+      "title": "README.md",
+      "summary": "Store release-specific rollout notes in this directory when deployment history matters.",
+      "status": "indexed",
+      "path": "examples/client-service-gdrive/docs/releases/README.md",
+      "source_paths": [
+        "examples/client-service-gdrive/docs/releases/README.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "memory",
+        "repo",
+        "release"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:examples-client-service-gdrive-docs-releases-template-md",
+      "kind": "document",
+      "title": "_template.md",
+      "summary": "- date: {{DATE}} - executor: {{EXECUTOR}} - branch: {{BRANCH}} - status: {{STATUS}}",
+      "status": "indexed",
+      "path": "examples/client-service-gdrive/docs/releases/_template.md",
+      "source_paths": [
+        "examples/client-service-gdrive/docs/releases/_template.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "memory",
+        "repo",
+        "release"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "risk:examples-client-service-gdrive-docs-releases-template-md:fill-in-risks",
+      "kind": "risk",
+      "title": "_fill in risks_",
+      "summary": "_fill in risks_",
+      "status": "open",
+      "path": "examples/client-service-gdrive/docs/releases/_template.md",
+      "source_paths": [
+        "examples/client-service-gdrive/docs/releases/_template.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "memory",
+        "repo",
+        "release"
+      ],
+      "tags": [
+        "risk",
+        "section-object"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:examples-field-ops-generic-agents-md",
+      "kind": "document",
+      "title": "AGENTS.md",
+      "summary": "This file is the primary instruction source for AI agents working in this project.",
+      "status": "indexed",
+      "path": "examples/field-ops-generic/AGENTS.md",
+      "source_paths": [
+        "examples/field-ops-generic/AGENTS.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:examples-field-ops-generic-change-records-md",
+      "kind": "document",
+      "title": "CHANGE-RECORDS.md",
+      "summary": "This file is the index for non-trivial project changes.",
+      "status": "indexed",
+      "path": "examples/field-ops-generic/CHANGE-RECORDS.md",
+      "source_paths": [
+        "examples/field-ops-generic/CHANGE-RECORDS.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:examples-field-ops-generic-readme-md",
+      "kind": "document",
+      "title": "README.md",
+      "summary": "Generic-project canary for Sula rollout validation",
+      "status": "indexed",
+      "path": "examples/field-ops-generic/README.md",
+      "source_paths": [
+        "examples/field-ops-generic/README.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:examples-field-ops-generic-status-md",
+      "kind": "document",
+      "title": "STATUS.md",
+      "summary": "- last updated: 2026-04-16",
+      "status": "indexed",
+      "path": "examples/field-ops-generic/STATUS.md",
+      "source_paths": [
+        "examples/field-ops-generic/STATUS.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": "2026-04-16"
+    },
+    {
+      "id": "object:source:examples-field-ops-generic-docs-change-records-2026-04-16-promote-field-ops-example-into-generic-project-canary-md",
+      "kind": "document",
+      "title": "2026-04-16-promote-field-ops-example-into-generic-project-canary.md",
+      "summary": "- date: 2026-04-16 - executor: Codex - branch: main - related commit(s): pending - status: completed",
+      "status": "indexed",
+      "path": "examples/field-ops-generic/docs/change-records/2026-04-16-promote-field-ops-example-into-generic-project-canary.md",
+      "source_paths": [
+        "examples/field-ops-generic/docs/change-records/2026-04-16-promote-field-ops-example-into-generic-project-canary.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "memory",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": "2026-04-16"
+    },
+    {
+      "id": "object:source:examples-field-ops-generic-docs-change-records-readme-md",
+      "kind": "document",
+      "title": "README.md",
+      "summary": "Store detailed non-trivial change records in this directory.",
+      "status": "indexed",
+      "path": "examples/field-ops-generic/docs/change-records/README.md",
+      "source_paths": [
+        "examples/field-ops-generic/docs/change-records/README.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "memory",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:examples-field-ops-generic-docs-change-records-template-md",
+      "kind": "document",
+      "title": "_template.md",
+      "summary": "- date: {{DATE}} - executor: {{EXECUTOR}} - branch: {{BRANCH}} - related commit(s): {{RELATED_COMMITS}} - status: {{STATUS}}",
+      "status": "indexed",
+      "path": "examples/field-ops-generic/docs/change-records/_template.md",
+      "source_paths": [
+        "examples/field-ops-generic/docs/change-records/_template.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "memory",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:examples-field-ops-generic-docs-incidents-readme-md",
+      "kind": "document",
+      "title": "README.md",
+      "summary": "Store incident or recovery history in this directory.",
+      "status": "indexed",
+      "path": "examples/field-ops-generic/docs/incidents/README.md",
+      "source_paths": [
+        "examples/field-ops-generic/docs/incidents/README.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "memory",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:examples-field-ops-generic-docs-incidents-template-md",
+      "kind": "document",
+      "title": "_template.md",
+      "summary": "- date: {{DATE}} - executor: {{EXECUTOR}} - branch: {{BRANCH}} - status: {{STATUS}}",
+      "status": "indexed",
+      "path": "examples/field-ops-generic/docs/incidents/_template.md",
+      "source_paths": [
+        "examples/field-ops-generic/docs/incidents/_template.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "memory",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:examples-field-ops-generic-docs-releases-readme-md",
+      "kind": "document",
+      "title": "README.md",
+      "summary": "Store release-specific rollout notes in this directory when deployment history matters.",
+      "status": "indexed",
+      "path": "examples/field-ops-generic/docs/releases/README.md",
+      "source_paths": [
+        "examples/field-ops-generic/docs/releases/README.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "memory",
+        "repo",
+        "release"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:examples-field-ops-generic-docs-releases-template-md",
+      "kind": "document",
+      "title": "_template.md",
+      "summary": "- date: {{DATE}} - executor: {{EXECUTOR}} - branch: {{BRANCH}} - status: {{STATUS}}",
+      "status": "indexed",
+      "path": "examples/field-ops-generic/docs/releases/_template.md",
+      "source_paths": [
+        "examples/field-ops-generic/docs/releases/_template.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "memory",
+        "repo",
+        "release"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "risk:examples-field-ops-generic-docs-releases-template-md:fill-in-risks",
+      "kind": "risk",
+      "title": "_fill in risks_",
+      "summary": "_fill in risks_",
+      "status": "open",
+      "path": "examples/field-ops-generic/docs/releases/_template.md",
+      "source_paths": [
+        "examples/field-ops-generic/docs/releases/_template.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "memory",
+        "repo",
+        "release"
+      ],
+      "tags": [
+        "risk",
+        "section-object"
       ],
       "date": null
     },
@@ -4349,7 +5022,7 @@
       "id": "object:source:registry-adopted-projects-toml",
       "kind": "config",
       "title": "adopted-projects.toml",
-      "summary": "[[project]] slug = \"okoktoto-v5-example\" name = \"OKOKTOTO v5 Example Canary\" profile = \"react-frontend-erpnext\" repository = \"in-repo example\" primary_branch = \"main\" deployment_branch = \"okoktoto-v5\" current_sula_version = \"0.4.0\" sync_sta",
+      "summary": "[[project]] slug = \"okoktoto-v5-example\" name = \"OKOKTOTO v5 Example Canary\" profile = \"react-frontend-erpnext\" repository = \"in-repo example\" primary_branch = \"main\" deployment_branch = \"okoktoto-v5\" current_sula_version = \"0.11.0\" sync_st",
       "status": "indexed",
       "path": "registry/adopted-projects.toml",
       "source_paths": [

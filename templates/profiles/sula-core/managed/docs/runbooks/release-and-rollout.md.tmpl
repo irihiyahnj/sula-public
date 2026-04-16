@@ -14,7 +14,7 @@ In this repository, `released` means the Git-backed source of truth has been syn
 
 ## Rollout
 
-1. use `sync --dry-run` against canary projects first
+1. run `python3 scripts/sula.py canary verify --project-root . --all`
 2. review high-impact managed-file changes before writing them
 3. run `doctor --strict` after sync
 4. mark shipped feedback bundles as `released` when the rollout that absorbed them is complete

@@ -183,6 +183,13 @@ class SulaCliTests(unittest.TestCase):
             encoding="utf-8",
         )
 
+    def init_git_repo(self, project_root: Path) -> None:
+        subprocess.run(["git", "init", "-b", "main"], cwd=project_root, check=True, capture_output=True, text=True)
+        subprocess.run(["git", "config", "user.name", "Test User"], cwd=project_root, check=True, capture_output=True, text=True)
+        subprocess.run(["git", "config", "user.email", "test@example.com"], cwd=project_root, check=True, capture_output=True, text=True)
+        subprocess.run(["git", "add", "."], cwd=project_root, check=True, capture_output=True, text=True)
+        subprocess.run(["git", "commit", "-m", "Initial commit"], cwd=project_root, check=True, capture_output=True, text=True)
+
     def init_sula_core_project(self, project_root: Path) -> subprocess.CompletedProcess[str]:
         return run_cli(
             "init",
@@ -249,6 +256,73 @@ class SulaCliTests(unittest.TestCase):
 - owner: Codex
 - date: 2026-04-18
 - trigger: next major delivery
+""",
+            encoding="utf-8",
+        )
+
+    def seed_valid_change_record(self, project_root: Path, *, title: str, slug: str) -> None:
+        result = run_cli(
+            "record",
+            "new",
+            "--project-root",
+            str(project_root),
+            "--title",
+            title,
+            "--slug",
+            slug,
+            "--summary",
+            "Seed a durable canary history item for verification.",
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        record_path = project_root / "docs" / "change-records" / f"{date.today().isoformat()}-{slug}.md"
+        record_path.write_text(
+            f"""# {title}
+
+## Metadata
+
+- date: {date.today().isoformat()}
+- executor: Codex
+- branch: main
+- related commit(s): fixture
+- status: completed
+
+## Background
+
+Canary verification fixtures need at least one non-placeholder change record so `doctor --strict` and `check` reflect the same bar used by real canaries.
+
+## Analysis
+
+- the fixture should model a minimally healthy managed project
+- verification should fail when history is missing or placeholder-only
+
+## Chosen Plan
+
+- seed one durable change record
+- rebuild generated memory after finalizing the record
+
+## Execution
+
+- added a finalized change record for the canary fixture
+
+## Verification
+
+- `python3 scripts/sula.py record new --project-root {project_root} --title "{title}"`
+
+## Rollback
+
+- remove this fixture-only change record
+
+## Data Side-effects
+
+- the fixture gains one indexed change record
+
+## Follow-up
+
+- none
+
+## Architecture Boundary Check
+
+- highest rule impact: preserved; canary verification still requires real project history
 """,
             encoding="utf-8",
         )
@@ -1170,6 +1244,196 @@ class SulaCliTests(unittest.TestCase):
             review_text = (project_root / review_payload["workflow_document"]["path"]).read_text(encoding="utf-8")
             self.assertIn("## Findings", review_text)
             self.assertIn("## Release Gate", review_text)
+
+    def test_workflow_branch_and_close_cover_branch_isolation_and_closeout(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            project_root = Path(tmpdir)
+            self.create_react_erpnext_repo(project_root)
+            self.init_git_repo(project_root)
+
+            adopt_result = run_cli(
+                "adopt",
+                "--project-root",
+                str(project_root),
+                "--approve",
+            )
+            self.assertEqual(adopt_result.returncode, 0, adopt_result.stderr)
+
+            branch_result = run_cli(
+                "workflow",
+                "branch",
+                "--project-root",
+                str(project_root),
+                "--task",
+                "Refactor auth sync flow",
+                "--create",
+                "--json",
+            )
+            self.assertEqual(branch_result.returncode, 0, branch_result.stderr)
+            branch_payload = json.loads(branch_result.stdout)
+            self.assertEqual(branch_payload["status"], "created")
+            self.assertEqual(branch_payload["workflow_branch"]["branch_name"], "codex/refactor-auth-sync-flow")
+
+            scaffold_result = run_cli(
+                "workflow",
+                "scaffold",
+                "--project-root",
+                str(project_root),
+                "--kind",
+                "review",
+                "--title",
+                "Refactor Auth Sync Flow",
+                "--date",
+                "2026-04-16",
+                "--json",
+            )
+            self.assertEqual(scaffold_result.returncode, 0, scaffold_result.stderr)
+
+            spec_result = run_cli(
+                "workflow",
+                "scaffold",
+                "--project-root",
+                str(project_root),
+                "--kind",
+                "spec",
+                "--title",
+                "Refactor Auth Sync Flow",
+                "--date",
+                "2026-04-16",
+                "--json",
+            )
+            self.assertEqual(spec_result.returncode, 0, spec_result.stderr)
+
+            plan_result = run_cli(
+                "workflow",
+                "scaffold",
+                "--project-root",
+                str(project_root),
+                "--kind",
+                "plan",
+                "--title",
+                "Refactor Auth Sync Flow",
+                "--date",
+                "2026-04-16",
+                "--json",
+            )
+            self.assertEqual(plan_result.returncode, 0, plan_result.stderr)
+
+            close_result = run_cli(
+                "workflow",
+                "close",
+                "--project-root",
+                str(project_root),
+                "--task",
+                "Refactor auth sync flow",
+                "--json",
+            )
+            self.assertEqual(close_result.returncode, 0, close_result.stderr)
+            close_payload = json.loads(close_result.stdout)
+            self.assertEqual(close_payload["status"], "pr-needed")
+            self.assertTrue(close_payload["git"]["current_branch"].startswith("codex/"))
+            self.assertTrue(close_payload["checks"]["check_passed"])
+            self.assertFalse(close_payload["git"]["clean_worktree"])
+
+    def test_canary_verify_runs_local_registry_canaries(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            (root / "registry").mkdir(parents=True, exist_ok=True)
+            canary_root = root / "canary-project"
+            result = run_cli(
+                "init",
+                "--project-root",
+                str(canary_root),
+                "--name",
+                "Canary Project",
+                "--slug",
+                "canary-project",
+                "--description",
+                "Canary verification fixture",
+                "--profile",
+                "generic-project",
+            )
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.write_valid_status(canary_root)
+            self.seed_valid_change_record(canary_root, title="Seed canary fixture", slug="seed-canary-fixture")
+            digest_result = run_cli(
+                "memory",
+                "digest",
+                "--project-root",
+                str(canary_root),
+            )
+            self.assertEqual(digest_result.returncode, 0, digest_result.stderr)
+
+            (root / "registry" / "adopted-projects.toml").write_text(
+                """[[project]]
+slug = "canary-project"
+name = "Canary Project"
+profile = "generic-project"
+repository = "local"
+primary_branch = "n/a"
+deployment_branch = "n/a"
+current_sula_version = "0.11.0"
+sync_status = "canary"
+canary = true
+local_root = "canary-project"
+owner = "Test"
+notes = "Fixture"
+""",
+                encoding="utf-8",
+            )
+
+            verify_result = run_cli(
+                "canary",
+                "verify",
+                "--project-root",
+                str(root),
+                "--all",
+                "--json",
+            )
+            self.assertEqual(verify_result.returncode, 0, verify_result.stderr)
+            payload = json.loads(verify_result.stdout)
+            self.assertEqual(payload["status"], "ok")
+            self.assertEqual(payload["reports"][0]["status"], "ok")
+
+    def test_release_export_public_creates_clean_tree_manifest(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            project_root = Path(tmpdir) / "repo"
+            project_root.mkdir(parents=True, exist_ok=True)
+            (project_root / "README.md").write_text("# Public Repo\n", encoding="utf-8")
+            (project_root / "docs").mkdir()
+            (project_root / "docs" / "guide.md").write_text("guide\n", encoding="utf-8")
+
+            export_root = Path(tmpdir) / "public-export"
+            export_result = run_cli(
+                "release",
+                "export-public",
+                "--project-root",
+                str(project_root),
+                "--output",
+                str(export_root),
+                "--json",
+            )
+            self.assertEqual(export_result.returncode, 0, export_result.stderr)
+            payload = json.loads(export_result.stdout)
+            self.assertTrue((export_root / "README.md").exists())
+            self.assertTrue((export_root / "docs" / "guide.md").exists())
+            self.assertTrue((export_root / payload["manifest"]).exists())
+
+    def test_release_readiness_reports_missing_governance(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            project_root = Path(tmpdir)
+            (project_root / "README.md").write_text("# Repo\n", encoding="utf-8")
+            readiness_result = run_cli(
+                "release",
+                "readiness",
+                "--project-root",
+                str(project_root),
+                "--json",
+            )
+            self.assertEqual(readiness_result.returncode, 1, readiness_result.stderr)
+            payload = json.loads(readiness_result.stdout)
+            self.assertEqual(payload["status"], "failed")
+            self.assertIn("CONTRIBUTING.md", "\n".join(payload["missing_governance_files"]))
 
     def test_artifact_register_supports_provider_backed_identity_without_local_path(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:

@@ -225,7 +225,7 @@ If refresh fails, Sula records fetch status and error details in removable artif
 
 Machine A sees:
 
-- `/Users/alice/Library/CloudStorage/GoogleDrive/.../Hospital-A/contracts/2026-04-12-intake-v1.md`
+- `workspace/Hospital-A/contracts/2026-04-12-intake-v1.md`
 
 Machine B sees:
 

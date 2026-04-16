@@ -35,7 +35,7 @@ Unless stated otherwise, Codex acts as:
 - keep primary orchestration logic centralized in [src/api/erpnext.ts](../src/api/erpnext.ts)
 - keep shared state or durable coordination centered in [src/store/useStore.ts](../src/store/useStore.ts)
 - keep the main project entry or operator-facing surface centered in [src/App.tsx](../src/App.tsx)
-- for formal planning, proposal, report, process, and training docs, follow [document-design-principles.md](document-design-principles.md)
+- if the `document-design` projection pack is enabled, follow its principles before drafting formal planning, proposal, report, process, and training docs
 - classify formal document genre before drafting and keep the source file as the editable truth
 
 ### 4. Verify

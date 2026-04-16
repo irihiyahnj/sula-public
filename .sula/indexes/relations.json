@@ -28,6 +28,11 @@
       "type": "derived-from"
     },
     {
+      "from": "task:status:run-the-first-external-canaries-through-the-new-canary-verify-contract",
+      "to": "source:status-md",
+      "type": "derived-from"
+    },
+    {
       "from": "task:status:keep-sula-core-and-react-frontend-erpnext-profiles-aligned-with-real-usage",
       "to": "source:status-md",
       "type": "derived-from"
@@ -53,7 +58,7 @@
       "type": "derived-from"
     },
     {
-      "from": "task:status:validate-the-new-workflow-policy-defaults-and-docs-workflows-scaffolds-against-the-first-external-software-delivery-canary-before-adding-workflow-branch-or-workflow-close",
+      "from": "task:status:validate-the-now-complete-workflow-policy-scaffold-branch-and-close-loop-against-the-first-external-software-delivery-canary",
       "to": "source:status-md",
       "type": "derived-from"
     },
@@ -69,6 +74,11 @@
     },
     {
       "from": "task:status:keep-the-public-bootstrap-contract-aligned-with-real-consumer-behavior-and-protocol-failures-seen-in-live-use",
+      "to": "source:status-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "task:status:dry-run-release-export-public-into-the-eventual-fresh-public-repository-path-if-history-rewriting-is-rejected",
       "to": "source:status-md",
       "type": "derived-from"
     },
@@ -168,6 +178,11 @@
       "type": "derived-from"
     },
     {
+      "from": "decision:status:2026-04-16-added-complete-workflow-close-canary-verification-and-release-readiness-docs-change-records-2026-04-16-complete-workflow-close-canary-and-release-readiness-md",
+      "to": "source:status-md",
+      "type": "derived-from"
+    },
+    {
       "from": "decision:status:2026-04-12-added-add-guided-onboarding-and-zero-memory-setup-flow-docs-change-records-2026-04-12-add-guided-onboarding-and-zero-memory-setup-flow-md",
       "to": "source:status-md",
       "type": "derived-from"
@@ -210,6 +225,16 @@
     {
       "from": "change:2026-04-16-document-superpowers-capability-absorption-plan",
       "to": "source:docs-change-records-2026-04-16-document-superpowers-capability-absorption-plan-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "change:2026-04-16-complete-workflow-close-canary-and-release-readiness",
+      "to": "source:docs-change-records-2026-04-16-complete-workflow-close-canary-and-release-readiness-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "agreement:2026-04-16-complete-workflow-close-canary-and-release-readiness",
+      "to": "source:docs-change-records-2026-04-16-complete-workflow-close-canary-and-release-readiness-md",
       "type": "derived-from"
     },
     {
@@ -668,6 +693,16 @@
       "type": "derived-from"
     },
     {
+      "from": "object:source:docs-change-records-2026-04-16-complete-workflow-close-canary-and-release-readiness-md",
+      "to": "source:docs-change-records-2026-04-16-complete-workflow-close-canary-and-release-readiness-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "agreement:source:docs-change-records-2026-04-16-complete-workflow-close-canary-and-release-readiness-md",
+      "to": "source:docs-change-records-2026-04-16-complete-workflow-close-canary-and-release-readiness-md",
+      "type": "derived-from"
+    },
+    {
       "from": "object:source:docs-change-records-2026-04-16-document-superpowers-capability-absorption-plan-md",
       "to": "source:docs-change-records-2026-04-16-document-superpowers-capability-absorption-plan-md",
       "type": "derived-from"
@@ -850,6 +885,126 @@
     {
       "from": "agreement:source:docs-versioning-md",
       "to": "source:docs-versioning-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "object:source:examples-client-service-gdrive-agents-md",
+      "to": "source:examples-client-service-gdrive-agents-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "object:source:examples-client-service-gdrive-change-records-md",
+      "to": "source:examples-client-service-gdrive-change-records-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "object:source:examples-client-service-gdrive-readme-md",
+      "to": "source:examples-client-service-gdrive-readme-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "object:source:examples-client-service-gdrive-status-md",
+      "to": "source:examples-client-service-gdrive-status-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "object:source:examples-client-service-gdrive-docs-change-records-2026-04-16-promote-client-service-drive-example-into-canary-md",
+      "to": "source:examples-client-service-gdrive-docs-change-records-2026-04-16-promote-client-service-drive-example-into-canary-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "object:source:examples-client-service-gdrive-docs-change-records-readme-md",
+      "to": "source:examples-client-service-gdrive-docs-change-records-readme-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "object:source:examples-client-service-gdrive-docs-change-records-template-md",
+      "to": "source:examples-client-service-gdrive-docs-change-records-template-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "object:source:examples-client-service-gdrive-docs-incidents-readme-md",
+      "to": "source:examples-client-service-gdrive-docs-incidents-readme-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "object:source:examples-client-service-gdrive-docs-incidents-template-md",
+      "to": "source:examples-client-service-gdrive-docs-incidents-template-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "object:source:examples-client-service-gdrive-docs-releases-readme-md",
+      "to": "source:examples-client-service-gdrive-docs-releases-readme-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "object:source:examples-client-service-gdrive-docs-releases-template-md",
+      "to": "source:examples-client-service-gdrive-docs-releases-template-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "risk:examples-client-service-gdrive-docs-releases-template-md:fill-in-risks",
+      "to": "source:examples-client-service-gdrive-docs-releases-template-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "object:source:examples-field-ops-generic-agents-md",
+      "to": "source:examples-field-ops-generic-agents-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "object:source:examples-field-ops-generic-change-records-md",
+      "to": "source:examples-field-ops-generic-change-records-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "object:source:examples-field-ops-generic-readme-md",
+      "to": "source:examples-field-ops-generic-readme-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "object:source:examples-field-ops-generic-status-md",
+      "to": "source:examples-field-ops-generic-status-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "object:source:examples-field-ops-generic-docs-change-records-2026-04-16-promote-field-ops-example-into-generic-project-canary-md",
+      "to": "source:examples-field-ops-generic-docs-change-records-2026-04-16-promote-field-ops-example-into-generic-project-canary-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "object:source:examples-field-ops-generic-docs-change-records-readme-md",
+      "to": "source:examples-field-ops-generic-docs-change-records-readme-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "object:source:examples-field-ops-generic-docs-change-records-template-md",
+      "to": "source:examples-field-ops-generic-docs-change-records-template-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "object:source:examples-field-ops-generic-docs-incidents-readme-md",
+      "to": "source:examples-field-ops-generic-docs-incidents-readme-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "object:source:examples-field-ops-generic-docs-incidents-template-md",
+      "to": "source:examples-field-ops-generic-docs-incidents-template-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "object:source:examples-field-ops-generic-docs-releases-readme-md",
+      "to": "source:examples-field-ops-generic-docs-releases-readme-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "object:source:examples-field-ops-generic-docs-releases-template-md",
+      "to": "source:examples-field-ops-generic-docs-releases-template-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "risk:examples-field-ops-generic-docs-releases-template-md:fill-in-risks",
+      "to": "source:examples-field-ops-generic-docs-releases-template-md",
       "type": "derived-from"
     },
     {
