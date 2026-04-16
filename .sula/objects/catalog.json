@@ -31,7 +31,7 @@
       "id": "state:current",
       "kind": "state",
       "title": "Current Project State",
-      "summary": "- Sula now manages itself as a first-class `sula-core` consumer while still acting as the source repository for reusable operating-system assets.\n- The repository has memory-aware governance, an in-repo canary, a root self-adoption path, and an approval-based adoption agent for bringing new repositories under Sula.\n- Public-release governance is now in place, and the remaining blocker is historical lineage cleanup rather than working-tree quality.\n- The future `sula.1stp.monster` landing page is now represented by real static site assets with canonical long-form bootstrap prompts and protocol pages.\n- The bootstrap site is now live on both `https://sula.fly.dev/` and `https://sula.1stp.monster/`, with the public bootstrap contract explicitly handling existing Sula consumers and canonical tool-source resolution.\n- Sula now has a recorded vNext architecture target for a `generic-project` kernel, adapter bundles, scientific retrieval, and first-class removal semantics.\n- The first milestone of that direction is now implemented: unknown and non-Git projects can adopt through `generic-project`, `.sula/` holds kernel artifacts, and removal has a report-first command.\n- The second milestone is now implemented as well: local retrieval can rebuild from SQLite, kernel objects cover task/decision/risk/person/agreement/milestone shapes, and query supports stronger filters plus timeline output.\n- The next operating milestone is now implemented too: machine-readable CLI responses, workflow/storage/portfolio manifest sections, artifact routing, and portfolio registration are available for non-code client projects.\n- Drive-synced projects can now describe `google-drive` as an adapter instead of pretending that storage provider is a project type, which keeps the kernel portable for future providers.\n- Collaborative provider-backed artifact families can now declare their truth source, refresh state, and stale-local-copy risk, so Sula can prefer shared Google-native facts when users ask for the latest version in natural language.\n- Sula now has a real read-only provider refresh path for Google Docs and Google Sheets, plus `artifact refresh` and cached provider snapshots, so freshness intent can trigger an actual provider metadata refresh instead of only local re-ranking.\n- Sula now has a first-class daily `check` workflow, so state-sync work can fail fast when `.sula/state/current.md` or `.sula/memory-digest.md` drift away from the current status and change records.\n- Formal document design is now a first-class Sula capability: adopted projects can carry reusable source-first structure bundles for schedule, proposal, report, process, and training documents instead of relying on one-off prompt instructions.\n- Sula now has a documented proposal for absorbing long-term value from workflow systems like `obra/superpowers` through manifest-driven capability contracts instead of platform-specific skill lock-in.\n- Sula now implements the first workflow-capability slice from that proposal: manifest-level workflow rigor policy plus source-first `spec`, `plan`, and `review` scaffolds under `docs/workflows/`.\n- Sula now completes that workflow slice with first-class `workflow branch` and `workflow close` commands, so complex work can move from policy assessment to explicit closeout readiness.\n- The next UX milestone is now implemented too: `onboard` provides a zero-memory interview flow that asks setup questions, explains what Sula will manage, and then applies adoption through the same kernel contract.\n- The next launch milestone is now implemented too: the public site exposes `/launch/`, a machine-readable launcher descriptor, and a downloadable `bootstrap.py` shim so startup no longer depends on guessing local commands.\n- The feedback-bundle lifecycle is now released in the Git-backed Sula 0.11.0 source state: adopted projects can capture reusable local Sula fixes as feedback bundles, and Sula Core can ingest, review, and release them through a central queue.\n- Sula now has registry-backed in-repo canary verification across `sula-core`, `software-delivery`, `generic-project`, and `client-service`-style examples, plus public-release readiness and export commands that isolate remaining publication risk to git history rather than content drift.",
+      "summary": "- Sula now manages itself as a first-class `sula-core` consumer while still acting as the source repository for reusable operating-system assets.\n- The repository has memory-aware governance, an in-repo canary, a root self-adoption path, and an approval-based adoption agent for bringing new repositories under Sula.\n- Public-release governance is now in place, and the remaining blocker is historical lineage cleanup rather than working-tree quality.\n- The future `sula.1stp.monster` landing page is now represented by real static site assets with canonical long-form bootstrap prompts and protocol pages.\n- The bootstrap site is now live on both `https://sula.fly.dev/` and `https://sula.1stp.monster/`, with the public bootstrap contract explicitly handling existing Sula consumers and canonical tool-source resolution.\n- Sula now has a recorded vNext architecture target for a `generic-project` kernel, adapter bundles, scientific retrieval, and first-class removal semantics.\n- The first milestone of that direction is now implemented: unknown and non-Git projects can adopt through `generic-project`, `.sula/` holds kernel artifacts, and removal has a report-first command.\n- The second milestone is now implemented as well: local retrieval can rebuild from SQLite, kernel objects cover task/decision/risk/person/agreement/milestone shapes, and query supports stronger filters plus timeline output.\n- The next operating milestone is now implemented too: machine-readable CLI responses, workflow/storage/portfolio manifest sections, artifact routing, and portfolio registration are available for non-code client projects.\n- Drive-synced projects can now describe `google-drive` as an adapter instead of pretending that storage provider is a project type, which keeps the kernel portable for future providers.\n- Collaborative provider-backed artifact families can now declare their truth source, refresh state, and stale-local-copy risk, so Sula can prefer shared Google-native facts when users ask for the latest version in natural language.\n- Sula now has a real read-only provider refresh path for Google Docs and Google Sheets, plus `artifact refresh` and cached provider snapshots, so freshness intent can trigger an actual provider metadata refresh instead of only local re-ranking.\n- Sula now has a first-class daily `check` workflow, so state-sync work can fail fast when `.sula/state/current.md` or `.sula/memory-digest.md` drift away from the current status and change records.\n- Formal document design is now a first-class Sula capability: adopted projects can carry reusable source-first structure bundles for schedule, proposal, report, process, and training documents instead of relying on one-off prompt instructions.\n- Sula now has a documented proposal for absorbing long-term value from workflow systems like `obra/superpowers` through manifest-driven capability contracts instead of platform-specific skill lock-in.\n- Sula now implements the first workflow-capability slice from that proposal: manifest-level workflow rigor policy plus source-first `spec`, `plan`, and `review` scaffolds under `docs/workflows/`.\n- Sula now completes that workflow slice with first-class `workflow branch` and `workflow close` commands, so complex work can move from policy assessment to explicit closeout readiness.\n- The next UX milestone is now implemented too: `onboard` provides a zero-memory interview flow that asks setup questions, explains what Sula will manage, and then applies adoption through the same kernel contract.\n- The next launch milestone is now implemented too: the public site exposes `/launch/`, a machine-readable launcher descriptor, and a downloadable `bootstrap.py` shim so startup no longer depends on guessing local commands.\n- The feedback-bundle lifecycle is now released in the Git-backed Sula 0.11.0 source state: adopted projects can capture reusable local Sula fixes as feedback bundles, and Sula Core can ingest, review, and release them through a central queue.\n- Sula now has registry-backed in-repo canary verification across `sula-core`, `software-delivery`, `generic-project`, and `client-service`-style examples, plus public-release readiness and export commands that isolate remaining publication risk to git history rather than content drift.\n- Sula now has a chosen default public-release path: keep this repository as the private pre-public lineage, publish a fresh public repository from `release export-public`, and only then point the site descriptor at the public source.",
       "status": "current",
       "path": "STATUS.md",
       "source_paths": [
@@ -47,10 +47,10 @@
       "date": "2026-04-16"
     },
     {
-      "id": "task:status:choose-the-public-release-path-sanitized-history-rewrite-or-fresh-public-repository",
+      "id": "task:status:create-the-fresh-public-repository-from-release-export-public-and-publish-the-first-clean-public-lineage",
       "kind": "task",
-      "title": "choose the public release path: sanitized history rewrite or fresh public rep...",
-      "summary": "choose the public release path: sanitized history rewrite or fresh public repository",
+      "title": "create the fresh public repository from `release export-public` and publish t...",
+      "summary": "create the fresh public repository from `release export-public` and publish the first clean public lineage",
       "status": "open",
       "path": "STATUS.md",
       "source_paths": [
@@ -287,10 +287,10 @@
       "date": "2026-04-16"
     },
     {
-      "id": "task:status:dry-run-release-export-public-into-the-eventual-fresh-public-repository-path-if-history-rewriting-is-rejected",
+      "id": "task:status:switch-site-sula-json-and-site-launch-bootstrap-py-to-the-published-public-source-after-that-repository-exists",
       "kind": "task",
-      "title": "dry-run `release export-public` into the eventual fresh public repository pat...",
-      "summary": "dry-run `release export-public` into the eventual fresh public repository path if history rewriting is rejected",
+      "title": "switch `site/sula.json` and `site/launch/bootstrap.py` to the published publi...",
+      "summary": "switch `site/sula.json` and `site/launch/bootstrap.py` to the published public source after that repository exists",
       "status": "open",
       "path": "STATUS.md",
       "source_paths": [
@@ -707,6 +707,26 @@
       "date": "2026-04-16"
     },
     {
+      "id": "decision:status:2026-04-16-added-choose-fresh-public-repository-as-the-default-release-path-docs-change-records-2026-04-16-choose-fresh-public-repository-as-the-default-release-path-md",
+      "kind": "decision",
+      "title": "2026-04-16: added [Choose fresh public repository as the default release path...",
+      "summary": "2026-04-16: added [Choose fresh public repository as the default release path](docs/change-records/2026-04-16-choose-fresh-public-repository-as-the-default-release-path.md)",
+      "status": "decided",
+      "path": "STATUS.md",
+      "source_paths": [
+        "STATUS.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "recent-decision",
+        "status"
+      ],
+      "date": "2026-04-16"
+    },
+    {
       "id": "decision:status:2026-04-12-added-add-guided-onboarding-and-zero-memory-setup-flow-docs-change-records-2026-04-12-add-guided-onboarding-and-zero-memory-setup-flow-md",
       "kind": "decision",
       "title": "2026-04-12: added [Add guided onboarding and zero-memory setup flow](docs/cha...",
@@ -847,10 +867,10 @@
       "date": "2026-04-18"
     },
     {
-      "id": "risk:health:yellow-the-bootstrap-site-and-custom-domain-are-live-but-the-repository-history-still-needs-a-clean-public-release-strategy-before-this-exact-repository-should-be-opened",
+      "id": "risk:health:yellow-the-public-release-strategy-is-now-decided-but-the-fresh-public-repository-still-needs-to-be-created-before-the-bootstrap-descriptor-can-advertise-a-canonical-public-source",
       "kind": "risk",
       "title": "Project health is yellow",
-      "summary": "the bootstrap site and custom domain are live, but the repository history still needs a clean public-release strategy before this exact repository should be opened.",
+      "summary": "the public-release strategy is now decided, but the fresh public repository still needs to be created before the bootstrap descriptor can advertise a canonical public source.",
       "status": "watch",
       "path": "STATUS.md",
       "source_paths": [
@@ -920,6 +940,25 @@
       ],
       "tags": [
         "agreement"
+      ],
+      "date": "2026-04-16"
+    },
+    {
+      "id": "change:2026-04-16-choose-fresh-public-repository-as-the-default-release-path",
+      "kind": "change",
+      "title": "Choose fresh public repository as the default release path",
+      "summary": "- date: 2026-04-16 - executor: Codex - branch: main - related commit(s): pending - status: completed",
+      "status": "recorded",
+      "path": "docs/change-records/2026-04-16-choose-fresh-public-repository-as-the-default-release-path.md",
+      "source_paths": [
+        "docs/change-records/2026-04-16-choose-fresh-public-repository-as-the-default-release-path.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "change"
       ],
       "date": "2026-04-16"
     },
@@ -2796,6 +2835,29 @@
         "docs",
         "memory",
         "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": "2026-04-16"
+    },
+    {
+      "id": "object:source:docs-change-records-2026-04-16-choose-fresh-public-repository-as-the-default-release-path-md",
+      "kind": "document",
+      "title": "2026-04-16-choose-fresh-public-repository-as-the-default-release-path.md",
+      "summary": "- date: 2026-04-16 - executor: Codex - branch: main - related commit(s): pending - status: completed",
+      "status": "indexed",
+      "path": "docs/change-records/2026-04-16-choose-fresh-public-repository-as-the-default-release-path.md",
+      "source_paths": [
+        "docs/change-records/2026-04-16-choose-fresh-public-repository-as-the-default-release-path.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "memory",
+        "repo",
+        "release"
       ],
       "tags": [
         "discovered-source"
@@ -5391,7 +5453,7 @@
       "id": "object:source:site-sula-json",
       "kind": "config",
       "title": "sula.json",
-      "summary": "{ \"name\": \"Sula\", \"kind\": \"project-operating-system\", \"version\": \"0.8.0\", \"status\": \"development-launch-usable\", \"homepage_url\": \"https://sula.1stp.monster/\", \"launch_url\": \"https://sula.1stp.monster/launch/\", \"bootstrap_url\": \"https://sula",
+      "summary": "{ \"name\": \"Sula\", \"kind\": \"project-operating-system\", \"version\": \"0.11.0\", \"status\": \"pre-public-fresh-repo-planned\", \"homepage_url\": \"https://sula.1stp.monster/\", \"launch_url\": \"https://sula.1stp.monster/launch/\", \"bootstrap_url\": \"https:/",
       "status": "indexed",
       "path": "site/sula.json",
       "source_paths": [

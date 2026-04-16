@@ -18,5 +18,6 @@ Apply the global checks plus the impacted module checks.
 ## Deployment-Specific
 
 - [ ] production path `/` is correct
-- [ ] production URL is reachable: `https://github.com/irihiyahnj/sula`
+- [ ] public bootstrap URLs are reachable: `/`, `/launch/`, `/launch/bootstrap.py`, `/sula.json`
+- [ ] if `site/sula.json` declares a published public source, that repository URL is reachable
 - [ ] deployment workflow reference is correct: `.github/workflows/ci.yml`

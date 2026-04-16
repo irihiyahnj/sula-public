@@ -24,15 +24,16 @@
 - The next launch milestone is now implemented too: the public site exposes `/launch/`, a machine-readable launcher descriptor, and a downloadable `bootstrap.py` shim so startup no longer depends on guessing local commands.
 - The feedback-bundle lifecycle is now released in the Git-backed Sula 0.11.0 source state: adopted projects can capture reusable local Sula fixes as feedback bundles, and Sula Core can ingest, review, and release them through a central queue.
 - Sula now has registry-backed in-repo canary verification across `sula-core`, `software-delivery`, `generic-project`, and `client-service`-style examples, plus public-release readiness and export commands that isolate remaining publication risk to git history rather than content drift.
+- Sula now has a chosen default public-release path: keep this repository as the private pre-public lineage, publish a fresh public repository from `release export-public`, and only then point the site descriptor at the public source.
 
 ## Health
 
 - status: yellow
-- reason: the bootstrap site and custom domain are live, but the repository history still needs a clean public-release strategy before this exact repository should be opened.
+- reason: the public-release strategy is now decided, but the fresh public repository still needs to be created before the bootstrap descriptor can advertise a canonical public source.
 
 ## Current Focus
 
-- choose the public release path: sanitized history rewrite or fresh public repository
+- create the fresh public repository from `release export-public` and publish the first clean public lineage
 - validate the new `adopt` flow against the first external repository
 - run the first external canaries through the new `canary verify` contract
 - keep `sula-core` and `react-frontend-erpnext` profiles aligned with real usage
@@ -44,7 +45,7 @@
 - turn the recorded vNext architecture into stronger adapter composition and better result quality over the new SQLite-backed retrieval path
 - maintain clear approval reporting so managed/scaffold boundaries remain obvious during onboarding
 - keep the public bootstrap contract aligned with real consumer behavior and protocol failures seen in live use
-- dry-run `release export-public` into the eventual fresh public repository path if history rewriting is rejected
+- switch `site/sula.json` and `site/launch/bootstrap.py` to the published public source after that repository exists
 
 ## Blockers
 
@@ -72,6 +73,7 @@
 - 2026-04-16: added [Document Superpowers capability absorption plan](docs/change-records/2026-04-16-document-superpowers-capability-absorption-plan.md)
 - 2026-04-16: added [Add workflow policy and source-first workflow scaffolds](docs/change-records/2026-04-16-add-workflow-policy-and-source-first-workflow-scaffolds.md)
 - 2026-04-16: added [Complete workflow close, canary verification, and release readiness](docs/change-records/2026-04-16-complete-workflow-close-canary-and-release-readiness.md)
+- 2026-04-16: added [Choose fresh public repository as the default release path](docs/change-records/2026-04-16-choose-fresh-public-repository-as-the-default-release-path.md)
 - 2026-04-12: added [Add guided onboarding and zero-memory setup flow](docs/change-records/2026-04-12-add-guided-onboarding-and-zero-memory-setup-flow.md)
 - 2026-04-12: added [Add site launch contract and canonical bootstrap shim](docs/change-records/2026-04-12-add-site-launch-contract-and-canonical-bootstrap-shim.md)
 - 2026-04-12: added [Add feedback bundles and Sula Core review workflow](docs/change-records/2026-04-12-add-feedback-bundles-and-core-review-workflow.md)

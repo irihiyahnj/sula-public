@@ -3630,6 +3630,21 @@ def release_readiness_payload(project_root: Path) -> dict[str, object]:
     clean_worktree = bool(status_result is None or (status_result.returncode == 0 and not status_result.stdout.strip()))
     if not clean_worktree:
         issues.append("working tree is not clean")
+    recommended_strategy = ""
+    next_steps: list[str] = []
+    if history_issues:
+        recommended_strategy = "fresh-public-repo"
+        next_steps.extend(
+            [
+                "run `python3 scripts/sula.py release export-public --project-root . --output <clean-public-tree>`",
+                "initialize a new public repository from that exported tree",
+                "update site/sula.json with the published public repository URL and ref after the new repository exists",
+            ]
+        )
+    elif not issues:
+        recommended_strategy = "current-repository-is-publishable"
+    if not missing_governance:
+        next_steps.append("keep `python3 scripts/sula.py release readiness --project-root .` in the public-release gate")
     return {
         "project_root": str(project_root),
         "ready": not issues,
@@ -3641,6 +3656,8 @@ def release_readiness_payload(project_root: Path) -> dict[str, object]:
         "missing_canary_profiles": missing_profiles,
         "canary_reports": canary_reports,
         "clean_worktree": clean_worktree,
+        "recommended_strategy": recommended_strategy,
+        "next_steps": next_steps,
         "issues": issues,
     }
 
@@ -3665,8 +3682,17 @@ def export_public_release_tree(project_root: Path, output_root: Path, *, overwri
         f"- generated_on: {datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')}",
         f"- source_root: {project_root}",
         f"- file_count: {len(copied)}",
+        "- public_release_strategy: fresh-public-repo",
         "",
         "This export intentionally omits git history so maintainers can create a fresh public repository from a clean tracked-file tree.",
+        "",
+        "## Suggested Initialization",
+        "",
+        "1. create a new empty public repository",
+        "2. copy this exported tree into that repository root",
+        "3. set an explicit public-safe git identity before the first commit",
+        "4. run `git init`, `git add .`, and create the initial public commit",
+        "5. update `site/sula.json` so `source_repository_url` and `source_ref` point at that published public repository",
         "",
     ]
     (output_root / "PUBLIC-EXPORT.md").write_text("\n".join(manifest_lines), encoding="utf-8")
@@ -3682,8 +3708,12 @@ def handle_release_command(project_root: Path, args: argparse.Namespace) -> int:
             return 0 if payload["ready"] else 1
         print(f"Release readiness for {project_root}")
         print(f"  Ready: {'yes' if payload['ready'] else 'no'}")
+        if payload["recommended_strategy"]:
+            print(f"  Recommended strategy: {payload['recommended_strategy']}")
         for issue in payload["issues"]:
             print(f"  - {issue}")
+        for step in payload["next_steps"]:
+            print(f"  next: {step}")
         return 0 if payload["ready"] else 1
     if args.release_command == "export-public":
         output_root = Path(args.output).expanduser().resolve()

@@ -661,6 +661,20 @@ Canary verification fixtures need at least one non-placeholder change record so 
             self.assertEqual(payload["doctor"]["command"], "doctor")
             self.assertEqual(payload["sync_preview"]["command"], "sync")
 
+    def test_site_bootstrap_requires_explicit_source_until_public_repo_exists(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            project_root = Path(tmpdir)
+            self.create_generic_project(project_root)
+
+            result = run_site_bootstrap(
+                "--project-root",
+                str(project_root),
+                "--json",
+            )
+
+            self.assertEqual(result.returncode, 1)
+            self.assertIn("Canonical public Sula source is not published yet", result.stderr)
+
     def test_adopt_approve_supports_non_git_generic_project(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
             project_root = Path(tmpdir)
@@ -1418,6 +1432,9 @@ notes = "Fixture"
             self.assertTrue((export_root / "README.md").exists())
             self.assertTrue((export_root / "docs" / "guide.md").exists())
             self.assertTrue((export_root / payload["manifest"]).exists())
+            manifest_text = (export_root / payload["manifest"]).read_text(encoding="utf-8")
+            self.assertIn("public_release_strategy: fresh-public-repo", manifest_text)
+            self.assertIn("Suggested Initialization", manifest_text)
 
     def test_release_readiness_reports_missing_governance(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:

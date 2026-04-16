@@ -11,6 +11,7 @@ In this repository, `released` means the Git-backed source of truth has been syn
 3. review [registry/feedback/catalog.json](../../registry/feedback/catalog.json) and triage any reusable feedback targeted for this release
 4. run repository tests
 5. verify the in-repo canary
+6. if this release is intended to back the public bootstrap source, run `python3 scripts/sula.py release readiness --project-root .`
 
 ## Rollout
 
@@ -19,6 +20,13 @@ In this repository, `released` means the Git-backed source of truth has been syn
 3. run `doctor --strict` after sync
 4. mark shipped feedback bundles as `released` when the rollout that absorbed them is complete
 5. update the registry with the new Sula version
+
+## Public Source
+
+1. treat `fresh-public-repo` as the default public release strategy
+2. when `release readiness` reports history lineage issues, run `python3 scripts/sula.py release export-public --project-root . --output <clean-public-tree>`
+3. create the public repository from that exported tree instead of publishing this repository in place
+4. only then update `site/sula.json` and launcher defaults to the published public repository
 
 ## Rollback
 

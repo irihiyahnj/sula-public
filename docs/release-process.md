@@ -15,6 +15,7 @@ Before any version bump or tag:
 5. run `python3 scripts/sula.py canary verify --project-root . --all`
 6. review `python3 scripts/sula.py sync --project-root <project> --dry-run` against any additional external canary projects that are not addressable through `local_root`
 7. regenerate any canary `memory digest` outputs that are committed by policy
+8. if the release is intended to become the canonical public source, run `python3 scripts/sula.py release readiness --project-root .` and follow the recommended strategy
 
 ## Rollout Rules
 
@@ -33,6 +34,12 @@ Before any version bump or tag:
 6. sync canary repositories
 7. mark shipped feedback items as `released`
 8. expand rollout to the rest of the registry in controlled batches
+
+## Public Repository Rule
+
+- The default public-release path is `fresh-public-repo`, not in-place publication of this repository.
+- When `release readiness` reports git-history lineage issues, export a clean tree with `release export-public` and create a new public repository from that export.
+- Only update `site/sula.json`, `site/launch/bootstrap.py`, and any bootstrap-facing docs after the new public repository URL and ref are real.
 
 ## Non-release Changes
 

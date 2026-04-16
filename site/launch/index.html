@@ -64,7 +64,7 @@
             <li>Resolve the launcher in this order:
               <br />a. use vendored <code>scripts/sula.py</code> if the target project already includes it
               <br />b. use an explicit local Sula source checkout if one is provided
-              <br />c. otherwise fetch the canonical source or launcher declared by the site contract
+              <br />c. otherwise fetch the canonical public source only after <code>/sula.json</code> declares a published public repository
             </li>
             <li>If <code>.sula/project.toml</code> exists, treat the project as an existing consumer.</li>
             <li>If the project is not yet adopted, run guided onboarding instead of low-level adoption by default.</li>
@@ -113,8 +113,8 @@ status --json</code></pre>
               <h2>The site must be enough to resolve startup.</h2>
             </div>
             <ul class="check-list">
-              <li>The site should tell agents where the canonical source lives.</li>
-              <li>The site should expose a launcher that can bootstrap that source locally.</li>
+              <li>The site should tell agents whether the canonical public source is published yet.</li>
+              <li>The site should expose a launcher that can bootstrap local work without guessing a pre-public repository.</li>
               <li>The site should make it explicit that package-name guessing is a protocol violation.</li>
             </ul>
           </article>

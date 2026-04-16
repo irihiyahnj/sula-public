@@ -18,7 +18,7 @@
       "type": "derived-from"
     },
     {
-      "from": "task:status:choose-the-public-release-path-sanitized-history-rewrite-or-fresh-public-repository",
+      "from": "task:status:create-the-fresh-public-repository-from-release-export-public-and-publish-the-first-clean-public-lineage",
       "to": "source:status-md",
       "type": "derived-from"
     },
@@ -78,7 +78,7 @@
       "type": "derived-from"
     },
     {
-      "from": "task:status:dry-run-release-export-public-into-the-eventual-fresh-public-repository-path-if-history-rewriting-is-rejected",
+      "from": "task:status:switch-site-sula-json-and-site-launch-bootstrap-py-to-the-published-public-source-after-that-repository-exists",
       "to": "source:status-md",
       "type": "derived-from"
     },
@@ -183,6 +183,11 @@
       "type": "derived-from"
     },
     {
+      "from": "decision:status:2026-04-16-added-choose-fresh-public-repository-as-the-default-release-path-docs-change-records-2026-04-16-choose-fresh-public-repository-as-the-default-release-path-md",
+      "to": "source:status-md",
+      "type": "derived-from"
+    },
+    {
       "from": "decision:status:2026-04-12-added-add-guided-onboarding-and-zero-memory-setup-flow-docs-change-records-2026-04-12-add-guided-onboarding-and-zero-memory-setup-flow-md",
       "to": "source:status-md",
       "type": "derived-from"
@@ -218,7 +223,7 @@
       "type": "derived-from"
     },
     {
-      "from": "risk:health:yellow-the-bootstrap-site-and-custom-domain-are-live-but-the-repository-history-still-needs-a-clean-public-release-strategy-before-this-exact-repository-should-be-opened",
+      "from": "risk:health:yellow-the-public-release-strategy-is-now-decided-but-the-fresh-public-repository-still-needs-to-be-created-before-the-bootstrap-descriptor-can-advertise-a-canonical-public-source",
       "to": "source:status-md",
       "type": "derived-from"
     },
@@ -235,6 +240,11 @@
     {
       "from": "agreement:2026-04-16-complete-workflow-close-canary-and-release-readiness",
       "to": "source:docs-change-records-2026-04-16-complete-workflow-close-canary-and-release-readiness-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "change:2026-04-16-choose-fresh-public-repository-as-the-default-release-path",
+      "to": "source:docs-change-records-2026-04-16-choose-fresh-public-repository-as-the-default-release-path-md",
       "type": "derived-from"
     },
     {
@@ -690,6 +700,11 @@
     {
       "from": "object:source:docs-change-records-2026-04-16-add-workflow-policy-and-source-first-workflow-scaffolds-md",
       "to": "source:docs-change-records-2026-04-16-add-workflow-policy-and-source-first-workflow-scaffolds-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "object:source:docs-change-records-2026-04-16-choose-fresh-public-repository-as-the-default-release-path-md",
+      "to": "source:docs-change-records-2026-04-16-choose-fresh-public-repository-as-the-default-release-path-md",
       "type": "derived-from"
     },
     {
