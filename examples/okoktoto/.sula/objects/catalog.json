@@ -1,0 +1,1096 @@
+{
+  "version": "0.11.0",
+  "profile": "react-frontend-erpnext",
+  "objects": [
+    {
+      "id": "project:okoktoto-v5",
+      "kind": "project",
+      "title": "OKOKTOTO v5",
+      "summary": "Chain coffee and restaurant store management frontend over ERPNext",
+      "status": "active",
+      "path": ".sula/project.toml",
+      "source_paths": [
+        ".sula/project.toml",
+        "STATUS.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "docs",
+        "memory",
+        "repo",
+        "local-fs",
+        "deploy",
+        "erpnext"
+      ],
+      "tags": [
+        "react-frontend-erpnext"
+      ],
+      "date": "2026-04-11"
+    },
+    {
+      "id": "state:current",
+      "kind": "state",
+      "title": "Current Project State",
+      "summary": "- Sula now treats this example as the canary for single-project memory support.\n- The goal is to prove that managed guidance, scaffold records, doctor checks, and generated memory digests work together.",
+      "status": "current",
+      "path": "STATUS.md",
+      "source_paths": [
+        "STATUS.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "state"
+      ],
+      "date": "2026-04-11"
+    },
+    {
+      "id": "task:status:verify-that-the-canary-passes-sula-doctor-strict",
+      "kind": "task",
+      "title": "verify that the canary passes `sula doctor --strict`",
+      "summary": "verify that the canary passes `sula doctor --strict`",
+      "status": "open",
+      "path": "STATUS.md",
+      "source_paths": [
+        "STATUS.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "current-focus",
+        "status"
+      ],
+      "date": "2026-04-11"
+    },
+    {
+      "id": "task:status:keep-the-example-aligned-with-the-latest-memory-aware-templates",
+      "kind": "task",
+      "title": "keep the example aligned with the latest memory-aware templates",
+      "summary": "keep the example aligned with the latest memory-aware templates",
+      "status": "open",
+      "path": "STATUS.md",
+      "source_paths": [
+        "STATUS.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "current-focus",
+        "status"
+      ],
+      "date": "2026-04-11"
+    },
+    {
+      "id": "decision:status:2026-04-11-adopted-the-memory-canary-release-note-prepare-sula-memory-canary-rollout-docs-releases-2026-04-11-prepare-sula-memory-canary-rollout-md",
+      "kind": "decision",
+      "title": "2026-04-11: adopted the memory canary release note [Prepare Sula memory canar...",
+      "summary": "2026-04-11: adopted the memory canary release note [Prepare Sula memory canary rollout](docs/releases/2026-04-11-prepare-sula-memory-canary-rollout.md)",
+      "status": "decided",
+      "path": "STATUS.md",
+      "source_paths": [
+        "STATUS.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "recent-decision",
+        "status"
+      ],
+      "date": "2026-04-11"
+    },
+    {
+      "id": "decision:status:2026-04-11-added-adopt-sula-memory-model-docs-change-records-2026-04-11-adopt-sula-memory-model-md",
+      "kind": "decision",
+      "title": "2026-04-11: added [Adopt Sula memory model](docs/change-records/2026-04-11-ad...",
+      "summary": "2026-04-11: added [Adopt Sula memory model](docs/change-records/2026-04-11-adopt-sula-memory-model.md)",
+      "status": "decided",
+      "path": "STATUS.md",
+      "source_paths": [
+        "STATUS.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "recent-decision",
+        "status"
+      ],
+      "date": "2026-04-11"
+    },
+    {
+      "id": "decision:status:2026-04-11-documented-the-canary-incident-context-capture-canary-documentation-gaps-docs-incidents-2026-04-11-capture-canary-documentation-gaps-md",
+      "kind": "decision",
+      "title": "2026-04-11: documented the canary incident context [Capture canary documentat...",
+      "summary": "2026-04-11: documented the canary incident context [Capture canary documentation gaps](docs/incidents/2026-04-11-capture-canary-documentation-gaps.md)",
+      "status": "decided",
+      "path": "STATUS.md",
+      "source_paths": [
+        "STATUS.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "recent-decision",
+        "status"
+      ],
+      "date": "2026-04-11"
+    },
+    {
+      "id": "person:status:sula-core-maintainers",
+      "kind": "person",
+      "title": "Sula Core maintainers",
+      "summary": "Current review owner for OKOKTOTO v5.",
+      "status": "responsible",
+      "path": "STATUS.md",
+      "source_paths": [
+        "STATUS.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "next-review-owner",
+        "status"
+      ],
+      "date": "2026-04-11"
+    },
+    {
+      "id": "milestone:status:next-review:2026-04-18",
+      "kind": "milestone",
+      "title": "Next Review",
+      "summary": "Next review checkpoint. review again after the next managed-template or doctor-contract change",
+      "status": "planned",
+      "path": "STATUS.md",
+      "source_paths": [
+        "STATUS.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "next-review",
+        "status"
+      ],
+      "date": "2026-04-18"
+    },
+    {
+      "id": "change:2026-04-11-adopt-sula-memory-model",
+      "kind": "change",
+      "title": "Adopt Sula memory model",
+      "summary": "- date: 2026-04-11 - executor: Codex - branch: codex/bootstrap-sula - related commit(s): 901c67f - status: completed",
+      "status": "recorded",
+      "path": "docs/change-records/2026-04-11-adopt-sula-memory-model.md",
+      "source_paths": [
+        "docs/change-records/2026-04-11-adopt-sula-memory-model.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "change"
+      ],
+      "date": "2026-04-11"
+    },
+    {
+      "id": "release:2026-04-11-prepare-sula-memory-canary-rollout",
+      "kind": "release",
+      "title": "Prepare Sula memory canary rollout",
+      "summary": "- date: 2026-04-11 - executor: Codex - branch: codex/bootstrap-sula - status: completed",
+      "status": "recorded",
+      "path": "docs/releases/2026-04-11-prepare-sula-memory-canary-rollout.md",
+      "source_paths": [
+        "docs/releases/2026-04-11-prepare-sula-memory-canary-rollout.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "release"
+      ],
+      "date": "2026-04-11"
+    },
+    {
+      "id": "milestone:2026-04-11-prepare-sula-memory-canary-rollout",
+      "kind": "milestone",
+      "title": "Prepare Sula memory canary rollout",
+      "summary": "- date: 2026-04-11 - executor: Codex - branch: codex/bootstrap-sula - status: completed",
+      "status": "shipped",
+      "path": "docs/releases/2026-04-11-prepare-sula-memory-canary-rollout.md",
+      "source_paths": [
+        "docs/releases/2026-04-11-prepare-sula-memory-canary-rollout.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "release-milestone"
+      ],
+      "date": "2026-04-11"
+    },
+    {
+      "id": "risk:docs-releases-2026-04-11-prepare-sula-memory-canary-rollout-md:memory-scaffolds-could-drift-from-doctor-expectations",
+      "kind": "risk",
+      "title": "memory scaffolds could drift from doctor expectations",
+      "summary": "memory scaffolds could drift from doctor expectations",
+      "status": "open",
+      "path": "docs/releases/2026-04-11-prepare-sula-memory-canary-rollout.md",
+      "source_paths": [
+        "docs/releases/2026-04-11-prepare-sula-memory-canary-rollout.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "risk",
+        "section-object"
+      ],
+      "date": "2026-04-11"
+    },
+    {
+      "id": "risk:docs-releases-2026-04-11-prepare-sula-memory-canary-rollout-md:strict-validation-could-become-too-noisy-for-real-projects-if-the-canary-is-not-maintained",
+      "kind": "risk",
+      "title": "strict validation could become too noisy for real projects if the canary is n...",
+      "summary": "strict validation could become too noisy for real projects if the canary is not maintained",
+      "status": "open",
+      "path": "docs/releases/2026-04-11-prepare-sula-memory-canary-rollout.md",
+      "source_paths": [
+        "docs/releases/2026-04-11-prepare-sula-memory-canary-rollout.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "risk",
+        "section-object"
+      ],
+      "date": "2026-04-11"
+    },
+    {
+      "id": "incident:2026-04-11-capture-canary-documentation-gaps",
+      "kind": "incident",
+      "title": "Capture canary documentation gaps",
+      "summary": "- date: 2026-04-11 - executor: Codex - branch: codex/bootstrap-sula - status: resolved",
+      "status": "recorded",
+      "path": "docs/incidents/2026-04-11-capture-canary-documentation-gaps.md",
+      "source_paths": [
+        "docs/incidents/2026-04-11-capture-canary-documentation-gaps.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "incident"
+      ],
+      "date": "2026-04-11"
+    },
+    {
+      "id": "risk:2026-04-11-capture-canary-documentation-gaps",
+      "kind": "risk",
+      "title": "Capture canary documentation gaps",
+      "summary": "- date: 2026-04-11 - executor: Codex - branch: codex/bootstrap-sula - status: resolved",
+      "status": "incident",
+      "path": "docs/incidents/2026-04-11-capture-canary-documentation-gaps.md",
+      "source_paths": [
+        "docs/incidents/2026-04-11-capture-canary-documentation-gaps.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "incident-risk"
+      ],
+      "date": "2026-04-11"
+    },
+    {
+      "id": "object:source:github-copilot-instructions-md",
+      "kind": "document",
+      "title": "copilot-instructions.md",
+      "summary": "Read [AGENTS.md](AGENTS.md) before proposing or generating changes.",
+      "status": "indexed",
+      "path": ".github/copilot-instructions.md",
+      "source_paths": [
+        ".github/copilot-instructions.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:github-workflows-deploy-okoktoto-v5-yml",
+      "kind": "config",
+      "title": "deploy-okoktoto-v5.yml",
+      "summary": "name: example-deploy",
+      "status": "indexed",
+      "path": ".github/workflows/deploy-okoktoto-v5.yml",
+      "source_paths": [
+        ".github/workflows/deploy-okoktoto-v5.yml"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "repo",
+        "deploy"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:agents-md",
+      "kind": "document",
+      "title": "AGENTS.md",
+      "summary": "This file is the primary instruction source for AI coding agents working in this repository.",
+      "status": "indexed",
+      "path": "AGENTS.md",
+      "source_paths": [
+        "AGENTS.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:change-records-md",
+      "kind": "document",
+      "title": "CHANGE-RECORDS.md",
+      "summary": "This file is the index for non-trivial project changes.",
+      "status": "indexed",
+      "path": "CHANGE-RECORDS.md",
+      "source_paths": [
+        "CHANGE-RECORDS.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "memory",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:claude-md",
+      "kind": "document",
+      "title": "CLAUDE.md",
+      "summary": "Primary repository instructions are in [AGENTS.md](AGENTS.md). Read that file first.",
+      "status": "indexed",
+      "path": "CLAUDE.md",
+      "source_paths": [
+        "CLAUDE.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:codex-md",
+      "kind": "document",
+      "title": "CODEX.md",
+      "summary": "Primary repository instructions are in [AGENTS.md](AGENTS.md). Read that file first.",
+      "status": "indexed",
+      "path": "CODEX.md",
+      "source_paths": [
+        "CODEX.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:gemini-md",
+      "kind": "document",
+      "title": "GEMINI.md",
+      "summary": "Read [AGENTS.md](AGENTS.md) before making changes.",
+      "status": "indexed",
+      "path": "GEMINI.md",
+      "source_paths": [
+        "GEMINI.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:readme-md",
+      "kind": "document",
+      "title": "README.md",
+      "summary": "This example shows how Sula represents the current OKOKTOTO v5 repository as a reusable profile consumer.",
+      "status": "indexed",
+      "path": "README.md",
+      "source_paths": [
+        "README.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:status-md",
+      "kind": "document",
+      "title": "STATUS.md",
+      "summary": "- last updated: 2026-04-11",
+      "status": "indexed",
+      "path": "STATUS.md",
+      "source_paths": [
+        "STATUS.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "memory",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": "2026-04-11"
+    },
+    {
+      "id": "object:source:docs-readme-md",
+      "kind": "document",
+      "title": "README.md",
+      "summary": "This directory organizes the reusable project operating system for `OKOKTOTO v5`.",
+      "status": "indexed",
+      "path": "docs/README.md",
+      "source_paths": [
+        "docs/README.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:docs-architecture-module-map-md",
+      "kind": "document",
+      "title": "module-map.md",
+      "summary": "This profile maps the common code lanes for a React frontend over ERPNext.",
+      "status": "indexed",
+      "path": "docs/architecture/module-map.md",
+      "source_paths": [
+        "docs/architecture/module-map.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:docs-architecture-system-map-md",
+      "kind": "document",
+      "title": "system-map.md",
+      "summary": "This profile assumes a React frontend that orchestrates ERPNext / Frappe capabilities.",
+      "status": "indexed",
+      "path": "docs/architecture/system-map.md",
+      "source_paths": [
+        "docs/architecture/system-map.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:docs-change-records-2026-04-11-adopt-sula-memory-model-md",
+      "kind": "document",
+      "title": "2026-04-11-adopt-sula-memory-model.md",
+      "summary": "- date: 2026-04-11 - executor: Codex - branch: codex/bootstrap-sula - related commit(s): 901c67f - status: completed",
+      "status": "indexed",
+      "path": "docs/change-records/2026-04-11-adopt-sula-memory-model.md",
+      "source_paths": [
+        "docs/change-records/2026-04-11-adopt-sula-memory-model.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "memory",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": "2026-04-11"
+    },
+    {
+      "id": "object:source:docs-change-records-readme-md",
+      "kind": "document",
+      "title": "README.md",
+      "summary": "Store detailed non-trivial change records in this directory.",
+      "status": "indexed",
+      "path": "docs/change-records/README.md",
+      "source_paths": [
+        "docs/change-records/README.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "memory",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:docs-change-records-template-md",
+      "kind": "document",
+      "title": "_template.md",
+      "summary": "- date: {{DATE}} - executor: {{EXECUTOR}} - branch: {{BRANCH}} - related commit(s): {{RELATED_COMMITS}} - status: {{STATUS}}",
+      "status": "indexed",
+      "path": "docs/change-records/_template.md",
+      "source_paths": [
+        "docs/change-records/_template.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "memory",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:docs-incidents-2026-04-11-capture-canary-documentation-gaps-md",
+      "kind": "document",
+      "title": "2026-04-11-capture-canary-documentation-gaps.md",
+      "summary": "- date: 2026-04-11 - executor: Codex - branch: codex/bootstrap-sula - status: resolved",
+      "status": "indexed",
+      "path": "docs/incidents/2026-04-11-capture-canary-documentation-gaps.md",
+      "source_paths": [
+        "docs/incidents/2026-04-11-capture-canary-documentation-gaps.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "memory",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": "2026-04-11"
+    },
+    {
+      "id": "object:source:docs-incidents-readme-md",
+      "kind": "document",
+      "title": "README.md",
+      "summary": "Store incident or recovery history in this directory.",
+      "status": "indexed",
+      "path": "docs/incidents/README.md",
+      "source_paths": [
+        "docs/incidents/README.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "memory",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:docs-incidents-template-md",
+      "kind": "document",
+      "title": "_template.md",
+      "summary": "- date: {{DATE}} - executor: {{EXECUTOR}} - branch: {{BRANCH}} - status: {{STATUS}}",
+      "status": "indexed",
+      "path": "docs/incidents/_template.md",
+      "source_paths": [
+        "docs/incidents/_template.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "memory",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:docs-ops-architecture-exception-register-md",
+      "kind": "document",
+      "title": "architecture-exception-register.md",
+      "summary": "This file records approved exceptions to the highest architecture rule.",
+      "status": "indexed",
+      "path": "docs/ops/architecture-exception-register.md",
+      "source_paths": [
+        "docs/ops/architecture-exception-register.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:docs-ops-document-design-principles-md",
+      "kind": "document",
+      "title": "document-design-principles.md",
+      "summary": "This file defines how formal planning, proposal, report, process, and training documents should be structured in `OKOKTOTO v5`.",
+      "status": "indexed",
+      "path": "docs/ops/document-design-principles.md",
+      "source_paths": [
+        "docs/ops/document-design-principles.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:docs-ops-project-memory-md",
+      "kind": "document",
+      "title": "project-memory.md",
+      "summary": "This file defines the durable memory contract for the repository.",
+      "status": "indexed",
+      "path": "docs/ops/project-memory.md",
+      "source_paths": [
+        "docs/ops/project-memory.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "agreement:source:docs-ops-project-memory-md",
+      "kind": "agreement",
+      "title": "OKOKTOTO v5 Project Memory Guide",
+      "summary": "This file defines the durable memory contract for the repository.",
+      "status": "active",
+      "path": "docs/ops/project-memory.md",
+      "source_paths": [
+        "docs/ops/project-memory.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo"
+      ],
+      "tags": [
+        "agreement",
+        "source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:docs-ops-release-checklist-md",
+      "kind": "document",
+      "title": "release-checklist.md",
+      "summary": "Use this checklist before push or release.",
+      "status": "indexed",
+      "path": "docs/ops/release-checklist.md",
+      "source_paths": [
+        "docs/ops/release-checklist.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:docs-ops-request-template-md",
+      "kind": "document",
+      "title": "request-template.md",
+      "summary": "This template reduces back-and-forth. It is not mandatory, but it is the fastest way to get predictable delivery.",
+      "status": "indexed",
+      "path": "docs/ops/request-template.md",
+      "source_paths": [
+        "docs/ops/request-template.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:docs-ops-smoke-test-checklist-md",
+      "kind": "document",
+      "title": "smoke-test-checklist.md",
+      "summary": "Apply the global checks plus the impacted module checks.",
+      "status": "indexed",
+      "path": "docs/ops/smoke-test-checklist.md",
+      "source_paths": [
+        "docs/ops/smoke-test-checklist.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:docs-ops-team-operating-model-md",
+      "kind": "document",
+      "title": "team-operating-model.md",
+      "summary": "This file defines the default collaboration model for the repository.",
+      "status": "indexed",
+      "path": "docs/ops/team-operating-model.md",
+      "source_paths": [
+        "docs/ops/team-operating-model.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:docs-releases-2026-04-11-prepare-sula-memory-canary-rollout-md",
+      "kind": "document",
+      "title": "2026-04-11-prepare-sula-memory-canary-rollout.md",
+      "summary": "- date: 2026-04-11 - executor: Codex - branch: codex/bootstrap-sula - status: completed",
+      "status": "indexed",
+      "path": "docs/releases/2026-04-11-prepare-sula-memory-canary-rollout.md",
+      "source_paths": [
+        "docs/releases/2026-04-11-prepare-sula-memory-canary-rollout.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "memory",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": "2026-04-11"
+    },
+    {
+      "id": "object:source:docs-releases-readme-md",
+      "kind": "document",
+      "title": "README.md",
+      "summary": "Store release-specific rollout notes in this directory when deployment history matters.",
+      "status": "indexed",
+      "path": "docs/releases/README.md",
+      "source_paths": [
+        "docs/releases/README.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "memory",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:docs-releases-template-md",
+      "kind": "document",
+      "title": "_template.md",
+      "summary": "- date: {{DATE}} - executor: {{EXECUTOR}} - branch: {{BRANCH}} - status: {{STATUS}}",
+      "status": "indexed",
+      "path": "docs/releases/_template.md",
+      "source_paths": [
+        "docs/releases/_template.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "memory",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "risk:docs-releases-template-md:fill-in-risks",
+      "kind": "risk",
+      "title": "_fill in risks_",
+      "summary": "_fill in risks_",
+      "status": "open",
+      "path": "docs/releases/_template.md",
+      "source_paths": [
+        "docs/releases/_template.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "memory",
+        "repo"
+      ],
+      "tags": [
+        "risk",
+        "section-object"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:docs-runbooks-auth-and-session-md",
+      "kind": "document",
+      "title": "auth-and-session.md",
+      "summary": "This runbook covers the standard auth/session lane for the React + ERPNext profile.",
+      "status": "indexed",
+      "path": "docs/runbooks/auth-and-session.md",
+      "source_paths": [
+        "docs/runbooks/auth-and-session.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:docs-runbooks-deploy-and-rollback-md",
+      "kind": "document",
+      "title": "deploy-and-rollback.md",
+      "summary": "This runbook covers the standard release path for this profile.",
+      "status": "indexed",
+      "path": "docs/runbooks/deploy-and-rollback.md",
+      "source_paths": [
+        "docs/runbooks/deploy-and-rollback.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo",
+        "deploy"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:docs-runbooks-erpnext-integration-md",
+      "kind": "document",
+      "title": "erpnext-integration.md",
+      "summary": "This runbook covers the integration lane for React frontends over ERPNext.",
+      "status": "indexed",
+      "path": "docs/runbooks/erpnext-integration.md",
+      "source_paths": [
+        "docs/runbooks/erpnext-integration.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:src-app-tsx",
+      "kind": "code",
+      "title": "App.tsx",
+      "summary": "export function App() { return \"OKOKTOTO example canary\"; }",
+      "status": "indexed",
+      "path": "src/App.tsx",
+      "source_paths": [
+        "src/App.tsx"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "repo",
+        "erpnext"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:src-api-erpnext-ts",
+      "kind": "code",
+      "title": "erpnext.ts",
+      "summary": "export async function requestERPNext(resource: string): Promise<string> { return `example:${resource}`; }",
+      "status": "indexed",
+      "path": "src/api/erpnext.ts",
+      "source_paths": [
+        "src/api/erpnext.ts"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "repo",
+        "erpnext"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:src-store-usestore-ts",
+      "kind": "code",
+      "title": "useStore.ts",
+      "summary": "export function useStore() { return { ready: true, }; }",
+      "status": "indexed",
+      "path": "src/store/useStore.ts",
+      "source_paths": [
+        "src/store/useStore.ts"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "repo",
+        "erpnext"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    }
+  ]
+}

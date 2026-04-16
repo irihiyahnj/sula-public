@@ -1,0 +1,44 @@
+# {{PROJECT_NAME}} System Map
+
+This profile assumes a React frontend that orchestrates ERPNext / Frappe capabilities.
+
+## System Boundary
+
+- frontend stack: {{FRONTEND_STACK}}
+- backend/system of record: {{BACKEND_STACK}}
+- highest rule: `{{HIGHEST_RULE}}`
+
+## Runtime Structure
+
+```mermaid
+flowchart TD
+    A["User Browser"] --> B["Frontend App at {{BASE_PATH}}"]
+    B --> C["ERPNext / Frappe API"]
+    C --> D["Business Data And Permissions"]
+```
+
+## Key Flow Rules
+
+### Authentication And Session
+
+- browser session is expected to use cookie auth + CSRF semantics
+- session expiry codes: `{{SESSION_EXPIRY_CODES}}`
+- permission-denied codes: `{{PERMISSION_DENIED_CODES}}`
+
+### Integration Layer
+
+- primary integration lane is [{{API_LAYER_PATH}}](../../{{API_LAYER_PATH}})
+- app shell entry is [{{APP_SHELL_PATH}}](../../{{APP_SHELL_PATH}})
+- state layer entry is [{{STATE_LAYER_PATH}}](../../{{STATE_LAYER_PATH}})
+
+### Deployment
+
+- base path: `{{BASE_PATH}}`
+- primary deployment URL: `{{PRODUCTION_URL}}`
+- workflow reference: `{{DEPLOY_WORKFLOW}}`
+
+## Invariants
+
+1. ERPNext remains the system of record.
+2. Business integration logic stays centralized.
+3. Frontend routing and state choices must stay aligned with local project rules.

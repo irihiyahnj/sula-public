@@ -1,0 +1,450 @@
+{
+  "version": "0.11.0",
+  "profile": "generic-project",
+  "objects": [
+    {
+      "id": "project:field-ops-generic-canary",
+      "kind": "project",
+      "title": "Field Ops Generic Canary",
+      "summary": "Generic-project canary for Sula rollout validation",
+      "status": "active",
+      "path": ".sula/project.toml",
+      "source_paths": [
+        ".sula/project.toml",
+        "STATUS.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "docs",
+        "memory",
+        "repo",
+        "local-fs"
+      ],
+      "tags": [
+        "generic-project"
+      ],
+      "date": "2026-04-16"
+    },
+    {
+      "id": "state:current",
+      "kind": "state",
+      "title": "Current Project State",
+      "summary": "- This in-repo generic-project canary exists to validate detached-safe adoption, sync, doctor, and check behavior for repositories that are not tied to the React profile.",
+      "status": "current",
+      "path": "STATUS.md",
+      "source_paths": [
+        "STATUS.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "state"
+      ],
+      "date": "2026-04-16"
+    },
+    {
+      "id": "task:status:keep-the-generic-project-canary-aligned-with-current-managed-templates",
+      "kind": "task",
+      "title": "keep the generic-project canary aligned with current managed templates",
+      "summary": "keep the generic-project canary aligned with current managed templates",
+      "status": "open",
+      "path": "STATUS.md",
+      "source_paths": [
+        "STATUS.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "current-focus",
+        "status"
+      ],
+      "date": "2026-04-16"
+    },
+    {
+      "id": "task:status:use-it-as-a-local-rollout-target-before-broader-generic-project-sync-changes",
+      "kind": "task",
+      "title": "use it as a local rollout target before broader generic-project sync changes",
+      "summary": "use it as a local rollout target before broader generic-project sync changes",
+      "status": "open",
+      "path": "STATUS.md",
+      "source_paths": [
+        "STATUS.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "current-focus",
+        "status"
+      ],
+      "date": "2026-04-16"
+    },
+    {
+      "id": "decision:status:2026-04-16-promoted-this-example-into-a-generic-project-rollout-canary-for-local-sula-verification",
+      "kind": "decision",
+      "title": "2026-04-16: promoted this example into a generic-project rollout canary for l...",
+      "summary": "2026-04-16: promoted this example into a generic-project rollout canary for local Sula verification",
+      "status": "decided",
+      "path": "STATUS.md",
+      "source_paths": [
+        "STATUS.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "recent-decision",
+        "status"
+      ],
+      "date": "2026-04-16"
+    },
+    {
+      "id": "decision:status:2026-04-16-added-promote-field-ops-example-into-generic-project-canary-docs-change-records-2026-04-16-promote-field-ops-example-into-generic-project-canary-md",
+      "kind": "decision",
+      "title": "2026-04-16: added [Promote field ops example into generic-project canary](doc...",
+      "summary": "2026-04-16: added [Promote field ops example into generic-project canary](docs/change-records/2026-04-16-promote-field-ops-example-into-generic-project-canary.md)",
+      "status": "decided",
+      "path": "STATUS.md",
+      "source_paths": [
+        "STATUS.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "recent-decision",
+        "status"
+      ],
+      "date": "2026-04-16"
+    },
+    {
+      "id": "person:status:sula-core-maintainers",
+      "kind": "person",
+      "title": "Sula Core maintainers",
+      "summary": "Current review owner for Field Ops Generic Canary.",
+      "status": "responsible",
+      "path": "STATUS.md",
+      "source_paths": [
+        "STATUS.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "next-review-owner",
+        "status"
+      ],
+      "date": "2026-04-16"
+    },
+    {
+      "id": "milestone:status:next-review:2026-04-23",
+      "kind": "milestone",
+      "title": "Next Review",
+      "summary": "Next review checkpoint. review again before changing generic-project managed templates or detached-mode defaults",
+      "status": "planned",
+      "path": "STATUS.md",
+      "source_paths": [
+        "STATUS.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "next-review",
+        "status"
+      ],
+      "date": "2026-04-23"
+    },
+    {
+      "id": "change:2026-04-16-promote-field-ops-example-into-generic-project-canary",
+      "kind": "change",
+      "title": "Promote field ops example into generic-project canary",
+      "summary": "- date: 2026-04-16 - executor: Codex - branch: main - related commit(s): pending - status: completed",
+      "status": "recorded",
+      "path": "docs/change-records/2026-04-16-promote-field-ops-example-into-generic-project-canary.md",
+      "source_paths": [
+        "docs/change-records/2026-04-16-promote-field-ops-example-into-generic-project-canary.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "change"
+      ],
+      "date": "2026-04-16"
+    },
+    {
+      "id": "object:source:agents-md",
+      "kind": "document",
+      "title": "AGENTS.md",
+      "summary": "This file is the primary instruction source for AI agents working in this project.",
+      "status": "indexed",
+      "path": "AGENTS.md",
+      "source_paths": [
+        "AGENTS.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:change-records-md",
+      "kind": "document",
+      "title": "CHANGE-RECORDS.md",
+      "summary": "This file is the index for non-trivial project changes.",
+      "status": "indexed",
+      "path": "CHANGE-RECORDS.md",
+      "source_paths": [
+        "CHANGE-RECORDS.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "memory",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:readme-md",
+      "kind": "document",
+      "title": "README.md",
+      "summary": "Generic-project canary for Sula rollout validation",
+      "status": "indexed",
+      "path": "README.md",
+      "source_paths": [
+        "README.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:status-md",
+      "kind": "document",
+      "title": "STATUS.md",
+      "summary": "- last updated: 2026-04-16",
+      "status": "indexed",
+      "path": "STATUS.md",
+      "source_paths": [
+        "STATUS.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "memory",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": "2026-04-16"
+    },
+    {
+      "id": "object:source:docs-change-records-2026-04-16-promote-field-ops-example-into-generic-project-canary-md",
+      "kind": "document",
+      "title": "2026-04-16-promote-field-ops-example-into-generic-project-canary.md",
+      "summary": "- date: 2026-04-16 - executor: Codex - branch: main - related commit(s): pending - status: completed",
+      "status": "indexed",
+      "path": "docs/change-records/2026-04-16-promote-field-ops-example-into-generic-project-canary.md",
+      "source_paths": [
+        "docs/change-records/2026-04-16-promote-field-ops-example-into-generic-project-canary.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "memory",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": "2026-04-16"
+    },
+    {
+      "id": "object:source:docs-change-records-readme-md",
+      "kind": "document",
+      "title": "README.md",
+      "summary": "Store detailed non-trivial change records in this directory.",
+      "status": "indexed",
+      "path": "docs/change-records/README.md",
+      "source_paths": [
+        "docs/change-records/README.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "memory",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:docs-change-records-template-md",
+      "kind": "document",
+      "title": "_template.md",
+      "summary": "- date: {{DATE}} - executor: {{EXECUTOR}} - branch: {{BRANCH}} - related commit(s): {{RELATED_COMMITS}} - status: {{STATUS}}",
+      "status": "indexed",
+      "path": "docs/change-records/_template.md",
+      "source_paths": [
+        "docs/change-records/_template.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "memory",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:docs-incidents-readme-md",
+      "kind": "document",
+      "title": "README.md",
+      "summary": "Store incident or recovery history in this directory.",
+      "status": "indexed",
+      "path": "docs/incidents/README.md",
+      "source_paths": [
+        "docs/incidents/README.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "memory",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:docs-incidents-template-md",
+      "kind": "document",
+      "title": "_template.md",
+      "summary": "- date: {{DATE}} - executor: {{EXECUTOR}} - branch: {{BRANCH}} - status: {{STATUS}}",
+      "status": "indexed",
+      "path": "docs/incidents/_template.md",
+      "source_paths": [
+        "docs/incidents/_template.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "memory",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:docs-releases-readme-md",
+      "kind": "document",
+      "title": "README.md",
+      "summary": "Store release-specific rollout notes in this directory when deployment history matters.",
+      "status": "indexed",
+      "path": "docs/releases/README.md",
+      "source_paths": [
+        "docs/releases/README.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "memory",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:docs-releases-template-md",
+      "kind": "document",
+      "title": "_template.md",
+      "summary": "- date: {{DATE}} - executor: {{EXECUTOR}} - branch: {{BRANCH}} - status: {{STATUS}}",
+      "status": "indexed",
+      "path": "docs/releases/_template.md",
+      "source_paths": [
+        "docs/releases/_template.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "memory",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "risk:docs-releases-template-md:fill-in-risks",
+      "kind": "risk",
+      "title": "_fill in risks_",
+      "summary": "_fill in risks_",
+      "status": "open",
+      "path": "docs/releases/_template.md",
+      "source_paths": [
+        "docs/releases/_template.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "memory",
+        "repo"
+      ],
+      "tags": [
+        "risk",
+        "section-object"
+      ],
+      "date": null
+    }
+  ]
+}

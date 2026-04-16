@@ -1,0 +1,60 @@
+{
+  "version": "0.11.0",
+  "profile": "generic-project",
+  "counts": {
+    "registered_sources": 21,
+    "discovered_sources": 11,
+    "adapters": 5,
+    "artifacts": 0,
+    "objects": 21,
+    "source_adapter_links": 82
+  },
+  "adapter_catalog": ".sula/adapters/catalog.json",
+  "indexes": [
+    {
+      "name": "source-registry",
+      "path": ".sula/sources/registry.json",
+      "rebuildable": true
+    },
+    {
+      "name": "adapter-catalog",
+      "path": ".sula/adapters/catalog.json",
+      "rebuildable": true
+    },
+    {
+      "name": "artifact-catalog",
+      "path": ".sula/artifacts/catalog.json",
+      "rebuildable": false
+    },
+    {
+      "name": "object-catalog",
+      "path": ".sula/objects/catalog.json",
+      "rebuildable": true
+    },
+    {
+      "name": "current-state",
+      "path": ".sula/state/current.md",
+      "rebuildable": true
+    },
+    {
+      "name": "event-log",
+      "path": ".sula/events/log.jsonl",
+      "rebuildable": false
+    },
+    {
+      "name": "relation-index",
+      "path": ".sula/indexes/relations.json",
+      "rebuildable": true
+    },
+    {
+      "name": "sqlite-cache",
+      "path": ".sula/cache/kernel.db",
+      "rebuildable": true
+    },
+    {
+      "name": "memory-digest",
+      "path": ".sula/memory-digest.md",
+      "rebuildable": true
+    }
+  ]
+}

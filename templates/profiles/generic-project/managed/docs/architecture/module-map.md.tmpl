@@ -1,0 +1,29 @@
+# {{PROJECT_NAME}} Module Map
+
+This profile maps the minimum durable lanes that every Sula-managed project should keep visible.
+
+## Core Lanes
+
+| Path | Responsibility |
+| --- | --- |
+| `{{APP_SHELL_PATH}}` | primary project entry or overview anchor |
+| `{{API_LAYER_PATH}}` | current execution or orchestration lane |
+| `{{STATE_LAYER_PATH}}` | generated current-state snapshot |
+| `.sula/sources/registry.json` | registered project source anchors |
+| `.sula/events/log.jsonl` | append-only kernel event history |
+| `{{STATUS_FILE}}` | human-readable current project state |
+| `{{CHANGE_RECORDS_FILE}}` | durable change-history index |
+
+## Modification Rules
+
+- keep stable project truth in project-owned files first
+- use `.sula/` for kernel state, indexes, and generated views
+- when a request changes durable operating behavior, update state and traceability together
+
+## Coordination Rule
+
+If a request changes both project truth and project memory, update:
+
+1. source files or source documents
+2. durable state and change records
+3. exported recall views if they are part of the local workflow

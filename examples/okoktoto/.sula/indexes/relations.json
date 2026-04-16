@@ -1,0 +1,271 @@
+{
+  "version": "0.11.0",
+  "profile": "react-frontend-erpnext",
+  "relations": [
+    {
+      "from": "project:okoktoto-v5",
+      "to": "project-manifest",
+      "type": "derived-from"
+    },
+    {
+      "from": "project:okoktoto-v5",
+      "to": "source:status-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "state:current",
+      "to": "source:status-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "task:status:verify-that-the-canary-passes-sula-doctor-strict",
+      "to": "source:status-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "task:status:keep-the-example-aligned-with-the-latest-memory-aware-templates",
+      "to": "source:status-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "decision:status:2026-04-11-adopted-the-memory-canary-release-note-prepare-sula-memory-canary-rollout-docs-releases-2026-04-11-prepare-sula-memory-canary-rollout-md",
+      "to": "source:status-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "decision:status:2026-04-11-added-adopt-sula-memory-model-docs-change-records-2026-04-11-adopt-sula-memory-model-md",
+      "to": "source:status-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "decision:status:2026-04-11-documented-the-canary-incident-context-capture-canary-documentation-gaps-docs-incidents-2026-04-11-capture-canary-documentation-gaps-md",
+      "to": "source:status-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "person:status:sula-core-maintainers",
+      "to": "source:status-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "milestone:status:next-review:2026-04-18",
+      "to": "source:status-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "change:2026-04-11-adopt-sula-memory-model",
+      "to": "source:docs-change-records-2026-04-11-adopt-sula-memory-model-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "release:2026-04-11-prepare-sula-memory-canary-rollout",
+      "to": "source:docs-releases-2026-04-11-prepare-sula-memory-canary-rollout-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "milestone:2026-04-11-prepare-sula-memory-canary-rollout",
+      "to": "source:docs-releases-2026-04-11-prepare-sula-memory-canary-rollout-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "risk:docs-releases-2026-04-11-prepare-sula-memory-canary-rollout-md:memory-scaffolds-could-drift-from-doctor-expectations",
+      "to": "source:docs-releases-2026-04-11-prepare-sula-memory-canary-rollout-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "risk:docs-releases-2026-04-11-prepare-sula-memory-canary-rollout-md:strict-validation-could-become-too-noisy-for-real-projects-if-the-canary-is-not-maintained",
+      "to": "source:docs-releases-2026-04-11-prepare-sula-memory-canary-rollout-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "incident:2026-04-11-capture-canary-documentation-gaps",
+      "to": "source:docs-incidents-2026-04-11-capture-canary-documentation-gaps-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "risk:2026-04-11-capture-canary-documentation-gaps",
+      "to": "source:docs-incidents-2026-04-11-capture-canary-documentation-gaps-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "object:source:github-copilot-instructions-md",
+      "to": "source:github-copilot-instructions-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "object:source:github-workflows-deploy-okoktoto-v5-yml",
+      "to": "source:github-workflows-deploy-okoktoto-v5-yml",
+      "type": "derived-from"
+    },
+    {
+      "from": "object:source:agents-md",
+      "to": "source:agents-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "object:source:change-records-md",
+      "to": "source:change-records-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "object:source:claude-md",
+      "to": "source:claude-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "object:source:codex-md",
+      "to": "source:codex-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "object:source:gemini-md",
+      "to": "source:gemini-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "object:source:readme-md",
+      "to": "source:readme-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "object:source:status-md",
+      "to": "source:status-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "object:source:docs-readme-md",
+      "to": "source:docs-readme-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "object:source:docs-architecture-module-map-md",
+      "to": "source:docs-architecture-module-map-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "object:source:docs-architecture-system-map-md",
+      "to": "source:docs-architecture-system-map-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "object:source:docs-change-records-2026-04-11-adopt-sula-memory-model-md",
+      "to": "source:docs-change-records-2026-04-11-adopt-sula-memory-model-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "object:source:docs-change-records-readme-md",
+      "to": "source:docs-change-records-readme-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "object:source:docs-change-records-template-md",
+      "to": "source:docs-change-records-template-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "object:source:docs-incidents-2026-04-11-capture-canary-documentation-gaps-md",
+      "to": "source:docs-incidents-2026-04-11-capture-canary-documentation-gaps-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "object:source:docs-incidents-readme-md",
+      "to": "source:docs-incidents-readme-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "object:source:docs-incidents-template-md",
+      "to": "source:docs-incidents-template-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "object:source:docs-ops-architecture-exception-register-md",
+      "to": "source:docs-ops-architecture-exception-register-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "object:source:docs-ops-document-design-principles-md",
+      "to": "source:docs-ops-document-design-principles-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "object:source:docs-ops-project-memory-md",
+      "to": "source:docs-ops-project-memory-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "agreement:source:docs-ops-project-memory-md",
+      "to": "source:docs-ops-project-memory-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "object:source:docs-ops-release-checklist-md",
+      "to": "source:docs-ops-release-checklist-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "object:source:docs-ops-request-template-md",
+      "to": "source:docs-ops-request-template-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "object:source:docs-ops-smoke-test-checklist-md",
+      "to": "source:docs-ops-smoke-test-checklist-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "object:source:docs-ops-team-operating-model-md",
+      "to": "source:docs-ops-team-operating-model-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "object:source:docs-releases-2026-04-11-prepare-sula-memory-canary-rollout-md",
+      "to": "source:docs-releases-2026-04-11-prepare-sula-memory-canary-rollout-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "object:source:docs-releases-readme-md",
+      "to": "source:docs-releases-readme-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "object:source:docs-releases-template-md",
+      "to": "source:docs-releases-template-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "risk:docs-releases-template-md:fill-in-risks",
+      "to": "source:docs-releases-template-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "object:source:docs-runbooks-auth-and-session-md",
+      "to": "source:docs-runbooks-auth-and-session-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "object:source:docs-runbooks-deploy-and-rollback-md",
+      "to": "source:docs-runbooks-deploy-and-rollback-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "object:source:docs-runbooks-erpnext-integration-md",
+      "to": "source:docs-runbooks-erpnext-integration-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "object:source:src-app-tsx",
+      "to": "source:src-app-tsx",
+      "type": "derived-from"
+    },
+    {
+      "from": "object:source:src-api-erpnext-ts",
+      "to": "source:src-api-erpnext-ts",
+      "type": "derived-from"
+    },
+    {
+      "from": "object:source:src-store-usestore-ts",
+      "to": "source:src-store-usestore-ts",
+      "type": "derived-from"
+    }
+  ]
+}

@@ -1,0 +1,23 @@
+# {{PROJECT_NAME}} Handoff And Review Runbook
+
+Use this runbook when a fresh session or a new maintainer needs to recover project context quickly.
+
+## Recovery Order
+
+1. read [{{STATUS_FILE}}](../../{{STATUS_FILE}})
+2. read [{{CHANGE_RECORDS_FILE}}](../../{{CHANGE_RECORDS_FILE}})
+3. inspect [{{STATE_LAYER_PATH}}](../../{{STATE_LAYER_PATH}})
+4. inspect `.sula/sources/registry.json` for anchors
+5. open only the most relevant project truth sources
+
+## Non-trivial Work
+
+If the handoff produces a durable decision or meaningful delivery:
+
+- add a change record
+- refresh project state
+- regenerate the memory digest if the project uses it heavily
+
+## Removal Reminder
+
+Sula is removable. If the project no longer benefits from it, review the `remove` plan before making local cleanup decisions by hand.

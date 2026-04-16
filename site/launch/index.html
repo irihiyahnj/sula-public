@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Sula Launch Contract</title>
+    <meta
+      name="description"
+      content="Canonical launch contract for starting Sula from a URL, resolving the source, and routing onboarding or existing-consumer review."
+    />
+    <link rel="stylesheet" href="../styles.css" />
+    <script defer src="../app.js"></script>
+  </head>
+  <body>
+    <div class="page-shell">
+      <header class="hero compact-hero">
+        <p class="eyebrow">Canonical URL launch contract</p>
+        <h1>What an agent should do after the user pastes the Sula launch URL.</h1>
+        <p class="lede">
+          This page is the human-readable contract behind the short launch sentence. It is designed to remove startup
+          pain: read the page, resolve the launcher, classify the target project, then route to onboarding or
+          existing-consumer review.
+        </p>
+        <div class="hero-actions">
+          <a class="primary-link" href="../">Back To Home</a>
+          <a class="secondary-link" href="../sula.json">Open `sula.json`</a>
+          <a class="secondary-link" href="./bootstrap.py">Download `bootstrap.py`</a>
+        </div>
+      </header>
+
+      <main>
+        <section class="panel">
+          <div class="section-heading">
+            <p class="section-label">Canonical Prompts</p>
+            <h2>Short URL-only launch lines.</h2>
+          </div>
+          <div class="copy-grid">
+            <section class="copy-card">
+              <div class="card-header">
+                <h3>Chinese</h3>
+                <button class="copy-button" data-copy-target="launch-zh">Copy</button>
+              </div>
+              <pre id="launch-zh" class="prompt-block"><code>请按 https://sula.1stp.monster/launch/ 的启动协议接管当前项目。</code></pre>
+            </section>
+            <section class="copy-card">
+              <div class="card-header">
+                <h3>English</h3>
+                <button class="copy-button" data-copy-target="launch-en">Copy</button>
+              </div>
+              <pre id="launch-en" class="prompt-block"><code>Please take over the current project using the launch contract at https://sula.1stp.monster/launch/.</code></pre>
+            </section>
+          </div>
+        </section>
+
+        <section class="panel">
+          <div class="section-heading">
+            <p class="section-label">Behavior Contract</p>
+            <h2>The default launch sequence is fixed.</h2>
+          </div>
+
+          <ol class="contract-list">
+            <li>Read this page and the machine-readable descriptor at <code>/sula.json</code>.</li>
+            <li>Do not search npm packages, global binaries, or guessed local aliases.</li>
+            <li>Resolve the launcher in this order:
+              <br />a. use vendored <code>scripts/sula.py</code> if the target project already includes it
+              <br />b. use an explicit local Sula source checkout if one is provided
+              <br />c. otherwise fetch the canonical public source only after <code>/sula.json</code> declares a published public repository
+            </li>
+            <li>If <code>.sula/project.toml</code> exists, treat the project as an existing consumer.</li>
+            <li>If the project is not yet adopted, run guided onboarding instead of low-level adoption by default.</li>
+            <li>Report the Sula source that was used, the actions taken, the managed boundary, and the next commands.</li>
+          </ol>
+        </section>
+
+        <section class="panel dual-panel">
+          <article>
+            <div class="section-heading">
+              <p class="section-label">New Projects</p>
+              <h2>Route through onboarding.</h2>
+            </div>
+            <pre class="report-block"><code>python3 bootstrap.py --project-root /path/to/project
+
+or
+
+python3 bootstrap.py --project-root /path/to/project --accept-suggested --approve</code></pre>
+            <ul class="check-list">
+              <li>Use `onboard` as the preferred first-touch flow.</li>
+              <li>Ask only the minimum missing questions.</li>
+              <li>Explain what Sula will manage and where artifacts will route.</li>
+            </ul>
+          </article>
+
+          <article>
+            <div class="section-heading">
+              <p class="section-label">Existing Consumers</p>
+              <h2>Review instead of readopting.</h2>
+            </div>
+            <pre class="report-block"><code>doctor --strict
+sync --dry-run
+status --json</code></pre>
+            <ul class="check-list">
+              <li>Do not rerun first-time adoption over an existing consumer.</li>
+              <li>Detect drift, preview sync impact, and explain next steps.</li>
+              <li>Keep the user on the same managed/scaffold contract they already adopted.</li>
+            </ul>
+          </article>
+        </section>
+
+        <section class="panel dual-panel">
+          <article>
+            <div class="section-heading">
+              <p class="section-label">No Guessing Rule</p>
+              <h2>The site must be enough to resolve startup.</h2>
+            </div>
+            <ul class="check-list">
+              <li>The site should tell agents whether the canonical public source is published yet.</li>
+              <li>The site should expose a launcher that can bootstrap local work without guessing a pre-public repository.</li>
+              <li>The site should make it explicit that package-name guessing is a protocol violation.</li>
+            </ul>
+          </article>
+
+          <article class="status-card">
+            <div class="section-heading">
+              <p class="section-label">Canonical URLs</p>
+              <h2>These are the durable launch anchors.</h2>
+            </div>
+            <pre class="report-block"><code>/launch/
+/launch/bootstrap.py
+/sula.json</code></pre>
+          </article>
+        </section>
+      </main>
+    </div>
+  </body>
+</html>

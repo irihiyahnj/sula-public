@@ -1,0 +1,61 @@
+# {{PROJECT_NAME}} Project Memory Guide
+
+This file defines the durable memory contract for the repository.
+
+The goal is simple:
+
+- stable facts live in stable files
+- current status lives in one place
+- non-trivial decisions are written once and then linked
+- releases and incidents keep their own operational history
+- generated summaries never replace source documents
+
+## Source Of Truth Layers
+
+### Stable Project Facts
+
+- `.sula/project.toml`
+- `AGENTS.md`
+- `docs/architecture/*`
+- `docs/runbooks/*`
+
+### Current State
+
+- [{{STATUS_FILE}}](../{{STATUS_FILE}})
+
+### Decision And Delivery History
+
+- [{{CHANGE_RECORDS_FILE}}](../{{CHANGE_RECORDS_FILE}})
+- [{{CHANGE_RECORD_DIRECTORY}}/](../{{CHANGE_RECORD_DIRECTORY}})
+
+### Release And Incident History
+
+- [{{RELEASE_RECORD_DIRECTORY}}/](../{{RELEASE_RECORD_DIRECTORY}})
+- [{{INCIDENT_RECORD_DIRECTORY}}/](../{{INCIDENT_RECORD_DIRECTORY}})
+
+### Generated Recall Layer
+
+- [{{MEMORY_DIGEST_FILE}}](../{{MEMORY_DIGEST_FILE}})
+
+This digest is generated for fast recall. It is not a source of truth and should not be edited manually.
+
+## Required Update Rules
+
+1. Keep `{{STATUS_FILE}}` current after non-trivial work.
+2. Record non-trivial changes in `{{CHANGE_RECORD_DIRECTORY}}/` and index them from `{{CHANGE_RECORDS_FILE}}`.
+3. If a release has material rollout risk, add a release note.
+4. If an incident affects availability, permissions, data, or deployment safety, add an incident record.
+5. Every architecture exception should reference a change record.
+6. If work touches `STATUS.md`, `CHANGE-RECORDS.md`, `docs/change-records/*`, `.sula/state/current.md`, `.sula/events/log.jsonl`, or `.sula/memory-digest.md`, finish by running `python3 scripts/sula.py check --project-root .` and require `SULA CHECK OK`.
+
+## Freshness Target
+
+- `{{STATUS_FILE}}` should normally be updated at least every `{{STATUS_MAX_AGE_DAYS}}` days while the project is active.
+
+## Anti-patterns
+
+- keeping key reasoning only in chat history
+- mixing temporary task notes into stable architecture docs
+- writing release reasoning into commit messages only
+- editing the generated memory digest instead of the underlying records
+- editing generated `.sula/*` state by hand when a Sula command can rebuild it

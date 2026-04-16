@@ -1,0 +1,5493 @@
+{
+  "version": "0.11.0",
+  "profile": "sula-core",
+  "objects": [
+    {
+      "id": "project:sula",
+      "kind": "project",
+      "title": "Sula",
+      "summary": "Reusable project operating system for AI-native software teams",
+      "status": "active",
+      "path": ".sula/project.toml",
+      "source_paths": [
+        ".sula/project.toml",
+        "STATUS.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "docs",
+        "memory",
+        "repo",
+        "local-fs",
+        "registry",
+        "release"
+      ],
+      "tags": [
+        "sula-core"
+      ],
+      "date": "2026-04-16"
+    },
+    {
+      "id": "state:current",
+      "kind": "state",
+      "title": "Current Project State",
+      "summary": "- Sula now manages itself as a first-class `sula-core` consumer while still acting as the source repository for reusable operating-system assets.\n- The repository has memory-aware governance, an in-repo canary, a root self-adoption path, and an approval-based adoption agent for bringing new repositories under Sula.\n- Public-release governance is now in place, and the remaining blocker is historical lineage cleanup rather than working-tree quality.\n- The future `sula.1stp.monster` landing page is now represented by real static site assets with canonical long-form bootstrap prompts and protocol pages.\n- The bootstrap site is now live on both `https://sula.fly.dev/` and `https://sula.1stp.monster/`, with the public bootstrap contract explicitly handling existing Sula consumers and canonical tool-source resolution.\n- Sula now has a recorded vNext architecture target for a `generic-project` kernel, adapter bundles, scientific retrieval, and first-class removal semantics.\n- The first milestone of that direction is now implemented: unknown and non-Git projects can adopt through `generic-project`, `.sula/` holds kernel artifacts, and removal has a report-first command.\n- The second milestone is now implemented as well: local retrieval can rebuild from SQLite, kernel objects cover task/decision/risk/person/agreement/milestone shapes, and query supports stronger filters plus timeline output.\n- The next operating milestone is now implemented too: machine-readable CLI responses, workflow/storage/portfolio manifest sections, artifact routing, and portfolio registration are available for non-code client projects.\n- Drive-synced projects can now describe `google-drive` as an adapter instead of pretending that storage provider is a project type, which keeps the kernel portable for future providers.\n- Collaborative provider-backed artifact families can now declare their truth source, refresh state, and stale-local-copy risk, so Sula can prefer shared Google-native facts when users ask for the latest version in natural language.\n- Sula now has a real read-only provider refresh path for Google Docs and Google Sheets, plus `artifact refresh` and cached provider snapshots, so freshness intent can trigger an actual provider metadata refresh instead of only local re-ranking.\n- Sula now has a first-class daily `check` workflow, so state-sync work can fail fast when `.sula/state/current.md` or `.sula/memory-digest.md` drift away from the current status and change records.\n- Formal document design is now a first-class Sula capability: adopted projects can carry reusable source-first structure bundles for schedule, proposal, report, process, and training documents instead of relying on one-off prompt instructions.\n- Sula now has a documented proposal for absorbing long-term value from workflow systems like `obra/superpowers` through manifest-driven capability contracts instead of platform-specific skill lock-in.\n- Sula now implements the first workflow-capability slice from that proposal: manifest-level workflow rigor policy plus source-first `spec`, `plan`, and `review` scaffolds under `docs/workflows/`.\n- Sula now completes that workflow slice with first-class `workflow branch` and `workflow close` commands, so complex work can move from policy assessment to explicit closeout readiness.\n- The next UX milestone is now implemented too: `onboard` provides a zero-memory interview flow that asks setup questions, explains what Sula will manage, and then applies adoption through the same kernel contract.\n- The next launch milestone is now implemented too: the public site exposes `/launch/`, a machine-readable launcher descriptor, and a downloadable `bootstrap.py` shim so startup no longer depends on guessing local commands.\n- The feedback-bundle lifecycle is now released in the Git-backed Sula 0.11.0 source state: adopted projects can capture reusable local Sula fixes as feedback bundles, and Sula Core can ingest, review, and release them through a central queue.\n- Sula now has registry-backed in-repo canary verification across `sula-core`, `software-delivery`, `generic-project`, and `client-service`-style examples, plus public-release readiness and export commands that isolate remaining publication risk to git history rather than content drift.\n- Sula now has a chosen default public-release path: keep this repository as the private pre-public lineage, publish a fresh public repository from `release export-public`, and only then point the site descriptor at the public source.",
+      "status": "current",
+      "path": "STATUS.md",
+      "source_paths": [
+        "STATUS.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "state"
+      ],
+      "date": "2026-04-16"
+    },
+    {
+      "id": "task:status:create-the-fresh-public-repository-from-release-export-public-and-publish-the-first-clean-public-lineage",
+      "kind": "task",
+      "title": "create the fresh public repository from `release export-public` and publish t...",
+      "summary": "create the fresh public repository from `release export-public` and publish the first clean public lineage",
+      "status": "open",
+      "path": "STATUS.md",
+      "source_paths": [
+        "STATUS.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "current-focus",
+        "status"
+      ],
+      "date": "2026-04-16"
+    },
+    {
+      "id": "task:status:validate-the-new-adopt-flow-against-the-first-external-repository",
+      "kind": "task",
+      "title": "validate the new `adopt` flow against the first external repository",
+      "summary": "validate the new `adopt` flow against the first external repository",
+      "status": "open",
+      "path": "STATUS.md",
+      "source_paths": [
+        "STATUS.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "current-focus",
+        "status"
+      ],
+      "date": "2026-04-16"
+    },
+    {
+      "id": "task:status:run-the-first-external-canaries-through-the-new-canary-verify-contract",
+      "kind": "task",
+      "title": "run the first external canaries through the new `canary verify` contract",
+      "summary": "run the first external canaries through the new `canary verify` contract",
+      "status": "open",
+      "path": "STATUS.md",
+      "source_paths": [
+        "STATUS.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "current-focus",
+        "status"
+      ],
+      "date": "2026-04-16"
+    },
+    {
+      "id": "task:status:keep-sula-core-and-react-frontend-erpnext-profiles-aligned-with-real-usage",
+      "kind": "task",
+      "title": "keep `sula-core` and `react-frontend-erpnext` profiles aligned with real usage",
+      "summary": "keep `sula-core` and `react-frontend-erpnext` profiles aligned with real usage",
+      "status": "open",
+      "path": "STATUS.md",
+      "source_paths": [
+        "STATUS.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "current-focus",
+        "status"
+      ],
+      "date": "2026-04-16"
+    },
+    {
+      "id": "task:status:validate-the-new-generic-project-and-remove-flows-against-external-canaries",
+      "kind": "task",
+      "title": "validate the new `generic-project` and `remove` flows against external canaries",
+      "summary": "validate the new `generic-project` and `remove` flows against external canaries",
+      "status": "open",
+      "path": "STATUS.md",
+      "source_paths": [
+        "STATUS.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "current-focus",
+        "status"
+      ],
+      "date": "2026-04-16"
+    },
+    {
+      "id": "task:status:validate-portfolio-registration-artifact-routing-and-google-drive-local-sync-behavior-against-the-first-real-client-service-workspace",
+      "kind": "task",
+      "title": "validate portfolio registration, artifact routing, and `google-drive` local-s...",
+      "summary": "validate portfolio registration, artifact routing, and `google-drive` local-sync behavior against the first real client-service workspace",
+      "status": "open",
+      "path": "STATUS.md",
+      "source_paths": [
+        "STATUS.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "current-focus",
+        "status"
+      ],
+      "date": "2026-04-16"
+    },
+    {
+      "id": "task:status:validate-the-new-formal-document-bundles-against-the-first-real-planning-heavy-client-workspace-and-confirm-where-google-docs-import-needs-richer-tabular-bridge-defaults",
+      "kind": "task",
+      "title": "validate the new formal-document bundles against the first real planning-heav...",
+      "summary": "validate the new formal-document bundles against the first real planning-heavy client workspace and confirm where Google Docs import needs richer tabular bridge defaults",
+      "status": "open",
+      "path": "STATUS.md",
+      "source_paths": [
+        "STATUS.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "current-focus",
+        "status"
+      ],
+      "date": "2026-04-16"
+    },
+    {
+      "id": "task:status:validate-the-released-feedback-bundle-lifecycle-through-the-first-external-adopted-project-and-the-first-real-sula-core-feedback-item-that-flows-through-the-queue-end-to-end",
+      "kind": "task",
+      "title": "validate the released feedback-bundle lifecycle through the first external ad...",
+      "summary": "validate the released feedback-bundle lifecycle through the first external adopted project and the first real Sula Core feedback item that flows through the queue end to end",
+      "status": "open",
+      "path": "STATUS.md",
+      "source_paths": [
+        "STATUS.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "current-focus",
+        "status"
+      ],
+      "date": "2026-04-16"
+    },
+    {
+      "id": "task:status:validate-the-now-complete-workflow-policy-scaffold-branch-and-close-loop-against-the-first-external-software-delivery-canary",
+      "kind": "task",
+      "title": "validate the now-complete workflow policy, scaffold, branch, and close loop a...",
+      "summary": "validate the now-complete workflow policy, scaffold, branch, and close loop against the first external software-delivery canary",
+      "status": "open",
+      "path": "STATUS.md",
+      "source_paths": [
+        "STATUS.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "current-focus",
+        "status"
+      ],
+      "date": "2026-04-16"
+    },
+    {
+      "id": "task:status:turn-the-recorded-vnext-architecture-into-stronger-adapter-composition-and-better-result-quality-over-the-new-sqlite-backed-retrieval-path",
+      "kind": "task",
+      "title": "turn the recorded vNext architecture into stronger adapter composition and be...",
+      "summary": "turn the recorded vNext architecture into stronger adapter composition and better result quality over the new SQLite-backed retrieval path",
+      "status": "open",
+      "path": "STATUS.md",
+      "source_paths": [
+        "STATUS.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "current-focus",
+        "status"
+      ],
+      "date": "2026-04-16"
+    },
+    {
+      "id": "task:status:maintain-clear-approval-reporting-so-managed-scaffold-boundaries-remain-obvious-during-onboarding",
+      "kind": "task",
+      "title": "maintain clear approval reporting so managed/scaffold boundaries remain obvio...",
+      "summary": "maintain clear approval reporting so managed/scaffold boundaries remain obvious during onboarding",
+      "status": "open",
+      "path": "STATUS.md",
+      "source_paths": [
+        "STATUS.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "current-focus",
+        "status"
+      ],
+      "date": "2026-04-16"
+    },
+    {
+      "id": "task:status:keep-the-public-bootstrap-contract-aligned-with-real-consumer-behavior-and-protocol-failures-seen-in-live-use",
+      "kind": "task",
+      "title": "keep the public bootstrap contract aligned with real consumer behavior and pr...",
+      "summary": "keep the public bootstrap contract aligned with real consumer behavior and protocol failures seen in live use",
+      "status": "open",
+      "path": "STATUS.md",
+      "source_paths": [
+        "STATUS.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "current-focus",
+        "status"
+      ],
+      "date": "2026-04-16"
+    },
+    {
+      "id": "task:status:switch-site-sula-json-and-site-launch-bootstrap-py-to-the-published-public-source-after-that-repository-exists",
+      "kind": "task",
+      "title": "switch `site/sula.json` and `site/launch/bootstrap.py` to the published publi...",
+      "summary": "switch `site/sula.json` and `site/launch/bootstrap.py` to the published public source after that repository exists",
+      "status": "open",
+      "path": "STATUS.md",
+      "source_paths": [
+        "STATUS.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "current-focus",
+        "status"
+      ],
+      "date": "2026-04-16"
+    },
+    {
+      "id": "decision:status:2026-04-11-added-refine-the-public-bootstrap-contract-for-existing-sula-consumers-docs-change-records-2026-04-11-refine-the-public-bootstrap-contract-for-existing-sula-consumers-md",
+      "kind": "decision",
+      "title": "2026-04-11: added [Refine the public bootstrap contract for existing Sula con...",
+      "summary": "2026-04-11: added [Refine the public bootstrap contract for existing Sula consumers](docs/change-records/2026-04-11-refine-the-public-bootstrap-contract-for-existing-sula-consumers.md)",
+      "status": "decided",
+      "path": "STATUS.md",
+      "source_paths": [
+        "STATUS.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "recent-decision",
+        "status"
+      ],
+      "date": "2026-04-11"
+    },
+    {
+      "id": "decision:status:2026-04-11-added-deploy-the-sula-bootstrap-site-to-fly-and-prepare-the-custom-domain-docs-change-records-2026-04-11-deploy-the-sula-bootstrap-site-to-fly-and-prepare-the-custom-domain-md",
+      "kind": "decision",
+      "title": "2026-04-11: added [Deploy the Sula bootstrap site to Fly and prepare the cust...",
+      "summary": "2026-04-11: added [Deploy the Sula bootstrap site to Fly and prepare the custom domain](docs/change-records/2026-04-11-deploy-the-sula-bootstrap-site-to-fly-and-prepare-the-custom-domain.md)",
+      "status": "decided",
+      "path": "STATUS.md",
+      "source_paths": [
+        "STATUS.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "recent-decision",
+        "status"
+      ],
+      "date": "2026-04-11"
+    },
+    {
+      "id": "decision:status:2026-04-11-added-add-bootstrap-site-assets-for-the-public-sula-protocol-docs-change-records-2026-04-11-add-bootstrap-site-assets-for-the-public-sula-protocol-md",
+      "kind": "decision",
+      "title": "2026-04-11: added [Add bootstrap site assets for the public Sula protocol](do...",
+      "summary": "2026-04-11: added [Add bootstrap site assets for the public Sula protocol](docs/change-records/2026-04-11-add-bootstrap-site-assets-for-the-public-sula-protocol.md)",
+      "status": "decided",
+      "path": "STATUS.md",
+      "source_paths": [
+        "STATUS.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "recent-decision",
+        "status"
+      ],
+      "date": "2026-04-11"
+    },
+    {
+      "id": "decision:status:2026-04-11-added-prepare-sula-for-public-release-docs-change-records-2026-04-11-prepare-sula-for-public-release-md",
+      "kind": "decision",
+      "title": "2026-04-11: added [Prepare Sula for public release](docs/change-records/2026-...",
+      "summary": "2026-04-11: added [Prepare Sula for public release](docs/change-records/2026-04-11-prepare-sula-for-public-release.md)",
+      "status": "decided",
+      "path": "STATUS.md",
+      "source_paths": [
+        "STATUS.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "recent-decision",
+        "status"
+      ],
+      "date": "2026-04-11"
+    },
+    {
+      "id": "decision:status:2026-04-11-promoted-examples-okoktoto-into-the-in-repo-memory-canary",
+      "kind": "decision",
+      "title": "2026-04-11: promoted `examples/okoktoto` into the in-repo memory canary",
+      "summary": "2026-04-11: promoted `examples/okoktoto` into the in-repo memory canary",
+      "status": "decided",
+      "path": "STATUS.md",
+      "source_paths": [
+        "STATUS.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "recent-decision",
+        "status"
+      ],
+      "date": "2026-04-11"
+    },
+    {
+      "id": "decision:status:2026-04-11-introduced-durable-project-memory-strict-memory-doctor-checks-and-generated-memory-digests",
+      "kind": "decision",
+      "title": "2026-04-11: introduced durable project memory, strict memory doctor checks, a...",
+      "summary": "2026-04-11: introduced durable project memory, strict memory doctor checks, and generated memory digests",
+      "status": "decided",
+      "path": "STATUS.md",
+      "source_paths": [
+        "STATUS.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "recent-decision",
+        "status"
+      ],
+      "date": "2026-04-11"
+    },
+    {
+      "id": "decision:status:2026-04-11-added-add-adoption-agent-flow-for-one-sentence-onboarding-docs-change-records-2026-04-11-add-adoption-agent-flow-for-one-sentence-onboarding-md",
+      "kind": "decision",
+      "title": "2026-04-11: added [Add adoption-agent flow for one-sentence onboarding](docs/...",
+      "summary": "2026-04-11: added [Add adoption-agent flow for one-sentence onboarding](docs/change-records/2026-04-11-add-adoption-agent-flow-for-one-sentence-onboarding.md)",
+      "status": "decided",
+      "path": "STATUS.md",
+      "source_paths": [
+        "STATUS.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "recent-decision",
+        "status"
+      ],
+      "date": "2026-04-11"
+    },
+    {
+      "id": "decision:status:2026-04-11-added-self-adopt-sula-root-under-sula-core-profile-docs-change-records-2026-04-11-self-adopt-sula-root-under-sula-core-profile-md",
+      "kind": "decision",
+      "title": "2026-04-11: added [Self-adopt Sula root under sula-core profile](docs/change-...",
+      "summary": "2026-04-11: added [Self-adopt Sula root under sula-core profile](docs/change-records/2026-04-11-self-adopt-sula-root-under-sula-core-profile.md)",
+      "status": "decided",
+      "path": "STATUS.md",
+      "source_paths": [
+        "STATUS.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "recent-decision",
+        "status"
+      ],
+      "date": "2026-04-11"
+    },
+    {
+      "id": "decision:status:2026-04-12-added-define-sula-vnext-project-kernel-docs-change-records-2026-04-12-define-sula-vnext-project-kernel-md",
+      "kind": "decision",
+      "title": "2026-04-12: added [Define Sula vNext project kernel](docs/change-records/2026...",
+      "summary": "2026-04-12: added [Define Sula vNext project kernel](docs/change-records/2026-04-12-define-sula-vnext-project-kernel.md)",
+      "status": "decided",
+      "path": "STATUS.md",
+      "source_paths": [
+        "STATUS.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "recent-decision",
+        "status"
+      ],
+      "date": "2026-04-12"
+    },
+    {
+      "id": "decision:status:2026-04-12-added-implement-generic-project-kernel-and-removal-flow-docs-change-records-2026-04-12-implement-generic-project-kernel-and-removal-flow-md",
+      "kind": "decision",
+      "title": "2026-04-12: added [Implement generic-project kernel and removal flow](docs/ch...",
+      "summary": "2026-04-12: added [Implement generic-project kernel and removal flow](docs/change-records/2026-04-12-implement-generic-project-kernel-and-removal-flow.md)",
+      "status": "decided",
+      "path": "STATUS.md",
+      "source_paths": [
+        "STATUS.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "recent-decision",
+        "status"
+      ],
+      "date": "2026-04-12"
+    },
+    {
+      "id": "decision:status:2026-04-12-added-add-kernel-object-query-and-bundle-contracts-docs-change-records-2026-04-12-add-kernel-object-query-and-bundle-contracts-md",
+      "kind": "decision",
+      "title": "2026-04-12: added [Add kernel object, query, and bundle contracts](docs/chang...",
+      "summary": "2026-04-12: added [Add kernel object, query, and bundle contracts](docs/change-records/2026-04-12-add-kernel-object-query-and-bundle-contracts.md)",
+      "status": "decided",
+      "path": "STATUS.md",
+      "source_paths": [
+        "STATUS.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "recent-decision",
+        "status"
+      ],
+      "date": "2026-04-12"
+    },
+    {
+      "id": "decision:status:2026-04-12-added-add-sqlite-kernel-cache-richer-object-extraction-and-timeline-query-filters-docs-change-records-2026-04-12-add-sqlite-kernel-cache-richer-object-extraction-and-timeline-query-filters-md",
+      "kind": "decision",
+      "title": "2026-04-12: added [Add SQLite kernel cache, richer object extraction, and tim...",
+      "summary": "2026-04-12: added [Add SQLite kernel cache, richer object extraction, and timeline query filters](docs/change-records/2026-04-12-add-sqlite-kernel-cache-richer-object-extraction-and-timeline-query-filters.md)",
+      "status": "decided",
+      "path": "STATUS.md",
+      "source_paths": [
+        "STATUS.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "recent-decision",
+        "status"
+      ],
+      "date": "2026-04-12"
+    },
+    {
+      "id": "decision:status:2026-04-12-added-add-machine-json-interfaces-artifact-routing-portfolio-registry-and-google-drive-local-sync-contracts-docs-change-records-2026-04-12-add-machine-json-interfaces-artifact-routing-portfolio-registry-and-google-drive-local-sync-contracts-md",
+      "kind": "decision",
+      "title": "2026-04-12: added [Add machine JSON interfaces, artifact routing, portfolio r...",
+      "summary": "2026-04-12: added [Add machine JSON interfaces, artifact routing, portfolio registry, and Google Drive local-sync contracts](docs/change-records/2026-04-12-add-machine-json-interfaces-artifact-routing-portfolio-registry-and-google-drive-local-sync-contracts.md)",
+      "status": "decided",
+      "path": "STATUS.md",
+      "source_paths": [
+        "STATUS.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "recent-decision",
+        "status"
+      ],
+      "date": "2026-04-12"
+    },
+    {
+      "id": "decision:status:2026-04-12-added-add-formal-document-design-bundles-docs-change-records-2026-04-12-add-formal-document-design-bundles-md",
+      "kind": "decision",
+      "title": "2026-04-12: added [Add formal document design bundles](docs/change-records/20...",
+      "summary": "2026-04-12: added [Add formal document design bundles](docs/change-records/2026-04-12-add-formal-document-design-bundles.md)",
+      "status": "decided",
+      "path": "STATUS.md",
+      "source_paths": [
+        "STATUS.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "recent-decision",
+        "status"
+      ],
+      "date": "2026-04-12"
+    },
+    {
+      "id": "decision:status:2026-04-12-added-add-truth-source-and-freshness-checks-for-collaborative-provider-backed-artifacts-docs-change-records-2026-04-12-add-truth-source-and-freshness-checks-for-collaborative-provider-artifacts-md",
+      "kind": "decision",
+      "title": "2026-04-12: added [Add truth-source and freshness checks for collaborative pr...",
+      "summary": "2026-04-12: added [Add truth-source and freshness checks for collaborative provider-backed artifacts](docs/change-records/2026-04-12-add-truth-source-and-freshness-checks-for-collaborative-provider-artifacts.md)",
+      "status": "decided",
+      "path": "STATUS.md",
+      "source_paths": [
+        "STATUS.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "recent-decision",
+        "status"
+      ],
+      "date": "2026-04-12"
+    },
+    {
+      "id": "decision:status:2026-04-12-added-add-provider-native-read-only-refresh-and-artifact-refresh-command-docs-change-records-2026-04-12-add-provider-native-read-only-refresh-and-artifact-refresh-command-md",
+      "kind": "decision",
+      "title": "2026-04-12: added [Add provider-native read-only refresh and artifact refresh...",
+      "summary": "2026-04-12: added [Add provider-native read-only refresh and artifact refresh command](docs/change-records/2026-04-12-add-provider-native-read-only-refresh-and-artifact-refresh-command.md)",
+      "status": "decided",
+      "path": "STATUS.md",
+      "source_paths": [
+        "STATUS.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "recent-decision",
+        "status"
+      ],
+      "date": "2026-04-12"
+    },
+    {
+      "id": "decision:status:2026-04-15-added-add-daily-sula-check-workflow-for-state-sync-verification-docs-change-records-2026-04-15-add-daily-sula-check-workflow-for-state-sync-verification-md",
+      "kind": "decision",
+      "title": "2026-04-15: added [Add daily Sula check workflow for state-sync verification]...",
+      "summary": "2026-04-15: added [Add daily Sula check workflow for state-sync verification](docs/change-records/2026-04-15-add-daily-sula-check-workflow-for-state-sync-verification.md)",
+      "status": "decided",
+      "path": "STATUS.md",
+      "source_paths": [
+        "STATUS.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "recent-decision",
+        "status"
+      ],
+      "date": "2026-04-15"
+    },
+    {
+      "id": "decision:status:2026-04-16-added-document-superpowers-capability-absorption-plan-docs-change-records-2026-04-16-document-superpowers-capability-absorption-plan-md",
+      "kind": "decision",
+      "title": "2026-04-16: added [Document Superpowers capability absorption plan](docs/chan...",
+      "summary": "2026-04-16: added [Document Superpowers capability absorption plan](docs/change-records/2026-04-16-document-superpowers-capability-absorption-plan.md)",
+      "status": "decided",
+      "path": "STATUS.md",
+      "source_paths": [
+        "STATUS.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "recent-decision",
+        "status"
+      ],
+      "date": "2026-04-16"
+    },
+    {
+      "id": "decision:status:2026-04-16-added-add-workflow-policy-and-source-first-workflow-scaffolds-docs-change-records-2026-04-16-add-workflow-policy-and-source-first-workflow-scaffolds-md",
+      "kind": "decision",
+      "title": "2026-04-16: added [Add workflow policy and source-first workflow scaffolds](d...",
+      "summary": "2026-04-16: added [Add workflow policy and source-first workflow scaffolds](docs/change-records/2026-04-16-add-workflow-policy-and-source-first-workflow-scaffolds.md)",
+      "status": "decided",
+      "path": "STATUS.md",
+      "source_paths": [
+        "STATUS.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "recent-decision",
+        "status"
+      ],
+      "date": "2026-04-16"
+    },
+    {
+      "id": "decision:status:2026-04-16-added-complete-workflow-close-canary-verification-and-release-readiness-docs-change-records-2026-04-16-complete-workflow-close-canary-and-release-readiness-md",
+      "kind": "decision",
+      "title": "2026-04-16: added [Complete workflow close, canary verification, and release...",
+      "summary": "2026-04-16: added [Complete workflow close, canary verification, and release readiness](docs/change-records/2026-04-16-complete-workflow-close-canary-and-release-readiness.md)",
+      "status": "decided",
+      "path": "STATUS.md",
+      "source_paths": [
+        "STATUS.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "recent-decision",
+        "status"
+      ],
+      "date": "2026-04-16"
+    },
+    {
+      "id": "decision:status:2026-04-16-added-choose-fresh-public-repository-as-the-default-release-path-docs-change-records-2026-04-16-choose-fresh-public-repository-as-the-default-release-path-md",
+      "kind": "decision",
+      "title": "2026-04-16: added [Choose fresh public repository as the default release path...",
+      "summary": "2026-04-16: added [Choose fresh public repository as the default release path](docs/change-records/2026-04-16-choose-fresh-public-repository-as-the-default-release-path.md)",
+      "status": "decided",
+      "path": "STATUS.md",
+      "source_paths": [
+        "STATUS.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "recent-decision",
+        "status"
+      ],
+      "date": "2026-04-16"
+    },
+    {
+      "id": "decision:status:2026-04-12-added-add-guided-onboarding-and-zero-memory-setup-flow-docs-change-records-2026-04-12-add-guided-onboarding-and-zero-memory-setup-flow-md",
+      "kind": "decision",
+      "title": "2026-04-12: added [Add guided onboarding and zero-memory setup flow](docs/cha...",
+      "summary": "2026-04-12: added [Add guided onboarding and zero-memory setup flow](docs/change-records/2026-04-12-add-guided-onboarding-and-zero-memory-setup-flow.md)",
+      "status": "decided",
+      "path": "STATUS.md",
+      "source_paths": [
+        "STATUS.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "recent-decision",
+        "status"
+      ],
+      "date": "2026-04-12"
+    },
+    {
+      "id": "decision:status:2026-04-12-added-add-site-launch-contract-and-canonical-bootstrap-shim-docs-change-records-2026-04-12-add-site-launch-contract-and-canonical-bootstrap-shim-md",
+      "kind": "decision",
+      "title": "2026-04-12: added [Add site launch contract and canonical bootstrap shim](doc...",
+      "summary": "2026-04-12: added [Add site launch contract and canonical bootstrap shim](docs/change-records/2026-04-12-add-site-launch-contract-and-canonical-bootstrap-shim.md)",
+      "status": "decided",
+      "path": "STATUS.md",
+      "source_paths": [
+        "STATUS.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "recent-decision",
+        "status"
+      ],
+      "date": "2026-04-12"
+    },
+    {
+      "id": "decision:status:2026-04-12-added-add-feedback-bundles-and-sula-core-review-workflow-docs-change-records-2026-04-12-add-feedback-bundles-and-core-review-workflow-md",
+      "kind": "decision",
+      "title": "2026-04-12: added [Add feedback bundles and Sula Core review workflow](docs/c...",
+      "summary": "2026-04-12: added [Add feedback bundles and Sula Core review workflow](docs/change-records/2026-04-12-add-feedback-bundles-and-core-review-workflow.md)",
+      "status": "decided",
+      "path": "STATUS.md",
+      "source_paths": [
+        "STATUS.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "recent-decision",
+        "status"
+      ],
+      "date": "2026-04-12"
+    },
+    {
+      "id": "decision:status:2026-04-12-released-sula-0-11-0-formal-document-workflows-and-feedback-bundles-docs-releases-2026-04-12-release-sula-0-11-0-formal-document-workflows-and-feedback-bundles-md",
+      "kind": "decision",
+      "title": "2026-04-12: released [Sula 0.11.0 formal document workflows and feedback bund...",
+      "summary": "2026-04-12: released [Sula 0.11.0 formal document workflows and feedback bundles](docs/releases/2026-04-12-release-sula-0-11-0-formal-document-workflows-and-feedback-bundles.md)",
+      "status": "decided",
+      "path": "STATUS.md",
+      "source_paths": [
+        "STATUS.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "recent-decision",
+        "status"
+      ],
+      "date": "2026-04-12"
+    },
+    {
+      "id": "decision:status:2026-04-12-added-release-record-release-sula-0-11-0-formal-document-workflows-and-feedback-bundles-docs-releases-2026-04-12-release-sula-0-11-0-formal-document-workflows-and-feedback-bundles-md",
+      "kind": "decision",
+      "title": "2026-04-12: added release record [Release Sula 0.11.0 formal document workflo...",
+      "summary": "2026-04-12: added release record [Release Sula 0.11.0 formal document workflows and feedback bundles](docs/releases/2026-04-12-release-sula-0-11-0-formal-document-workflows-and-feedback-bundles.md)",
+      "status": "decided",
+      "path": "STATUS.md",
+      "source_paths": [
+        "STATUS.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "recent-decision",
+        "status"
+      ],
+      "date": "2026-04-12"
+    },
+    {
+      "id": "person:status:sula-core-maintainers",
+      "kind": "person",
+      "title": "Sula Core maintainers",
+      "summary": "Current review owner for Sula.",
+      "status": "responsible",
+      "path": "STATUS.md",
+      "source_paths": [
+        "STATUS.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "next-review-owner",
+        "status"
+      ],
+      "date": "2026-04-16"
+    },
+    {
+      "id": "milestone:status:next-review:2026-04-18",
+      "kind": "milestone",
+      "title": "Next Review",
+      "summary": "Next review checkpoint. review again before changing the public bootstrap contract, the managed/scaffold onboarding contract, or the planned vNext kernel contract",
+      "status": "planned",
+      "path": "STATUS.md",
+      "source_paths": [
+        "STATUS.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "next-review",
+        "status"
+      ],
+      "date": "2026-04-18"
+    },
+    {
+      "id": "risk:health:yellow-the-public-release-strategy-is-now-decided-but-the-fresh-public-repository-still-needs-to-be-created-before-the-bootstrap-descriptor-can-advertise-a-canonical-public-source",
+      "kind": "risk",
+      "title": "Project health is yellow",
+      "summary": "the public-release strategy is now decided, but the fresh public repository still needs to be created before the bootstrap descriptor can advertise a canonical public source.",
+      "status": "watch",
+      "path": "STATUS.md",
+      "source_paths": [
+        "STATUS.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "health",
+        "status"
+      ],
+      "date": "2026-04-16"
+    },
+    {
+      "id": "change:2026-04-16-document-superpowers-capability-absorption-plan",
+      "kind": "change",
+      "title": "Document Superpowers capability absorption plan",
+      "summary": "- date: 2026-04-16 - executor: Codex - branch: codex/release-main - related commit(s): pending - status: completed",
+      "status": "recorded",
+      "path": "docs/change-records/2026-04-16-document-superpowers-capability-absorption-plan.md",
+      "source_paths": [
+        "docs/change-records/2026-04-16-document-superpowers-capability-absorption-plan.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "change"
+      ],
+      "date": "2026-04-16"
+    },
+    {
+      "id": "change:2026-04-16-complete-workflow-close-canary-and-release-readiness",
+      "kind": "change",
+      "title": "Complete workflow close, canary verification, and release readiness",
+      "summary": "- date: 2026-04-16 - executor: Codex - branch: main - related commit(s): pending - status: completed",
+      "status": "recorded",
+      "path": "docs/change-records/2026-04-16-complete-workflow-close-canary-and-release-readiness.md",
+      "source_paths": [
+        "docs/change-records/2026-04-16-complete-workflow-close-canary-and-release-readiness.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "change"
+      ],
+      "date": "2026-04-16"
+    },
+    {
+      "id": "agreement:2026-04-16-complete-workflow-close-canary-and-release-readiness",
+      "kind": "agreement",
+      "title": "Complete workflow close, canary verification, and release readiness",
+      "summary": "- date: 2026-04-16 - executor: Codex - branch: main - related commit(s): pending - status: completed",
+      "status": "active",
+      "path": "docs/change-records/2026-04-16-complete-workflow-close-canary-and-release-readiness.md",
+      "source_paths": [
+        "docs/change-records/2026-04-16-complete-workflow-close-canary-and-release-readiness.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "agreement"
+      ],
+      "date": "2026-04-16"
+    },
+    {
+      "id": "change:2026-04-16-choose-fresh-public-repository-as-the-default-release-path",
+      "kind": "change",
+      "title": "Choose fresh public repository as the default release path",
+      "summary": "- date: 2026-04-16 - executor: Codex - branch: main - related commit(s): pending - status: completed",
+      "status": "recorded",
+      "path": "docs/change-records/2026-04-16-choose-fresh-public-repository-as-the-default-release-path.md",
+      "source_paths": [
+        "docs/change-records/2026-04-16-choose-fresh-public-repository-as-the-default-release-path.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "change"
+      ],
+      "date": "2026-04-16"
+    },
+    {
+      "id": "change:2026-04-16-add-workflow-policy-and-source-first-workflow-scaffolds",
+      "kind": "change",
+      "title": "Add workflow policy and source-first workflow scaffolds",
+      "summary": "- date: 2026-04-16 - executor: Codex - branch: codex/release-main - related commit(s): pending - status: completed",
+      "status": "recorded",
+      "path": "docs/change-records/2026-04-16-add-workflow-policy-and-source-first-workflow-scaffolds.md",
+      "source_paths": [
+        "docs/change-records/2026-04-16-add-workflow-policy-and-source-first-workflow-scaffolds.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "change"
+      ],
+      "date": "2026-04-16"
+    },
+    {
+      "id": "change:2026-04-15-add-daily-sula-check-workflow-for-state-sync-verification",
+      "kind": "change",
+      "title": "Add daily Sula check workflow for state-sync verification",
+      "summary": "- date: 2026-04-15 - executor: Codex - branch: codex/release-main - related commit(s): pending - status: completed",
+      "status": "recorded",
+      "path": "docs/change-records/2026-04-15-add-daily-sula-check-workflow-for-state-sync-verification.md",
+      "source_paths": [
+        "docs/change-records/2026-04-15-add-daily-sula-check-workflow-for-state-sync-verification.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "change"
+      ],
+      "date": "2026-04-15"
+    },
+    {
+      "id": "change:2026-04-12-implement-generic-project-kernel-and-removal-flow",
+      "kind": "change",
+      "title": "Implement generic-project kernel and removal flow",
+      "summary": "- date: 2026-04-12 - executor: Codex - branch: main - related commit(s): pending - status: completed",
+      "status": "recorded",
+      "path": "docs/change-records/2026-04-12-implement-generic-project-kernel-and-removal-flow.md",
+      "source_paths": [
+        "docs/change-records/2026-04-12-implement-generic-project-kernel-and-removal-flow.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "change"
+      ],
+      "date": "2026-04-12"
+    },
+    {
+      "id": "change:2026-04-12-document-provider-backed-artifact-identity",
+      "kind": "change",
+      "title": "Document provider-backed artifact identity for cross-device project workspaces",
+      "summary": "- date: 2026-04-12 - executor: Codex - branch: codex/bootstrap-sula - related commit(s): pending - status: completed",
+      "status": "recorded",
+      "path": "docs/change-records/2026-04-12-document-provider-backed-artifact-identity.md",
+      "source_paths": [
+        "docs/change-records/2026-04-12-document-provider-backed-artifact-identity.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "change"
+      ],
+      "date": "2026-04-12"
+    },
+    {
+      "id": "agreement:2026-04-12-document-provider-backed-artifact-identity",
+      "kind": "agreement",
+      "title": "Document provider-backed artifact identity for cross-device project workspaces",
+      "summary": "- date: 2026-04-12 - executor: Codex - branch: codex/bootstrap-sula - related commit(s): pending - status: completed",
+      "status": "active",
+      "path": "docs/change-records/2026-04-12-document-provider-backed-artifact-identity.md",
+      "source_paths": [
+        "docs/change-records/2026-04-12-document-provider-backed-artifact-identity.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "agreement"
+      ],
+      "date": "2026-04-12"
+    },
+    {
+      "id": "change:2026-04-12-define-sula-vnext-project-kernel",
+      "kind": "change",
+      "title": "Define Sula vNext project kernel",
+      "summary": "- date: 2026-04-12 - executor: Codex - branch: main - related commit(s): pending - status: proposed architecture recorded",
+      "status": "recorded",
+      "path": "docs/change-records/2026-04-12-define-sula-vnext-project-kernel.md",
+      "source_paths": [
+        "docs/change-records/2026-04-12-define-sula-vnext-project-kernel.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "change"
+      ],
+      "date": "2026-04-12"
+    },
+    {
+      "id": "change:2026-04-12-add-truth-source-and-freshness-checks-for-collaborative-provider-artifacts",
+      "kind": "change",
+      "title": "Add truth-source and freshness checks for collaborative provider-backed artifacts",
+      "summary": "- date: 2026-04-12 - executor: Codex - branch: unknown - related commit(s): pending review commit - status: completed",
+      "status": "recorded",
+      "path": "docs/change-records/2026-04-12-add-truth-source-and-freshness-checks-for-collaborative-provider-artifacts.md",
+      "source_paths": [
+        "docs/change-records/2026-04-12-add-truth-source-and-freshness-checks-for-collaborative-provider-artifacts.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "change"
+      ],
+      "date": "2026-04-12"
+    },
+    {
+      "id": "change:2026-04-12-add-sqlite-kernel-cache-richer-object-extraction-and-timeline-query-filters",
+      "kind": "change",
+      "title": "Add SQLite kernel cache, richer object extraction, and timeline query filters",
+      "summary": "- date: 2026-04-12 - executor: Codex - branch: codex/bootstrap-sula - related commit(s): pending - status: completed",
+      "status": "recorded",
+      "path": "docs/change-records/2026-04-12-add-sqlite-kernel-cache-richer-object-extraction-and-timeline-query-filters.md",
+      "source_paths": [
+        "docs/change-records/2026-04-12-add-sqlite-kernel-cache-richer-object-extraction-and-timeline-query-filters.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "change"
+      ],
+      "date": "2026-04-12"
+    },
+    {
+      "id": "change:2026-04-12-add-site-launch-contract-and-canonical-bootstrap-shim",
+      "kind": "change",
+      "title": "Add site launch contract and canonical bootstrap shim",
+      "summary": "- date: 2026-04-12 - executor: Codex - branch: codex/bootstrap-sula - related commit(s): pending - status: completed",
+      "status": "recorded",
+      "path": "docs/change-records/2026-04-12-add-site-launch-contract-and-canonical-bootstrap-shim.md",
+      "source_paths": [
+        "docs/change-records/2026-04-12-add-site-launch-contract-and-canonical-bootstrap-shim.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "change"
+      ],
+      "date": "2026-04-12"
+    },
+    {
+      "id": "agreement:2026-04-12-add-site-launch-contract-and-canonical-bootstrap-shim",
+      "kind": "agreement",
+      "title": "Add site launch contract and canonical bootstrap shim",
+      "summary": "- date: 2026-04-12 - executor: Codex - branch: codex/bootstrap-sula - related commit(s): pending - status: completed",
+      "status": "active",
+      "path": "docs/change-records/2026-04-12-add-site-launch-contract-and-canonical-bootstrap-shim.md",
+      "source_paths": [
+        "docs/change-records/2026-04-12-add-site-launch-contract-and-canonical-bootstrap-shim.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "agreement"
+      ],
+      "date": "2026-04-12"
+    },
+    {
+      "id": "change:2026-04-12-add-provider-native-read-only-refresh-and-artifact-refresh-command",
+      "kind": "change",
+      "title": "Add provider-native read-only refresh and artifact refresh command",
+      "summary": "- date: 2026-04-12 - executor: Codex - branch: unknown - related commit(s): pending review commit - status: completed",
+      "status": "recorded",
+      "path": "docs/change-records/2026-04-12-add-provider-native-read-only-refresh-and-artifact-refresh-command.md",
+      "source_paths": [
+        "docs/change-records/2026-04-12-add-provider-native-read-only-refresh-and-artifact-refresh-command.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "change"
+      ],
+      "date": "2026-04-12"
+    },
+    {
+      "id": "change:2026-04-12-add-provider-import-plans-for-google-docs-and-sheets",
+      "kind": "change",
+      "title": "Add provider import plans for Google Docs and Google Sheets",
+      "summary": "- date: 2026-04-12 - executor: Codex - branch: codex/bootstrap-sula - related commit(s): pending - status: completed",
+      "status": "recorded",
+      "path": "docs/change-records/2026-04-12-add-provider-import-plans-for-google-docs-and-sheets.md",
+      "source_paths": [
+        "docs/change-records/2026-04-12-add-provider-import-plans-for-google-docs-and-sheets.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "change"
+      ],
+      "date": "2026-04-12"
+    },
+    {
+      "id": "change:2026-04-12-add-provider-backed-artifact-registration-identity",
+      "kind": "change",
+      "title": "Add provider-backed artifact registration identity",
+      "summary": "- date: 2026-04-12 - executor: Codex - branch: codex/bootstrap-sula - related commit(s): pending - status: completed",
+      "status": "recorded",
+      "path": "docs/change-records/2026-04-12-add-provider-backed-artifact-registration-identity.md",
+      "source_paths": [
+        "docs/change-records/2026-04-12-add-provider-backed-artifact-registration-identity.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "change"
+      ],
+      "date": "2026-04-12"
+    },
+    {
+      "id": "change:2026-04-12-add-project-local-google-oauth-and-provider-target-path-routing",
+      "kind": "change",
+      "title": "Add project-local Google OAuth storage and provider target-path routing",
+      "summary": "- date: 2026-04-12 - executor: Codex - branch: unknown - related commit(s): pending review commit - status: completed",
+      "status": "recorded",
+      "path": "docs/change-records/2026-04-12-add-project-local-google-oauth-and-provider-target-path-routing.md",
+      "source_paths": [
+        "docs/change-records/2026-04-12-add-project-local-google-oauth-and-provider-target-path-routing.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "change"
+      ],
+      "date": "2026-04-12"
+    },
+    {
+      "id": "change:2026-04-12-add-project-language-policy-for-generated-docs",
+      "kind": "change",
+      "title": "Add project language policy for generated docs and records",
+      "summary": "- date: 2026-04-12 - executor: Codex - branch: codex/bootstrap-sula - related commit(s): pending - status: completed",
+      "status": "recorded",
+      "path": "docs/change-records/2026-04-12-add-project-language-policy-for-generated-docs.md",
+      "source_paths": [
+        "docs/change-records/2026-04-12-add-project-language-policy-for-generated-docs.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "change"
+      ],
+      "date": "2026-04-12"
+    },
+    {
+      "id": "change:2026-04-12-add-machine-json-interfaces-artifact-routing-portfolio-registry-and-google-drive-local-sync-contracts",
+      "kind": "change",
+      "title": "Add machine JSON interfaces, artifact routing, portfolio registry, and Google Drive local-sync contracts",
+      "summary": "- date: 2026-04-12 - executor: Codex - branch: codex/bootstrap-sula - related commit(s): pending - status: completed",
+      "status": "recorded",
+      "path": "docs/change-records/2026-04-12-add-machine-json-interfaces-artifact-routing-portfolio-registry-and-google-drive-local-sync-contracts.md",
+      "source_paths": [
+        "docs/change-records/2026-04-12-add-machine-json-interfaces-artifact-routing-portfolio-registry-and-google-drive-local-sync-contracts.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "change"
+      ],
+      "date": "2026-04-12"
+    },
+    {
+      "id": "agreement:2026-04-12-add-machine-json-interfaces-artifact-routing-portfolio-registry-and-google-drive-local-sync-contracts",
+      "kind": "agreement",
+      "title": "Add machine JSON interfaces, artifact routing, portfolio registry, and Google Drive local-sync contracts",
+      "summary": "- date: 2026-04-12 - executor: Codex - branch: codex/bootstrap-sula - related commit(s): pending - status: completed",
+      "status": "active",
+      "path": "docs/change-records/2026-04-12-add-machine-json-interfaces-artifact-routing-portfolio-registry-and-google-drive-local-sync-contracts.md",
+      "source_paths": [
+        "docs/change-records/2026-04-12-add-machine-json-interfaces-artifact-routing-portfolio-registry-and-google-drive-local-sync-contracts.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "agreement"
+      ],
+      "date": "2026-04-12"
+    },
+    {
+      "id": "change:2026-04-12-add-kernel-object-query-and-bundle-contracts",
+      "kind": "change",
+      "title": "Add kernel object, query, and bundle contracts",
+      "summary": "- date: 2026-04-12 - executor: Codex - branch: codex/bootstrap-sula - related commit(s): pending - status: completed",
+      "status": "recorded",
+      "path": "docs/change-records/2026-04-12-add-kernel-object-query-and-bundle-contracts.md",
+      "source_paths": [
+        "docs/change-records/2026-04-12-add-kernel-object-query-and-bundle-contracts.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "change"
+      ],
+      "date": "2026-04-12"
+    },
+    {
+      "id": "agreement:2026-04-12-add-kernel-object-query-and-bundle-contracts",
+      "kind": "agreement",
+      "title": "Add kernel object, query, and bundle contracts",
+      "summary": "- date: 2026-04-12 - executor: Codex - branch: codex/bootstrap-sula - related commit(s): pending - status: completed",
+      "status": "active",
+      "path": "docs/change-records/2026-04-12-add-kernel-object-query-and-bundle-contracts.md",
+      "source_paths": [
+        "docs/change-records/2026-04-12-add-kernel-object-query-and-bundle-contracts.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "agreement"
+      ],
+      "date": "2026-04-12"
+    },
+    {
+      "id": "change:2026-04-12-add-guided-onboarding-and-zero-memory-setup-flow",
+      "kind": "change",
+      "title": "Add guided onboarding and zero-memory setup flow",
+      "summary": "- date: 2026-04-12 - executor: Codex - branch: codex/bootstrap-sula - related commit(s): pending - status: completed",
+      "status": "recorded",
+      "path": "docs/change-records/2026-04-12-add-guided-onboarding-and-zero-memory-setup-flow.md",
+      "source_paths": [
+        "docs/change-records/2026-04-12-add-guided-onboarding-and-zero-memory-setup-flow.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "change"
+      ],
+      "date": "2026-04-12"
+    },
+    {
+      "id": "change:2026-04-12-add-formal-document-design-bundles",
+      "kind": "change",
+      "title": "Add formal document design bundles",
+      "summary": "- date: 2026-04-12 - executor: Codex - branch: pending - related commit(s): pending - status: released",
+      "status": "recorded",
+      "path": "docs/change-records/2026-04-12-add-formal-document-design-bundles.md",
+      "source_paths": [
+        "docs/change-records/2026-04-12-add-formal-document-design-bundles.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "change"
+      ],
+      "date": "2026-04-12"
+    },
+    {
+      "id": "agreement:2026-04-12-add-formal-document-design-bundles",
+      "kind": "agreement",
+      "title": "Add formal document design bundles",
+      "summary": "- date: 2026-04-12 - executor: Codex - branch: pending - related commit(s): pending - status: released",
+      "status": "active",
+      "path": "docs/change-records/2026-04-12-add-formal-document-design-bundles.md",
+      "source_paths": [
+        "docs/change-records/2026-04-12-add-formal-document-design-bundles.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "agreement"
+      ],
+      "date": "2026-04-12"
+    },
+    {
+      "id": "change:2026-04-12-add-feedback-bundles-and-core-review-workflow",
+      "kind": "change",
+      "title": "Add feedback bundles and Sula Core review workflow",
+      "summary": "- date: 2026-04-12 - executor: Codex - branch: main - related commit(s): pending local commit - status: released",
+      "status": "recorded",
+      "path": "docs/change-records/2026-04-12-add-feedback-bundles-and-core-review-workflow.md",
+      "source_paths": [
+        "docs/change-records/2026-04-12-add-feedback-bundles-and-core-review-workflow.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "change"
+      ],
+      "date": "2026-04-12"
+    },
+    {
+      "id": "change:2026-04-12-add-artifact-materialization-for-docs-and-sheets",
+      "kind": "change",
+      "title": "Add artifact materialization for docs and sheets",
+      "summary": "- date: 2026-04-12 - executor: Codex - branch: codex/bootstrap-sula - related commit(s): pending - status: completed",
+      "status": "recorded",
+      "path": "docs/change-records/2026-04-12-add-artifact-materialization-for-docs-and-sheets.md",
+      "source_paths": [
+        "docs/change-records/2026-04-12-add-artifact-materialization-for-docs-and-sheets.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "change"
+      ],
+      "date": "2026-04-12"
+    },
+    {
+      "id": "change:2026-04-11-self-adopt-sula-root-under-sula-core-profile",
+      "kind": "change",
+      "title": "Self-adopt Sula root under sula-core profile",
+      "summary": "- date: 2026-04-11 - executor: Codex - branch: codex/bootstrap-sula - related commit(s): 901c67f - status: completed",
+      "status": "recorded",
+      "path": "docs/change-records/2026-04-11-self-adopt-sula-root-under-sula-core-profile.md",
+      "source_paths": [
+        "docs/change-records/2026-04-11-self-adopt-sula-root-under-sula-core-profile.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "change"
+      ],
+      "date": "2026-04-11"
+    },
+    {
+      "id": "change:2026-04-11-refine-the-public-bootstrap-contract-for-existing-sula-consumers",
+      "kind": "change",
+      "title": "Refine the public bootstrap contract for existing Sula consumers",
+      "summary": "- date: 2026-04-11 - executor: Codex - branch: codex/bootstrap-sula - related commit(s): working tree refinement after real bootstrap-site usage - status: completed",
+      "status": "recorded",
+      "path": "docs/change-records/2026-04-11-refine-the-public-bootstrap-contract-for-existing-sula-consumers.md",
+      "source_paths": [
+        "docs/change-records/2026-04-11-refine-the-public-bootstrap-contract-for-existing-sula-consumers.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "change"
+      ],
+      "date": "2026-04-11"
+    },
+    {
+      "id": "agreement:2026-04-11-refine-the-public-bootstrap-contract-for-existing-sula-consumers",
+      "kind": "agreement",
+      "title": "Refine the public bootstrap contract for existing Sula consumers",
+      "summary": "- date: 2026-04-11 - executor: Codex - branch: codex/bootstrap-sula - related commit(s): working tree refinement after real bootstrap-site usage - status: completed",
+      "status": "active",
+      "path": "docs/change-records/2026-04-11-refine-the-public-bootstrap-contract-for-existing-sula-consumers.md",
+      "source_paths": [
+        "docs/change-records/2026-04-11-refine-the-public-bootstrap-contract-for-existing-sula-consumers.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "agreement"
+      ],
+      "date": "2026-04-11"
+    },
+    {
+      "id": "change:2026-04-11-prepare-sula-for-public-release",
+      "kind": "change",
+      "title": "Prepare Sula for public release",
+      "summary": "- date: 2026-04-11 - executor: Codex - branch: codex/bootstrap-sula - related commit(s): public-readiness batch on codex/bootstrap-sula - status: completed",
+      "status": "recorded",
+      "path": "docs/change-records/2026-04-11-prepare-sula-for-public-release.md",
+      "source_paths": [
+        "docs/change-records/2026-04-11-prepare-sula-for-public-release.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "change"
+      ],
+      "date": "2026-04-11"
+    },
+    {
+      "id": "change:2026-04-11-deploy-the-sula-bootstrap-site-to-fly-and-prepare-the-custom-domain",
+      "kind": "change",
+      "title": "Deploy the Sula bootstrap site to Fly and prepare the custom domain",
+      "summary": "- date: 2026-04-11 - executor: Codex - branch: codex/bootstrap-sula - related commit(s): deployment batch on codex/bootstrap-sula - status: completed",
+      "status": "recorded",
+      "path": "docs/change-records/2026-04-11-deploy-the-sula-bootstrap-site-to-fly-and-prepare-the-custom-domain.md",
+      "source_paths": [
+        "docs/change-records/2026-04-11-deploy-the-sula-bootstrap-site-to-fly-and-prepare-the-custom-domain.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "change"
+      ],
+      "date": "2026-04-11"
+    },
+    {
+      "id": "change:2026-04-11-add-bootstrap-site-assets-for-the-public-sula-protocol",
+      "kind": "change",
+      "title": "Add bootstrap site assets for the public Sula protocol",
+      "summary": "- date: 2026-04-11 - executor: Codex - branch: codex/bootstrap-sula - related commit(s): bootstrap-site batch on codex/bootstrap-sula - status: completed",
+      "status": "recorded",
+      "path": "docs/change-records/2026-04-11-add-bootstrap-site-assets-for-the-public-sula-protocol.md",
+      "source_paths": [
+        "docs/change-records/2026-04-11-add-bootstrap-site-assets-for-the-public-sula-protocol.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "change"
+      ],
+      "date": "2026-04-11"
+    },
+    {
+      "id": "agreement:2026-04-11-add-bootstrap-site-assets-for-the-public-sula-protocol",
+      "kind": "agreement",
+      "title": "Add bootstrap site assets for the public Sula protocol",
+      "summary": "- date: 2026-04-11 - executor: Codex - branch: codex/bootstrap-sula - related commit(s): bootstrap-site batch on codex/bootstrap-sula - status: completed",
+      "status": "active",
+      "path": "docs/change-records/2026-04-11-add-bootstrap-site-assets-for-the-public-sula-protocol.md",
+      "source_paths": [
+        "docs/change-records/2026-04-11-add-bootstrap-site-assets-for-the-public-sula-protocol.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "agreement"
+      ],
+      "date": "2026-04-11"
+    },
+    {
+      "id": "change:2026-04-11-add-adoption-agent-flow-for-one-sentence-onboarding",
+      "kind": "change",
+      "title": "Add adoption-agent flow for one-sentence onboarding",
+      "summary": "- date: 2026-04-11 - executor: Codex - branch: codex/bootstrap-sula - related commit(s): bbc39aa - status: completed",
+      "status": "recorded",
+      "path": "docs/change-records/2026-04-11-add-adoption-agent-flow-for-one-sentence-onboarding.md",
+      "source_paths": [
+        "docs/change-records/2026-04-11-add-adoption-agent-flow-for-one-sentence-onboarding.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "change"
+      ],
+      "date": "2026-04-11"
+    },
+    {
+      "id": "release:2026-04-12-release-sula-0-11-0-formal-document-workflows-and-feedback-bundles",
+      "kind": "release",
+      "title": "Release Sula 0.11.0 formal document workflows and feedback bundles",
+      "summary": "- date: 2026-04-12 - executor: Codex - branch: codex/bootstrap-sula - status: released",
+      "status": "recorded",
+      "path": "docs/releases/2026-04-12-release-sula-0-11-0-formal-document-workflows-and-feedback-bundles.md",
+      "source_paths": [
+        "docs/releases/2026-04-12-release-sula-0-11-0-formal-document-workflows-and-feedback-bundles.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "release"
+      ],
+      "date": "2026-04-12"
+    },
+    {
+      "id": "milestone:2026-04-12-release-sula-0-11-0-formal-document-workflows-and-feedback-bundles",
+      "kind": "milestone",
+      "title": "Release Sula 0.11.0 formal document workflows and feedback bundles",
+      "summary": "- date: 2026-04-12 - executor: Codex - branch: codex/bootstrap-sula - status: released",
+      "status": "shipped",
+      "path": "docs/releases/2026-04-12-release-sula-0-11-0-formal-document-workflows-and-feedback-bundles.md",
+      "source_paths": [
+        "docs/releases/2026-04-12-release-sula-0-11-0-formal-document-workflows-and-feedback-bundles.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "release-milestone"
+      ],
+      "date": "2026-04-12"
+    },
+    {
+      "id": "risk:docs-releases-2026-04-12-release-sula-0-11-0-formal-document-workflows-and-feedback-bundles-md:adopted-projects-will-receive-more-managed-operating-guidance-and-a-broader-manifest-contract-on-next-sync-so-teams-need-to-review-the-new-document-design-and-feedback-guidance-before-treating-the-rollout-as-routine",
+      "kind": "risk",
+      "title": "adopted projects will receive more managed operating guidance and a broader m...",
+      "summary": "adopted projects will receive more managed operating guidance and a broader manifest contract on next sync, so teams need to review the new document-design and feedback guidance before treating the rollout as routine",
+      "status": "open",
+      "path": "docs/releases/2026-04-12-release-sula-0-11-0-formal-document-workflows-and-feedback-bundles.md",
+      "source_paths": [
+        "docs/releases/2026-04-12-release-sula-0-11-0-formal-document-workflows-and-feedback-bundles.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "risk",
+        "section-object"
+      ],
+      "date": "2026-04-12"
+    },
+    {
+      "id": "risk:docs-releases-2026-04-12-release-sula-0-11-0-formal-document-workflows-and-feedback-bundles-md:project-teams-can-still-ignore-the-new-feedback-capture-path-and-keep-one-off-local-managed-drift-so-operator-behavior-remains-part-of-rollout-quality",
+      "kind": "risk",
+      "title": "project teams can still ignore the new feedback capture path and keep one-off...",
+      "summary": "project teams can still ignore the new feedback capture path and keep one-off local managed drift, so operator behavior remains part of rollout quality",
+      "status": "open",
+      "path": "docs/releases/2026-04-12-release-sula-0-11-0-formal-document-workflows-and-feedback-bundles.md",
+      "source_paths": [
+        "docs/releases/2026-04-12-release-sula-0-11-0-formal-document-workflows-and-feedback-bundles.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "risk",
+        "section-object"
+      ],
+      "date": "2026-04-12"
+    },
+    {
+      "id": "agreement:2026-04-12-release-sula-0-11-0-formal-document-workflows-and-feedback-bundles",
+      "kind": "agreement",
+      "title": "Release Sula 0.11.0 formal document workflows and feedback bundles",
+      "summary": "- date: 2026-04-12 - executor: Codex - branch: codex/bootstrap-sula - status: released",
+      "status": "active",
+      "path": "docs/releases/2026-04-12-release-sula-0-11-0-formal-document-workflows-and-feedback-bundles.md",
+      "source_paths": [
+        "docs/releases/2026-04-12-release-sula-0-11-0-formal-document-workflows-and-feedback-bundles.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "agreement"
+      ],
+      "date": "2026-04-12"
+    },
+    {
+      "id": "object:source:github-issue-template-bug-report-yml",
+      "kind": "config",
+      "title": "bug-report.yml",
+      "summary": "name: Bug report description: Report a defect in Sula Core, templates, or adoption flow. title: \"[Bug] \" labels: - bug body: - type: textarea id: summary attributes: label: Summary description: What happened and what did you expect instead?",
+      "status": "indexed",
+      "path": ".github/ISSUE_TEMPLATE/bug-report.yml",
+      "source_paths": [
+        ".github/ISSUE_TEMPLATE/bug-report.yml"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:github-issue-template-config-yml",
+      "kind": "config",
+      "title": "config.yml",
+      "summary": "blank_issues_enabled: false contact_links: - name: Security issue url: https://github.com/irihiyahnj/sula/security/policy about: Report vulnerabilities privately through the project security process.",
+      "status": "indexed",
+      "path": ".github/ISSUE_TEMPLATE/config.yml",
+      "source_paths": [
+        ".github/ISSUE_TEMPLATE/config.yml"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:github-issue-template-feature-request-yml",
+      "kind": "config",
+      "title": "feature-request.yml",
+      "summary": "name: Feature request description: Propose an improvement to Sula Core or an existing profile. title: \"[Feature] \" labels: - enhancement body: - type: textarea id: problem attributes: label: Problem description: What problem or friction are",
+      "status": "indexed",
+      "path": ".github/ISSUE_TEMPLATE/feature-request.yml",
+      "source_paths": [
+        ".github/ISSUE_TEMPLATE/feature-request.yml"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:github-copilot-instructions-md",
+      "kind": "document",
+      "title": "copilot-instructions.md",
+      "summary": "Read [AGENTS.md](AGENTS.md) before proposing or generating changes.",
+      "status": "indexed",
+      "path": ".github/copilot-instructions.md",
+      "source_paths": [
+        ".github/copilot-instructions.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:github-pull-request-template-md",
+      "kind": "document",
+      "title": "pull_request_template.md",
+      "summary": "- what changed - why it changed",
+      "status": "indexed",
+      "path": ".github/pull_request_template.md",
+      "source_paths": [
+        ".github/pull_request_template.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:github-workflows-ci-yml",
+      "kind": "config",
+      "title": "ci.yml",
+      "summary": "name: ci",
+      "status": "indexed",
+      "path": ".github/workflows/ci.yml",
+      "source_paths": [
+        ".github/workflows/ci.yml"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:agents-md",
+      "kind": "document",
+      "title": "AGENTS.md",
+      "summary": "This file is the primary instruction source for AI coding agents working in the Sula repository.",
+      "status": "indexed",
+      "path": "AGENTS.md",
+      "source_paths": [
+        "AGENTS.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:change-records-md",
+      "kind": "document",
+      "title": "CHANGE-RECORDS.md",
+      "summary": "This file is the index for non-trivial Sula Core changes.",
+      "status": "indexed",
+      "path": "CHANGE-RECORDS.md",
+      "source_paths": [
+        "CHANGE-RECORDS.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "memory",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:changelog-md",
+      "kind": "document",
+      "title": "CHANGELOG.md",
+      "summary": "All notable changes to Sula Core should be recorded here with explicit sync impact.",
+      "status": "indexed",
+      "path": "CHANGELOG.md",
+      "source_paths": [
+        "CHANGELOG.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo",
+        "release"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:claude-md",
+      "kind": "document",
+      "title": "CLAUDE.md",
+      "summary": "Primary repository instructions are in [AGENTS.md](AGENTS.md). Read that file first.",
+      "status": "indexed",
+      "path": "CLAUDE.md",
+      "source_paths": [
+        "CLAUDE.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:codex-md",
+      "kind": "document",
+      "title": "CODEX.md",
+      "summary": "Primary repository instructions are in [AGENTS.md](AGENTS.md). Read that file first.",
+      "status": "indexed",
+      "path": "CODEX.md",
+      "source_paths": [
+        "CODEX.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:code-of-conduct-md",
+      "kind": "document",
+      "title": "CODE_OF_CONDUCT.md",
+      "summary": "This project expects respectful, direct, and technically grounded collaboration.",
+      "status": "indexed",
+      "path": "CODE_OF_CONDUCT.md",
+      "source_paths": [
+        "CODE_OF_CONDUCT.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:contributing-md",
+      "kind": "document",
+      "title": "CONTRIBUTING.md",
+      "summary": "Thanks for improving Sula.",
+      "status": "indexed",
+      "path": "CONTRIBUTING.md",
+      "source_paths": [
+        "CONTRIBUTING.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:gemini-md",
+      "kind": "document",
+      "title": "GEMINI.md",
+      "summary": "Read [AGENTS.md](AGENTS.md) before making changes.",
+      "status": "indexed",
+      "path": "GEMINI.md",
+      "source_paths": [
+        "GEMINI.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:readme-md",
+      "kind": "document",
+      "title": "README.md",
+      "summary": "Sula is a reusable project operating system for AI-native software teams.",
+      "status": "indexed",
+      "path": "README.md",
+      "source_paths": [
+        "README.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:security-md",
+      "kind": "document",
+      "title": "SECURITY.md",
+      "summary": "If you believe you found a security issue in Sula, do not open a public issue with exploit details.",
+      "status": "indexed",
+      "path": "SECURITY.md",
+      "source_paths": [
+        "SECURITY.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:status-md",
+      "kind": "document",
+      "title": "STATUS.md",
+      "summary": "- last updated: 2026-04-16",
+      "status": "indexed",
+      "path": "STATUS.md",
+      "source_paths": [
+        "STATUS.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "memory",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": "2026-04-16"
+    },
+    {
+      "id": "object:source:docs-readme-md",
+      "kind": "document",
+      "title": "README.md",
+      "summary": "This directory organizes the reusable project operating system for `Sula`.",
+      "status": "indexed",
+      "path": "docs/README.md",
+      "source_paths": [
+        "docs/README.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:docs-adoption-playbook-md",
+      "kind": "document",
+      "title": "adoption-playbook.md",
+      "summary": "This playbook describes how to roll Sula into a repository cleanly.",
+      "status": "indexed",
+      "path": "docs/adoption-playbook.md",
+      "source_paths": [
+        "docs/adoption-playbook.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "agreement:source:docs-adoption-playbook-md",
+      "kind": "agreement",
+      "title": "Sula Adoption Playbook",
+      "summary": "This playbook describes how to roll Sula into a repository cleanly.",
+      "status": "active",
+      "path": "docs/adoption-playbook.md",
+      "source_paths": [
+        "docs/adoption-playbook.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo"
+      ],
+      "tags": [
+        "agreement",
+        "source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:docs-architecture-module-map-md",
+      "kind": "document",
+      "title": "module-map.md",
+      "summary": "This profile describes the durable modules inside Sula Core.",
+      "status": "indexed",
+      "path": "docs/architecture/module-map.md",
+      "source_paths": [
+        "docs/architecture/module-map.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:docs-architecture-system-map-md",
+      "kind": "document",
+      "title": "system-map.md",
+      "summary": "This profile assumes the repository is itself a reusable project operating system.",
+      "status": "indexed",
+      "path": "docs/architecture/system-map.md",
+      "source_paths": [
+        "docs/architecture/system-map.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:docs-change-records-2026-04-11-add-adoption-agent-flow-for-one-sentence-onboarding-md",
+      "kind": "document",
+      "title": "2026-04-11-add-adoption-agent-flow-for-one-sentence-onboarding.md",
+      "summary": "- date: 2026-04-11 - executor: Codex - branch: codex/bootstrap-sula - related commit(s): bbc39aa - status: completed",
+      "status": "indexed",
+      "path": "docs/change-records/2026-04-11-add-adoption-agent-flow-for-one-sentence-onboarding.md",
+      "source_paths": [
+        "docs/change-records/2026-04-11-add-adoption-agent-flow-for-one-sentence-onboarding.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "memory",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": "2026-04-11"
+    },
+    {
+      "id": "object:source:docs-change-records-2026-04-11-add-bootstrap-site-assets-for-the-public-sula-protocol-md",
+      "kind": "document",
+      "title": "2026-04-11-add-bootstrap-site-assets-for-the-public-sula-protocol.md",
+      "summary": "- date: 2026-04-11 - executor: Codex - branch: codex/bootstrap-sula - related commit(s): bootstrap-site batch on codex/bootstrap-sula - status: completed",
+      "status": "indexed",
+      "path": "docs/change-records/2026-04-11-add-bootstrap-site-assets-for-the-public-sula-protocol.md",
+      "source_paths": [
+        "docs/change-records/2026-04-11-add-bootstrap-site-assets-for-the-public-sula-protocol.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "memory",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": "2026-04-11"
+    },
+    {
+      "id": "agreement:source:docs-change-records-2026-04-11-add-bootstrap-site-assets-for-the-public-sula-protocol-md",
+      "kind": "agreement",
+      "title": "Add bootstrap site assets for the public Sula protocol",
+      "summary": "- date: 2026-04-11 - executor: Codex - branch: codex/bootstrap-sula - related commit(s): bootstrap-site batch on codex/bootstrap-sula - status: completed",
+      "status": "active",
+      "path": "docs/change-records/2026-04-11-add-bootstrap-site-assets-for-the-public-sula-protocol.md",
+      "source_paths": [
+        "docs/change-records/2026-04-11-add-bootstrap-site-assets-for-the-public-sula-protocol.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "memory",
+        "repo"
+      ],
+      "tags": [
+        "agreement",
+        "source"
+      ],
+      "date": "2026-04-11"
+    },
+    {
+      "id": "object:source:docs-change-records-2026-04-11-deploy-the-sula-bootstrap-site-to-fly-and-prepare-the-custom-domain-md",
+      "kind": "document",
+      "title": "2026-04-11-deploy-the-sula-bootstrap-site-to-fly-and-prepare-the-custom-domain.md",
+      "summary": "- date: 2026-04-11 - executor: Codex - branch: codex/bootstrap-sula - related commit(s): deployment batch on codex/bootstrap-sula - status: completed",
+      "status": "indexed",
+      "path": "docs/change-records/2026-04-11-deploy-the-sula-bootstrap-site-to-fly-and-prepare-the-custom-domain.md",
+      "source_paths": [
+        "docs/change-records/2026-04-11-deploy-the-sula-bootstrap-site-to-fly-and-prepare-the-custom-domain.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "memory",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": "2026-04-11"
+    },
+    {
+      "id": "object:source:docs-change-records-2026-04-11-prepare-sula-for-public-release-md",
+      "kind": "document",
+      "title": "2026-04-11-prepare-sula-for-public-release.md",
+      "summary": "- date: 2026-04-11 - executor: Codex - branch: codex/bootstrap-sula - related commit(s): public-readiness batch on codex/bootstrap-sula - status: completed",
+      "status": "indexed",
+      "path": "docs/change-records/2026-04-11-prepare-sula-for-public-release.md",
+      "source_paths": [
+        "docs/change-records/2026-04-11-prepare-sula-for-public-release.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "memory",
+        "repo",
+        "release"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": "2026-04-11"
+    },
+    {
+      "id": "object:source:docs-change-records-2026-04-11-refine-the-public-bootstrap-contract-for-existing-sula-consumers-md",
+      "kind": "document",
+      "title": "2026-04-11-refine-the-public-bootstrap-contract-for-existing-sula-consumers.md",
+      "summary": "- date: 2026-04-11 - executor: Codex - branch: codex/bootstrap-sula - related commit(s): working tree refinement after real bootstrap-site usage - status: completed",
+      "status": "indexed",
+      "path": "docs/change-records/2026-04-11-refine-the-public-bootstrap-contract-for-existing-sula-consumers.md",
+      "source_paths": [
+        "docs/change-records/2026-04-11-refine-the-public-bootstrap-contract-for-existing-sula-consumers.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "memory",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": "2026-04-11"
+    },
+    {
+      "id": "agreement:source:docs-change-records-2026-04-11-refine-the-public-bootstrap-contract-for-existing-sula-consumers-md",
+      "kind": "agreement",
+      "title": "Refine the public bootstrap contract for existing Sula consumers",
+      "summary": "- date: 2026-04-11 - executor: Codex - branch: codex/bootstrap-sula - related commit(s): working tree refinement after real bootstrap-site usage - status: completed",
+      "status": "active",
+      "path": "docs/change-records/2026-04-11-refine-the-public-bootstrap-contract-for-existing-sula-consumers.md",
+      "source_paths": [
+        "docs/change-records/2026-04-11-refine-the-public-bootstrap-contract-for-existing-sula-consumers.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "memory",
+        "repo"
+      ],
+      "tags": [
+        "agreement",
+        "source"
+      ],
+      "date": "2026-04-11"
+    },
+    {
+      "id": "object:source:docs-change-records-2026-04-11-self-adopt-sula-root-under-sula-core-profile-md",
+      "kind": "document",
+      "title": "2026-04-11-self-adopt-sula-root-under-sula-core-profile.md",
+      "summary": "- date: 2026-04-11 - executor: Codex - branch: codex/bootstrap-sula - related commit(s): 901c67f - status: completed",
+      "status": "indexed",
+      "path": "docs/change-records/2026-04-11-self-adopt-sula-root-under-sula-core-profile.md",
+      "source_paths": [
+        "docs/change-records/2026-04-11-self-adopt-sula-root-under-sula-core-profile.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "memory",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": "2026-04-11"
+    },
+    {
+      "id": "object:source:docs-change-records-2026-04-12-add-artifact-materialization-for-docs-and-sheets-md",
+      "kind": "document",
+      "title": "2026-04-12-add-artifact-materialization-for-docs-and-sheets.md",
+      "summary": "- date: 2026-04-12 - executor: Codex - branch: codex/bootstrap-sula - related commit(s): pending - status: completed",
+      "status": "indexed",
+      "path": "docs/change-records/2026-04-12-add-artifact-materialization-for-docs-and-sheets.md",
+      "source_paths": [
+        "docs/change-records/2026-04-12-add-artifact-materialization-for-docs-and-sheets.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "memory",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": "2026-04-12"
+    },
+    {
+      "id": "object:source:docs-change-records-2026-04-12-add-feedback-bundles-and-core-review-workflow-md",
+      "kind": "document",
+      "title": "2026-04-12-add-feedback-bundles-and-core-review-workflow.md",
+      "summary": "- date: 2026-04-12 - executor: Codex - branch: main - related commit(s): pending local commit - status: released",
+      "status": "indexed",
+      "path": "docs/change-records/2026-04-12-add-feedback-bundles-and-core-review-workflow.md",
+      "source_paths": [
+        "docs/change-records/2026-04-12-add-feedback-bundles-and-core-review-workflow.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "memory",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": "2026-04-12"
+    },
+    {
+      "id": "object:source:docs-change-records-2026-04-12-add-formal-document-design-bundles-md",
+      "kind": "document",
+      "title": "2026-04-12-add-formal-document-design-bundles.md",
+      "summary": "- date: 2026-04-12 - executor: Codex - branch: pending - related commit(s): pending - status: released",
+      "status": "indexed",
+      "path": "docs/change-records/2026-04-12-add-formal-document-design-bundles.md",
+      "source_paths": [
+        "docs/change-records/2026-04-12-add-formal-document-design-bundles.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "memory",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": "2026-04-12"
+    },
+    {
+      "id": "agreement:source:docs-change-records-2026-04-12-add-formal-document-design-bundles-md",
+      "kind": "agreement",
+      "title": "Add formal document design bundles",
+      "summary": "- date: 2026-04-12 - executor: Codex - branch: pending - related commit(s): pending - status: released",
+      "status": "active",
+      "path": "docs/change-records/2026-04-12-add-formal-document-design-bundles.md",
+      "source_paths": [
+        "docs/change-records/2026-04-12-add-formal-document-design-bundles.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "memory",
+        "repo"
+      ],
+      "tags": [
+        "agreement",
+        "source"
+      ],
+      "date": "2026-04-12"
+    },
+    {
+      "id": "object:source:docs-change-records-2026-04-12-add-guided-onboarding-and-zero-memory-setup-flow-md",
+      "kind": "document",
+      "title": "2026-04-12-add-guided-onboarding-and-zero-memory-setup-flow.md",
+      "summary": "- date: 2026-04-12 - executor: Codex - branch: codex/bootstrap-sula - related commit(s): pending - status: completed",
+      "status": "indexed",
+      "path": "docs/change-records/2026-04-12-add-guided-onboarding-and-zero-memory-setup-flow.md",
+      "source_paths": [
+        "docs/change-records/2026-04-12-add-guided-onboarding-and-zero-memory-setup-flow.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "memory",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": "2026-04-12"
+    },
+    {
+      "id": "object:source:docs-change-records-2026-04-12-add-kernel-object-query-and-bundle-contracts-md",
+      "kind": "document",
+      "title": "2026-04-12-add-kernel-object-query-and-bundle-contracts.md",
+      "summary": "- date: 2026-04-12 - executor: Codex - branch: codex/bootstrap-sula - related commit(s): pending - status: completed",
+      "status": "indexed",
+      "path": "docs/change-records/2026-04-12-add-kernel-object-query-and-bundle-contracts.md",
+      "source_paths": [
+        "docs/change-records/2026-04-12-add-kernel-object-query-and-bundle-contracts.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "memory",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": "2026-04-12"
+    },
+    {
+      "id": "agreement:source:docs-change-records-2026-04-12-add-kernel-object-query-and-bundle-contracts-md",
+      "kind": "agreement",
+      "title": "Add kernel object, query, and bundle contracts",
+      "summary": "- date: 2026-04-12 - executor: Codex - branch: codex/bootstrap-sula - related commit(s): pending - status: completed",
+      "status": "active",
+      "path": "docs/change-records/2026-04-12-add-kernel-object-query-and-bundle-contracts.md",
+      "source_paths": [
+        "docs/change-records/2026-04-12-add-kernel-object-query-and-bundle-contracts.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "memory",
+        "repo"
+      ],
+      "tags": [
+        "agreement",
+        "source"
+      ],
+      "date": "2026-04-12"
+    },
+    {
+      "id": "object:source:docs-change-records-2026-04-12-add-machine-json-interfaces-artifact-routing-portfolio-registry-and-google-drive-local-sync-contracts-md",
+      "kind": "document",
+      "title": "2026-04-12-add-machine-json-interfaces-artifact-routing-portfolio-registry-and-google-drive-local-sync-contracts.md",
+      "summary": "- date: 2026-04-12 - executor: Codex - branch: codex/bootstrap-sula - related commit(s): pending - status: completed",
+      "status": "indexed",
+      "path": "docs/change-records/2026-04-12-add-machine-json-interfaces-artifact-routing-portfolio-registry-and-google-drive-local-sync-contracts.md",
+      "source_paths": [
+        "docs/change-records/2026-04-12-add-machine-json-interfaces-artifact-routing-portfolio-registry-and-google-drive-local-sync-contracts.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "memory",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": "2026-04-12"
+    },
+    {
+      "id": "agreement:source:docs-change-records-2026-04-12-add-machine-json-interfaces-artifact-routing-portfolio-registry-and-google-drive-local-sync-contracts-md",
+      "kind": "agreement",
+      "title": "Add machine JSON interfaces, artifact routing, portfolio registry, and Google Drive local-sync contracts",
+      "summary": "- date: 2026-04-12 - executor: Codex - branch: codex/bootstrap-sula - related commit(s): pending - status: completed",
+      "status": "active",
+      "path": "docs/change-records/2026-04-12-add-machine-json-interfaces-artifact-routing-portfolio-registry-and-google-drive-local-sync-contracts.md",
+      "source_paths": [
+        "docs/change-records/2026-04-12-add-machine-json-interfaces-artifact-routing-portfolio-registry-and-google-drive-local-sync-contracts.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "memory",
+        "repo"
+      ],
+      "tags": [
+        "agreement",
+        "source"
+      ],
+      "date": "2026-04-12"
+    },
+    {
+      "id": "object:source:docs-change-records-2026-04-12-add-project-language-policy-for-generated-docs-md",
+      "kind": "document",
+      "title": "2026-04-12-add-project-language-policy-for-generated-docs.md",
+      "summary": "- date: 2026-04-12 - executor: Codex - branch: codex/bootstrap-sula - related commit(s): pending - status: completed",
+      "status": "indexed",
+      "path": "docs/change-records/2026-04-12-add-project-language-policy-for-generated-docs.md",
+      "source_paths": [
+        "docs/change-records/2026-04-12-add-project-language-policy-for-generated-docs.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "memory",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": "2026-04-12"
+    },
+    {
+      "id": "object:source:docs-change-records-2026-04-12-add-project-local-google-oauth-and-provider-target-path-routing-md",
+      "kind": "document",
+      "title": "2026-04-12-add-project-local-google-oauth-and-provider-target-path-routing.md",
+      "summary": "- date: 2026-04-12 - executor: Codex - branch: unknown - related commit(s): pending review commit - status: completed",
+      "status": "indexed",
+      "path": "docs/change-records/2026-04-12-add-project-local-google-oauth-and-provider-target-path-routing.md",
+      "source_paths": [
+        "docs/change-records/2026-04-12-add-project-local-google-oauth-and-provider-target-path-routing.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "memory",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": "2026-04-12"
+    },
+    {
+      "id": "object:source:docs-change-records-2026-04-12-add-provider-backed-artifact-registration-identity-md",
+      "kind": "document",
+      "title": "2026-04-12-add-provider-backed-artifact-registration-identity.md",
+      "summary": "- date: 2026-04-12 - executor: Codex - branch: codex/bootstrap-sula - related commit(s): pending - status: completed",
+      "status": "indexed",
+      "path": "docs/change-records/2026-04-12-add-provider-backed-artifact-registration-identity.md",
+      "source_paths": [
+        "docs/change-records/2026-04-12-add-provider-backed-artifact-registration-identity.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "memory",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": "2026-04-12"
+    },
+    {
+      "id": "object:source:docs-change-records-2026-04-12-add-provider-import-plans-for-google-docs-and-sheets-md",
+      "kind": "document",
+      "title": "2026-04-12-add-provider-import-plans-for-google-docs-and-sheets.md",
+      "summary": "- date: 2026-04-12 - executor: Codex - branch: codex/bootstrap-sula - related commit(s): pending - status: completed",
+      "status": "indexed",
+      "path": "docs/change-records/2026-04-12-add-provider-import-plans-for-google-docs-and-sheets.md",
+      "source_paths": [
+        "docs/change-records/2026-04-12-add-provider-import-plans-for-google-docs-and-sheets.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "memory",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": "2026-04-12"
+    },
+    {
+      "id": "object:source:docs-change-records-2026-04-12-add-provider-native-read-only-refresh-and-artifact-refresh-command-md",
+      "kind": "document",
+      "title": "2026-04-12-add-provider-native-read-only-refresh-and-artifact-refresh-command.md",
+      "summary": "- date: 2026-04-12 - executor: Codex - branch: unknown - related commit(s): pending review commit - status: completed",
+      "status": "indexed",
+      "path": "docs/change-records/2026-04-12-add-provider-native-read-only-refresh-and-artifact-refresh-command.md",
+      "source_paths": [
+        "docs/change-records/2026-04-12-add-provider-native-read-only-refresh-and-artifact-refresh-command.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "memory",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": "2026-04-12"
+    },
+    {
+      "id": "object:source:docs-change-records-2026-04-12-add-site-launch-contract-and-canonical-bootstrap-shim-md",
+      "kind": "document",
+      "title": "2026-04-12-add-site-launch-contract-and-canonical-bootstrap-shim.md",
+      "summary": "- date: 2026-04-12 - executor: Codex - branch: codex/bootstrap-sula - related commit(s): pending - status: completed",
+      "status": "indexed",
+      "path": "docs/change-records/2026-04-12-add-site-launch-contract-and-canonical-bootstrap-shim.md",
+      "source_paths": [
+        "docs/change-records/2026-04-12-add-site-launch-contract-and-canonical-bootstrap-shim.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "memory",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": "2026-04-12"
+    },
+    {
+      "id": "agreement:source:docs-change-records-2026-04-12-add-site-launch-contract-and-canonical-bootstrap-shim-md",
+      "kind": "agreement",
+      "title": "Add site launch contract and canonical bootstrap shim",
+      "summary": "- date: 2026-04-12 - executor: Codex - branch: codex/bootstrap-sula - related commit(s): pending - status: completed",
+      "status": "active",
+      "path": "docs/change-records/2026-04-12-add-site-launch-contract-and-canonical-bootstrap-shim.md",
+      "source_paths": [
+        "docs/change-records/2026-04-12-add-site-launch-contract-and-canonical-bootstrap-shim.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "memory",
+        "repo"
+      ],
+      "tags": [
+        "agreement",
+        "source"
+      ],
+      "date": "2026-04-12"
+    },
+    {
+      "id": "object:source:docs-change-records-2026-04-12-add-sqlite-kernel-cache-richer-object-extraction-and-timeline-query-filters-md",
+      "kind": "document",
+      "title": "2026-04-12-add-sqlite-kernel-cache-richer-object-extraction-and-timeline-query-filters.md",
+      "summary": "- date: 2026-04-12 - executor: Codex - branch: codex/bootstrap-sula - related commit(s): pending - status: completed",
+      "status": "indexed",
+      "path": "docs/change-records/2026-04-12-add-sqlite-kernel-cache-richer-object-extraction-and-timeline-query-filters.md",
+      "source_paths": [
+        "docs/change-records/2026-04-12-add-sqlite-kernel-cache-richer-object-extraction-and-timeline-query-filters.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "memory",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": "2026-04-12"
+    },
+    {
+      "id": "object:source:docs-change-records-2026-04-12-add-truth-source-and-freshness-checks-for-collaborative-provider-artifacts-md",
+      "kind": "document",
+      "title": "2026-04-12-add-truth-source-and-freshness-checks-for-collaborative-provider-artifacts.md",
+      "summary": "- date: 2026-04-12 - executor: Codex - branch: unknown - related commit(s): pending review commit - status: completed",
+      "status": "indexed",
+      "path": "docs/change-records/2026-04-12-add-truth-source-and-freshness-checks-for-collaborative-provider-artifacts.md",
+      "source_paths": [
+        "docs/change-records/2026-04-12-add-truth-source-and-freshness-checks-for-collaborative-provider-artifacts.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "memory",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": "2026-04-12"
+    },
+    {
+      "id": "object:source:docs-change-records-2026-04-12-define-sula-vnext-project-kernel-md",
+      "kind": "document",
+      "title": "2026-04-12-define-sula-vnext-project-kernel.md",
+      "summary": "- date: 2026-04-12 - executor: Codex - branch: main - related commit(s): pending - status: proposed architecture recorded",
+      "status": "indexed",
+      "path": "docs/change-records/2026-04-12-define-sula-vnext-project-kernel.md",
+      "source_paths": [
+        "docs/change-records/2026-04-12-define-sula-vnext-project-kernel.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "memory",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": "2026-04-12"
+    },
+    {
+      "id": "object:source:docs-change-records-2026-04-12-document-provider-backed-artifact-identity-md",
+      "kind": "document",
+      "title": "2026-04-12-document-provider-backed-artifact-identity.md",
+      "summary": "- date: 2026-04-12 - executor: Codex - branch: codex/bootstrap-sula - related commit(s): pending - status: completed",
+      "status": "indexed",
+      "path": "docs/change-records/2026-04-12-document-provider-backed-artifact-identity.md",
+      "source_paths": [
+        "docs/change-records/2026-04-12-document-provider-backed-artifact-identity.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "memory",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": "2026-04-12"
+    },
+    {
+      "id": "agreement:source:docs-change-records-2026-04-12-document-provider-backed-artifact-identity-md",
+      "kind": "agreement",
+      "title": "Document provider-backed artifact identity for cross-device project workspaces",
+      "summary": "- date: 2026-04-12 - executor: Codex - branch: codex/bootstrap-sula - related commit(s): pending - status: completed",
+      "status": "active",
+      "path": "docs/change-records/2026-04-12-document-provider-backed-artifact-identity.md",
+      "source_paths": [
+        "docs/change-records/2026-04-12-document-provider-backed-artifact-identity.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "memory",
+        "repo"
+      ],
+      "tags": [
+        "agreement",
+        "source"
+      ],
+      "date": "2026-04-12"
+    },
+    {
+      "id": "object:source:docs-change-records-2026-04-12-implement-generic-project-kernel-and-removal-flow-md",
+      "kind": "document",
+      "title": "2026-04-12-implement-generic-project-kernel-and-removal-flow.md",
+      "summary": "- date: 2026-04-12 - executor: Codex - branch: main - related commit(s): pending - status: completed",
+      "status": "indexed",
+      "path": "docs/change-records/2026-04-12-implement-generic-project-kernel-and-removal-flow.md",
+      "source_paths": [
+        "docs/change-records/2026-04-12-implement-generic-project-kernel-and-removal-flow.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "memory",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": "2026-04-12"
+    },
+    {
+      "id": "object:source:docs-change-records-2026-04-15-add-daily-sula-check-workflow-for-state-sync-verification-md",
+      "kind": "document",
+      "title": "2026-04-15-add-daily-sula-check-workflow-for-state-sync-verification.md",
+      "summary": "- date: 2026-04-15 - executor: Codex - branch: codex/release-main - related commit(s): pending - status: completed",
+      "status": "indexed",
+      "path": "docs/change-records/2026-04-15-add-daily-sula-check-workflow-for-state-sync-verification.md",
+      "source_paths": [
+        "docs/change-records/2026-04-15-add-daily-sula-check-workflow-for-state-sync-verification.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "memory",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": "2026-04-15"
+    },
+    {
+      "id": "object:source:docs-change-records-2026-04-16-add-workflow-policy-and-source-first-workflow-scaffolds-md",
+      "kind": "document",
+      "title": "2026-04-16-add-workflow-policy-and-source-first-workflow-scaffolds.md",
+      "summary": "- date: 2026-04-16 - executor: Codex - branch: codex/release-main - related commit(s): pending - status: completed",
+      "status": "indexed",
+      "path": "docs/change-records/2026-04-16-add-workflow-policy-and-source-first-workflow-scaffolds.md",
+      "source_paths": [
+        "docs/change-records/2026-04-16-add-workflow-policy-and-source-first-workflow-scaffolds.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "memory",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": "2026-04-16"
+    },
+    {
+      "id": "object:source:docs-change-records-2026-04-16-choose-fresh-public-repository-as-the-default-release-path-md",
+      "kind": "document",
+      "title": "2026-04-16-choose-fresh-public-repository-as-the-default-release-path.md",
+      "summary": "- date: 2026-04-16 - executor: Codex - branch: main - related commit(s): pending - status: completed",
+      "status": "indexed",
+      "path": "docs/change-records/2026-04-16-choose-fresh-public-repository-as-the-default-release-path.md",
+      "source_paths": [
+        "docs/change-records/2026-04-16-choose-fresh-public-repository-as-the-default-release-path.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "memory",
+        "repo",
+        "release"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": "2026-04-16"
+    },
+    {
+      "id": "object:source:docs-change-records-2026-04-16-complete-workflow-close-canary-and-release-readiness-md",
+      "kind": "document",
+      "title": "2026-04-16-complete-workflow-close-canary-and-release-readiness.md",
+      "summary": "- date: 2026-04-16 - executor: Codex - branch: main - related commit(s): pending - status: completed",
+      "status": "indexed",
+      "path": "docs/change-records/2026-04-16-complete-workflow-close-canary-and-release-readiness.md",
+      "source_paths": [
+        "docs/change-records/2026-04-16-complete-workflow-close-canary-and-release-readiness.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "memory",
+        "repo",
+        "release"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": "2026-04-16"
+    },
+    {
+      "id": "agreement:source:docs-change-records-2026-04-16-complete-workflow-close-canary-and-release-readiness-md",
+      "kind": "agreement",
+      "title": "Complete workflow close, canary verification, and release readiness",
+      "summary": "- date: 2026-04-16 - executor: Codex - branch: main - related commit(s): pending - status: completed",
+      "status": "active",
+      "path": "docs/change-records/2026-04-16-complete-workflow-close-canary-and-release-readiness.md",
+      "source_paths": [
+        "docs/change-records/2026-04-16-complete-workflow-close-canary-and-release-readiness.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "memory",
+        "repo",
+        "release"
+      ],
+      "tags": [
+        "agreement",
+        "source"
+      ],
+      "date": "2026-04-16"
+    },
+    {
+      "id": "object:source:docs-change-records-2026-04-16-document-superpowers-capability-absorption-plan-md",
+      "kind": "document",
+      "title": "2026-04-16-document-superpowers-capability-absorption-plan.md",
+      "summary": "- date: 2026-04-16 - executor: Codex - branch: codex/release-main - related commit(s): pending - status: completed",
+      "status": "indexed",
+      "path": "docs/change-records/2026-04-16-document-superpowers-capability-absorption-plan.md",
+      "source_paths": [
+        "docs/change-records/2026-04-16-document-superpowers-capability-absorption-plan.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "memory",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": "2026-04-16"
+    },
+    {
+      "id": "object:source:docs-change-records-readme-md",
+      "kind": "document",
+      "title": "README.md",
+      "summary": "Store detailed non-trivial change records in this directory.",
+      "status": "indexed",
+      "path": "docs/change-records/README.md",
+      "source_paths": [
+        "docs/change-records/README.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "memory",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:docs-change-records-template-md",
+      "kind": "document",
+      "title": "_template.md",
+      "summary": "- date: {{DATE}} - executor: {{EXECUTOR}} - branch: {{BRANCH}} - related commit(s): {{RELATED_COMMITS}} - status: {{STATUS}}",
+      "status": "indexed",
+      "path": "docs/change-records/_template.md",
+      "source_paths": [
+        "docs/change-records/_template.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "memory",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:docs-incidents-readme-md",
+      "kind": "document",
+      "title": "README.md",
+      "summary": "Store incident or recovery history in this directory.",
+      "status": "indexed",
+      "path": "docs/incidents/README.md",
+      "source_paths": [
+        "docs/incidents/README.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "memory",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:docs-incidents-template-md",
+      "kind": "document",
+      "title": "_template.md",
+      "summary": "- date: {{DATE}} - executor: {{EXECUTOR}} - branch: {{BRANCH}} - status: {{STATUS}}",
+      "status": "indexed",
+      "path": "docs/incidents/_template.md",
+      "source_paths": [
+        "docs/incidents/_template.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "memory",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:docs-ops-architecture-exception-register-md",
+      "kind": "document",
+      "title": "architecture-exception-register.md",
+      "summary": "This file records approved exceptions to the highest architecture rule.",
+      "status": "indexed",
+      "path": "docs/ops/architecture-exception-register.md",
+      "source_paths": [
+        "docs/ops/architecture-exception-register.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:docs-ops-document-design-principles-md",
+      "kind": "document",
+      "title": "document-design-principles.md",
+      "summary": "This file defines how formal planning, proposal, report, process, and training documents should be structured in `Sula`.",
+      "status": "indexed",
+      "path": "docs/ops/document-design-principles.md",
+      "source_paths": [
+        "docs/ops/document-design-principles.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:docs-ops-project-memory-md",
+      "kind": "document",
+      "title": "project-memory.md",
+      "summary": "This file defines the durable memory contract for the repository.",
+      "status": "indexed",
+      "path": "docs/ops/project-memory.md",
+      "source_paths": [
+        "docs/ops/project-memory.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "agreement:source:docs-ops-project-memory-md",
+      "kind": "agreement",
+      "title": "Sula Project Memory Guide",
+      "summary": "This file defines the durable memory contract for the repository.",
+      "status": "active",
+      "path": "docs/ops/project-memory.md",
+      "source_paths": [
+        "docs/ops/project-memory.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo"
+      ],
+      "tags": [
+        "agreement",
+        "source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:docs-ops-release-checklist-md",
+      "kind": "document",
+      "title": "release-checklist.md",
+      "summary": "Use this checklist before push or release.",
+      "status": "indexed",
+      "path": "docs/ops/release-checklist.md",
+      "source_paths": [
+        "docs/ops/release-checklist.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo",
+        "release"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:docs-ops-request-template-md",
+      "kind": "document",
+      "title": "request-template.md",
+      "summary": "This template reduces back-and-forth. It is not mandatory, but it is the fastest way to get predictable delivery.",
+      "status": "indexed",
+      "path": "docs/ops/request-template.md",
+      "source_paths": [
+        "docs/ops/request-template.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:docs-ops-smoke-test-checklist-md",
+      "kind": "document",
+      "title": "smoke-test-checklist.md",
+      "summary": "Apply the global checks plus the impacted module checks.",
+      "status": "indexed",
+      "path": "docs/ops/smoke-test-checklist.md",
+      "source_paths": [
+        "docs/ops/smoke-test-checklist.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:docs-ops-team-operating-model-md",
+      "kind": "document",
+      "title": "team-operating-model.md",
+      "summary": "This file defines the default collaboration model for the repository.",
+      "status": "indexed",
+      "path": "docs/ops/team-operating-model.md",
+      "source_paths": [
+        "docs/ops/team-operating-model.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:docs-philosophy-md",
+      "kind": "document",
+      "title": "philosophy.md",
+      "summary": "Sula exists to make high-quality project operations reusable.",
+      "status": "indexed",
+      "path": "docs/philosophy.md",
+      "source_paths": [
+        "docs/philosophy.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:docs-reference-adoption-agent-md",
+      "kind": "document",
+      "title": "adoption-agent.md",
+      "summary": "Sula should feel like an adoption agent, not a checklist.",
+      "status": "indexed",
+      "path": "docs/reference/adoption-agent.md",
+      "source_paths": [
+        "docs/reference/adoption-agent.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "agreement:source:docs-reference-adoption-agent-md",
+      "kind": "agreement",
+      "title": "Sula Adoption Agent",
+      "summary": "Sula should feel like an adoption agent, not a checklist.",
+      "status": "active",
+      "path": "docs/reference/adoption-agent.md",
+      "source_paths": [
+        "docs/reference/adoption-agent.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo"
+      ],
+      "tags": [
+        "agreement",
+        "source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:docs-reference-adoption-registry-md",
+      "kind": "document",
+      "title": "adoption-registry.md",
+      "summary": "Sula Core tracks rollout scope in [../../registry/adopted-projects.toml](../../registry/adopted-projects.toml).",
+      "status": "indexed",
+      "path": "docs/reference/adoption-registry.md",
+      "source_paths": [
+        "docs/reference/adoption-registry.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:docs-reference-feedback-bundle-lifecycle-md",
+      "kind": "document",
+      "title": "feedback-bundle-lifecycle.md",
+      "summary": "This document defines how reusable fixes move from one adopted project back into Sula Core and then out again through normal versioned sync.",
+      "status": "indexed",
+      "path": "docs/reference/feedback-bundle-lifecycle.md",
+      "source_paths": [
+        "docs/reference/feedback-bundle-lifecycle.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:docs-reference-portfolio-adapter-workflow-contract-md",
+      "kind": "document",
+      "title": "portfolio-adapter-workflow-contract.md",
+      "summary": "This document defines how Sula should scale from one adopted repository to a multi-project workspace that may mix code projects, Google Drive projects, and future providers such as Feishu.",
+      "status": "indexed",
+      "path": "docs/reference/portfolio-adapter-workflow-contract.md",
+      "source_paths": [
+        "docs/reference/portfolio-adapter-workflow-contract.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "agreement:source:docs-reference-portfolio-adapter-workflow-contract-md",
+      "kind": "agreement",
+      "title": "Sula Portfolio, Adapter, and Workflow Contract",
+      "summary": "This document defines how Sula should scale from one adopted repository to a multi-project workspace that may mix code projects, Google Drive projects, and future providers such as Feishu.",
+      "status": "active",
+      "path": "docs/reference/portfolio-adapter-workflow-contract.md",
+      "source_paths": [
+        "docs/reference/portfolio-adapter-workflow-contract.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo"
+      ],
+      "tags": [
+        "agreement",
+        "source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:docs-reference-project-manifest-md",
+      "kind": "document",
+      "title": "project-manifest.md",
+      "summary": "Sula uses `.sula/project.toml` as the local project manifest.",
+      "status": "indexed",
+      "path": "docs/reference/project-manifest.md",
+      "source_paths": [
+        "docs/reference/project-manifest.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:docs-reference-project-memory-model-md",
+      "kind": "document",
+      "title": "project-memory-model.md",
+      "summary": "Sula treats project memory as durable repository state, not as chat history.",
+      "status": "indexed",
+      "path": "docs/reference/project-memory-model.md",
+      "source_paths": [
+        "docs/reference/project-memory-model.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:docs-reference-provider-backed-artifact-identity-md",
+      "kind": "document",
+      "title": "provider-backed-artifact-identity.md",
+      "summary": "This document defines how Sula should identify, index, and query project artifacts when the storage provider is not just the local filesystem and the same project may be opened from different devices or through direct provider APIs.",
+      "status": "indexed",
+      "path": "docs/reference/provider-backed-artifact-identity.md",
+      "source_paths": [
+        "docs/reference/provider-backed-artifact-identity.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:docs-reference-public-release-readiness-md",
+      "kind": "document",
+      "title": "public-release-readiness.md",
+      "summary": "This document defines the minimum bar before opening the Sula repository to the public.",
+      "status": "indexed",
+      "path": "docs/reference/public-release-readiness.md",
+      "source_paths": [
+        "docs/reference/public-release-readiness.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo",
+        "release"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:docs-reference-sula-vnext-project-kernel-md",
+      "kind": "document",
+      "title": "sula-vnext-project-kernel.md",
+      "summary": "- state: proposed target architecture - intent: make one project understandable and manageable across sessions, devices, and source types - non-goal for this document: claiming that the current CLI already implements this design",
+      "status": "indexed",
+      "path": "docs/reference/sula-vnext-project-kernel.md",
+      "source_paths": [
+        "docs/reference/sula-vnext-project-kernel.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:docs-reference-superpowers-capability-absorption-plan-md",
+      "kind": "document",
+      "title": "superpowers-capability-absorption-plan.md",
+      "summary": "Sula should audit `obra/superpowers` as a reusable workflow source, but it should not absorb Superpowers as a mandatory bundled methodology.",
+      "status": "indexed",
+      "path": "docs/reference/superpowers-capability-absorption-plan.md",
+      "source_paths": [
+        "docs/reference/superpowers-capability-absorption-plan.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:docs-reference-sync-impact-model-md",
+      "kind": "document",
+      "title": "sync-impact-model.md",
+      "summary": "Sula classifies managed-file sync changes so maintainers can review the right files first.",
+      "status": "indexed",
+      "path": "docs/reference/sync-impact-model.md",
+      "source_paths": [
+        "docs/reference/sync-impact-model.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:docs-release-process-md",
+      "kind": "document",
+      "title": "release-process.md",
+      "summary": "This process exists to protect adopted projects from accidental Sula Core regressions.",
+      "status": "indexed",
+      "path": "docs/release-process.md",
+      "source_paths": [
+        "docs/release-process.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo",
+        "release"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:docs-releases-2026-04-12-release-sula-0-11-0-formal-document-workflows-and-feedback-bundles-md",
+      "kind": "document",
+      "title": "2026-04-12-release-sula-0-11-0-formal-document-workflows-and-feedback-bundles.md",
+      "summary": "- date: 2026-04-12 - executor: Codex - branch: codex/bootstrap-sula - status: released",
+      "status": "indexed",
+      "path": "docs/releases/2026-04-12-release-sula-0-11-0-formal-document-workflows-and-feedback-bundles.md",
+      "source_paths": [
+        "docs/releases/2026-04-12-release-sula-0-11-0-formal-document-workflows-and-feedback-bundles.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "memory",
+        "repo",
+        "release"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": "2026-04-12"
+    },
+    {
+      "id": "agreement:source:docs-releases-2026-04-12-release-sula-0-11-0-formal-document-workflows-and-feedback-bundles-md",
+      "kind": "agreement",
+      "title": "Release Sula 0.11.0 formal document workflows and feedback bundles",
+      "summary": "- date: 2026-04-12 - executor: Codex - branch: codex/bootstrap-sula - status: released",
+      "status": "active",
+      "path": "docs/releases/2026-04-12-release-sula-0-11-0-formal-document-workflows-and-feedback-bundles.md",
+      "source_paths": [
+        "docs/releases/2026-04-12-release-sula-0-11-0-formal-document-workflows-and-feedback-bundles.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "memory",
+        "repo",
+        "release"
+      ],
+      "tags": [
+        "agreement",
+        "source"
+      ],
+      "date": "2026-04-12"
+    },
+    {
+      "id": "object:source:docs-releases-readme-md",
+      "kind": "document",
+      "title": "README.md",
+      "summary": "Store release-specific rollout notes in this directory when deployment history matters.",
+      "status": "indexed",
+      "path": "docs/releases/README.md",
+      "source_paths": [
+        "docs/releases/README.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "memory",
+        "repo",
+        "release"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:docs-releases-template-md",
+      "kind": "document",
+      "title": "_template.md",
+      "summary": "- date: {{DATE}} - executor: {{EXECUTOR}} - branch: {{BRANCH}} - status: {{STATUS}}",
+      "status": "indexed",
+      "path": "docs/releases/_template.md",
+      "source_paths": [
+        "docs/releases/_template.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "memory",
+        "repo",
+        "release"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "risk:docs-releases-template-md:fill-in-risks",
+      "kind": "risk",
+      "title": "_fill in risks_",
+      "summary": "_fill in risks_",
+      "status": "open",
+      "path": "docs/releases/_template.md",
+      "source_paths": [
+        "docs/releases/_template.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "memory",
+        "repo",
+        "release"
+      ],
+      "tags": [
+        "risk",
+        "section-object"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:docs-runbooks-release-and-rollout-md",
+      "kind": "document",
+      "title": "release-and-rollout.md",
+      "summary": "Use this runbook when shipping Sula Core changes that may later sync into adopted repositories.",
+      "status": "indexed",
+      "path": "docs/runbooks/release-and-rollout.md",
+      "source_paths": [
+        "docs/runbooks/release-and-rollout.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo",
+        "release"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:docs-runbooks-self-adoption-md",
+      "kind": "document",
+      "title": "self-adoption.md",
+      "summary": "This runbook covers how Sula manages itself as a first-class consumer.",
+      "status": "indexed",
+      "path": "docs/runbooks/self-adoption.md",
+      "source_paths": [
+        "docs/runbooks/self-adoption.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:docs-versioning-md",
+      "kind": "document",
+      "title": "versioning.md",
+      "summary": "Sula uses semantic versioning for its reusable operating system.",
+      "status": "indexed",
+      "path": "docs/versioning.md",
+      "source_paths": [
+        "docs/versioning.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo",
+        "release"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "agreement:source:docs-versioning-md",
+      "kind": "agreement",
+      "title": "Sula Versioning",
+      "summary": "Sula uses semantic versioning for its reusable operating system.",
+      "status": "active",
+      "path": "docs/versioning.md",
+      "source_paths": [
+        "docs/versioning.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo",
+        "release"
+      ],
+      "tags": [
+        "agreement",
+        "source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:examples-client-service-gdrive-agents-md",
+      "kind": "document",
+      "title": "AGENTS.md",
+      "summary": "This file is the primary instruction source for AI agents working in this project.",
+      "status": "indexed",
+      "path": "examples/client-service-gdrive/AGENTS.md",
+      "source_paths": [
+        "examples/client-service-gdrive/AGENTS.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:examples-client-service-gdrive-change-records-md",
+      "kind": "document",
+      "title": "CHANGE-RECORDS.md",
+      "summary": "This file is the index for non-trivial project changes.",
+      "status": "indexed",
+      "path": "examples/client-service-gdrive/CHANGE-RECORDS.md",
+      "source_paths": [
+        "examples/client-service-gdrive/CHANGE-RECORDS.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:examples-client-service-gdrive-readme-md",
+      "kind": "document",
+      "title": "README.md",
+      "summary": "Client-service canary with Google Drive adapter metadata",
+      "status": "indexed",
+      "path": "examples/client-service-gdrive/README.md",
+      "source_paths": [
+        "examples/client-service-gdrive/README.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:examples-client-service-gdrive-status-md",
+      "kind": "document",
+      "title": "STATUS.md",
+      "summary": "- last updated: 2026-04-16",
+      "status": "indexed",
+      "path": "examples/client-service-gdrive/STATUS.md",
+      "source_paths": [
+        "examples/client-service-gdrive/STATUS.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": "2026-04-16"
+    },
+    {
+      "id": "object:source:examples-client-service-gdrive-docs-change-records-2026-04-16-promote-client-service-drive-example-into-canary-md",
+      "kind": "document",
+      "title": "2026-04-16-promote-client-service-drive-example-into-canary.md",
+      "summary": "- date: 2026-04-16 - executor: Codex - branch: main - related commit(s): pending - status: completed",
+      "status": "indexed",
+      "path": "examples/client-service-gdrive/docs/change-records/2026-04-16-promote-client-service-drive-example-into-canary.md",
+      "source_paths": [
+        "examples/client-service-gdrive/docs/change-records/2026-04-16-promote-client-service-drive-example-into-canary.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "memory",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": "2026-04-16"
+    },
+    {
+      "id": "object:source:examples-client-service-gdrive-docs-change-records-readme-md",
+      "kind": "document",
+      "title": "README.md",
+      "summary": "Store detailed non-trivial change records in this directory.",
+      "status": "indexed",
+      "path": "examples/client-service-gdrive/docs/change-records/README.md",
+      "source_paths": [
+        "examples/client-service-gdrive/docs/change-records/README.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "memory",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:examples-client-service-gdrive-docs-change-records-template-md",
+      "kind": "document",
+      "title": "_template.md",
+      "summary": "- date: {{DATE}} - executor: {{EXECUTOR}} - branch: {{BRANCH}} - related commit(s): {{RELATED_COMMITS}} - status: {{STATUS}}",
+      "status": "indexed",
+      "path": "examples/client-service-gdrive/docs/change-records/_template.md",
+      "source_paths": [
+        "examples/client-service-gdrive/docs/change-records/_template.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "memory",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:examples-client-service-gdrive-docs-incidents-readme-md",
+      "kind": "document",
+      "title": "README.md",
+      "summary": "Store incident or recovery history in this directory.",
+      "status": "indexed",
+      "path": "examples/client-service-gdrive/docs/incidents/README.md",
+      "source_paths": [
+        "examples/client-service-gdrive/docs/incidents/README.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "memory",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:examples-client-service-gdrive-docs-incidents-template-md",
+      "kind": "document",
+      "title": "_template.md",
+      "summary": "- date: {{DATE}} - executor: {{EXECUTOR}} - branch: {{BRANCH}} - status: {{STATUS}}",
+      "status": "indexed",
+      "path": "examples/client-service-gdrive/docs/incidents/_template.md",
+      "source_paths": [
+        "examples/client-service-gdrive/docs/incidents/_template.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "memory",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:examples-client-service-gdrive-docs-releases-readme-md",
+      "kind": "document",
+      "title": "README.md",
+      "summary": "Store release-specific rollout notes in this directory when deployment history matters.",
+      "status": "indexed",
+      "path": "examples/client-service-gdrive/docs/releases/README.md",
+      "source_paths": [
+        "examples/client-service-gdrive/docs/releases/README.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "memory",
+        "repo",
+        "release"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:examples-client-service-gdrive-docs-releases-template-md",
+      "kind": "document",
+      "title": "_template.md",
+      "summary": "- date: {{DATE}} - executor: {{EXECUTOR}} - branch: {{BRANCH}} - status: {{STATUS}}",
+      "status": "indexed",
+      "path": "examples/client-service-gdrive/docs/releases/_template.md",
+      "source_paths": [
+        "examples/client-service-gdrive/docs/releases/_template.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "memory",
+        "repo",
+        "release"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "risk:examples-client-service-gdrive-docs-releases-template-md:fill-in-risks",
+      "kind": "risk",
+      "title": "_fill in risks_",
+      "summary": "_fill in risks_",
+      "status": "open",
+      "path": "examples/client-service-gdrive/docs/releases/_template.md",
+      "source_paths": [
+        "examples/client-service-gdrive/docs/releases/_template.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "memory",
+        "repo",
+        "release"
+      ],
+      "tags": [
+        "risk",
+        "section-object"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:examples-field-ops-generic-agents-md",
+      "kind": "document",
+      "title": "AGENTS.md",
+      "summary": "This file is the primary instruction source for AI agents working in this project.",
+      "status": "indexed",
+      "path": "examples/field-ops-generic/AGENTS.md",
+      "source_paths": [
+        "examples/field-ops-generic/AGENTS.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:examples-field-ops-generic-change-records-md",
+      "kind": "document",
+      "title": "CHANGE-RECORDS.md",
+      "summary": "This file is the index for non-trivial project changes.",
+      "status": "indexed",
+      "path": "examples/field-ops-generic/CHANGE-RECORDS.md",
+      "source_paths": [
+        "examples/field-ops-generic/CHANGE-RECORDS.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:examples-field-ops-generic-readme-md",
+      "kind": "document",
+      "title": "README.md",
+      "summary": "Generic-project canary for Sula rollout validation",
+      "status": "indexed",
+      "path": "examples/field-ops-generic/README.md",
+      "source_paths": [
+        "examples/field-ops-generic/README.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:examples-field-ops-generic-status-md",
+      "kind": "document",
+      "title": "STATUS.md",
+      "summary": "- last updated: 2026-04-16",
+      "status": "indexed",
+      "path": "examples/field-ops-generic/STATUS.md",
+      "source_paths": [
+        "examples/field-ops-generic/STATUS.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": "2026-04-16"
+    },
+    {
+      "id": "object:source:examples-field-ops-generic-docs-change-records-2026-04-16-promote-field-ops-example-into-generic-project-canary-md",
+      "kind": "document",
+      "title": "2026-04-16-promote-field-ops-example-into-generic-project-canary.md",
+      "summary": "- date: 2026-04-16 - executor: Codex - branch: main - related commit(s): pending - status: completed",
+      "status": "indexed",
+      "path": "examples/field-ops-generic/docs/change-records/2026-04-16-promote-field-ops-example-into-generic-project-canary.md",
+      "source_paths": [
+        "examples/field-ops-generic/docs/change-records/2026-04-16-promote-field-ops-example-into-generic-project-canary.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "memory",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": "2026-04-16"
+    },
+    {
+      "id": "object:source:examples-field-ops-generic-docs-change-records-readme-md",
+      "kind": "document",
+      "title": "README.md",
+      "summary": "Store detailed non-trivial change records in this directory.",
+      "status": "indexed",
+      "path": "examples/field-ops-generic/docs/change-records/README.md",
+      "source_paths": [
+        "examples/field-ops-generic/docs/change-records/README.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "memory",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:examples-field-ops-generic-docs-change-records-template-md",
+      "kind": "document",
+      "title": "_template.md",
+      "summary": "- date: {{DATE}} - executor: {{EXECUTOR}} - branch: {{BRANCH}} - related commit(s): {{RELATED_COMMITS}} - status: {{STATUS}}",
+      "status": "indexed",
+      "path": "examples/field-ops-generic/docs/change-records/_template.md",
+      "source_paths": [
+        "examples/field-ops-generic/docs/change-records/_template.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "memory",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:examples-field-ops-generic-docs-incidents-readme-md",
+      "kind": "document",
+      "title": "README.md",
+      "summary": "Store incident or recovery history in this directory.",
+      "status": "indexed",
+      "path": "examples/field-ops-generic/docs/incidents/README.md",
+      "source_paths": [
+        "examples/field-ops-generic/docs/incidents/README.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "memory",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:examples-field-ops-generic-docs-incidents-template-md",
+      "kind": "document",
+      "title": "_template.md",
+      "summary": "- date: {{DATE}} - executor: {{EXECUTOR}} - branch: {{BRANCH}} - status: {{STATUS}}",
+      "status": "indexed",
+      "path": "examples/field-ops-generic/docs/incidents/_template.md",
+      "source_paths": [
+        "examples/field-ops-generic/docs/incidents/_template.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "memory",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:examples-field-ops-generic-docs-releases-readme-md",
+      "kind": "document",
+      "title": "README.md",
+      "summary": "Store release-specific rollout notes in this directory when deployment history matters.",
+      "status": "indexed",
+      "path": "examples/field-ops-generic/docs/releases/README.md",
+      "source_paths": [
+        "examples/field-ops-generic/docs/releases/README.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "memory",
+        "repo",
+        "release"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:examples-field-ops-generic-docs-releases-template-md",
+      "kind": "document",
+      "title": "_template.md",
+      "summary": "- date: {{DATE}} - executor: {{EXECUTOR}} - branch: {{BRANCH}} - status: {{STATUS}}",
+      "status": "indexed",
+      "path": "examples/field-ops-generic/docs/releases/_template.md",
+      "source_paths": [
+        "examples/field-ops-generic/docs/releases/_template.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "memory",
+        "repo",
+        "release"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "risk:examples-field-ops-generic-docs-releases-template-md:fill-in-risks",
+      "kind": "risk",
+      "title": "_fill in risks_",
+      "summary": "_fill in risks_",
+      "status": "open",
+      "path": "examples/field-ops-generic/docs/releases/_template.md",
+      "source_paths": [
+        "examples/field-ops-generic/docs/releases/_template.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "memory",
+        "repo",
+        "release"
+      ],
+      "tags": [
+        "risk",
+        "section-object"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:examples-okoktoto-github-copilot-instructions-md",
+      "kind": "document",
+      "title": "copilot-instructions.md",
+      "summary": "Read [AGENTS.md](AGENTS.md) before proposing or generating changes.",
+      "status": "indexed",
+      "path": "examples/okoktoto/.github/copilot-instructions.md",
+      "source_paths": [
+        "examples/okoktoto/.github/copilot-instructions.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:examples-okoktoto-github-workflows-deploy-okoktoto-v5-yml",
+      "kind": "config",
+      "title": "deploy-okoktoto-v5.yml",
+      "summary": "name: example-deploy",
+      "status": "indexed",
+      "path": "examples/okoktoto/.github/workflows/deploy-okoktoto-v5.yml",
+      "source_paths": [
+        "examples/okoktoto/.github/workflows/deploy-okoktoto-v5.yml"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:examples-okoktoto-agents-md",
+      "kind": "document",
+      "title": "AGENTS.md",
+      "summary": "This file is the primary instruction source for AI coding agents working in this repository.",
+      "status": "indexed",
+      "path": "examples/okoktoto/AGENTS.md",
+      "source_paths": [
+        "examples/okoktoto/AGENTS.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:examples-okoktoto-change-records-md",
+      "kind": "document",
+      "title": "CHANGE-RECORDS.md",
+      "summary": "This file is the index for non-trivial project changes.",
+      "status": "indexed",
+      "path": "examples/okoktoto/CHANGE-RECORDS.md",
+      "source_paths": [
+        "examples/okoktoto/CHANGE-RECORDS.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:examples-okoktoto-claude-md",
+      "kind": "document",
+      "title": "CLAUDE.md",
+      "summary": "Primary repository instructions are in [AGENTS.md](AGENTS.md). Read that file first.",
+      "status": "indexed",
+      "path": "examples/okoktoto/CLAUDE.md",
+      "source_paths": [
+        "examples/okoktoto/CLAUDE.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:examples-okoktoto-codex-md",
+      "kind": "document",
+      "title": "CODEX.md",
+      "summary": "Primary repository instructions are in [AGENTS.md](AGENTS.md). Read that file first.",
+      "status": "indexed",
+      "path": "examples/okoktoto/CODEX.md",
+      "source_paths": [
+        "examples/okoktoto/CODEX.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:examples-okoktoto-gemini-md",
+      "kind": "document",
+      "title": "GEMINI.md",
+      "summary": "Read [AGENTS.md](AGENTS.md) before making changes.",
+      "status": "indexed",
+      "path": "examples/okoktoto/GEMINI.md",
+      "source_paths": [
+        "examples/okoktoto/GEMINI.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:examples-okoktoto-readme-md",
+      "kind": "document",
+      "title": "README.md",
+      "summary": "This example shows how Sula represents the current OKOKTOTO v5 repository as a reusable profile consumer.",
+      "status": "indexed",
+      "path": "examples/okoktoto/README.md",
+      "source_paths": [
+        "examples/okoktoto/README.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:examples-okoktoto-status-md",
+      "kind": "document",
+      "title": "STATUS.md",
+      "summary": "- last updated: 2026-04-11",
+      "status": "indexed",
+      "path": "examples/okoktoto/STATUS.md",
+      "source_paths": [
+        "examples/okoktoto/STATUS.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": "2026-04-11"
+    },
+    {
+      "id": "object:source:examples-okoktoto-docs-readme-md",
+      "kind": "document",
+      "title": "README.md",
+      "summary": "This directory organizes the reusable project operating system for `OKOKTOTO v5`.",
+      "status": "indexed",
+      "path": "examples/okoktoto/docs/README.md",
+      "source_paths": [
+        "examples/okoktoto/docs/README.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:examples-okoktoto-docs-architecture-module-map-md",
+      "kind": "document",
+      "title": "module-map.md",
+      "summary": "This profile maps the common code lanes for a React frontend over ERPNext.",
+      "status": "indexed",
+      "path": "examples/okoktoto/docs/architecture/module-map.md",
+      "source_paths": [
+        "examples/okoktoto/docs/architecture/module-map.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:examples-okoktoto-docs-architecture-system-map-md",
+      "kind": "document",
+      "title": "system-map.md",
+      "summary": "This profile assumes a React frontend that orchestrates ERPNext / Frappe capabilities.",
+      "status": "indexed",
+      "path": "examples/okoktoto/docs/architecture/system-map.md",
+      "source_paths": [
+        "examples/okoktoto/docs/architecture/system-map.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:examples-okoktoto-docs-change-records-2026-04-11-adopt-sula-memory-model-md",
+      "kind": "document",
+      "title": "2026-04-11-adopt-sula-memory-model.md",
+      "summary": "- date: 2026-04-11 - executor: Codex - branch: codex/bootstrap-sula - related commit(s): 901c67f - status: completed",
+      "status": "indexed",
+      "path": "examples/okoktoto/docs/change-records/2026-04-11-adopt-sula-memory-model.md",
+      "source_paths": [
+        "examples/okoktoto/docs/change-records/2026-04-11-adopt-sula-memory-model.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "memory",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": "2026-04-11"
+    },
+    {
+      "id": "object:source:examples-okoktoto-docs-change-records-readme-md",
+      "kind": "document",
+      "title": "README.md",
+      "summary": "Store detailed non-trivial change records in this directory.",
+      "status": "indexed",
+      "path": "examples/okoktoto/docs/change-records/README.md",
+      "source_paths": [
+        "examples/okoktoto/docs/change-records/README.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "memory",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:examples-okoktoto-docs-change-records-template-md",
+      "kind": "document",
+      "title": "_template.md",
+      "summary": "- date: {{DATE}} - executor: {{EXECUTOR}} - branch: {{BRANCH}} - related commit(s): {{RELATED_COMMITS}} - status: {{STATUS}}",
+      "status": "indexed",
+      "path": "examples/okoktoto/docs/change-records/_template.md",
+      "source_paths": [
+        "examples/okoktoto/docs/change-records/_template.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "memory",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:examples-okoktoto-docs-incidents-2026-04-11-capture-canary-documentation-gaps-md",
+      "kind": "document",
+      "title": "2026-04-11-capture-canary-documentation-gaps.md",
+      "summary": "- date: 2026-04-11 - executor: Codex - branch: codex/bootstrap-sula - status: resolved",
+      "status": "indexed",
+      "path": "examples/okoktoto/docs/incidents/2026-04-11-capture-canary-documentation-gaps.md",
+      "source_paths": [
+        "examples/okoktoto/docs/incidents/2026-04-11-capture-canary-documentation-gaps.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "memory",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": "2026-04-11"
+    },
+    {
+      "id": "object:source:examples-okoktoto-docs-incidents-readme-md",
+      "kind": "document",
+      "title": "README.md",
+      "summary": "Store incident or recovery history in this directory.",
+      "status": "indexed",
+      "path": "examples/okoktoto/docs/incidents/README.md",
+      "source_paths": [
+        "examples/okoktoto/docs/incidents/README.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "memory",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:examples-okoktoto-docs-incidents-template-md",
+      "kind": "document",
+      "title": "_template.md",
+      "summary": "- date: {{DATE}} - executor: {{EXECUTOR}} - branch: {{BRANCH}} - status: {{STATUS}}",
+      "status": "indexed",
+      "path": "examples/okoktoto/docs/incidents/_template.md",
+      "source_paths": [
+        "examples/okoktoto/docs/incidents/_template.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "memory",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:examples-okoktoto-docs-ops-architecture-exception-register-md",
+      "kind": "document",
+      "title": "architecture-exception-register.md",
+      "summary": "This file records approved exceptions to the highest architecture rule.",
+      "status": "indexed",
+      "path": "examples/okoktoto/docs/ops/architecture-exception-register.md",
+      "source_paths": [
+        "examples/okoktoto/docs/ops/architecture-exception-register.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:examples-okoktoto-docs-ops-document-design-principles-md",
+      "kind": "document",
+      "title": "document-design-principles.md",
+      "summary": "This file defines how formal planning, proposal, report, process, and training documents should be structured in `OKOKTOTO v5`.",
+      "status": "indexed",
+      "path": "examples/okoktoto/docs/ops/document-design-principles.md",
+      "source_paths": [
+        "examples/okoktoto/docs/ops/document-design-principles.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:examples-okoktoto-docs-ops-project-memory-md",
+      "kind": "document",
+      "title": "project-memory.md",
+      "summary": "This file defines the durable memory contract for the repository.",
+      "status": "indexed",
+      "path": "examples/okoktoto/docs/ops/project-memory.md",
+      "source_paths": [
+        "examples/okoktoto/docs/ops/project-memory.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "agreement:source:examples-okoktoto-docs-ops-project-memory-md",
+      "kind": "agreement",
+      "title": "OKOKTOTO v5 Project Memory Guide",
+      "summary": "This file defines the durable memory contract for the repository.",
+      "status": "active",
+      "path": "examples/okoktoto/docs/ops/project-memory.md",
+      "source_paths": [
+        "examples/okoktoto/docs/ops/project-memory.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo"
+      ],
+      "tags": [
+        "agreement",
+        "source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:examples-okoktoto-docs-ops-release-checklist-md",
+      "kind": "document",
+      "title": "release-checklist.md",
+      "summary": "Use this checklist before push or release.",
+      "status": "indexed",
+      "path": "examples/okoktoto/docs/ops/release-checklist.md",
+      "source_paths": [
+        "examples/okoktoto/docs/ops/release-checklist.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo",
+        "release"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:examples-okoktoto-docs-ops-request-template-md",
+      "kind": "document",
+      "title": "request-template.md",
+      "summary": "This template reduces back-and-forth. It is not mandatory, but it is the fastest way to get predictable delivery.",
+      "status": "indexed",
+      "path": "examples/okoktoto/docs/ops/request-template.md",
+      "source_paths": [
+        "examples/okoktoto/docs/ops/request-template.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:examples-okoktoto-docs-ops-smoke-test-checklist-md",
+      "kind": "document",
+      "title": "smoke-test-checklist.md",
+      "summary": "Apply the global checks plus the impacted module checks.",
+      "status": "indexed",
+      "path": "examples/okoktoto/docs/ops/smoke-test-checklist.md",
+      "source_paths": [
+        "examples/okoktoto/docs/ops/smoke-test-checklist.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:examples-okoktoto-docs-ops-team-operating-model-md",
+      "kind": "document",
+      "title": "team-operating-model.md",
+      "summary": "This file defines the default collaboration model for the repository.",
+      "status": "indexed",
+      "path": "examples/okoktoto/docs/ops/team-operating-model.md",
+      "source_paths": [
+        "examples/okoktoto/docs/ops/team-operating-model.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:examples-okoktoto-docs-releases-2026-04-11-prepare-sula-memory-canary-rollout-md",
+      "kind": "document",
+      "title": "2026-04-11-prepare-sula-memory-canary-rollout.md",
+      "summary": "- date: 2026-04-11 - executor: Codex - branch: codex/bootstrap-sula - status: completed",
+      "status": "indexed",
+      "path": "examples/okoktoto/docs/releases/2026-04-11-prepare-sula-memory-canary-rollout.md",
+      "source_paths": [
+        "examples/okoktoto/docs/releases/2026-04-11-prepare-sula-memory-canary-rollout.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "memory",
+        "repo",
+        "release"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": "2026-04-11"
+    },
+    {
+      "id": "risk:examples-okoktoto-docs-releases-2026-04-11-prepare-sula-memory-canary-rollout-md:memory-scaffolds-could-drift-from-doctor-expectations",
+      "kind": "risk",
+      "title": "memory scaffolds could drift from doctor expectations",
+      "summary": "memory scaffolds could drift from doctor expectations",
+      "status": "open",
+      "path": "examples/okoktoto/docs/releases/2026-04-11-prepare-sula-memory-canary-rollout.md",
+      "source_paths": [
+        "examples/okoktoto/docs/releases/2026-04-11-prepare-sula-memory-canary-rollout.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "memory",
+        "repo",
+        "release"
+      ],
+      "tags": [
+        "risk",
+        "section-object"
+      ],
+      "date": "2026-04-11"
+    },
+    {
+      "id": "risk:examples-okoktoto-docs-releases-2026-04-11-prepare-sula-memory-canary-rollout-md:strict-validation-could-become-too-noisy-for-real-projects-if-the-canary-is-not-maintained",
+      "kind": "risk",
+      "title": "strict validation could become too noisy for real projects if the canary is n...",
+      "summary": "strict validation could become too noisy for real projects if the canary is not maintained",
+      "status": "open",
+      "path": "examples/okoktoto/docs/releases/2026-04-11-prepare-sula-memory-canary-rollout.md",
+      "source_paths": [
+        "examples/okoktoto/docs/releases/2026-04-11-prepare-sula-memory-canary-rollout.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "memory",
+        "repo",
+        "release"
+      ],
+      "tags": [
+        "risk",
+        "section-object"
+      ],
+      "date": "2026-04-11"
+    },
+    {
+      "id": "object:source:examples-okoktoto-docs-releases-readme-md",
+      "kind": "document",
+      "title": "README.md",
+      "summary": "Store release-specific rollout notes in this directory when deployment history matters.",
+      "status": "indexed",
+      "path": "examples/okoktoto/docs/releases/README.md",
+      "source_paths": [
+        "examples/okoktoto/docs/releases/README.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "memory",
+        "repo",
+        "release"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:examples-okoktoto-docs-releases-template-md",
+      "kind": "document",
+      "title": "_template.md",
+      "summary": "- date: {{DATE}} - executor: {{EXECUTOR}} - branch: {{BRANCH}} - status: {{STATUS}}",
+      "status": "indexed",
+      "path": "examples/okoktoto/docs/releases/_template.md",
+      "source_paths": [
+        "examples/okoktoto/docs/releases/_template.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "memory",
+        "repo",
+        "release"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "risk:examples-okoktoto-docs-releases-template-md:fill-in-risks",
+      "kind": "risk",
+      "title": "_fill in risks_",
+      "summary": "_fill in risks_",
+      "status": "open",
+      "path": "examples/okoktoto/docs/releases/_template.md",
+      "source_paths": [
+        "examples/okoktoto/docs/releases/_template.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "memory",
+        "repo",
+        "release"
+      ],
+      "tags": [
+        "risk",
+        "section-object"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:examples-okoktoto-docs-runbooks-auth-and-session-md",
+      "kind": "document",
+      "title": "auth-and-session.md",
+      "summary": "This runbook covers the standard auth/session lane for the React + ERPNext profile.",
+      "status": "indexed",
+      "path": "examples/okoktoto/docs/runbooks/auth-and-session.md",
+      "source_paths": [
+        "examples/okoktoto/docs/runbooks/auth-and-session.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:examples-okoktoto-docs-runbooks-deploy-and-rollback-md",
+      "kind": "document",
+      "title": "deploy-and-rollback.md",
+      "summary": "This runbook covers the standard release path for this profile.",
+      "status": "indexed",
+      "path": "examples/okoktoto/docs/runbooks/deploy-and-rollback.md",
+      "source_paths": [
+        "examples/okoktoto/docs/runbooks/deploy-and-rollback.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:examples-okoktoto-docs-runbooks-erpnext-integration-md",
+      "kind": "document",
+      "title": "erpnext-integration.md",
+      "summary": "This runbook covers the integration lane for React frontends over ERPNext.",
+      "status": "indexed",
+      "path": "examples/okoktoto/docs/runbooks/erpnext-integration.md",
+      "source_paths": [
+        "examples/okoktoto/docs/runbooks/erpnext-integration.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:examples-okoktoto-src-app-tsx",
+      "kind": "code",
+      "title": "App.tsx",
+      "summary": "export function App() { return \"OKOKTOTO example canary\"; }",
+      "status": "indexed",
+      "path": "examples/okoktoto/src/App.tsx",
+      "source_paths": [
+        "examples/okoktoto/src/App.tsx"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:examples-okoktoto-src-api-erpnext-ts",
+      "kind": "code",
+      "title": "erpnext.ts",
+      "summary": "export async function requestERPNext(resource: string): Promise<string> { return `example:${resource}`; }",
+      "status": "indexed",
+      "path": "examples/okoktoto/src/api/erpnext.ts",
+      "source_paths": [
+        "examples/okoktoto/src/api/erpnext.ts"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:examples-okoktoto-src-store-usestore-ts",
+      "kind": "code",
+      "title": "useStore.ts",
+      "summary": "export function useStore() { return { ready: true, }; }",
+      "status": "indexed",
+      "path": "examples/okoktoto/src/store/useStore.ts",
+      "source_paths": [
+        "examples/okoktoto/src/store/useStore.ts"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:fly-toml",
+      "kind": "config",
+      "title": "fly.toml",
+      "summary": "app = 'sula' primary_region = 'nrt'",
+      "status": "indexed",
+      "path": "fly.toml",
+      "source_paths": [
+        "fly.toml"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:registry-adopted-projects-toml",
+      "kind": "config",
+      "title": "adopted-projects.toml",
+      "summary": "[[project]] slug = \"okoktoto-v5-example\" name = \"OKOKTOTO v5 Example Canary\" profile = \"react-frontend-erpnext\" repository = \"in-repo example\" primary_branch = \"main\" deployment_branch = \"okoktoto-v5\" current_sula_version = \"0.11.0\" sync_st",
+      "status": "indexed",
+      "path": "registry/adopted-projects.toml",
+      "source_paths": [
+        "registry/adopted-projects.toml"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "repo",
+        "registry"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:registry-feedback-readme-md",
+      "kind": "document",
+      "title": "README.md",
+      "summary": "This directory is the Sula Core inbox for reusable feedback captured from adopted projects.",
+      "status": "indexed",
+      "path": "registry/feedback/README.md",
+      "source_paths": [
+        "registry/feedback/README.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo",
+        "registry"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:registry-feedback-catalog-json",
+      "kind": "config",
+      "title": "catalog.json",
+      "summary": "{ \"version\": \"0.11.0\", \"updated_at\": \"\", \"items\": [] }",
+      "status": "indexed",
+      "path": "registry/feedback/catalog.json",
+      "source_paths": [
+        "registry/feedback/catalog.json"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "repo",
+        "registry"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:schema-project-example-toml",
+      "kind": "config",
+      "title": "project.example.toml",
+      "summary": "[project] name = \"Example Project\" slug = \"example-project\" description = \"Short description\" profile = \"generic-project\" default_agent = \"Codex\"",
+      "status": "indexed",
+      "path": "schema/project.example.toml",
+      "source_paths": [
+        "schema/project.example.toml"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:schema-project-schema-json",
+      "kind": "config",
+      "title": "project.schema.json",
+      "summary": "{ \"$schema\": \"https://json-schema.org/draft/2020-12/schema\", \"title\": \"Sula Project Manifest\", \"type\": \"object\", \"required\": [ \"project\", \"repository\", \"rules\", \"stack\", \"paths\", \"commands\", \"deploy\", \"auth\" ], \"properties\": { \"project\": { ",
+      "status": "indexed",
+      "path": "schema/project.schema.json",
+      "source_paths": [
+        "schema/project.schema.json"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:scripts-sula-py",
+      "kind": "code",
+      "title": "sula.py",
+      "summary": "from __future__ import annotations",
+      "status": "indexed",
+      "path": "scripts/sula.py",
+      "source_paths": [
+        "scripts/sula.py"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:scripts-sula-google-auth-py",
+      "kind": "code",
+      "title": "sula_google_auth.py",
+      "summary": "from __future__ import annotations",
+      "status": "indexed",
+      "path": "scripts/sula_google_auth.py",
+      "source_paths": [
+        "scripts/sula_google_auth.py"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:scripts-sula-providers-init-py",
+      "kind": "code",
+      "title": "__init__.py",
+      "summary": "from __future__ import annotations",
+      "status": "indexed",
+      "path": "scripts/sula_providers/__init__.py",
+      "source_paths": [
+        "scripts/sula_providers/__init__.py"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:scripts-sula-providers-base-py",
+      "kind": "code",
+      "title": "base.py",
+      "summary": "from __future__ import annotations",
+      "status": "indexed",
+      "path": "scripts/sula_providers/base.py",
+      "source_paths": [
+        "scripts/sula_providers/base.py"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:scripts-sula-providers-google-drive-py",
+      "kind": "code",
+      "title": "google_drive.py",
+      "summary": "from __future__ import annotations",
+      "status": "indexed",
+      "path": "scripts/sula_providers/google_drive.py",
+      "source_paths": [
+        "scripts/sula_providers/google_drive.py"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:scripts-sula-providers-google-oauth-store-py",
+      "kind": "code",
+      "title": "google_oauth_store.py",
+      "summary": "from __future__ import annotations",
+      "status": "indexed",
+      "path": "scripts/sula_providers/google_oauth_store.py",
+      "source_paths": [
+        "scripts/sula_providers/google_oauth_store.py"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:site-404-html",
+      "kind": "interface",
+      "title": "404.html",
+      "summary": "<!doctype html> <html lang=\"en\"> <head> <meta charset=\"utf-8\" /> <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\" /> <title>Sula | Not Found</title> <link rel=\"stylesheet\" href=\"./styles.css\" /> </head> <body> <div class=",
+      "status": "indexed",
+      "path": "site/404.html",
+      "source_paths": [
+        "site/404.html"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:site-app-js",
+      "kind": "code",
+      "title": "app.js",
+      "summary": "document.addEventListener(\"DOMContentLoaded\", () => { const buttons = document.querySelectorAll(\"[data-copy-target]\"); for (const button of buttons) { button.addEventListener(\"click\", async () => { const targetId = button.getAttribute(\"data",
+      "status": "indexed",
+      "path": "site/app.js",
+      "source_paths": [
+        "site/app.js"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:site-bootstrap-index-html",
+      "kind": "interface",
+      "title": "index.html",
+      "summary": "<!doctype html> <html lang=\"en\"> <head> <meta charset=\"utf-8\" /> <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\" /> <title>Sula Bootstrap Contract</title> <meta name=\"description\" content=\"Canonical bootstrap contract fo",
+      "status": "indexed",
+      "path": "site/bootstrap/index.html",
+      "source_paths": [
+        "site/bootstrap/index.html"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:site-index-html",
+      "kind": "interface",
+      "title": "index.html",
+      "summary": "<!doctype html> <html lang=\"en\"> <head> <meta charset=\"utf-8\" /> <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\" /> <title>Sula | URL Launch For Projects</title> <meta name=\"description\" content=\"Sula is a project operat",
+      "status": "indexed",
+      "path": "site/index.html",
+      "source_paths": [
+        "site/index.html"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:site-launch-bootstrap-py",
+      "kind": "code",
+      "title": "bootstrap.py",
+      "summary": "from __future__ import annotations",
+      "status": "indexed",
+      "path": "site/launch/bootstrap.py",
+      "source_paths": [
+        "site/launch/bootstrap.py"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:site-launch-index-html",
+      "kind": "interface",
+      "title": "index.html",
+      "summary": "<!doctype html> <html lang=\"en\"> <head> <meta charset=\"utf-8\" /> <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\" /> <title>Sula Launch Contract</title> <meta name=\"description\" content=\"Canonical launch contract for star",
+      "status": "indexed",
+      "path": "site/launch/index.html",
+      "source_paths": [
+        "site/launch/index.html"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:site-styles-css",
+      "kind": "interface",
+      "title": "styles.css",
+      "summary": ":root { --paper: #f6f0e5; --paper-deep: #efe1c6; --ink: #10231d; --ink-soft: #36544b; --accent: #0d7b66; --accent-strong: #0f5f52; --signal: #d85d34; --line: rgba(16, 35, 29, 0.14); --shadow: 0 24px 64px rgba(16, 35, 29, 0.12); --serif: \"Io",
+      "status": "indexed",
+      "path": "site/styles.css",
+      "source_paths": [
+        "site/styles.css"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:site-sula-json",
+      "kind": "config",
+      "title": "sula.json",
+      "summary": "{ \"name\": \"Sula\", \"kind\": \"project-operating-system\", \"version\": \"0.11.0\", \"status\": \"pre-public-fresh-repo-planned\", \"homepage_url\": \"https://sula.1stp.monster/\", \"launch_url\": \"https://sula.1stp.monster/launch/\", \"bootstrap_url\": \"https:/",
+      "status": "indexed",
+      "path": "site/sula.json",
+      "source_paths": [
+        "site/sula.json"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:tests-test-sula-py",
+      "kind": "code",
+      "title": "test_sula.py",
+      "summary": "from __future__ import annotations",
+      "status": "indexed",
+      "path": "tests/test_sula.py",
+      "source_paths": [
+        "tests/test_sula.py"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    }
+  ]
+}
