@@ -52,6 +52,14 @@ status_max_age_days = 30
 pack = "client-service"
 stage = "active"
 artifacts_root = "artifacts"
+docs_root = "docs/workflows"
+execution_mode = "solo-inline"
+design_gate = "complex-only"
+plan_gate = "multi-step"
+review_policy = "batch"
+workspace_isolation = "none"
+testing_policy = "inherit"
+closeout_policy = "explicit"
 
 [storage]
 provider = "google-drive"

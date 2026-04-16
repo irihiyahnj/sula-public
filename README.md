@@ -374,6 +374,13 @@ python3 scripts/sula.py artifact refresh \
 
 Artifacts are routed through the active workflow pack and stored under the project's artifacts root, then registered in `.sula/artifacts/catalog.json`.
 
+Workflow policy is now also a first-class manifest surface:
+
+- `.sula/project.toml` can record `execution_mode`, `design_gate`, `plan_gate`, `review_policy`, `workspace_isolation`, `testing_policy`, and `closeout_policy` under `[workflow]`
+- durable source-first workflow documents now live under `workflow.docs_root`, which defaults to `docs/workflows`
+- `python3 scripts/sula.py workflow assess --project-root /path/to/project --task "Refactor auth and rollout provider sync"` reports whether the task should carry a `spec`, `plan`, or `review`
+- `python3 scripts/sula.py workflow scaffold --project-root /path/to/project --kind spec --title "Auth Sync Spec"` creates a durable workflow source document and registers it in the artifact catalog
+
 Provider-backed artifacts can also be registered without a local materialized file path by supplying a stable project-relative path and provider item metadata. This lets Drive-synced and provider-native deliverables survive device-specific local path differences.
 
 Collaborative provider-backed artifacts can now also carry truth-source and freshness metadata:

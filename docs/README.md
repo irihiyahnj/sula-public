@@ -26,11 +26,15 @@ Sula manages the cross-project operational layer so this repository can benefit 
 
 - `architecture/`: profile-specific architecture docs when the `profile-architecture` projection pack is enabled
 
-### 4. Runbooks
+### 4. Reference
+
+- `reference/`: durable contracts, capability models, and design references for Sula Core
+
+### 5. Runbooks
 
 - `runbooks/`: operational runbooks when the `profile-runbooks` projection pack is enabled
 
-### 5. Traceability
+### 6. Traceability
 
 - [STATUS.md](../STATUS.md)
 - [CHANGE-RECORDS.md](../CHANGE-RECORDS.md)

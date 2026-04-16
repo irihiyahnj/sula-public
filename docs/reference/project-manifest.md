@@ -70,6 +70,14 @@ The safe baseline profile is `generic-project`. Narrower profiles can add more s
 - `pack`
 - `stage`
 - `artifacts_root`
+- `docs_root`
+- `execution_mode`
+- `design_gate`
+- `plan_gate`
+- `review_policy`
+- `workspace_isolation`
+- `testing_policy`
+- `closeout_policy`
 
 ### `[storage]` (optional but recommended)
 
@@ -118,7 +126,9 @@ See [../../schema/project.example.toml](../../schema/project.example.toml).
 - The manifest should capture stable project facts, not temporary task state.
 - Projects without Git may still adopt Sula; repository branch fields may use sentinel values such as `n/a` when Git metadata is intentionally absent.
 - The optional `[memory]` section configures durable memory paths and freshness expectations without turning project history into managed truth.
-- The optional `[workflow]` section tells Sula which workflow pack should drive artifact routing and stage semantics.
+- The optional `[workflow]` section tells Sula which workflow pack should drive artifact routing, stage semantics, durable workflow-document paths, and execution policy.
+- `artifacts_root` remains the general routed-artifact root. `docs_root` is the source-first location for durable workflow documents such as `spec`, `plan`, and `review`.
+- `execution_mode`, `design_gate`, `plan_gate`, `review_policy`, `workspace_isolation`, `testing_policy`, and `closeout_policy` let a project express how much workflow rigor it wants without baking one agent plugin's behavior into project truth.
 - The optional `[storage]` section records which storage adapter owns the workspace. `google-drive` should be treated as an adapter, not as a core project type.
 - `storage.workspace_root` is the current machine's access root for the adopted workspace. It should not be treated as the stable identity of provider-backed artifacts across devices.
 - The optional `[portfolio]` section lets a project register itself into a broader multi-project workspace without hard-coding that workspace into Sula Core.

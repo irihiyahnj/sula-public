@@ -1,6 +1,6 @@
 # Current State Snapshot
 
-- generated on: 2026-04-15
+- generated on: 2026-04-16
 - project: Sula
 - profile: `sula-core`
 - source priority: STATUS.md and project records override this generated snapshot
@@ -21,6 +21,8 @@
 - Sula now has a real read-only provider refresh path for Google Docs and Google Sheets, plus `artifact refresh` and cached provider snapshots, so freshness intent can trigger an actual provider metadata refresh instead of only local re-ranking.
 - Sula now has a first-class daily `check` workflow, so state-sync work can fail fast when `.sula/state/current.md` or `.sula/memory-digest.md` drift away from the current status and change records.
 - Formal document design is now a first-class Sula capability: adopted projects can carry reusable source-first structure bundles for schedule, proposal, report, process, and training documents instead of relying on one-off prompt instructions.
+- Sula now has a documented proposal for absorbing long-term value from workflow systems like `obra/superpowers` through manifest-driven capability contracts instead of platform-specific skill lock-in.
+- Sula now implements the first workflow-capability slice from that proposal: manifest-level workflow rigor policy plus source-first `spec`, `plan`, and `review` scaffolds under `docs/workflows/`.
 - The next UX milestone is now implemented too: `onboard` provides a zero-memory interview flow that asks setup questions, explains what Sula will manage, and then applies adoption through the same kernel contract.
 - The next launch milestone is now implemented too: the public site exposes `/launch/`, a machine-readable launcher descriptor, and a downloadable `bootstrap.py` shim so startup no longer depends on guessing local commands.
 - The feedback-bundle lifecycle is now released in the Git-backed Sula 0.11.0 source state: adopted projects can capture reusable local Sula fixes as feedback bundles, and Sula Core can ingest, review, and release them through a central queue.
@@ -39,6 +41,7 @@
 - validate portfolio registration, artifact routing, and `google-drive` local-sync behavior against the first real client-service workspace
 - validate the new formal-document bundles against the first real planning-heavy client workspace and confirm where Google Docs import needs richer tabular bridge defaults
 - validate the released feedback-bundle lifecycle through the first external adopted project and the first real Sula Core feedback item that flows through the queue end to end
+- validate the new workflow policy defaults and `docs/workflows` scaffolds against the first external software-delivery canary before adding `workflow branch` or `workflow close`
 - turn the recorded vNext architecture into stronger adapter composition and better result quality over the new SQLite-backed retrieval path
 - maintain clear approval reporting so managed/scaffold boundaries remain obvious during onboarding
 - keep the public bootstrap contract aligned with real consumer behavior and protocol failures seen in live use
@@ -66,6 +69,8 @@
 - 2026-04-12: added [Add truth-source and freshness checks for collaborative provider-backed artifacts](docs/change-records/2026-04-12-add-truth-source-and-freshness-checks-for-collaborative-provider-artifacts.md)
 - 2026-04-12: added [Add provider-native read-only refresh and artifact refresh command](docs/change-records/2026-04-12-add-provider-native-read-only-refresh-and-artifact-refresh-command.md)
 - 2026-04-15: added [Add daily Sula check workflow for state-sync verification](docs/change-records/2026-04-15-add-daily-sula-check-workflow-for-state-sync-verification.md)
+- 2026-04-16: added [Document Superpowers capability absorption plan](docs/change-records/2026-04-16-document-superpowers-capability-absorption-plan.md)
+- 2026-04-16: added [Add workflow policy and source-first workflow scaffolds](docs/change-records/2026-04-16-add-workflow-policy-and-source-first-workflow-scaffolds.md)
 - 2026-04-12: added [Add guided onboarding and zero-memory setup flow](docs/change-records/2026-04-12-add-guided-onboarding-and-zero-memory-setup-flow.md)
 - 2026-04-12: added [Add site launch contract and canonical bootstrap shim](docs/change-records/2026-04-12-add-site-launch-contract-and-canonical-bootstrap-shim.md)
 - 2026-04-12: added [Add feedback bundles and Sula Core review workflow](docs/change-records/2026-04-12-add-feedback-bundles-and-core-review-workflow.md)

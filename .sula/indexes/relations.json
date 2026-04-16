@@ -53,6 +53,11 @@
       "type": "derived-from"
     },
     {
+      "from": "task:status:validate-the-new-workflow-policy-defaults-and-docs-workflows-scaffolds-against-the-first-external-software-delivery-canary-before-adding-workflow-branch-or-workflow-close",
+      "to": "source:status-md",
+      "type": "derived-from"
+    },
+    {
       "from": "task:status:turn-the-recorded-vnext-architecture-into-stronger-adapter-composition-and-better-result-quality-over-the-new-sqlite-backed-retrieval-path",
       "to": "source:status-md",
       "type": "derived-from"
@@ -153,6 +158,16 @@
       "type": "derived-from"
     },
     {
+      "from": "decision:status:2026-04-16-added-document-superpowers-capability-absorption-plan-docs-change-records-2026-04-16-document-superpowers-capability-absorption-plan-md",
+      "to": "source:status-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "decision:status:2026-04-16-added-add-workflow-policy-and-source-first-workflow-scaffolds-docs-change-records-2026-04-16-add-workflow-policy-and-source-first-workflow-scaffolds-md",
+      "to": "source:status-md",
+      "type": "derived-from"
+    },
+    {
       "from": "decision:status:2026-04-12-added-add-guided-onboarding-and-zero-memory-setup-flow-docs-change-records-2026-04-12-add-guided-onboarding-and-zero-memory-setup-flow-md",
       "to": "source:status-md",
       "type": "derived-from"
@@ -190,6 +205,16 @@
     {
       "from": "risk:health:yellow-the-bootstrap-site-and-custom-domain-are-live-but-the-repository-history-still-needs-a-clean-public-release-strategy-before-this-exact-repository-should-be-opened",
       "to": "source:status-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "change:2026-04-16-document-superpowers-capability-absorption-plan",
+      "to": "source:docs-change-records-2026-04-16-document-superpowers-capability-absorption-plan-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "change:2026-04-16-add-workflow-policy-and-source-first-workflow-scaffolds",
+      "to": "source:docs-change-records-2026-04-16-add-workflow-policy-and-source-first-workflow-scaffolds-md",
       "type": "derived-from"
     },
     {
@@ -638,6 +663,16 @@
       "type": "derived-from"
     },
     {
+      "from": "object:source:docs-change-records-2026-04-16-add-workflow-policy-and-source-first-workflow-scaffolds-md",
+      "to": "source:docs-change-records-2026-04-16-add-workflow-policy-and-source-first-workflow-scaffolds-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "object:source:docs-change-records-2026-04-16-document-superpowers-capability-absorption-plan-md",
+      "to": "source:docs-change-records-2026-04-16-document-superpowers-capability-absorption-plan-md",
+      "type": "derived-from"
+    },
+    {
       "from": "object:source:docs-change-records-readme-md",
       "to": "source:docs-change-records-readme-md",
       "type": "derived-from"
@@ -755,6 +790,11 @@
     {
       "from": "object:source:docs-reference-sula-vnext-project-kernel-md",
       "to": "source:docs-reference-sula-vnext-project-kernel-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "object:source:docs-reference-superpowers-capability-absorption-plan-md",
+      "to": "source:docs-reference-superpowers-capability-absorption-plan-md",
       "type": "derived-from"
     },
     {

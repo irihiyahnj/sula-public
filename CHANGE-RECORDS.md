@@ -15,6 +15,8 @@ Track why Sula changed, how sync impact was evaluated, what was verified, and ho
 
 ## Index
 
+- 2026-04-16 - [Add workflow policy and source-first workflow scaffolds](docs/change-records/2026-04-16-add-workflow-policy-and-source-first-workflow-scaffolds.md) - Added manifest-level workflow rigor policy, a first-class `workflow` command family, and durable `spec` / `plan` / `review` source-document scaffolds under `docs/workflows/`.
+- 2026-04-16 - [Document Superpowers capability absorption plan](docs/change-records/2026-04-16-document-superpowers-capability-absorption-plan.md) - Recorded which `obra/superpowers` workflow capabilities should be absorbed into Sula Core, which should remain optional, and how a manifest-driven rollout should work.
 - 2026-04-15 - [Add daily Sula check workflow for state-sync verification](docs/change-records/2026-04-15-add-daily-sula-check-workflow-for-state-sync-verification.md) - Added a first-class `check` command, generated-state drift detection, and template rules that make `SULA CHECK OK` the daily gate for status-sync work.
 - 2026-04-12 - [Add project-local Google OAuth storage and provider target-path routing](docs/change-records/2026-04-12-add-project-local-google-oauth-and-provider-target-path-routing.md) - Standardized project-local Google OAuth storage, default provider-native target paths, and provider parent-folder routing under the provider root.
 - 2026-04-12 - [Add provider-native read-only refresh and artifact refresh command](docs/change-records/2026-04-12-add-provider-native-read-only-refresh-and-artifact-refresh-command.md) - Added provider adapters, `artifact refresh`, automatic provider refresh on freshness intent, and cached provider snapshots for Google-native collaborative artifacts.

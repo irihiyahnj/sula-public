@@ -1029,6 +1029,148 @@ class SulaCliTests(unittest.TestCase):
                 for heading in headings:
                     self.assertIn(heading, artifact_text)
 
+    def test_software_delivery_adoption_sets_workflow_policy_defaults(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            project_root = Path(tmpdir)
+            self.create_react_erpnext_repo(project_root)
+
+            adopt_result = run_cli(
+                "adopt",
+                "--project-root",
+                str(project_root),
+                "--approve",
+            )
+            self.assertEqual(adopt_result.returncode, 0, adopt_result.stderr)
+
+            manifest_text = (project_root / ".sula" / "project.toml").read_text(encoding="utf-8")
+            self.assertIn('docs_root = "docs/workflows"', manifest_text)
+            self.assertIn('execution_mode = "review-heavy"', manifest_text)
+            self.assertIn('design_gate = "complex-only"', manifest_text)
+            self.assertIn('plan_gate = "multi-step"', manifest_text)
+            self.assertIn('review_policy = "task-checkpoints"', manifest_text)
+            self.assertIn('workspace_isolation = "branch"', manifest_text)
+            self.assertIn('testing_policy = "verify-first"', manifest_text)
+            self.assertIn('closeout_policy = "explicit"', manifest_text)
+
+            status_result = run_cli(
+                "status",
+                "--project-root",
+                str(project_root),
+                "--json",
+            )
+            self.assertEqual(status_result.returncode, 0, status_result.stderr)
+            status_payload = json.loads(status_result.stdout)
+            self.assertEqual(status_payload["state"]["workflow"]["docs_root"], "docs/workflows")
+            self.assertEqual(status_payload["state"]["workflow"]["execution_mode"], "review-heavy")
+            self.assertEqual(status_payload["state"]["workflow"]["workspace_isolation"], "branch")
+
+    def test_workflow_assess_recommends_spec_plan_and_review_for_complex_task(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            project_root = Path(tmpdir)
+            self.create_react_erpnext_repo(project_root)
+
+            adopt_result = run_cli(
+                "adopt",
+                "--project-root",
+                str(project_root),
+                "--approve",
+            )
+            self.assertEqual(adopt_result.returncode, 0, adopt_result.stderr)
+
+            assess_result = run_cli(
+                "workflow",
+                "assess",
+                "--project-root",
+                str(project_root),
+                "--task",
+                "Refactor the auth flow, design provider sync rules, and update rollout docs.",
+                "--json",
+            )
+            self.assertEqual(assess_result.returncode, 0, assess_result.stderr)
+            payload = json.loads(assess_result.stdout)
+            self.assertEqual(payload["command"], "workflow.assess")
+            self.assertTrue(payload["assessment"]["task_profile"]["multi_step"])
+            self.assertTrue(payload["assessment"]["task_profile"]["complex"])
+            self.assertEqual(payload["assessment"]["recommended"]["execution_mode"], "review-heavy")
+            self.assertEqual(payload["assessment"]["recommended"]["workspace_isolation"], "branch")
+            self.assertTrue(payload["assessment"]["recommended"]["requires_spec"])
+            self.assertTrue(payload["assessment"]["recommended"]["requires_plan"])
+            self.assertTrue(payload["assessment"]["recommended"]["requires_review"])
+            self.assertEqual(payload["assessment"]["recommended"]["scaffolds"], ["spec", "plan", "review"])
+
+    def test_workflow_scaffold_creates_durable_source_documents(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            project_root = Path(tmpdir)
+            self.create_react_erpnext_repo(project_root)
+
+            adopt_result = run_cli(
+                "adopt",
+                "--project-root",
+                str(project_root),
+                "--approve",
+            )
+            self.assertEqual(adopt_result.returncode, 0, adopt_result.stderr)
+
+            spec_result = run_cli(
+                "workflow",
+                "scaffold",
+                "--project-root",
+                str(project_root),
+                "--kind",
+                "spec",
+                "--title",
+                "Auth Sync Spec",
+                "--date",
+                "2026-04-16",
+                "--json",
+            )
+            self.assertEqual(spec_result.returncode, 0, spec_result.stderr)
+            spec_payload = json.loads(spec_result.stdout)
+            self.assertEqual(spec_payload["workflow_document"]["path"], "docs/workflows/specs/2026-04-16-auth-sync-spec.md")
+            spec_text = (project_root / spec_payload["workflow_document"]["path"]).read_text(encoding="utf-8")
+            self.assertIn("## Problem Statement", spec_text)
+            self.assertIn("## Verification Plan", spec_text)
+
+            plan_result = run_cli(
+                "workflow",
+                "scaffold",
+                "--project-root",
+                str(project_root),
+                "--kind",
+                "plan",
+                "--title",
+                "Auth Sync Plan",
+                "--date",
+                "2026-04-16",
+                "--json",
+            )
+            self.assertEqual(plan_result.returncode, 0, plan_result.stderr)
+            plan_payload = json.loads(plan_result.stdout)
+            self.assertEqual(plan_payload["workflow_document"]["path"], "docs/workflows/plans/2026-04-16-auth-sync-plan.md")
+            plan_text = (project_root / plan_payload["workflow_document"]["path"]).read_text(encoding="utf-8")
+            self.assertIn("document bundle: problem-solution-workplan-raci", plan_text)
+            self.assertIn("## Executive Summary", plan_text)
+
+            review_result = run_cli(
+                "workflow",
+                "scaffold",
+                "--project-root",
+                str(project_root),
+                "--kind",
+                "review",
+                "--title",
+                "Auth Sync Review",
+                "--date",
+                "2026-04-16",
+                "--json",
+            )
+            self.assertEqual(review_result.returncode, 0, review_result.stderr)
+            review_payload = json.loads(review_result.stdout)
+            self.assertEqual(review_payload["workflow_document"]["path"], "docs/workflows/reviews/2026-04-16-auth-sync-review.md")
+            review_text = (project_root / review_payload["workflow_document"]["path"]).read_text(encoding="utf-8")
+            self.assertIn("## Findings", review_text)
+            self.assertIn("## Release Gate", review_text)
+
     def test_artifact_register_supports_provider_backed_identity_without_local_path(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
             project_root = Path(tmpdir)

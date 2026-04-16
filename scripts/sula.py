@@ -71,6 +71,14 @@ WORKFLOW_PACK_CHOICES = [
 STORAGE_PROVIDER_CHOICES = ["local-fs", "google-drive"]
 LANGUAGE_CHOICES = ["zh-CN", "en"]
 PROJECTION_MODE_CHOICES = ["detached", "collaborative", "governed"]
+WORKFLOW_EXECUTION_MODE_CHOICES = ["solo-inline", "review-heavy", "subagent-parallel"]
+WORKFLOW_DESIGN_GATE_CHOICES = ["never", "complex-only", "always"]
+WORKFLOW_PLAN_GATE_CHOICES = ["never", "multi-step", "always"]
+WORKFLOW_REVIEW_POLICY_CHOICES = ["none", "batch", "task-checkpoints", "strict"]
+WORKFLOW_ISOLATION_CHOICES = ["none", "branch", "worktree"]
+WORKFLOW_TESTING_POLICY_CHOICES = ["inherit", "verify-first", "tdd"]
+WORKFLOW_CLOSEOUT_POLICY_CHOICES = ["inherit", "explicit"]
+WORKFLOW_SCAFFOLD_KIND_CHOICES = ["spec", "plan", "review"]
 FEEDBACK_KIND_CHOICES = ["bug", "improvement", "docs", "policy", "regression"]
 FEEDBACK_SEVERITY_CHOICES = ["low", "medium", "high", "critical"]
 FEEDBACK_DECISION_CHOICES = ["triaged", "accepted", "deferred", "rejected", "released"]
@@ -221,6 +229,14 @@ OPTIONAL_MANIFEST_SPEC = {
         "pack": "string",
         "stage": "string",
         "artifacts_root": "string",
+        "docs_root": "string",
+        "execution_mode": "string",
+        "design_gate": "string",
+        "plan_gate": "string",
+        "review_policy": "string",
+        "workspace_isolation": "string",
+        "testing_policy": "string",
+        "closeout_policy": "string",
     },
     "storage": {
         "provider": "string",
@@ -507,6 +523,73 @@ class ProjectConfig:
         return self.root / self.workflow_setting("artifacts_root", "artifacts")
 
     @property
+    def workflow_docs_root(self) -> Path:
+        return self.root / self.workflow_setting("docs_root", "docs/workflows")
+
+    @property
+    def workflow_execution_mode(self) -> str:
+        defaults = default_workflow_policy_config(self.workflow_pack)
+        return normalize_workflow_choice(
+            self.workflow_setting("execution_mode", defaults["execution_mode"]),
+            WORKFLOW_EXECUTION_MODE_CHOICES,
+            defaults["execution_mode"],
+        )
+
+    @property
+    def workflow_design_gate(self) -> str:
+        defaults = default_workflow_policy_config(self.workflow_pack)
+        return normalize_workflow_choice(
+            self.workflow_setting("design_gate", defaults["design_gate"]),
+            WORKFLOW_DESIGN_GATE_CHOICES,
+            defaults["design_gate"],
+        )
+
+    @property
+    def workflow_plan_gate(self) -> str:
+        defaults = default_workflow_policy_config(self.workflow_pack)
+        return normalize_workflow_choice(
+            self.workflow_setting("plan_gate", defaults["plan_gate"]),
+            WORKFLOW_PLAN_GATE_CHOICES,
+            defaults["plan_gate"],
+        )
+
+    @property
+    def workflow_review_policy(self) -> str:
+        defaults = default_workflow_policy_config(self.workflow_pack)
+        return normalize_workflow_choice(
+            self.workflow_setting("review_policy", defaults["review_policy"]),
+            WORKFLOW_REVIEW_POLICY_CHOICES,
+            defaults["review_policy"],
+        )
+
+    @property
+    def workflow_workspace_isolation(self) -> str:
+        defaults = default_workflow_policy_config(self.workflow_pack)
+        return normalize_workflow_choice(
+            self.workflow_setting("workspace_isolation", defaults["workspace_isolation"]),
+            WORKFLOW_ISOLATION_CHOICES,
+            defaults["workspace_isolation"],
+        )
+
+    @property
+    def workflow_testing_policy(self) -> str:
+        defaults = default_workflow_policy_config(self.workflow_pack)
+        return normalize_workflow_choice(
+            self.workflow_setting("testing_policy", defaults["testing_policy"]),
+            WORKFLOW_TESTING_POLICY_CHOICES,
+            defaults["testing_policy"],
+        )
+
+    @property
+    def workflow_closeout_policy(self) -> str:
+        defaults = default_workflow_policy_config(self.workflow_pack)
+        return normalize_workflow_choice(
+            self.workflow_setting("closeout_policy", defaults["closeout_policy"]),
+            WORKFLOW_CLOSEOUT_POLICY_CHOICES,
+            defaults["closeout_policy"],
+        )
+
+    @property
     def provider_import_root(self) -> Path:
         return self.root / ".sula" / "exports" / "provider-imports"
 
@@ -610,6 +693,14 @@ class ProjectConfig:
             "WORKFLOW_PACK": self.workflow_pack,
             "WORKFLOW_STAGE": self.workflow_stage,
             "ARTIFACTS_ROOT": self.workflow_setting("artifacts_root", "artifacts"),
+            "WORKFLOW_DOCS_ROOT": self.workflow_setting("docs_root", "docs/workflows"),
+            "WORKFLOW_EXECUTION_MODE": self.workflow_execution_mode,
+            "WORKFLOW_DESIGN_GATE": self.workflow_design_gate,
+            "WORKFLOW_PLAN_GATE": self.workflow_plan_gate,
+            "WORKFLOW_REVIEW_POLICY": self.workflow_review_policy,
+            "WORKFLOW_ISOLATION": self.workflow_workspace_isolation,
+            "WORKFLOW_TESTING_POLICY": self.workflow_testing_policy,
+            "WORKFLOW_CLOSEOUT_POLICY": self.workflow_closeout_policy,
             "STORAGE_PROVIDER": self.storage_provider,
             "STORAGE_SYNC_MODE": self.storage_sync_mode,
             "PORTFOLIO_ID": self.portfolio_setting("portfolio_id", "default"),
@@ -1041,6 +1132,23 @@ def parse_args() -> argparse.Namespace:
     status_cmd.add_argument("--refresh-provider", action="store_true", help="Refresh collaborative provider-native truth sources before summarizing")
     status_cmd.add_argument("--json", action="store_true", help="Print JSON instead of human-readable output")
 
+    workflow_cmd = sub.add_parser("workflow", help="Assess workflow policy and scaffold durable workflow documents")
+    workflow_sub = workflow_cmd.add_subparsers(dest="workflow_command", required=True)
+
+    workflow_assess_cmd = workflow_sub.add_parser("assess", help="Assess workflow rigor and recommended next artifacts for a task")
+    add_project_root_arg(workflow_assess_cmd)
+    workflow_assess_cmd.add_argument("--task", help="Optional task description to assess")
+    workflow_assess_cmd.add_argument("--json", action="store_true", help="Print JSON instead of human-readable output")
+
+    workflow_scaffold_cmd = workflow_sub.add_parser("scaffold", help="Create a durable workflow source document")
+    add_project_root_arg(workflow_scaffold_cmd)
+    workflow_scaffold_cmd.add_argument("--kind", required=True, choices=WORKFLOW_SCAFFOLD_KIND_CHOICES)
+    workflow_scaffold_cmd.add_argument("--title", required=True)
+    workflow_scaffold_cmd.add_argument("--slug")
+    workflow_scaffold_cmd.add_argument("--date")
+    workflow_scaffold_cmd.add_argument("--summary", default="")
+    workflow_scaffold_cmd.add_argument("--json", action="store_true", help="Print JSON instead of human-readable output")
+
     artifact_cmd = sub.add_parser("artifact", help="Create, register, and locate project artifacts")
     artifact_sub = artifact_cmd.add_subparsers(dest="artifact_command", required=True)
     artifact_create_cmd = artifact_sub.add_parser("create", help="Create a managed project artifact in the workflow slot")
@@ -1252,6 +1360,14 @@ def add_onboarding_metadata_args(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--projection-mode", choices=PROJECTION_MODE_CHOICES)
     parser.add_argument("--workflow-pack")
     parser.add_argument("--workflow-stage")
+    parser.add_argument("--workflow-docs-root")
+    parser.add_argument("--workflow-execution-mode", choices=WORKFLOW_EXECUTION_MODE_CHOICES)
+    parser.add_argument("--workflow-design-gate", choices=WORKFLOW_DESIGN_GATE_CHOICES)
+    parser.add_argument("--workflow-plan-gate", choices=WORKFLOW_PLAN_GATE_CHOICES)
+    parser.add_argument("--workflow-review-policy", choices=WORKFLOW_REVIEW_POLICY_CHOICES)
+    parser.add_argument("--workflow-workspace-isolation", choices=WORKFLOW_ISOLATION_CHOICES)
+    parser.add_argument("--workflow-testing-policy", choices=WORKFLOW_TESTING_POLICY_CHOICES)
+    parser.add_argument("--workflow-closeout-policy", choices=WORKFLOW_CLOSEOUT_POLICY_CHOICES)
     parser.add_argument("--storage-provider")
     parser.add_argument("--storage-sync-mode")
     parser.add_argument("--storage-workspace-root")
@@ -1284,6 +1400,10 @@ def project_payload(config: ProjectConfig) -> dict[str, object]:
         "root": str(config.root),
         "workflow_pack": config.workflow_pack,
         "workflow_stage": config.workflow_stage,
+        "workflow_execution_mode": config.workflow_execution_mode,
+        "workflow_docs_root": config.workflow_docs_root.relative_to(config.root).as_posix()
+        if config.workflow_docs_root.is_relative_to(config.root)
+        else str(config.workflow_docs_root),
         "storage_provider": config.storage_provider,
         "storage_sync_mode": config.storage_sync_mode,
         "portfolio_id": config.portfolio_setting("portfolio_id", "default"),
@@ -1747,12 +1867,14 @@ def workflow_pack_definition(pack: str) -> dict[str, object]:
                 "timeline": "planning",
                 "proposal": "planning",
                 "plan": "planning",
+                "spec": "planning",
                 "brief": "planning",
                 "process": "planning",
                 "workflow": "planning",
                 "procedure": "planning",
                 "sop": "planning",
                 "runbook": "planning",
+                "review": "delivery",
                 "deliverable": "delivery",
                 "training": "delivery",
                 "workshop": "delivery",
@@ -1771,12 +1893,14 @@ def workflow_pack_definition(pack: str) -> dict[str, object]:
                 "timeline": "planning",
                 "proposal": "planning",
                 "plan": "planning",
+                "spec": "planning",
                 "brief": "planning",
                 "process": "planning",
                 "workflow": "planning",
                 "procedure": "planning",
                 "sop": "planning",
                 "runbook": "planning",
+                "review": "delivery",
                 "deliverable": "delivery",
                 "progress": "delivery",
                 "training": "delivery",
@@ -1796,12 +1920,14 @@ def workflow_pack_definition(pack: str) -> dict[str, object]:
                 "timeline": "planning",
                 "proposal": "planning",
                 "plan": "planning",
+                "spec": "planning",
                 "brief": "planning",
                 "process": "planning",
                 "workflow": "planning",
                 "procedure": "planning",
                 "sop": "planning",
                 "runbook": "planning",
+                "review": "delivery",
                 "shot-list": "production",
                 "progress": "production",
                 "daily-log": "production",
@@ -1819,12 +1945,14 @@ def workflow_pack_definition(pack: str) -> dict[str, object]:
                 "timeline": "planning",
                 "proposal": "planning",
                 "plan": "planning",
+                "spec": "planning",
                 "brief": "planning",
                 "process": "planning",
                 "workflow": "planning",
                 "procedure": "planning",
                 "sop": "planning",
                 "runbook": "planning",
+                "review": "delivery",
                 "deliverable": "delivery",
                 "training": "delivery",
                 "workshop": "delivery",
@@ -1839,11 +1967,13 @@ def workflow_pack_definition(pack: str) -> dict[str, object]:
                 "timeline": "operations",
                 "proposal": "design",
                 "plan": "design",
+                "spec": "design",
                 "process": "operations",
                 "workflow": "operations",
                 "procedure": "operations",
                 "sop": "operations",
                 "runbook": "operations",
+                "review": "operations",
                 "training": "operations",
                 "workshop": "operations",
                 "release": "releases",
@@ -1960,6 +2090,9 @@ def main() -> int:
 
     if args.command == "status":
         return project_status(config, args)
+
+    if args.command == "workflow":
+        return handle_workflow_command(config, args)
 
     if args.command == "artifact":
         return handle_artifact_command(config, args)
@@ -2188,10 +2321,20 @@ def render_manifest(manifest: dict) -> str:
 
 
 def manifest_workflow_config(args: argparse.Namespace, profile: str) -> dict:
+    pack = getattr(args, "workflow_pack", None) or default_workflow_pack(profile)
+    defaults = default_workflow_policy_config(pack)
     return {
-        "pack": getattr(args, "workflow_pack", None) or default_workflow_pack(profile),
+        "pack": pack,
         "stage": getattr(args, "workflow_stage", None) or "active",
         "artifacts_root": "artifacts",
+        "docs_root": getattr(args, "workflow_docs_root", None) or "docs/workflows",
+        "execution_mode": getattr(args, "workflow_execution_mode", None) or defaults["execution_mode"],
+        "design_gate": getattr(args, "workflow_design_gate", None) or defaults["design_gate"],
+        "plan_gate": getattr(args, "workflow_plan_gate", None) or defaults["plan_gate"],
+        "review_policy": getattr(args, "workflow_review_policy", None) or defaults["review_policy"],
+        "workspace_isolation": getattr(args, "workflow_workspace_isolation", None) or defaults["workspace_isolation"],
+        "testing_policy": getattr(args, "workflow_testing_policy", None) or defaults["testing_policy"],
+        "closeout_policy": getattr(args, "workflow_closeout_policy", None) or defaults["closeout_policy"],
     }
 
 
@@ -2385,6 +2528,16 @@ def validate_manifest(data: dict) -> None:
             if key not in keys:
                 unexpected.append(f"{section}.{key}")
 
+    workflow_section = data.get("workflow")
+    if isinstance(workflow_section, dict):
+        validate_choice_field("workflow", "execution_mode", workflow_section.get("execution_mode"), WORKFLOW_EXECUTION_MODE_CHOICES, invalid)
+        validate_choice_field("workflow", "design_gate", workflow_section.get("design_gate"), WORKFLOW_DESIGN_GATE_CHOICES, invalid)
+        validate_choice_field("workflow", "plan_gate", workflow_section.get("plan_gate"), WORKFLOW_PLAN_GATE_CHOICES, invalid)
+        validate_choice_field("workflow", "review_policy", workflow_section.get("review_policy"), WORKFLOW_REVIEW_POLICY_CHOICES, invalid)
+        validate_choice_field("workflow", "workspace_isolation", workflow_section.get("workspace_isolation"), WORKFLOW_ISOLATION_CHOICES, invalid)
+        validate_choice_field("workflow", "testing_policy", workflow_section.get("testing_policy"), WORKFLOW_TESTING_POLICY_CHOICES, invalid)
+        validate_choice_field("workflow", "closeout_policy", workflow_section.get("closeout_policy"), WORKFLOW_CLOSEOUT_POLICY_CHOICES, invalid)
+
     issues: list[str] = []
     if missing:
         issues.append("missing required fields: " + ", ".join(missing))
@@ -2423,6 +2576,14 @@ def validate_field(section: str, key: str, value, expected_kind: str, invalid: l
             invalid.append(f"{label} must be >= 1")
         return
     invalid.append(f"{label} uses unsupported schema kind: {expected_kind}")
+
+
+def validate_choice_field(section: str, key: str, value: object, allowed: list[str], invalid: list[str]) -> None:
+    if value is None:
+        return
+    normalized = normalize_optional_text(value)
+    if normalized and normalized not in allowed:
+        invalid.append(f"{section}.{key} must be one of: {', '.join(allowed)}")
 
 
 def render_action_payload(action: RenderAction) -> dict[str, object]:
@@ -3000,6 +3161,33 @@ def default_workflow_pack(profile: str) -> str:
         "sula-core": "operating-system",
     }
     return defaults.get(profile, "generic-project")
+
+
+def default_workflow_policy_config(pack: str) -> dict[str, str]:
+    if pack in {"software-delivery", "operating-system"}:
+        return {
+            "execution_mode": "review-heavy",
+            "design_gate": "complex-only",
+            "plan_gate": "multi-step",
+            "review_policy": "task-checkpoints",
+            "workspace_isolation": "branch",
+            "testing_policy": "verify-first",
+            "closeout_policy": "explicit",
+        }
+    return {
+        "execution_mode": "solo-inline",
+        "design_gate": "complex-only",
+        "plan_gate": "multi-step",
+        "review_policy": "batch",
+        "workspace_isolation": "none",
+        "testing_policy": "inherit",
+        "closeout_policy": "explicit",
+    }
+
+
+def normalize_workflow_choice(value: object, allowed: list[str], default: str) -> str:
+    normalized = normalize_optional_text(value)
+    return normalized if normalized in allowed else default
 
 
 def read_package_json(project_root: Path) -> dict | None:
@@ -7260,6 +7448,14 @@ def project_status_payload(config: ProjectConfig) -> dict[str, object]:
             "pack": config.workflow_pack,
             "stage": config.workflow_stage,
             "artifacts_root": config.artifacts_root.relative_to(config.root).as_posix() if config.artifacts_root.is_relative_to(config.root) else str(config.artifacts_root),
+            "docs_root": config.workflow_docs_root.relative_to(config.root).as_posix() if config.workflow_docs_root.is_relative_to(config.root) else str(config.workflow_docs_root),
+            "execution_mode": config.workflow_execution_mode,
+            "design_gate": config.workflow_design_gate,
+            "plan_gate": config.workflow_plan_gate,
+            "review_policy": config.workflow_review_policy,
+            "workspace_isolation": config.workflow_workspace_isolation,
+            "testing_policy": config.workflow_testing_policy,
+            "closeout_policy": config.workflow_closeout_policy,
         },
         "storage": {
             "provider": config.storage_provider,
@@ -8972,6 +9168,232 @@ def artifact_import_plan(config: ProjectConfig, args: argparse.Namespace) -> int
     return 0
 
 
+def handle_workflow_command(config: ProjectConfig, args: argparse.Namespace) -> int:
+    if args.workflow_command == "assess":
+        return workflow_assess(config, args)
+    if args.workflow_command == "scaffold":
+        return workflow_scaffold(config, args)
+    raise AssertionError("unreachable")
+
+
+def workflow_task_profile(task: str) -> dict[str, object]:
+    normalized = normalize_optional_text(task)
+    if not normalized:
+        return {"task": "", "multi_step": False, "complex": False, "parallel_hint": False}
+    lowered = normalized.lower()
+    multi_step_markers = [
+        " and ",
+        " then ",
+        "refactor",
+        "migrate",
+        "introduce",
+        "design",
+        "rollout",
+        "audit",
+        "schema",
+        "workflow",
+        "integration",
+        "并且",
+        "然后",
+        "重构",
+        "迁移",
+        "设计",
+        "上线",
+        "审计",
+        "流程",
+        "集成",
+    ]
+    complex_markers = [
+        "architecture",
+        "contract",
+        "adapter",
+        "parallel",
+        "platform",
+        "policy",
+        "design",
+        "schema",
+        "migration",
+        "工作流",
+        "架构",
+        "协议",
+        "适配",
+        "并行",
+        "策略",
+        "迁移",
+    ]
+    parallel_markers = ["parallel", "subagent", "multi-agent", "并行", "多代理", "多 agent"]
+    word_count = len(normalized.replace("，", " ").replace(",", " ").split())
+    multi_step = word_count >= 10 or any(marker in lowered for marker in multi_step_markers)
+    complex_task = multi_step or any(marker in lowered for marker in complex_markers)
+    parallel_hint = any(marker in lowered for marker in parallel_markers)
+    return {
+        "task": normalized,
+        "multi_step": multi_step,
+        "complex": complex_task,
+        "parallel_hint": parallel_hint,
+    }
+
+
+def workflow_assessment_payload(config: ProjectConfig, task: str) -> dict[str, object]:
+    task_profile = workflow_task_profile(task)
+    requires_spec = config.workflow_design_gate == "always" or (
+        config.workflow_design_gate == "complex-only" and bool(task_profile["complex"])
+    )
+    requires_plan = config.workflow_plan_gate == "always" or (
+        config.workflow_plan_gate == "multi-step" and bool(task_profile["multi_step"])
+    )
+    requires_review = (
+        config.workflow_review_policy == "strict"
+        or (config.workflow_review_policy == "task-checkpoints" and bool(task_profile["multi_step"]))
+        or (config.workflow_review_policy == "batch" and bool(task_profile["task"]))
+    )
+    recommended_scaffolds: list[str] = []
+    if requires_spec:
+        recommended_scaffolds.append("spec")
+    if requires_plan:
+        recommended_scaffolds.append("plan")
+    if requires_review:
+        recommended_scaffolds.append("review")
+    recommended_commands = [
+        f'python3 scripts/sula.py workflow scaffold --project-root {shlex.quote(str(config.root))} --kind {kind} --title "<title>"'
+        for kind in recommended_scaffolds
+    ]
+    effective_execution_mode = (
+        "subagent-parallel"
+        if config.workflow_execution_mode == "subagent-parallel" or bool(task_profile["parallel_hint"])
+        else config.workflow_execution_mode
+    )
+    return {
+        "task_profile": task_profile,
+        "recommended": {
+            "execution_mode": effective_execution_mode,
+            "workspace_isolation": config.workflow_workspace_isolation,
+            "testing_policy": config.workflow_testing_policy,
+            "closeout_policy": config.workflow_closeout_policy,
+            "requires_spec": requires_spec,
+            "requires_plan": requires_plan,
+            "requires_review": requires_review,
+            "scaffolds": recommended_scaffolds,
+            "commands": recommended_commands,
+        },
+    }
+
+
+def workflow_assess(config: ProjectConfig, args: argparse.Namespace) -> int:
+    assessment = workflow_assessment_payload(config, getattr(args, "task", "") or "")
+    payload = {
+        "command": "workflow.assess",
+        "status": "ok",
+        "project": project_payload(config),
+        "workflow": {
+            "pack": config.workflow_pack,
+            "stage": config.workflow_stage,
+            "docs_root": config.workflow_docs_root.relative_to(config.root).as_posix()
+            if config.workflow_docs_root.is_relative_to(config.root)
+            else str(config.workflow_docs_root),
+            "execution_mode": config.workflow_execution_mode,
+            "design_gate": config.workflow_design_gate,
+            "plan_gate": config.workflow_plan_gate,
+            "review_policy": config.workflow_review_policy,
+            "workspace_isolation": config.workflow_workspace_isolation,
+            "testing_policy": config.workflow_testing_policy,
+            "closeout_policy": config.workflow_closeout_policy,
+        },
+        "assessment": assessment,
+    }
+    if json_output_requested(args):
+        emit_json(payload)
+        return 0
+    print(f"Workflow assessment for {config.data['project']['name']}")
+    print(f"  Pack: {config.workflow_pack} ({config.workflow_stage})")
+    print(f"  Execution mode: {assessment['recommended']['execution_mode']}")
+    print(f"  Docs root: {payload['workflow']['docs_root']}")
+    print(f"  Scaffolds: {', '.join(assessment['recommended']['scaffolds']) if assessment['recommended']['scaffolds'] else 'none'}")
+    if assessment["recommended"]["commands"]:
+        print("  Next commands:")
+        for command in assessment["recommended"]["commands"]:
+            print(f"    - {command}")
+    return 0
+
+
+def workflow_document_subdir(kind: str) -> str:
+    mapping = {"spec": "specs", "plan": "plans", "review": "reviews"}
+    return mapping[kind]
+
+
+def workflow_scaffold_summary(config: ProjectConfig, kind: str, title: str, explicit_summary: str) -> str:
+    if explicit_summary.strip():
+        return explicit_summary.strip()
+    zh = locale_family(config.content_locale) == "zh"
+    labels = {
+        "spec": "规格说明" if zh else "implementation spec",
+        "plan": "执行计划" if zh else "execution plan",
+        "review": "审查记录" if zh else "review record",
+    }
+    return (
+        f"{config.data['project']['name']} 的 {labels[kind]}：{title}"
+        if zh
+        else f"{labels[kind]} for {config.data['project']['name']}: {title}"
+    )
+
+
+def workflow_scaffold(config: ProjectConfig, args: argparse.Namespace) -> int:
+    ensure_artifact_catalog(config)
+    kind = args.kind
+    record_date = normalize_record_date(args.date)
+    slug = sanitize_slug(args.slug or args.title)
+    slot = artifact_slot_for_kind(config, kind)
+    relative_path = (
+        config.workflow_docs_root.relative_to(config.root) / workflow_document_subdir(kind) / f"{record_date}-{slug}.md"
+        if config.workflow_docs_root.is_relative_to(config.root)
+        else Path("docs/workflows") / workflow_document_subdir(kind) / f"{record_date}-{slug}.md"
+    )
+    output_path = config.root / relative_path
+    if output_path.exists():
+        raise SystemExit(f"Workflow document already exists: {output_path}")
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    summary = workflow_scaffold_summary(config, kind, args.title, args.summary)
+    output_path.write_text(render_workflow_template(config, kind, args.title, summary, record_date, slot), encoding="utf-8")
+    entry = register_artifact_entry(
+        config,
+        path=relative_path.as_posix(),
+        artifact_kind=kind,
+        title=args.title,
+        slot=slot,
+        summary=summary,
+        date_value=record_date,
+        project_relative_path=relative_path.as_posix(),
+        local_access_paths=[relative_path.as_posix()],
+        provider_item_id="",
+        provider_item_kind=default_provider_item_kind(config, has_local_path=True),
+        provider_item_url="",
+        derived_from=[],
+        source_of_truth="workspace",
+        collaboration_mode="single-editor",
+        artifact_role="workspace-source",
+        last_refreshed_at=current_utc_timestamp(),
+        last_provider_sync_at="",
+    )
+    refresh_kernel_state(config, event_type="workflow.scaffold", summary=f"Created workflow {kind} `{args.title}`.")
+    payload = {
+        "command": "workflow.scaffold",
+        "status": "ok",
+        "project": project_payload(config),
+        "workflow_document": {
+            "kind": kind,
+            "path": relative_path.as_posix(),
+            "slot": slot,
+            "summary": summary,
+        },
+        "artifact": entry,
+    }
+    if json_output_requested(args):
+        emit_json(payload)
+        return 0
+    print(f"Created workflow {kind} at {output_path}")
+    return 0
+
+
 def handle_artifact_command(config: ProjectConfig, args: argparse.Namespace) -> int:
     if args.artifact_command == "create":
         return artifact_create(config, args)
@@ -9967,6 +10389,175 @@ def render_artifact_template(
     if document_genre == "training":
         return render_training_artifact_template(config, artifact_kind, title, summary, record_date, slot, bundle_name)
     return render_generic_artifact_template(config, artifact_kind, title, summary, record_date, slot)
+
+
+def render_workflow_spec_template(
+    config: ProjectConfig,
+    title: str,
+    summary: str,
+    record_date: str,
+    slot: str,
+) -> str:
+    zh = locale_family(config.content_locale) == "zh"
+    lines = [
+        f"# {title}",
+        "",
+        *artifact_metadata_lines(
+            config,
+            artifact_kind="spec",
+            record_date=record_date,
+            slot=slot,
+        ),
+        f"- {'执行模式' if zh else 'execution mode'}: {config.workflow_execution_mode}",
+        f"- {'设计门禁' if zh else 'design gate'}: {config.workflow_design_gate}",
+        f"- {'计划门禁' if zh else 'plan gate'}: {config.workflow_plan_gate}",
+        f"- {'评审策略' if zh else 'review policy'}: {config.workflow_review_policy}",
+        "",
+        *summary_section_lines(summary, zh=zh),
+        "",
+        "## 问题定义" if zh else "## Problem Statement",
+        "",
+        "- _说明要解决的具体问题、当前症状和触发背景_"
+        if zh
+        else "- _capture the concrete problem, current symptoms, and why this work exists now_",
+        "",
+        "## 目标与非目标" if zh else "## Goals And Non-goals",
+        "",
+        *markdown_table(
+            ["类别", "内容"] if zh else ["Category", "Details"],
+            [
+                ["目标", "_写清这次必须达成的结果_"] if zh else ["Goals", "_define the required outcomes for this work_"],
+                ["非目标", "_写清这次明确不做的内容_"] if zh else ["Non-goals", "_define what this work will explicitly not do_"],
+            ],
+        ),
+        "",
+        "## 约束与假设" if zh else "## Constraints And Assumptions",
+        "",
+        "- _列出不可违反的规则、兼容要求、时间约束和关键假设_"
+        if zh
+        else "- _list non-negotiable rules, compatibility constraints, timing limits, and key assumptions_",
+        "",
+        "## 设计方案" if zh else "## Proposed Design",
+        "",
+        "1. _主方案_"
+        if zh
+        else "1. _primary approach_",
+        "2. _关键模块或接口变更_"
+        if zh
+        else "2. _key module or interface changes_",
+        "3. _需要保留或迁移的旧行为_"
+        if zh
+        else "3. _legacy behavior to preserve or migrate_",
+        "",
+        "## 数据与接口变更" if zh else "## Data And Interface Changes",
+        "",
+        *markdown_table(
+            ["对象", "变化", "兼容性影响"] if zh else ["Surface", "Change", "Compatibility Impact"],
+            [
+                ["_模块 / API / 文档_", "_写具体变化_", "_兼容 / 破坏性 / 待确认_"]
+                if zh
+                else ["_module / API / document_", "_describe the concrete change_", "_compatible / breaking / unknown_"],
+            ],
+        ),
+        "",
+        "## 风险与待确认问题" if zh else "## Risks And Open Questions",
+        "",
+        "- _列出主要风险、未知点和需要拍板的事项_"
+        if zh
+        else "- _list the main risks, unknowns, and decisions that still need confirmation_",
+        "",
+        "## 验证计划" if zh else "## Verification Plan",
+        "",
+        "- _说明要运行的测试、检查和完成判据_"
+        if zh
+        else "- _document the tests, checks, and done criteria that will verify this design_",
+        "",
+    ]
+    return "\n".join(lines)
+
+
+def render_workflow_review_template(
+    config: ProjectConfig,
+    title: str,
+    summary: str,
+    record_date: str,
+    slot: str,
+) -> str:
+    zh = locale_family(config.content_locale) == "zh"
+    lines = [
+        f"# {title}",
+        "",
+        *artifact_metadata_lines(
+            config,
+            artifact_kind="review",
+            record_date=record_date,
+            slot=slot,
+        ),
+        f"- {'评审策略' if zh else 'review policy'}: {config.workflow_review_policy}",
+        f"- {'测试策略' if zh else 'testing policy'}: {config.workflow_testing_policy}",
+        f"- {'收尾策略' if zh else 'closeout policy'}: {config.workflow_closeout_policy}",
+        "",
+        *summary_section_lines(summary, zh=zh),
+        "",
+        "## 审查范围" if zh else "## Reviewed Scope",
+        "- _列出本次审查覆盖的代码、文档、命令和风险边界_"
+        if zh
+        else "- _list the code, documents, commands, and risk boundary covered by this review_",
+        "",
+        "## Findings" if not zh else "## 发现",
+        "",
+        "- _按严重级别记录问题；没有问题也要明确写无发现_"
+        if zh
+        else "- _record findings by severity; if none were found, say so explicitly_",
+        "",
+        "## 回归检查" if zh else "## Regressions Checked",
+        "",
+        "- _说明重点回归面、保护逻辑和未覆盖区域_"
+        if zh
+        else "- _document key regression surfaces, protected behaviors, and any uncovered areas_",
+        "",
+        "## 验证" if zh else "## Validation",
+        "",
+        *markdown_table(
+            ["检查项", "命令 / 证据", "结果"] if zh else ["Check", "Command / Evidence", "Result"],
+            [
+                ["_测试或检查_", "_命令或证据_", "_通过 / 失败 / 未运行_"]
+                if zh
+                else ["_test or check_", "_command or evidence_", "_pass / fail / not run_"],
+            ],
+        ),
+        "",
+        "## 发布闸门" if zh else "## Release Gate",
+        "",
+        "- _说明可用性、主流程、外部依赖和回滚清晰度_"
+        if zh
+        else "- _answer availability, primary-flow, external-setup, and rollback clarity questions_",
+        "",
+        "## 后续动作" if zh else "## Follow-up",
+        "",
+        "- _列出后续动作、责任人和截止时间_"
+        if zh
+        else "- _list follow-up actions, owners, and due dates_",
+        "",
+    ]
+    return "\n".join(lines)
+
+
+def render_workflow_template(
+    config: ProjectConfig,
+    kind: str,
+    title: str,
+    summary: str,
+    record_date: str,
+    slot: str,
+) -> str:
+    if kind == "plan":
+        return render_artifact_template(config, "plan", title, summary, record_date, slot)
+    if kind == "spec":
+        return render_workflow_spec_template(config, title, summary, record_date, slot)
+    if kind == "review":
+        return render_workflow_review_template(config, title, summary, record_date, slot)
+    raise SystemExit(f"Unsupported workflow scaffold kind: {kind}")
 
 
 def handle_portfolio_command(args: argparse.Namespace) -> int:

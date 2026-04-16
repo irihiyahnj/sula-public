@@ -48,6 +48,19 @@ incident_record_directory = "docs/incidents"
 digest_file = ".sula/memory-digest.md"
 status_max_age_days = 14
 
+[workflow]
+pack = "operating-system"
+stage = "active"
+artifacts_root = "artifacts"
+docs_root = "docs/workflows"
+execution_mode = "review-heavy"
+design_gate = "complex-only"
+plan_gate = "multi-step"
+review_policy = "task-checkpoints"
+workspace_isolation = "branch"
+testing_policy = "verify-first"
+closeout_policy = "explicit"
+
 [document_design]
 principles_path = "docs/ops/document-design-principles.md"
 source_first = true
