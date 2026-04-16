@@ -2,15 +2,15 @@
   "name": "Sula",
   "kind": "project-operating-system",
   "version": "0.11.0",
-  "status": "pre-public-fresh-repo-planned",
+  "status": "public-source-published",
   "homepage_url": "https://sula.1stp.monster/",
   "launch_url": "https://sula.1stp.monster/launch/",
   "bootstrap_url": "https://sula.1stp.monster/bootstrap/",
   "docs_url": "https://sula.1stp.monster/launch/",
   "public_release_strategy": "fresh-public-repo",
-  "public_source_status": "pending-public-repo",
-  "source_repository_url": "",
-  "source_ref": "",
+  "public_source_status": "published",
+  "source_repository_url": "https://github.com/irihiyahnj/sula-public.git",
+  "source_ref": "main",
   "source_script_path": "scripts/sula.py",
   "default_flow": [
     "read-launch-contract",
@@ -31,8 +31,8 @@
     "startup_rule": [
       "Do not search npm packages, global commands, or guessed local aliases when the project does not already vendor Sula.",
       "Read launch_url and this descriptor first, then resolve the canonical launcher or source from the declared URLs.",
-      "If local scripts/sula.py is missing and source_repository_url is blank, require vendored-project or explicit-local-source instead of guessing a pre-public repository.",
-      "Only clone source_repository_url at source_ref after the fresh public repository has been published and this descriptor is updated."
+      "If local scripts/sula.py is missing, use vendored-project first, then explicit-local-source, and finally clone source_repository_url at source_ref.",
+      "Treat source_repository_url plus source_ref as the canonical public source for first-time bootstrap."
     ],
     "already_adopted_behavior": [
       "If .sula/project.toml already exists, classify the repository as an existing Sula consumer.",
@@ -56,11 +56,11 @@
     "preferred_entrypoint": "onboard",
     "default_source_dir": "~/.sula/source",
     "bootstrap_python_url": "https://sula.1stp.monster/launch/bootstrap.py",
-    "public_source_requirement": "Until the fresh public repository is published, use vendored-project or explicit-local-source. Do not clone guessed pre-public lineages.",
+    "public_source_requirement": "Use vendored-project or explicit-local-source when they exist; otherwise clone the published canonical public source.",
     "resolution_order": [
       "vendored-project",
       "explicit-local-source",
-      "cloned-canonical-source-after-publication"
+      "cloned-canonical-source"
     ],
     "review_commands": [
       "python3 scripts/sula.py doctor --project-root <project> --strict",

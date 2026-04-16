@@ -15,6 +15,7 @@ Track why Sula changed, how sync impact was evaluated, what was verified, and ho
 
 ## Index
 
+- 2026-04-16 - [Publish the fresh public Sula source](docs/change-records/2026-04-16-publish-the-fresh-public-sula-source.md) - Created the fresh public repository, switched the launch contract to a real canonical public source, and prepared the export-first public lineage.
 - 2026-04-16 - [Choose fresh public repository as the default release path](docs/change-records/2026-04-16-choose-fresh-public-repository-as-the-default-release-path.md) - Promoted `fresh-public-repo` from fallback to default strategy, made the launch descriptor honest about the unpublished public source, and tightened release guidance around export-first publication.
 - 2026-04-16 - [Complete workflow close, canary verification, and release readiness](docs/change-records/2026-04-16-complete-workflow-close-canary-and-release-readiness.md) - Completed the first workflow execution loop, added repeatable in-repo canary verification, and turned public-release governance into an explicit readiness audit with a non-destructive export path.
 - 2026-04-16 - [Add workflow policy and source-first workflow scaffolds](docs/change-records/2026-04-16-add-workflow-policy-and-source-first-workflow-scaffolds.md) - Added manifest-level workflow rigor policy, a first-class `workflow` command family, and durable `spec` / `plan` / `review` source-document scaffolds under `docs/workflows/`.

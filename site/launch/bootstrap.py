@@ -10,8 +10,8 @@ import subprocess
 import sys
 
 
-DEFAULT_SOURCE_REPO = ""
-DEFAULT_SOURCE_REF = ""
+DEFAULT_SOURCE_REPO = "https://github.com/irihiyahnj/sula-public.git"
+DEFAULT_SOURCE_REF = "main"
 DEFAULT_SOURCE_DIR = Path.home() / ".sula" / "source"
 
 
@@ -19,8 +19,8 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Bootstrap and launch Sula from the canonical site contract")
     parser.add_argument("--project-root", required=True, help="Path to the target project root")
     parser.add_argument("--source-dir", help="Optional existing local Sula source checkout")
-    parser.add_argument("--source-repo", default=DEFAULT_SOURCE_REPO, help="Canonical Sula source repository URL when the public repository has been published")
-    parser.add_argument("--source-ref", default=DEFAULT_SOURCE_REF, help="Branch or ref to use when cloning Sula from the published public repository")
+    parser.add_argument("--source-repo", default=DEFAULT_SOURCE_REPO, help="Canonical public Sula source repository URL")
+    parser.add_argument("--source-ref", default=DEFAULT_SOURCE_REF, help="Branch or ref to use when cloning Sula from the canonical public repository")
     parser.add_argument("--approve", action="store_true", help="Apply onboarding instead of stopping at the summary")
     parser.add_argument("--accept-suggested", action="store_true", help="Accept suggested onboarding answers automatically")
     parser.add_argument("--json", action="store_true", help="Print machine-readable JSON output")
@@ -62,13 +62,6 @@ def resolve_source(args: argparse.Namespace, project_root: Path) -> dict[str, st
         if not (source_root / "scripts" / "sula.py").exists():
             raise SystemExit(f"Provided source dir does not contain scripts/sula.py: {source_root}")
         return local_source_payload("explicit-source-dir", source_root, source_repo=args.source_repo, source_ref=args.source_ref)
-
-    if not args.source_repo or not args.source_ref:
-        raise SystemExit(
-            "Canonical public Sula source is not published yet. Use vendored scripts/sula.py or pass --source-dir "
-            "to an explicit local Sula checkout. Maintainers should publish the fresh public repository exported via "
-            "`python3 scripts/sula.py release export-public` before enabling clone-based launch."
-        )
 
     if shutil.which("git") is None:
         raise SystemExit("git is required to resolve the canonical Sula source automatically")

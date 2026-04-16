@@ -18,7 +18,7 @@
       "type": "derived-from"
     },
     {
-      "from": "task:status:create-the-fresh-public-repository-from-release-export-public-and-publish-the-first-clean-public-lineage",
+      "from": "task:status:push-the-fresh-export-first-lineage-to-irihiyahnj-sula-public-and-redeploy-the-hosted-site-descriptor",
       "to": "source:status-md",
       "type": "derived-from"
     },
@@ -79,6 +79,11 @@
     },
     {
       "from": "task:status:switch-site-sula-json-and-site-launch-bootstrap-py-to-the-published-public-source-after-that-repository-exists",
+      "to": "source:status-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "task:status:decide-whether-to-keep-the-hosted-site-on-fly-or-migrate-it-onto-the-existing-digitalocean-infrastructure-once-server-write-access-is-available",
       "to": "source:status-md",
       "type": "derived-from"
     },
@@ -188,6 +193,11 @@
       "type": "derived-from"
     },
     {
+      "from": "decision:status:2026-04-16-added-publish-the-fresh-public-sula-source-docs-change-records-2026-04-16-publish-the-fresh-public-sula-source-md",
+      "to": "source:status-md",
+      "type": "derived-from"
+    },
+    {
       "from": "decision:status:2026-04-12-added-add-guided-onboarding-and-zero-memory-setup-flow-docs-change-records-2026-04-12-add-guided-onboarding-and-zero-memory-setup-flow-md",
       "to": "source:status-md",
       "type": "derived-from"
@@ -223,8 +233,18 @@
       "type": "derived-from"
     },
     {
-      "from": "risk:health:yellow-the-public-release-strategy-is-now-decided-but-the-fresh-public-repository-still-needs-to-be-created-before-the-bootstrap-descriptor-can-advertise-a-canonical-public-source",
+      "from": "risk:health:yellow-the-canonical-public-source-now-exists-but-the-hosted-site-still-needs-redeployment-and-the-optional-digitalocean-migration-is-not-complete-yet",
       "to": "source:status-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "change:2026-04-16-publish-the-fresh-public-sula-source",
+      "to": "source:docs-change-records-2026-04-16-publish-the-fresh-public-sula-source-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "agreement:2026-04-16-publish-the-fresh-public-sula-source",
+      "to": "source:docs-change-records-2026-04-16-publish-the-fresh-public-sula-source-md",
       "type": "derived-from"
     },
     {
@@ -720,6 +740,16 @@
     {
       "from": "object:source:docs-change-records-2026-04-16-document-superpowers-capability-absorption-plan-md",
       "to": "source:docs-change-records-2026-04-16-document-superpowers-capability-absorption-plan-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "object:source:docs-change-records-2026-04-16-publish-the-fresh-public-sula-source-md",
+      "to": "source:docs-change-records-2026-04-16-publish-the-fresh-public-sula-source-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "agreement:source:docs-change-records-2026-04-16-publish-the-fresh-public-sula-source-md",
+      "to": "source:docs-change-records-2026-04-16-publish-the-fresh-public-sula-source-md",
       "type": "derived-from"
     },
     {
