@@ -1,6 +1,6 @@
 # Current State Snapshot
 
-- generated on: 2026-04-16
+- generated on: 2026-04-18
 - project: Sula
 - profile: `sula-core`
 - source priority: STATUS.md and project records override this generated snapshot
@@ -21,25 +21,26 @@
 - Sula now has a real read-only provider refresh path for Google Docs and Google Sheets, plus `artifact refresh` and cached provider snapshots, so freshness intent can trigger an actual provider metadata refresh instead of only local re-ranking.
 - Sula now has a first-class daily `check` workflow, so state-sync work can fail fast when `.sula/state/current.md` or `.sula/memory-digest.md` drift away from the current status and change records.
 - Formal document design is now a first-class Sula capability: adopted projects can carry reusable source-first structure bundles for schedule, proposal, report, process, and training documents instead of relying on one-off prompt instructions.
-- Sula now has a documented proposal for absorbing long-term value from workflow systems like `obra/superpowers` through manifest-driven capability contracts instead of platform-specific skill lock-in.
+- Sula now has a documented proposal for absorbing long-term value from reusable workflow-governance patterns through manifest-driven capability contracts instead of platform-specific skill lock-in.
 - Sula now implements the first workflow-capability slice from that proposal: manifest-level workflow rigor policy plus source-first `spec`, `plan`, and `review` scaffolds under `docs/workflows/`.
 - Sula now completes that workflow slice with first-class `workflow branch` and `workflow close` commands, so complex work can move from policy assessment to explicit closeout readiness.
 - The next UX milestone is now implemented too: `onboard` provides a zero-memory interview flow that asks setup questions, explains what Sula will manage, and then applies adoption through the same kernel contract.
 - The next launch milestone is now implemented too: the public site exposes `/launch/`, a machine-readable launcher descriptor, and a downloadable `bootstrap.py` shim so startup no longer depends on guessing local commands.
 - The feedback-bundle lifecycle is now released in the Git-backed Sula 0.11.0 source state: adopted projects can capture reusable local Sula fixes as feedback bundles, and Sula Core can ingest, review, and release them through a central queue.
 - Sula 0.12.0 is now released in source form, bundling truth-source freshness checks, the daily `check` workflow, stronger workflow/release governance, and Unicode-safe discovered source ids into one downstream sync target.
+- Sula 0.13.0 is now released in source form, bundling staged session captures, durable memory promotion, rule-aware retrieval routing, memory-job inspection, and stable operator-facing memory workflows into one downstream sync target.
 - Sula now has registry-backed in-repo canary verification across `sula-core`, `software-delivery`, `generic-project`, and `client-service`-style examples, plus public-release readiness and export commands that isolate remaining publication risk to git history rather than content drift.
 - Sula now has a chosen default public-release path: keep this repository as the private pre-public lineage, publish a fresh public repository from `release export-public`, and only then point the site descriptor at the public source.
 - The fresh public source now exists at `irihiyahnj/sula-public`, so `https://sula.1stp.monster/launch/` can resolve a real canonical clone source instead of depending on a local checkout.
 
 ## Health
 
-- status: yellow
-- reason: the canonical public source now exists, but the hosted site still needs redeployment and the optional DigitalOcean migration is not complete yet.
+- status: green
+- reason: Sula 0.13.0 release-grade verification now passes, and the staged-memory kernel plus product-facing memory workflow are stable for downstream sync.
 
 ## Current Focus
 
-- push the fresh export-first lineage to `irihiyahnj/sula-public` and redeploy the hosted site descriptor
+- roll out Sula 0.13.0 to external canaries and confirm the staged-memory workflow is understandable outside the source repository
 - validate the new `adopt` flow against the first external repository
 - run the first external canaries through the new `canary verify` contract
 - keep `sula-core` and `react-frontend-erpnext` profiles aligned with real usage
@@ -77,22 +78,26 @@
 - 2026-04-12: added [Add truth-source and freshness checks for collaborative provider-backed artifacts](docs/change-records/2026-04-12-add-truth-source-and-freshness-checks-for-collaborative-provider-artifacts.md)
 - 2026-04-12: added [Add provider-native read-only refresh and artifact refresh command](docs/change-records/2026-04-12-add-provider-native-read-only-refresh-and-artifact-refresh-command.md)
 - 2026-04-15: added [Add daily Sula check workflow for state-sync verification](docs/change-records/2026-04-15-add-daily-sula-check-workflow-for-state-sync-verification.md)
-- 2026-04-16: added [Document Superpowers capability absorption plan](docs/change-records/2026-04-16-document-superpowers-capability-absorption-plan.md)
+- 2026-04-16: added [Document workflow capability absorption plan](docs/change-records/2026-04-16-document-workflow-capability-absorption-plan.md)
 - 2026-04-16: added [Add workflow policy and source-first workflow scaffolds](docs/change-records/2026-04-16-add-workflow-policy-and-source-first-workflow-scaffolds.md)
 - 2026-04-16: added [Complete workflow close, canary verification, and release readiness](docs/change-records/2026-04-16-complete-workflow-close-canary-and-release-readiness.md)
 - 2026-04-16: added [Choose fresh public repository as the default release path](docs/change-records/2026-04-16-choose-fresh-public-repository-as-the-default-release-path.md)
 - 2026-04-16: added [Publish the fresh public Sula source](docs/change-records/2026-04-16-publish-the-fresh-public-sula-source.md)
 - 2026-04-16: released [Sula 0.12.0 freshness, workflow, and Unicode source-id fixes](docs/releases/2026-04-16-release-sula-0-12-0-freshness-workflow-and-unicode-source-id-fixes.md)
+- 2026-04-18: added [Document memory capability implementation plan](docs/change-records/2026-04-18-document-memory-capability-implementation-plan.md)
+- 2026-04-18: added [Add staged memory captures, rule registry, and query routing](docs/change-records/2026-04-18-add-staged-memory-captures-rule-registry-and-query-routing.md)
+- 2026-04-18: released [Sula 0.13.0 stable memory kernel and operator workflow](docs/releases/2026-04-18-release-sula-0-13-0-stable-memory-kernel-and-operator-workflow.md)
 - 2026-04-12: added [Add guided onboarding and zero-memory setup flow](docs/change-records/2026-04-12-add-guided-onboarding-and-zero-memory-setup-flow.md)
 - 2026-04-12: added [Add site launch contract and canonical bootstrap shim](docs/change-records/2026-04-12-add-site-launch-contract-and-canonical-bootstrap-shim.md)
 - 2026-04-12: added [Add feedback bundles and Sula Core review workflow](docs/change-records/2026-04-12-add-feedback-bundles-and-core-review-workflow.md)
 - 2026-04-12: released [Sula 0.11.0 formal document workflows and feedback bundles](docs/releases/2026-04-12-release-sula-0-11-0-formal-document-workflows-and-feedback-bundles.md)
 
 - 2026-04-16: added release record [Release Sula 0.12.0 freshness, workflow, and Unicode source-id fixes](docs/releases/2026-04-16-release-sula-0-12-0-freshness-workflow-and-unicode-source-id-fixes.md)
+- 2026-04-18: added release record [Release Sula 0.13.0 stable memory kernel and operator workflow](docs/releases/2026-04-18-release-sula-0-13-0-stable-memory-kernel-and-operator-workflow.md)
 - 2026-04-12: added release record [Release Sula 0.11.0 formal document workflows and feedback bundles](docs/releases/2026-04-12-release-sula-0-11-0-formal-document-workflows-and-feedback-bundles.md)
 
 ## Next Review
 
 - owner: Sula Core maintainers
-- date: 2026-04-18
-- trigger: review again before changing the public bootstrap contract, the managed/scaffold onboarding contract, or the planned vNext kernel contract
+- date: 2026-04-21
+- trigger: review again before broad 0.13.0 rollout, changing the public bootstrap contract, or expanding memory beyond the current stable promotion loop

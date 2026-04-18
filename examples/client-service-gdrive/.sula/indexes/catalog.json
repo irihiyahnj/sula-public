@@ -1,13 +1,13 @@
 {
-  "version": "0.12.0",
+  "version": "0.13.0",
   "profile": "generic-project",
   "counts": {
-    "registered_sources": 21,
+    "registered_sources": 22,
     "discovered_sources": 11,
     "adapters": 5,
     "artifacts": 0,
-    "objects": 21,
-    "source_adapter_links": 82
+    "objects": 32,
+    "source_adapter_links": 85
   },
   "adapter_catalog": ".sula/adapters/catalog.json",
   "indexes": [

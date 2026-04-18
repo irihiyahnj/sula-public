@@ -10,7 +10,7 @@
 
 ## Background
 
-Sula had a documented proposal for selectively absorbing long-term value from `obra/superpowers`, but the capability was still conceptual. Projects could not yet express workflow rigor in the manifest, assess whether a task should carry a spec or plan, or create durable workflow source documents through a first-class Sula command.
+Sula had a documented proposal for selectively absorbing long-term value from reusable workflow-governance patterns, but the capability was still conceptual. Projects could not yet express workflow rigor in the manifest, assess whether a task should carry a spec or plan, or create durable workflow source documents through a first-class Sula command.
 
 ## Analysis
 

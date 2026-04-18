@@ -275,9 +275,26 @@ python3 scripts/sula.py record new \
   --title "Explain the non-trivial change"
 
 python3 scripts/sula.py memory digest --project-root /path/to/project
+
+python3 scripts/sula.py memory capture \
+  --project-root /path/to/project \
+  --title "Rule candidate from current work" \
+  --summary "Refresh provider-backed artifacts before latest-version answers."
+
+python3 scripts/sula.py memory review --project-root /path/to/project --json
+
+python3 scripts/sula.py memory promote \
+  --project-root /path/to/project \
+  --capture-id <capture-id> \
+  --to rule
+
+python3 scripts/sula.py memory jobs --project-root /path/to/project --json
 ```
 
-This creates durable project memory without mixing managed operating-system files with project-owned history.
+This creates durable project memory without mixing managed operating-system files with project-owned history. Staged captures stay temporary until review and promotion move them into a durable project-owned source.
+
+Recommended loop: `memory capture` -> `memory review` -> `memory promote` -> `query` -> `memory clear --reviewed-captures`.
+Common promotion targets in the stable surface are `rule`, `state`, `decision`, `risk`, `task`, and `workflow-artifact`.
 
 ### Read machine-usable project state
 
@@ -310,7 +327,7 @@ python3 scripts/sula.py feedback decide \
   --feedback-id <feedback-id> \
   --decision accepted \
   --note "Absorb this into the shared release path." \
-  --target-version 0.12.0 \
+  --target-version 0.13.0 \
   --json
 ```
 
@@ -482,7 +499,7 @@ This searches the local kernel object catalog, source registry, and event timeli
 
 ## Current Version
 
-Sula version: `0.12.0`
+Sula version: `0.13.0`
 
 Versioning rules are in [docs/versioning.md](docs/versioning.md).
 

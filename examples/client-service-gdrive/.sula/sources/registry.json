@@ -63,6 +63,18 @@
     ]
   },
   {
+    "id": "session-promotions",
+    "kind": "operating-memory",
+    "path": "docs/ops/session-promotions.md",
+    "exists": false,
+    "source_of_truth": true,
+    "adapters": [
+      "generic-project",
+      "google-drive",
+      "repo"
+    ]
+  },
+  {
     "id": "kernel-state",
     "kind": "kernel-state",
     "path": ".sula/state/current.md",

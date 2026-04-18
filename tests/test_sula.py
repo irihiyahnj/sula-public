@@ -1452,6 +1452,7 @@ notes = "Fixture"
             manifest_text = (export_root / payload["manifest"]).read_text(encoding="utf-8")
             self.assertIn("public_release_strategy: fresh-public-repo", manifest_text)
             self.assertIn("Suggested Initialization", manifest_text)
+            self.assertNotIn("source_root:", manifest_text)
 
     def test_release_readiness_reports_missing_governance(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -3158,6 +3159,291 @@ notes = "Fixture"
             digest = digest_path.read_text(encoding="utf-8")
             self.assertIn("Current State", digest)
             self.assertIn("Capture memory baseline", digest)
+
+    def test_memory_capture_and_review_store_staged_session_context(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            project_root = Path(tmpdir)
+            self.create_generic_project(project_root)
+            adopt_result = run_cli("adopt", "--project-root", str(project_root), "--approve")
+            self.assertEqual(adopt_result.returncode, 0, adopt_result.stderr)
+
+            capture_result = run_cli(
+                "memory",
+                "capture",
+                "--project-root",
+                str(project_root),
+                "--title",
+                "Provider freshness rule candidate",
+                "--summary",
+                "Refresh provider-backed artifacts before answering latest-version questions.",
+                "--category",
+                "rule",
+                "--source-path",
+                "AGENTS.md",
+                "--json",
+            )
+            self.assertEqual(capture_result.returncode, 0, capture_result.stderr)
+            capture_payload = json.loads(capture_result.stdout)
+            capture = capture_payload["capture"]
+            self.assertEqual(capture["status"], "staged")
+            self.assertEqual(capture["category"], "rule")
+
+            review_result = run_cli(
+                "memory",
+                "review",
+                "--project-root",
+                str(project_root),
+                "--status",
+                "staged",
+                "--json",
+            )
+            self.assertEqual(review_result.returncode, 0, review_result.stderr)
+            review_payload = json.loads(review_result.stdout)
+            self.assertEqual(len(review_payload["captures"]), 1)
+            self.assertEqual(review_payload["captures"][0]["id"], capture["id"])
+
+            query_result = run_cli(
+                "query",
+                "--project-root",
+                str(project_root),
+                "--q",
+                "provider freshness rule candidate",
+                "--kind",
+                "session_capture",
+                "--json",
+            )
+            self.assertEqual(query_result.returncode, 0, query_result.stderr)
+            query_payload = json.loads(query_result.stdout)
+            self.assertEqual(query_payload["results"][0]["id"], capture["id"])
+
+    def test_memory_promote_creates_rule_object_and_query_route(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            project_root = Path(tmpdir)
+            self.create_generic_project(project_root)
+            adopt_result = run_cli("adopt", "--project-root", str(project_root), "--approve")
+            self.assertEqual(adopt_result.returncode, 0, adopt_result.stderr)
+
+            capture_result = run_cli(
+                "memory",
+                "capture",
+                "--project-root",
+                str(project_root),
+                "--title",
+                "Refresh provider-backed artifacts",
+                "--summary",
+                "Always refresh provider-backed artifacts before latest-version answers.",
+                "--category",
+                "rule",
+                "--json",
+            )
+            self.assertEqual(capture_result.returncode, 0, capture_result.stderr)
+            capture_id = json.loads(capture_result.stdout)["capture"]["id"]
+
+            promote_result = run_cli(
+                "memory",
+                "promote",
+                "--project-root",
+                str(project_root),
+                "--capture-id",
+                capture_id,
+                "--to",
+                "rule",
+                "--json",
+            )
+            self.assertEqual(promote_result.returncode, 0, promote_result.stderr)
+            promoted = json.loads(promote_result.stdout)["capture"]
+            self.assertEqual(promoted["status"], "promoted")
+            promotion_path = project_root / promoted["promotion_path"]
+            self.assertTrue(promotion_path.exists())
+            self.assertIn("Always refresh provider-backed artifacts", promotion_path.read_text(encoding="utf-8"))
+
+            query_result = run_cli(
+                "query",
+                "--project-root",
+                str(project_root),
+                "--q",
+                "provider-backed artifacts policy",
+                "--json",
+            )
+            self.assertEqual(query_result.returncode, 0, query_result.stderr)
+            query_payload = json.loads(query_result.stdout)
+            self.assertEqual(query_payload["route"], "rules")
+            self.assertTrue(any(item["path"] == "docs/ops/session-promotions.md" for item in query_payload["results"]))
+
+    def test_memory_promote_supports_state_and_workflow_artifact_targets(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            project_root = Path(tmpdir)
+            self.create_generic_project(project_root)
+            adopt_result = run_cli("adopt", "--project-root", str(project_root), "--approve")
+            self.assertEqual(adopt_result.returncode, 0, adopt_result.stderr)
+
+            state_capture = run_cli(
+                "memory",
+                "capture",
+                "--project-root",
+                str(project_root),
+                "--title",
+                "Current state checkpoint",
+                "--summary",
+                "Provider refresh is now part of the daily close-out loop.",
+                "--category",
+                "decision",
+                "--json",
+            )
+            self.assertEqual(state_capture.returncode, 0, state_capture.stderr)
+            state_capture_id = json.loads(state_capture.stdout)["capture"]["id"]
+
+            workflow_capture = run_cli(
+                "memory",
+                "capture",
+                "--project-root",
+                str(project_root),
+                "--title",
+                "Workflow review artifact",
+                "--summary",
+                "Document provider freshness review in a workflow review artifact when rollout risk is non-trivial.",
+                "--category",
+                "task",
+                "--json",
+            )
+            self.assertEqual(workflow_capture.returncode, 0, workflow_capture.stderr)
+            workflow_capture_id = json.loads(workflow_capture.stdout)["capture"]["id"]
+
+            promote_state = run_cli(
+                "memory",
+                "promote",
+                "--project-root",
+                str(project_root),
+                "--capture-id",
+                state_capture_id,
+                "--to",
+                "state",
+                "--json",
+            )
+            self.assertEqual(promote_state.returncode, 0, promote_state.stderr)
+            promote_workflow = run_cli(
+                "memory",
+                "promote",
+                "--project-root",
+                str(project_root),
+                "--capture-id",
+                workflow_capture_id,
+                "--to",
+                "workflow-artifact",
+                "--json",
+            )
+            self.assertEqual(promote_workflow.returncode, 0, promote_workflow.stderr)
+
+            promotion_text = (project_root / "docs" / "ops" / "session-promotions.md").read_text(encoding="utf-8")
+            self.assertIn("## State Updates", promotion_text)
+            self.assertIn("## Workflow Artifacts", promotion_text)
+            self.assertIn("Current state checkpoint", promotion_text)
+            self.assertIn("Workflow review artifact", promotion_text)
+
+            query_result = run_cli(
+                "query",
+                "--project-root",
+                str(project_root),
+                "--q",
+                "current state checkpoint",
+                "--kind",
+                "promotion",
+                "--json",
+            )
+            self.assertEqual(query_result.returncode, 0, query_result.stderr)
+            query_payload = json.loads(query_result.stdout)
+            self.assertTrue(any(item["path"] == "docs/ops/session-promotions.md" for item in query_payload["results"]))
+
+    def test_check_fails_on_stale_staged_memory_capture(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            project_root = Path(tmpdir)
+            self.create_generic_project(project_root)
+            adopt_result = run_cli("adopt", "--project-root", str(project_root), "--approve")
+            self.assertEqual(adopt_result.returncode, 0, adopt_result.stderr)
+
+            capture_store = project_root / ".sula" / "state" / "session" / "captures.jsonl"
+            capture_store.write_text(
+                json.dumps(
+                    {
+                        "id": "capture-stale",
+                        "title": "Stale memory",
+                        "summary": "Needs review",
+                        "category": "note",
+                        "status": "staged",
+                        "captured_at": "2026-04-01T00:00:00Z",
+                        "updated_at": "2026-04-01T00:00:00Z",
+                        "source_path": "README.md",
+                        "confidence": 3,
+                        "session_id": "",
+                    },
+                    ensure_ascii=True,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+
+            result = run_cli("check", "--project-root", str(project_root))
+            self.assertNotEqual(result.returncode, 0)
+            self.assertIn("staged capture `capture-stale`", result.stdout)
+
+    def test_memory_jobs_and_clear_derived_state(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            project_root = Path(tmpdir)
+            self.create_generic_project(project_root)
+            adopt_result = run_cli("adopt", "--project-root", str(project_root), "--approve")
+            self.assertEqual(adopt_result.returncode, 0, adopt_result.stderr)
+
+            digest_result = run_cli("memory", "digest", "--project-root", str(project_root), "--json")
+            self.assertEqual(digest_result.returncode, 0, digest_result.stderr)
+            kernel_db = project_root / ".sula" / "cache" / "kernel.db"
+            self.assertTrue(kernel_db.exists())
+
+            jobs_result = run_cli("memory", "jobs", "--project-root", str(project_root), "--json")
+            self.assertEqual(jobs_result.returncode, 0, jobs_result.stderr)
+            jobs = json.loads(jobs_result.stdout)["jobs"]
+            self.assertTrue(any(item["job_type"] == "memory.digest" for item in jobs))
+
+            clear_result = run_cli("memory", "clear", "--project-root", str(project_root), "--derived", "--json")
+            self.assertEqual(clear_result.returncode, 0, clear_result.stderr)
+            self.assertFalse(kernel_db.exists())
+
+    def test_adopt_creates_default_promotion_file_and_status_exposes_memory_summary(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            project_root = Path(tmpdir)
+            self.create_generic_project(project_root)
+
+            adopt_result = run_cli("adopt", "--project-root", str(project_root), "--approve")
+            self.assertEqual(adopt_result.returncode, 0, adopt_result.stderr)
+
+            promotion_path = project_root / "docs" / "ops" / "session-promotions.md"
+            self.assertTrue(promotion_path.exists())
+            promotion_text = promotion_path.read_text(encoding="utf-8")
+            self.assertIn("## Rules", promotion_text)
+            self.assertIn("## Tasks", promotion_text)
+            self.assertIn("## State Updates", promotion_text)
+            self.assertIn("## Workflow Artifacts", promotion_text)
+
+            status_result = run_cli("status", "--project-root", str(project_root), "--json")
+            self.assertEqual(status_result.returncode, 0, status_result.stderr)
+            payload = json.loads(status_result.stdout)["state"]
+            self.assertIn("memory", payload)
+            self.assertEqual(payload["memory"]["promotion_file"], "docs/ops/session-promotions.md")
+            self.assertEqual(payload["memory"]["counts"]["staged"], 0)
+
+    def test_onboard_existing_consumer_payload_includes_memory_lifecycle(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            project_root = Path(tmpdir)
+            self.create_generic_project(project_root)
+            adopt_result = run_cli("adopt", "--project-root", str(project_root), "--approve")
+            self.assertEqual(adopt_result.returncode, 0, adopt_result.stderr)
+
+            onboard_result = run_cli("onboard", "--project-root", str(project_root), "--json")
+            self.assertEqual(onboard_result.returncode, 0, onboard_result.stderr)
+            payload = json.loads(onboard_result.stdout)
+            self.assertEqual(payload["status"], "existing-consumer")
+            self.assertIn("memory", payload)
+            self.assertEqual(payload["memory"]["promotion_file"], "docs/ops/session-promotions.md")
+            self.assertIn("memory review", " ".join(payload["next_commands"]))
 
     def test_feedback_capture_creates_bundle_and_archive_for_managed_drift(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:

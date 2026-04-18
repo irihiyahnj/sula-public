@@ -1,5 +1,5 @@
 {
-  "version": "0.12.0",
+  "version": "0.13.0",
   "profile": "sula-core",
   "relations": [
     {
@@ -18,7 +18,12 @@
       "type": "derived-from"
     },
     {
-      "from": "task:status:push-the-fresh-export-first-lineage-to-irihiyahnj-sula-public-and-redeploy-the-hosted-site-descriptor",
+      "from": "rule:manifest:highest-rule",
+      "to": "project-manifest",
+      "type": "derived-from"
+    },
+    {
+      "from": "task:status:roll-out-sula-0-13-0-to-external-canaries-and-confirm-the-staged-memory-workflow-is-understandable-outside-the-source-repository",
       "to": "source:status-md",
       "type": "derived-from"
     },
@@ -173,7 +178,7 @@
       "type": "derived-from"
     },
     {
-      "from": "decision:status:2026-04-16-added-document-superpowers-capability-absorption-plan-docs-change-records-2026-04-16-document-superpowers-capability-absorption-plan-md",
+      "from": "decision:status:2026-04-16-added-document-workflow-capability-absorption-plan-docs-change-records-2026-04-16-document-workflow-capability-absorption-plan-md",
       "to": "source:status-md",
       "type": "derived-from"
     },
@@ -203,6 +208,21 @@
       "type": "derived-from"
     },
     {
+      "from": "decision:status:2026-04-18-added-document-memory-capability-implementation-plan-docs-change-records-2026-04-18-document-memory-capability-implementation-plan-md",
+      "to": "source:status-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "decision:status:2026-04-18-added-add-staged-memory-captures-rule-registry-and-query-routing-docs-change-records-2026-04-18-add-staged-memory-captures-rule-registry-and-query-routing-md",
+      "to": "source:status-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "decision:status:2026-04-18-released-sula-0-13-0-stable-memory-kernel-and-operator-workflow-docs-releases-2026-04-18-release-sula-0-13-0-stable-memory-kernel-and-operator-workflow-md",
+      "to": "source:status-md",
+      "type": "derived-from"
+    },
+    {
       "from": "decision:status:2026-04-12-added-add-guided-onboarding-and-zero-memory-setup-flow-docs-change-records-2026-04-12-add-guided-onboarding-and-zero-memory-setup-flow-md",
       "to": "source:status-md",
       "type": "derived-from"
@@ -228,6 +248,11 @@
       "type": "derived-from"
     },
     {
+      "from": "decision:status:2026-04-18-added-release-record-release-sula-0-13-0-stable-memory-kernel-and-operator-workflow-docs-releases-2026-04-18-release-sula-0-13-0-stable-memory-kernel-and-operator-workflow-md",
+      "to": "source:status-md",
+      "type": "derived-from"
+    },
+    {
       "from": "decision:status:2026-04-12-added-release-record-release-sula-0-11-0-formal-document-workflows-and-feedback-bundles-docs-releases-2026-04-12-release-sula-0-11-0-formal-document-workflows-and-feedback-bundles-md",
       "to": "source:status-md",
       "type": "derived-from"
@@ -238,13 +263,18 @@
       "type": "derived-from"
     },
     {
-      "from": "milestone:status:next-review:2026-04-18",
+      "from": "milestone:status:next-review:2026-04-21",
       "to": "source:status-md",
       "type": "derived-from"
     },
     {
-      "from": "risk:health:yellow-the-canonical-public-source-now-exists-but-the-hosted-site-still-needs-redeployment-and-the-optional-digitalocean-migration-is-not-complete-yet",
-      "to": "source:status-md",
+      "from": "change:2026-04-18-document-memory-capability-implementation-plan",
+      "to": "source:docs-change-records-2026-04-18-document-memory-capability-implementation-plan-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "change:2026-04-18-add-staged-memory-captures-rule-registry-and-query-routing",
+      "to": "source:docs-change-records-2026-04-18-add-staged-memory-captures-rule-registry-and-query-routing-md",
       "type": "derived-from"
     },
     {
@@ -263,8 +293,8 @@
       "type": "derived-from"
     },
     {
-      "from": "change:2026-04-16-document-superpowers-capability-absorption-plan",
-      "to": "source:docs-change-records-2026-04-16-document-superpowers-capability-absorption-plan-md",
+      "from": "change:2026-04-16-document-workflow-capability-absorption-plan",
+      "to": "source:docs-change-records-2026-04-16-document-workflow-capability-absorption-plan-md",
       "type": "derived-from"
     },
     {
@@ -443,6 +473,31 @@
       "type": "derived-from"
     },
     {
+      "from": "release:2026-04-18-release-sula-0-13-0-stable-memory-kernel-and-operator-workflow",
+      "to": "source:docs-releases-2026-04-18-release-sula-0-13-0-stable-memory-kernel-and-operator-workflow-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "milestone:2026-04-18-release-sula-0-13-0-stable-memory-kernel-and-operator-workflow",
+      "to": "source:docs-releases-2026-04-18-release-sula-0-13-0-stable-memory-kernel-and-operator-workflow-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "risk:docs-releases-2026-04-18-release-sula-0-13-0-stable-memory-kernel-and-operator-workflow-md:adopted-projects-that-sync-to-this-release-may-fail-check-or-doctor-strict-if-they-have-stale-staged-captures-or-malformed-promotion-files-so-rollout-should-review-old-temporary-memory-instead-of-assuming-a-silent-upgrade",
+      "to": "source:docs-releases-2026-04-18-release-sula-0-13-0-stable-memory-kernel-and-operator-workflow-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "risk:docs-releases-2026-04-18-release-sula-0-13-0-stable-memory-kernel-and-operator-workflow-md:teams-that-previously-treated-temporary-session-notes-as-private-scratch-space-now-have-a-clearer-promotion-path-but-they-still-need-to-decide-what-deserves-durable-project-context-and-what-should-be-discarded",
+      "to": "source:docs-releases-2026-04-18-release-sula-0-13-0-stable-memory-kernel-and-operator-workflow-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "risk:docs-releases-2026-04-18-release-sula-0-13-0-stable-memory-kernel-and-operator-workflow-md:external-canaries-should-validate-whether-the-new-memory-workflow-reads-naturally-to-non-core-operators-before-broad-rollout-treats-it-as-fully-routine",
+      "to": "source:docs-releases-2026-04-18-release-sula-0-13-0-stable-memory-kernel-and-operator-workflow-md",
+      "type": "derived-from"
+    },
+    {
       "from": "release:2026-04-16-release-sula-0-12-0-freshness-workflow-and-unicode-source-id-fixes",
       "to": "source:docs-releases-2026-04-16-release-sula-0-12-0-freshness-workflow-and-unicode-source-id-fixes-md",
       "type": "derived-from"
@@ -528,7 +583,92 @@
       "type": "derived-from"
     },
     {
+      "from": "rule:agents-md:highest-rule:preserve-the-split-between-centrally-managed-operating-system-files-and-project-owned-business-truth",
+      "to": "source:agents-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "rule:agents-md:highest-rule:do-not-turn-sula-into-a-one-project-template-repository",
+      "to": "source:agents-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "rule:agents-md:working-rules:keep-sula-improvements-portable-across-adopted-projects",
+      "to": "source:agents-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "rule:agents-md:working-rules:prefer-profile-level-abstractions-over-project-specific-wording",
+      "to": "source:agents-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "rule:agents-md:working-rules:keep-bootstrap-scripts-dependency-light",
+      "to": "source:agents-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "rule:agents-md:working-rules:do-not-make-python-3-11-or-third-party-packages-mandatory-without-a-strong-reason",
+      "to": "source:agents-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "rule:agents-md:working-rules:when-changing-managed-templates-consider-sync-impact-on-existing-projects",
+      "to": "source:agents-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "rule:agents-md:working-rules:when-changing-scaffold-templates-keep-them-as-starters-not-as-centrally-enforced-truth",
+      "to": "source:agents-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "rule:agents-md:working-rules:update-sula-docs-when-introducing-new-profiles-manifest-fields-or-sync-behavior",
+      "to": "source:agents-md",
+      "type": "derived-from"
+    },
+    {
       "from": "object:source:change-records-md",
+      "to": "source:change-records-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "rule:change-records-md:keep-this-file-short-and-index-oriented",
+      "to": "source:change-records-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "rule:change-records-md:put-detailed-records-in-docs-change-records",
+      "to": "source:change-records-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "rule:change-records-md:mention-sync-impact-explicitly-in-non-trivial-records",
+      "to": "source:change-records-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "rule:change-records-md:use-release-records-when-the-rollout-itself-needs-durable-history",
+      "to": "source:change-records-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "rule:change-records-md:rules:keep-this-file-short-and-index-oriented",
+      "to": "source:change-records-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "rule:change-records-md:rules:put-detailed-records-in-docs-change-records",
+      "to": "source:change-records-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "rule:change-records-md:rules:mention-sync-impact-explicitly-in-non-trivial-records",
+      "to": "source:change-records-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "rule:change-records-md:rules:use-release-records-when-the-rollout-itself-needs-durable-history",
       "to": "source:change-records-md",
       "type": "derived-from"
     },
@@ -579,6 +719,11 @@
     },
     {
       "from": "object:source:docs-readme-md",
+      "to": "source:docs-readme-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "rule:docs-readme-md:maintenance-rule",
       "to": "source:docs-readme-md",
       "type": "derived-from"
     },
@@ -778,8 +923,8 @@
       "type": "derived-from"
     },
     {
-      "from": "object:source:docs-change-records-2026-04-16-document-superpowers-capability-absorption-plan-md",
-      "to": "source:docs-change-records-2026-04-16-document-superpowers-capability-absorption-plan-md",
+      "from": "object:source:docs-change-records-2026-04-16-document-workflow-capability-absorption-plan-md",
+      "to": "source:docs-change-records-2026-04-16-document-workflow-capability-absorption-plan-md",
       "type": "derived-from"
     },
     {
@@ -795,6 +940,16 @@
     {
       "from": "agreement:source:docs-change-records-2026-04-16-publish-the-fresh-public-sula-source-md",
       "to": "source:docs-change-records-2026-04-16-publish-the-fresh-public-sula-source-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "object:source:docs-change-records-2026-04-18-add-staged-memory-captures-rule-registry-and-query-routing-md",
+      "to": "source:docs-change-records-2026-04-18-add-staged-memory-captures-rule-registry-and-query-routing-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "object:source:docs-change-records-2026-04-18-document-memory-capability-implementation-plan-md",
+      "to": "source:docs-change-records-2026-04-18-document-memory-capability-implementation-plan-md",
       "type": "derived-from"
     },
     {
@@ -883,6 +1038,71 @@
       "type": "derived-from"
     },
     {
+      "from": "object:source:docs-reference-memory-capability-implementation-plan-md",
+      "to": "source:docs-reference-memory-capability-implementation-plan-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "rule:docs-reference-memory-capability-implementation-plan-md:design-rules:source-files",
+      "to": "source:docs-reference-memory-capability-implementation-plan-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "rule:docs-reference-memory-capability-implementation-plan-md:design-rules:registered-project-documents",
+      "to": "source:docs-reference-memory-capability-implementation-plan-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "rule:docs-reference-memory-capability-implementation-plan-md:design-rules:status-md",
+      "to": "source:docs-reference-memory-capability-implementation-plan-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "rule:docs-reference-memory-capability-implementation-plan-md:design-rules:docs-change-records",
+      "to": "source:docs-reference-memory-capability-implementation-plan-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "rule:docs-reference-memory-capability-implementation-plan-md:design-rules:releases-incidents-and-runbooks",
+      "to": "source:docs-reference-memory-capability-implementation-plan-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "rule:docs-reference-memory-capability-implementation-plan-md:design-rules:registered-provider-backed-artifacts",
+      "to": "source:docs-reference-memory-capability-implementation-plan-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "rule:docs-reference-memory-capability-implementation-plan-md:design-rules:temporary-session-findings",
+      "to": "source:docs-reference-memory-capability-implementation-plan-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "rule:docs-reference-memory-capability-implementation-plan-md:design-rules:promoted-durable-state",
+      "to": "source:docs-reference-memory-capability-implementation-plan-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "rule:docs-reference-memory-capability-implementation-plan-md:design-rules:disposable-generated-summaries",
+      "to": "source:docs-reference-memory-capability-implementation-plan-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "rule:docs-reference-memory-capability-implementation-plan-md:publication-hygiene:do-not-mention-external-research-repositories-or-products-in-public-docs-commit-messages-release-notes-or-managed-project-files-unless-there-is-a-separate-legal-or-attribution-requirement",
+      "to": "source:docs-reference-memory-capability-implementation-plan-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "rule:docs-reference-memory-capability-implementation-plan-md:publication-hygiene:keep-user-facing-language-centered-on-sula-s-architecture-contracts-and-operating-outcomes",
+      "to": "source:docs-reference-memory-capability-implementation-plan-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "rule:docs-reference-memory-capability-implementation-plan-md:publication-hygiene:record-adoption-reasoning-in-sula-terms-such-as-portability-removability-source-first-truth-and-scientific-retrieval",
+      "to": "source:docs-reference-memory-capability-implementation-plan-md",
+      "type": "derived-from"
+    },
+    {
       "from": "object:source:docs-reference-portfolio-adapter-workflow-contract-md",
       "to": "source:docs-reference-portfolio-adapter-workflow-contract-md",
       "type": "derived-from"
@@ -903,6 +1123,46 @@
       "type": "derived-from"
     },
     {
+      "from": "rule:docs-reference-project-memory-model-md:maintenance-rules:one-concern-one-source-of-truth",
+      "to": "source:docs-reference-project-memory-model-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "rule:docs-reference-project-memory-model-md:maintenance-rules:staged-captures-require-review-before-promotion",
+      "to": "source:docs-reference-project-memory-model-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "rule:docs-reference-project-memory-model-md:maintenance-rules:promotions-should-land-in-a-durable-source-document-not-in-a-hidden-parallel-truth-file",
+      "to": "source:docs-reference-project-memory-model-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "rule:docs-reference-project-memory-model-md:maintenance-rules:the-stable-operator-loop-is-capture-review-promote-query-clear",
+      "to": "source:docs-reference-project-memory-model-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "rule:docs-reference-project-memory-model-md:maintenance-rules:index-files-stay-short-and-link-to-detailed-records",
+      "to": "source:docs-reference-project-memory-model-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "rule:docs-reference-project-memory-model-md:maintenance-rules:generated-summaries-are-disposable-and-reproducible",
+      "to": "source:docs-reference-project-memory-model-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "rule:docs-reference-project-memory-model-md:maintenance-rules:non-trivial-work-should-leave-a-durable-trace",
+      "to": "source:docs-reference-project-memory-model-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "rule:docs-reference-project-memory-model-md:maintenance-rules:architecture-exceptions-should-point-back-to-change-records",
+      "to": "source:docs-reference-project-memory-model-md",
+      "type": "derived-from"
+    },
+    {
       "from": "object:source:docs-reference-provider-backed-artifact-identity-md",
       "to": "source:docs-reference-provider-backed-artifact-identity-md",
       "type": "derived-from"
@@ -918,13 +1178,13 @@
       "type": "derived-from"
     },
     {
-      "from": "object:source:docs-reference-superpowers-capability-absorption-plan-md",
-      "to": "source:docs-reference-superpowers-capability-absorption-plan-md",
+      "from": "object:source:docs-reference-sync-impact-model-md",
+      "to": "source:docs-reference-sync-impact-model-md",
       "type": "derived-from"
     },
     {
-      "from": "object:source:docs-reference-sync-impact-model-md",
-      "to": "source:docs-reference-sync-impact-model-md",
+      "from": "object:source:docs-reference-workflow-capability-absorption-plan-md",
+      "to": "source:docs-reference-workflow-capability-absorption-plan-md",
       "type": "derived-from"
     },
     {
@@ -945,6 +1205,11 @@
     {
       "from": "object:source:docs-releases-2026-04-16-release-sula-0-12-0-freshness-workflow-and-unicode-source-id-fixes-md",
       "to": "source:docs-releases-2026-04-16-release-sula-0-12-0-freshness-workflow-and-unicode-source-id-fixes-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "object:source:docs-releases-2026-04-18-release-sula-0-13-0-stable-memory-kernel-and-operator-workflow-md",
+      "to": "source:docs-releases-2026-04-18-release-sula-0-13-0-stable-memory-kernel-and-operator-workflow-md",
       "type": "derived-from"
     },
     {
@@ -978,7 +1243,37 @@
       "type": "derived-from"
     },
     {
+      "from": "rule:docs-versioning-md:patch-wording-improvements-typo-fixes-low-risk-managed-file-changes",
+      "to": "source:docs-versioning-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "rule:docs-versioning-md:minor-new-managed-files-new-profile-docs-new-doctor-checks-backward-compatible-script-improvements-new-memory-tooling-new-adoption-automation",
+      "to": "source:docs-versioning-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "rule:docs-versioning-md:major-manifest-schema-breakage-projection-or-ownership-contract-changes-memory-contract-breakage-or-migration-required-sync-behavior",
+      "to": "source:docs-versioning-md",
+      "type": "derived-from"
+    },
+    {
       "from": "agreement:source:docs-versioning-md",
+      "to": "source:docs-versioning-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "rule:docs-versioning-md:rules:patch-wording-improvements-typo-fixes-low-risk-managed-file-changes",
+      "to": "source:docs-versioning-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "rule:docs-versioning-md:rules:minor-new-managed-files-new-profile-docs-new-doctor-checks-backward-compatible-script-improvements-new-memory-tooling-new-adoption-automation",
+      "to": "source:docs-versioning-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "rule:docs-versioning-md:rules:major-manifest-schema-breakage-projection-or-ownership-contract-changes-memory-contract-breakage-or-migration-required-sync-behavior",
       "to": "source:docs-versioning-md",
       "type": "derived-from"
     },
@@ -988,7 +1283,52 @@
       "type": "derived-from"
     },
     {
+      "from": "rule:examples-client-service-gdrive-agents-md:highest-rule:preserve-project-owned-truth-while-using-sula-as-a-removable-operating-kernel",
+      "to": "source:examples-client-service-gdrive-agents-md",
+      "type": "derived-from"
+    },
+    {
       "from": "object:source:examples-client-service-gdrive-change-records-md",
+      "to": "source:examples-client-service-gdrive-change-records-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "rule:examples-client-service-gdrive-change-records-md:keep-this-file-short-and-index-oriented",
+      "to": "source:examples-client-service-gdrive-change-records-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "rule:examples-client-service-gdrive-change-records-md:put-detailed-records-in-docs-change-records",
+      "to": "source:examples-client-service-gdrive-change-records-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "rule:examples-client-service-gdrive-change-records-md:use-release-records-for-rollout-history-beyond-one-change",
+      "to": "source:examples-client-service-gdrive-change-records-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "rule:examples-client-service-gdrive-change-records-md:use-incident-records-for-broken-flows-outages-or-recovery-work",
+      "to": "source:examples-client-service-gdrive-change-records-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "rule:examples-client-service-gdrive-change-records-md:rules:keep-this-file-short-and-index-oriented",
+      "to": "source:examples-client-service-gdrive-change-records-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "rule:examples-client-service-gdrive-change-records-md:rules:put-detailed-records-in-docs-change-records",
+      "to": "source:examples-client-service-gdrive-change-records-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "rule:examples-client-service-gdrive-change-records-md:rules:use-release-records-for-rollout-history-beyond-one-change",
+      "to": "source:examples-client-service-gdrive-change-records-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "rule:examples-client-service-gdrive-change-records-md:rules:use-incident-records-for-broken-flows-outages-or-recovery-work",
       "to": "source:examples-client-service-gdrive-change-records-md",
       "type": "derived-from"
     },
@@ -1048,7 +1388,52 @@
       "type": "derived-from"
     },
     {
+      "from": "rule:examples-field-ops-generic-agents-md:highest-rule:preserve-project-owned-truth-while-using-sula-as-a-removable-operating-kernel",
+      "to": "source:examples-field-ops-generic-agents-md",
+      "type": "derived-from"
+    },
+    {
       "from": "object:source:examples-field-ops-generic-change-records-md",
+      "to": "source:examples-field-ops-generic-change-records-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "rule:examples-field-ops-generic-change-records-md:keep-this-file-short-and-index-oriented",
+      "to": "source:examples-field-ops-generic-change-records-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "rule:examples-field-ops-generic-change-records-md:put-detailed-records-in-docs-change-records",
+      "to": "source:examples-field-ops-generic-change-records-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "rule:examples-field-ops-generic-change-records-md:use-release-records-for-rollout-history-beyond-one-change",
+      "to": "source:examples-field-ops-generic-change-records-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "rule:examples-field-ops-generic-change-records-md:use-incident-records-for-broken-flows-outages-or-recovery-work",
+      "to": "source:examples-field-ops-generic-change-records-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "rule:examples-field-ops-generic-change-records-md:rules:keep-this-file-short-and-index-oriented",
+      "to": "source:examples-field-ops-generic-change-records-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "rule:examples-field-ops-generic-change-records-md:rules:put-detailed-records-in-docs-change-records",
+      "to": "source:examples-field-ops-generic-change-records-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "rule:examples-field-ops-generic-change-records-md:rules:use-release-records-for-rollout-history-beyond-one-change",
+      "to": "source:examples-field-ops-generic-change-records-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "rule:examples-field-ops-generic-change-records-md:rules:use-incident-records-for-broken-flows-outages-or-recovery-work",
       "to": "source:examples-field-ops-generic-change-records-md",
       "type": "derived-from"
     },
@@ -1123,6 +1508,46 @@
       "type": "derived-from"
     },
     {
+      "from": "rule:examples-okoktoto-change-records-md:keep-this-file-short-and-index-oriented",
+      "to": "source:examples-okoktoto-change-records-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "rule:examples-okoktoto-change-records-md:put-detailed-records-in-docs-change-records",
+      "to": "source:examples-okoktoto-change-records-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "rule:examples-okoktoto-change-records-md:use-release-records-for-rollout-history-that-goes-beyond-a-single-code-change",
+      "to": "source:examples-okoktoto-change-records-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "rule:examples-okoktoto-change-records-md:use-incident-records-for-outages-broken-flows-or-recovery-work",
+      "to": "source:examples-okoktoto-change-records-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "rule:examples-okoktoto-change-records-md:rules:keep-this-file-short-and-index-oriented",
+      "to": "source:examples-okoktoto-change-records-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "rule:examples-okoktoto-change-records-md:rules:put-detailed-records-in-docs-change-records",
+      "to": "source:examples-okoktoto-change-records-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "rule:examples-okoktoto-change-records-md:rules:use-release-records-for-rollout-history-that-goes-beyond-a-single-code-change",
+      "to": "source:examples-okoktoto-change-records-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "rule:examples-okoktoto-change-records-md:rules:use-incident-records-for-outages-broken-flows-or-recovery-work",
+      "to": "source:examples-okoktoto-change-records-md",
+      "type": "derived-from"
+    },
+    {
       "from": "object:source:examples-okoktoto-claude-md",
       "to": "source:examples-okoktoto-claude-md",
       "type": "derived-from"
@@ -1149,6 +1574,11 @@
     },
     {
       "from": "object:source:examples-okoktoto-docs-readme-md",
+      "to": "source:examples-okoktoto-docs-readme-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "rule:examples-okoktoto-docs-readme-md:maintenance-rule",
       "to": "source:examples-okoktoto-docs-readme-md",
       "type": "derived-from"
     },

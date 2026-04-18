@@ -6,6 +6,29 @@ All notable changes to Sula Core should be recorded here with explicit sync impa
 
 - no entries yet
 
+## 0.13.0 - 2026-04-18
+
+### Added
+
+- staged session memory under `.sula/state/session/captures.jsonl` with `memory capture`, `memory review`, `memory promote`, `memory clear`, and `memory jobs`
+- first-class kernel objects for rules, staged session captures, promotions, and memory-maintenance jobs
+- deterministic query-route reporting plus rule-aware routing for `query` and portfolio query surfaces
+- default durable promotion file `docs/ops/session-promotions.md` with reusable sections for rules, tasks, decisions, state updates, workflow artifacts, and risks
+
+### Changed
+
+- `status`, `onboard`, and `adopt` now expose the staged-memory lifecycle, recent promotions, last memory job, and the configured promotion file
+- `doctor --strict` and `check` now validate staged-capture age, memory-job state, and promotion-file structure as part of the normal release bar
+- `memory promote` now supports `state` and `workflow-artifact` targets in addition to rules, tasks, decisions, and risks
+- the project-memory guidance now documents the stable operator loop as capture, review, promote, query, clear
+
+### Sync Impact
+
+- existing adopted projects remain backward-compatible and gain the new memory command surface, rule indexing, and query-route reporting on next sync
+- projects syncing to this release can keep semantic help disabled while still getting a stronger cross-session operating-memory loop through staged capture and explicit promotion
+- adopted projects that use `check` or `doctor --strict` will now be held to stale-capture and promotion-file integrity checks, so rollout should review old temporary memory before treating the upgrade as a no-op
+- newly adopted projects and projects using memory promotion will now create or extend `docs/ops/session-promotions.md` as a project-owned durable source instead of leaving promoted operating insight implicit
+
 ## 0.12.0 - 2026-04-16
 
 ### Added

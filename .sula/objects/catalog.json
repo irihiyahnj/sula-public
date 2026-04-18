@@ -1,5 +1,5 @@
 {
-  "version": "0.12.0",
+  "version": "0.13.0",
   "profile": "sula-core",
   "objects": [
     {
@@ -25,13 +25,13 @@
       "tags": [
         "sula-core"
       ],
-      "date": "2026-04-16"
+      "date": "2026-04-18"
     },
     {
       "id": "state:current",
       "kind": "state",
       "title": "Current Project State",
-      "summary": "- Sula now manages itself as a first-class `sula-core` consumer while still acting as the source repository for reusable operating-system assets.\n- The repository has memory-aware governance, an in-repo canary, a root self-adoption path, and an approval-based adoption agent for bringing new repositories under Sula.\n- Public-release governance is now in place, and the remaining blocker is historical lineage cleanup rather than working-tree quality.\n- The future `sula.1stp.monster` landing page is now represented by real static site assets with canonical long-form bootstrap prompts and protocol pages.\n- The bootstrap site is now live on both `https://sula.fly.dev/` and `https://sula.1stp.monster/`, with the public bootstrap contract explicitly handling existing Sula consumers and canonical tool-source resolution.\n- Sula now has a recorded vNext architecture target for a `generic-project` kernel, adapter bundles, scientific retrieval, and first-class removal semantics.\n- The first milestone of that direction is now implemented: unknown and non-Git projects can adopt through `generic-project`, `.sula/` holds kernel artifacts, and removal has a report-first command.\n- The second milestone is now implemented as well: local retrieval can rebuild from SQLite, kernel objects cover task/decision/risk/person/agreement/milestone shapes, and query supports stronger filters plus timeline output.\n- The next operating milestone is now implemented too: machine-readable CLI responses, workflow/storage/portfolio manifest sections, artifact routing, and portfolio registration are available for non-code client projects.\n- Drive-synced projects can now describe `google-drive` as an adapter instead of pretending that storage provider is a project type, which keeps the kernel portable for future providers.\n- Collaborative provider-backed artifact families can now declare their truth source, refresh state, and stale-local-copy risk, so Sula can prefer shared Google-native facts when users ask for the latest version in natural language.\n- Sula now has a real read-only provider refresh path for Google Docs and Google Sheets, plus `artifact refresh` and cached provider snapshots, so freshness intent can trigger an actual provider metadata refresh instead of only local re-ranking.\n- Sula now has a first-class daily `check` workflow, so state-sync work can fail fast when `.sula/state/current.md` or `.sula/memory-digest.md` drift away from the current status and change records.\n- Formal document design is now a first-class Sula capability: adopted projects can carry reusable source-first structure bundles for schedule, proposal, report, process, and training documents instead of relying on one-off prompt instructions.\n- Sula now has a documented proposal for absorbing long-term value from workflow systems like `obra/superpowers` through manifest-driven capability contracts instead of platform-specific skill lock-in.\n- Sula now implements the first workflow-capability slice from that proposal: manifest-level workflow rigor policy plus source-first `spec`, `plan`, and `review` scaffolds under `docs/workflows/`.\n- Sula now completes that workflow slice with first-class `workflow branch` and `workflow close` commands, so complex work can move from policy assessment to explicit closeout readiness.\n- The next UX milestone is now implemented too: `onboard` provides a zero-memory interview flow that asks setup questions, explains what Sula will manage, and then applies adoption through the same kernel contract.\n- The next launch milestone is now implemented too: the public site exposes `/launch/`, a machine-readable launcher descriptor, and a downloadable `bootstrap.py` shim so startup no longer depends on guessing local commands.\n- The feedback-bundle lifecycle is now released in the Git-backed Sula 0.11.0 source state: adopted projects can capture reusable local Sula fixes as feedback bundles, and Sula Core can ingest, review, and release them through a central queue.\n- Sula 0.12.0 is now released in source form, bundling truth-source freshness checks, the daily `check` workflow, stronger workflow/release governance, and Unicode-safe discovered source ids into one downstream sync target.\n- Sula now has registry-backed in-repo canary verification across `sula-core`, `software-delivery`, `generic-project`, and `client-service`-style examples, plus public-release readiness and export commands that isolate remaining publication risk to git history rather than content drift.\n- Sula now has a chosen default public-release path: keep this repository as the private pre-public lineage, publish a fresh public repository from `release export-public`, and only then point the site descriptor at the public source.\n- The fresh public source now exists at `irihiyahnj/sula-public`, so `https://sula.1stp.monster/launch/` can resolve a real canonical clone source instead of depending on a local checkout.",
+      "summary": "- Sula now manages itself as a first-class `sula-core` consumer while still acting as the source repository for reusable operating-system assets.\n- The repository has memory-aware governance, an in-repo canary, a root self-adoption path, and an approval-based adoption agent for bringing new repositories under Sula.\n- Public-release governance is now in place, and the remaining blocker is historical lineage cleanup rather than working-tree quality.\n- The future `sula.1stp.monster` landing page is now represented by real static site assets with canonical long-form bootstrap prompts and protocol pages.\n- The bootstrap site is now live on both `https://sula.fly.dev/` and `https://sula.1stp.monster/`, with the public bootstrap contract explicitly handling existing Sula consumers and canonical tool-source resolution.\n- Sula now has a recorded vNext architecture target for a `generic-project` kernel, adapter bundles, scientific retrieval, and first-class removal semantics.\n- The first milestone of that direction is now implemented: unknown and non-Git projects can adopt through `generic-project`, `.sula/` holds kernel artifacts, and removal has a report-first command.\n- The second milestone is now implemented as well: local retrieval can rebuild from SQLite, kernel objects cover task/decision/risk/person/agreement/milestone shapes, and query supports stronger filters plus timeline output.\n- The next operating milestone is now implemented too: machine-readable CLI responses, workflow/storage/portfolio manifest sections, artifact routing, and portfolio registration are available for non-code client projects.\n- Drive-synced projects can now describe `google-drive` as an adapter instead of pretending that storage provider is a project type, which keeps the kernel portable for future providers.\n- Collaborative provider-backed artifact families can now declare their truth source, refresh state, and stale-local-copy risk, so Sula can prefer shared Google-native facts when users ask for the latest version in natural language.\n- Sula now has a real read-only provider refresh path for Google Docs and Google Sheets, plus `artifact refresh` and cached provider snapshots, so freshness intent can trigger an actual provider metadata refresh instead of only local re-ranking.\n- Sula now has a first-class daily `check` workflow, so state-sync work can fail fast when `.sula/state/current.md` or `.sula/memory-digest.md` drift away from the current status and change records.\n- Formal document design is now a first-class Sula capability: adopted projects can carry reusable source-first structure bundles for schedule, proposal, report, process, and training documents instead of relying on one-off prompt instructions.\n- Sula now has a documented proposal for absorbing long-term value from reusable workflow-governance patterns through manifest-driven capability contracts instead of platform-specific skill lock-in.\n- Sula now implements the first workflow-capability slice from that proposal: manifest-level workflow rigor policy plus source-first `spec`, `plan`, and `review` scaffolds under `docs/workflows/`.\n- Sula now completes that workflow slice with first-class `workflow branch` and `workflow close` commands, so complex work can move from policy assessment to explicit closeout readiness.\n- The next UX milestone is now implemented too: `onboard` provides a zero-memory interview flow that asks setup questions, explains what Sula will manage, and then applies adoption through the same kernel contract.\n- The next launch milestone is now implemented too: the public site exposes `/launch/`, a machine-readable launcher descriptor, and a downloadable `bootstrap.py` shim so startup no longer depends on guessing local commands.\n- The feedback-bundle lifecycle is now released in the Git-backed Sula 0.11.0 source state: adopted projects can capture reusable local Sula fixes as feedback bundles, and Sula Core can ingest, review, and release them through a central queue.\n- Sula 0.12.0 is now released in source form, bundling truth-source freshness checks, the daily `check` workflow, stronger workflow/release governance, and Unicode-safe discovered source ids into one downstream sync target.\n- Sula 0.13.0 is now released in source form, bundling staged session captures, durable memory promotion, rule-aware retrieval routing, memory-job inspection, and stable operator-facing memory workflows into one downstream sync target.\n- Sula now has registry-backed in-repo canary verification across `sula-core`, `software-delivery`, `generic-project`, and `client-service`-style examples, plus public-release readiness and export commands that isolate remaining publication risk to git history rather than content drift.\n- Sula now has a chosen default public-release path: keep this repository as the private pre-public lineage, publish a fresh public repository from `release export-public`, and only then point the site descriptor at the public source.\n- The fresh public source now exists at `irihiyahnj/sula-public`, so `https://sula.1stp.monster/launch/` can resolve a real canonical clone source instead of depending on a local checkout.",
       "status": "current",
       "path": "STATUS.md",
       "source_paths": [
@@ -44,13 +44,33 @@
       "tags": [
         "state"
       ],
-      "date": "2026-04-16"
+      "date": "2026-04-18"
     },
     {
-      "id": "task:status:push-the-fresh-export-first-lineage-to-irihiyahnj-sula-public-and-redeploy-the-hosted-site-descriptor",
+      "id": "rule:manifest:highest-rule",
+      "kind": "rule",
+      "title": "Highest Rule",
+      "summary": "Preserve the split between centrally managed operating-system files and project-owned business truth.",
+      "status": "active",
+      "path": ".sula/project.toml",
+      "source_paths": [
+        ".sula/project.toml"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "rule",
+        "manifest"
+      ],
+      "date": "2026-04-18"
+    },
+    {
+      "id": "task:status:roll-out-sula-0-13-0-to-external-canaries-and-confirm-the-staged-memory-workflow-is-understandable-outside-the-source-repository",
       "kind": "task",
-      "title": "push the fresh export-first lineage to `irihiyahnj/sula-public` and redeploy...",
-      "summary": "push the fresh export-first lineage to `irihiyahnj/sula-public` and redeploy the hosted site descriptor",
+      "title": "roll out Sula 0.13.0 to external canaries and confirm the staged-memory workf...",
+      "summary": "roll out Sula 0.13.0 to external canaries and confirm the staged-memory workflow is understandable outside the source repository",
       "status": "open",
       "path": "STATUS.md",
       "source_paths": [
@@ -64,7 +84,7 @@
         "current-focus",
         "status"
       ],
-      "date": "2026-04-16"
+      "date": "2026-04-18"
     },
     {
       "id": "task:status:validate-the-new-adopt-flow-against-the-first-external-repository",
@@ -84,7 +104,7 @@
         "current-focus",
         "status"
       ],
-      "date": "2026-04-16"
+      "date": "2026-04-18"
     },
     {
       "id": "task:status:run-the-first-external-canaries-through-the-new-canary-verify-contract",
@@ -104,7 +124,7 @@
         "current-focus",
         "status"
       ],
-      "date": "2026-04-16"
+      "date": "2026-04-18"
     },
     {
       "id": "task:status:keep-sula-core-and-react-frontend-erpnext-profiles-aligned-with-real-usage",
@@ -124,7 +144,7 @@
         "current-focus",
         "status"
       ],
-      "date": "2026-04-16"
+      "date": "2026-04-18"
     },
     {
       "id": "task:status:validate-the-new-generic-project-and-remove-flows-against-external-canaries",
@@ -144,7 +164,7 @@
         "current-focus",
         "status"
       ],
-      "date": "2026-04-16"
+      "date": "2026-04-18"
     },
     {
       "id": "task:status:validate-portfolio-registration-artifact-routing-and-google-drive-local-sync-behavior-against-the-first-real-client-service-workspace",
@@ -164,7 +184,7 @@
         "current-focus",
         "status"
       ],
-      "date": "2026-04-16"
+      "date": "2026-04-18"
     },
     {
       "id": "task:status:validate-the-new-formal-document-bundles-against-the-first-real-planning-heavy-client-workspace-and-confirm-where-google-docs-import-needs-richer-tabular-bridge-defaults",
@@ -184,7 +204,7 @@
         "current-focus",
         "status"
       ],
-      "date": "2026-04-16"
+      "date": "2026-04-18"
     },
     {
       "id": "task:status:validate-the-released-feedback-bundle-lifecycle-through-the-first-external-adopted-project-and-the-first-real-sula-core-feedback-item-that-flows-through-the-queue-end-to-end",
@@ -204,7 +224,7 @@
         "current-focus",
         "status"
       ],
-      "date": "2026-04-16"
+      "date": "2026-04-18"
     },
     {
       "id": "task:status:validate-the-now-complete-workflow-policy-scaffold-branch-and-close-loop-against-the-first-external-software-delivery-canary",
@@ -224,7 +244,7 @@
         "current-focus",
         "status"
       ],
-      "date": "2026-04-16"
+      "date": "2026-04-18"
     },
     {
       "id": "task:status:turn-the-recorded-vnext-architecture-into-stronger-adapter-composition-and-better-result-quality-over-the-new-sqlite-backed-retrieval-path",
@@ -244,7 +264,7 @@
         "current-focus",
         "status"
       ],
-      "date": "2026-04-16"
+      "date": "2026-04-18"
     },
     {
       "id": "task:status:maintain-clear-approval-reporting-so-managed-scaffold-boundaries-remain-obvious-during-onboarding",
@@ -264,7 +284,7 @@
         "current-focus",
         "status"
       ],
-      "date": "2026-04-16"
+      "date": "2026-04-18"
     },
     {
       "id": "task:status:keep-the-public-bootstrap-contract-aligned-with-real-consumer-behavior-and-protocol-failures-seen-in-live-use",
@@ -284,7 +304,7 @@
         "current-focus",
         "status"
       ],
-      "date": "2026-04-16"
+      "date": "2026-04-18"
     },
     {
       "id": "task:status:switch-site-sula-json-and-site-launch-bootstrap-py-to-the-published-public-source-after-that-repository-exists",
@@ -304,7 +324,7 @@
         "current-focus",
         "status"
       ],
-      "date": "2026-04-16"
+      "date": "2026-04-18"
     },
     {
       "id": "task:status:decide-whether-to-keep-the-hosted-site-on-fly-or-migrate-it-onto-the-existing-digitalocean-infrastructure-once-server-write-access-is-available",
@@ -324,7 +344,7 @@
         "current-focus",
         "status"
       ],
-      "date": "2026-04-16"
+      "date": "2026-04-18"
     },
     {
       "id": "decision:status:2026-04-11-added-refine-the-public-bootstrap-contract-for-existing-sula-consumers-docs-change-records-2026-04-11-refine-the-public-bootstrap-contract-for-existing-sula-consumers-md",
@@ -667,10 +687,10 @@
       "date": "2026-04-15"
     },
     {
-      "id": "decision:status:2026-04-16-added-document-superpowers-capability-absorption-plan-docs-change-records-2026-04-16-document-superpowers-capability-absorption-plan-md",
+      "id": "decision:status:2026-04-16-added-document-workflow-capability-absorption-plan-docs-change-records-2026-04-16-document-workflow-capability-absorption-plan-md",
       "kind": "decision",
-      "title": "2026-04-16: added [Document Superpowers capability absorption plan](docs/chan...",
-      "summary": "2026-04-16: added [Document Superpowers capability absorption plan](docs/change-records/2026-04-16-document-superpowers-capability-absorption-plan.md)",
+      "title": "2026-04-16: added [Document workflow capability absorption plan](docs/change-...",
+      "summary": "2026-04-16: added [Document workflow capability absorption plan](docs/change-records/2026-04-16-document-workflow-capability-absorption-plan.md)",
       "status": "decided",
       "path": "STATUS.md",
       "source_paths": [
@@ -787,6 +807,66 @@
       "date": "2026-04-16"
     },
     {
+      "id": "decision:status:2026-04-18-added-document-memory-capability-implementation-plan-docs-change-records-2026-04-18-document-memory-capability-implementation-plan-md",
+      "kind": "decision",
+      "title": "2026-04-18: added [Document memory capability implementation plan](docs/chang...",
+      "summary": "2026-04-18: added [Document memory capability implementation plan](docs/change-records/2026-04-18-document-memory-capability-implementation-plan.md)",
+      "status": "decided",
+      "path": "STATUS.md",
+      "source_paths": [
+        "STATUS.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "recent-decision",
+        "status"
+      ],
+      "date": "2026-04-18"
+    },
+    {
+      "id": "decision:status:2026-04-18-added-add-staged-memory-captures-rule-registry-and-query-routing-docs-change-records-2026-04-18-add-staged-memory-captures-rule-registry-and-query-routing-md",
+      "kind": "decision",
+      "title": "2026-04-18: added [Add staged memory captures, rule registry, and query routi...",
+      "summary": "2026-04-18: added [Add staged memory captures, rule registry, and query routing](docs/change-records/2026-04-18-add-staged-memory-captures-rule-registry-and-query-routing.md)",
+      "status": "decided",
+      "path": "STATUS.md",
+      "source_paths": [
+        "STATUS.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "recent-decision",
+        "status"
+      ],
+      "date": "2026-04-18"
+    },
+    {
+      "id": "decision:status:2026-04-18-released-sula-0-13-0-stable-memory-kernel-and-operator-workflow-docs-releases-2026-04-18-release-sula-0-13-0-stable-memory-kernel-and-operator-workflow-md",
+      "kind": "decision",
+      "title": "2026-04-18: released [Sula 0.13.0 stable memory kernel and operator workflow]...",
+      "summary": "2026-04-18: released [Sula 0.13.0 stable memory kernel and operator workflow](docs/releases/2026-04-18-release-sula-0-13-0-stable-memory-kernel-and-operator-workflow.md)",
+      "status": "decided",
+      "path": "STATUS.md",
+      "source_paths": [
+        "STATUS.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "recent-decision",
+        "status"
+      ],
+      "date": "2026-04-18"
+    },
+    {
       "id": "decision:status:2026-04-12-added-add-guided-onboarding-and-zero-memory-setup-flow-docs-change-records-2026-04-12-add-guided-onboarding-and-zero-memory-setup-flow-md",
       "kind": "decision",
       "title": "2026-04-12: added [Add guided onboarding and zero-memory setup flow](docs/cha...",
@@ -887,6 +967,26 @@
       "date": "2026-04-16"
     },
     {
+      "id": "decision:status:2026-04-18-added-release-record-release-sula-0-13-0-stable-memory-kernel-and-operator-workflow-docs-releases-2026-04-18-release-sula-0-13-0-stable-memory-kernel-and-operator-workflow-md",
+      "kind": "decision",
+      "title": "2026-04-18: added release record [Release Sula 0.13.0 stable memory kernel an...",
+      "summary": "2026-04-18: added release record [Release Sula 0.13.0 stable memory kernel and operator workflow](docs/releases/2026-04-18-release-sula-0-13-0-stable-memory-kernel-and-operator-workflow.md)",
+      "status": "decided",
+      "path": "STATUS.md",
+      "source_paths": [
+        "STATUS.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "recent-decision",
+        "status"
+      ],
+      "date": "2026-04-18"
+    },
+    {
       "id": "decision:status:2026-04-12-added-release-record-release-sula-0-11-0-formal-document-workflows-and-feedback-bundles-docs-releases-2026-04-12-release-sula-0-11-0-formal-document-workflows-and-feedback-bundles-md",
       "kind": "decision",
       "title": "2026-04-12: added release record [Release Sula 0.11.0 formal document workflo...",
@@ -924,13 +1024,13 @@
         "next-review-owner",
         "status"
       ],
-      "date": "2026-04-16"
+      "date": "2026-04-18"
     },
     {
-      "id": "milestone:status:next-review:2026-04-18",
+      "id": "milestone:status:next-review:2026-04-21",
       "kind": "milestone",
       "title": "Next Review",
-      "summary": "Next review checkpoint. review again before changing the public bootstrap contract, the managed/scaffold onboarding contract, or the planned vNext kernel contract",
+      "summary": "Next review checkpoint. review again before broad 0.13.0 rollout, changing the public bootstrap contract, or expanding memory beyond the current stable promotion loop",
       "status": "planned",
       "path": "STATUS.md",
       "source_paths": [
@@ -944,27 +1044,45 @@
         "next-review",
         "status"
       ],
-      "date": "2026-04-18"
+      "date": "2026-04-21"
     },
     {
-      "id": "risk:health:yellow-the-canonical-public-source-now-exists-but-the-hosted-site-still-needs-redeployment-and-the-optional-digitalocean-migration-is-not-complete-yet",
-      "kind": "risk",
-      "title": "Project health is yellow",
-      "summary": "the canonical public source now exists, but the hosted site still needs redeployment and the optional DigitalOcean migration is not complete yet.",
-      "status": "watch",
-      "path": "STATUS.md",
+      "id": "change:2026-04-18-document-memory-capability-implementation-plan",
+      "kind": "change",
+      "title": "Document memory capability implementation plan",
+      "summary": "- date: 2026-04-18 - executor: Codex - branch: codex/release-main - related commit(s): pending - status: completed",
+      "status": "recorded",
+      "path": "docs/change-records/2026-04-18-document-memory-capability-implementation-plan.md",
       "source_paths": [
-        "STATUS.md"
+        "docs/change-records/2026-04-18-document-memory-capability-implementation-plan.md"
       ],
       "adapters": [
         "generic-project",
         "memory"
       ],
       "tags": [
-        "health",
-        "status"
+        "change"
       ],
-      "date": "2026-04-16"
+      "date": "2026-04-18"
+    },
+    {
+      "id": "change:2026-04-18-add-staged-memory-captures-rule-registry-and-query-routing",
+      "kind": "change",
+      "title": "Add staged memory captures, rule registry, and query routing",
+      "summary": "- date: 2026-04-18 - executor: Codex - branch: codex/release-main - related commit(s): pending - status: completed",
+      "status": "recorded",
+      "path": "docs/change-records/2026-04-18-add-staged-memory-captures-rule-registry-and-query-routing.md",
+      "source_paths": [
+        "docs/change-records/2026-04-18-add-staged-memory-captures-rule-registry-and-query-routing.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "change"
+      ],
+      "date": "2026-04-18"
     },
     {
       "id": "change:2026-04-16-publish-the-fresh-public-sula-source",
@@ -1024,14 +1142,14 @@
       "date": "2026-04-16"
     },
     {
-      "id": "change:2026-04-16-document-superpowers-capability-absorption-plan",
+      "id": "change:2026-04-16-document-workflow-capability-absorption-plan",
       "kind": "change",
-      "title": "Document Superpowers capability absorption plan",
+      "title": "Document workflow capability absorption plan",
       "summary": "- date: 2026-04-16 - executor: Codex - branch: codex/release-main - related commit(s): pending - status: completed",
       "status": "recorded",
-      "path": "docs/change-records/2026-04-16-document-superpowers-capability-absorption-plan.md",
+      "path": "docs/change-records/2026-04-16-document-workflow-capability-absorption-plan.md",
       "source_paths": [
-        "docs/change-records/2026-04-16-document-superpowers-capability-absorption-plan.md"
+        "docs/change-records/2026-04-16-document-workflow-capability-absorption-plan.md"
       ],
       "adapters": [
         "generic-project",
@@ -1708,6 +1826,104 @@
       "date": "2026-04-11"
     },
     {
+      "id": "release:2026-04-18-release-sula-0-13-0-stable-memory-kernel-and-operator-workflow",
+      "kind": "release",
+      "title": "Release Sula 0.13.0 stable memory kernel and operator workflow",
+      "summary": "- date: 2026-04-18 - executor: Codex - branch: main - status: released",
+      "status": "recorded",
+      "path": "docs/releases/2026-04-18-release-sula-0-13-0-stable-memory-kernel-and-operator-workflow.md",
+      "source_paths": [
+        "docs/releases/2026-04-18-release-sula-0-13-0-stable-memory-kernel-and-operator-workflow.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "release"
+      ],
+      "date": "2026-04-18"
+    },
+    {
+      "id": "milestone:2026-04-18-release-sula-0-13-0-stable-memory-kernel-and-operator-workflow",
+      "kind": "milestone",
+      "title": "Release Sula 0.13.0 stable memory kernel and operator workflow",
+      "summary": "- date: 2026-04-18 - executor: Codex - branch: main - status: released",
+      "status": "shipped",
+      "path": "docs/releases/2026-04-18-release-sula-0-13-0-stable-memory-kernel-and-operator-workflow.md",
+      "source_paths": [
+        "docs/releases/2026-04-18-release-sula-0-13-0-stable-memory-kernel-and-operator-workflow.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "release-milestone"
+      ],
+      "date": "2026-04-18"
+    },
+    {
+      "id": "risk:docs-releases-2026-04-18-release-sula-0-13-0-stable-memory-kernel-and-operator-workflow-md:adopted-projects-that-sync-to-this-release-may-fail-check-or-doctor-strict-if-they-have-stale-staged-captures-or-malformed-promotion-files-so-rollout-should-review-old-temporary-memory-instead-of-assuming-a-silent-upgrade",
+      "kind": "risk",
+      "title": "adopted projects that sync to this release may fail `check` or `doctor --stri...",
+      "summary": "adopted projects that sync to this release may fail `check` or `doctor --strict` if they have stale staged captures or malformed promotion files, so rollout should review old temporary memory instead of assuming a silent upgrade",
+      "status": "open",
+      "path": "docs/releases/2026-04-18-release-sula-0-13-0-stable-memory-kernel-and-operator-workflow.md",
+      "source_paths": [
+        "docs/releases/2026-04-18-release-sula-0-13-0-stable-memory-kernel-and-operator-workflow.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "risk",
+        "section-object"
+      ],
+      "date": "2026-04-18"
+    },
+    {
+      "id": "risk:docs-releases-2026-04-18-release-sula-0-13-0-stable-memory-kernel-and-operator-workflow-md:teams-that-previously-treated-temporary-session-notes-as-private-scratch-space-now-have-a-clearer-promotion-path-but-they-still-need-to-decide-what-deserves-durable-project-context-and-what-should-be-discarded",
+      "kind": "risk",
+      "title": "teams that previously treated temporary session notes as private scratch spac...",
+      "summary": "teams that previously treated temporary session notes as private scratch space now have a clearer promotion path, but they still need to decide what deserves durable project context and what should be discarded",
+      "status": "open",
+      "path": "docs/releases/2026-04-18-release-sula-0-13-0-stable-memory-kernel-and-operator-workflow.md",
+      "source_paths": [
+        "docs/releases/2026-04-18-release-sula-0-13-0-stable-memory-kernel-and-operator-workflow.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "risk",
+        "section-object"
+      ],
+      "date": "2026-04-18"
+    },
+    {
+      "id": "risk:docs-releases-2026-04-18-release-sula-0-13-0-stable-memory-kernel-and-operator-workflow-md:external-canaries-should-validate-whether-the-new-memory-workflow-reads-naturally-to-non-core-operators-before-broad-rollout-treats-it-as-fully-routine",
+      "kind": "risk",
+      "title": "external canaries should validate whether the new memory workflow reads natur...",
+      "summary": "external canaries should validate whether the new memory workflow reads naturally to non-core operators before broad rollout treats it as fully routine",
+      "status": "open",
+      "path": "docs/releases/2026-04-18-release-sula-0-13-0-stable-memory-kernel-and-operator-workflow.md",
+      "source_paths": [
+        "docs/releases/2026-04-18-release-sula-0-13-0-stable-memory-kernel-and-operator-workflow.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "risk",
+        "section-object"
+      ],
+      "date": "2026-04-18"
+    },
+    {
       "id": "release:2026-04-16-release-sula-0-12-0-freshness-workflow-and-unicode-source-id-fixes",
       "kind": "release",
       "title": "Release Sula 0.12.0 freshness, workflow, and Unicode source-id fixes",
@@ -1903,6 +2119,86 @@
       "date": "2026-04-12"
     },
     {
+      "id": "job:memory.digest:20260418-025909",
+      "kind": "job",
+      "title": "memory.digest",
+      "summary": "Regenerated memory digest at `.sula/memory-digest.md`.",
+      "status": "ok",
+      "path": ".sula/state/jobs/history.jsonl",
+      "source_paths": [
+        ".sula/state/jobs/history.jsonl"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "job",
+        "memory-job"
+      ],
+      "date": "2026-04-18"
+    },
+    {
+      "id": "job:memory.digest:20260418-025849",
+      "kind": "job",
+      "title": "memory.digest",
+      "summary": "Regenerated memory digest at `.sula/memory-digest.md`.",
+      "status": "ok",
+      "path": ".sula/state/jobs/history.jsonl",
+      "source_paths": [
+        ".sula/state/jobs/history.jsonl"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "job",
+        "memory-job"
+      ],
+      "date": "2026-04-18"
+    },
+    {
+      "id": "job:memory.digest:20260418-025142",
+      "kind": "job",
+      "title": "memory.digest",
+      "summary": "Regenerated memory digest at `.sula/memory-digest.md`.",
+      "status": "ok",
+      "path": ".sula/state/jobs/history.jsonl",
+      "source_paths": [
+        ".sula/state/jobs/history.jsonl"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "job",
+        "memory-job"
+      ],
+      "date": "2026-04-18"
+    },
+    {
+      "id": "job:memory.digest:20260418-021658",
+      "kind": "job",
+      "title": "memory.digest",
+      "summary": "Regenerated memory digest at `.sula/memory-digest.md`.",
+      "status": "ok",
+      "path": ".sula/state/jobs/history.jsonl",
+      "source_paths": [
+        ".sula/state/jobs/history.jsonl"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "job",
+        "memory-job"
+      ],
+      "date": "2026-04-18"
+    },
+    {
       "id": "object:source:github-issue-template-bug-report-yml",
       "kind": "config",
       "title": "bug-report.yml",
@@ -2028,7 +2324,7 @@
       "id": "object:source:agents-md",
       "kind": "document",
       "title": "AGENTS.md",
-      "summary": "This file is the primary instruction source for AI coding agents working in the Sula repository.",
+      "summary": "\u662f# AGENTS.md",
       "status": "indexed",
       "path": "AGENTS.md",
       "source_paths": [
@@ -2044,6 +2340,222 @@
         "discovered-source"
       ],
       "date": null
+    },
+    {
+      "id": "rule:agents-md:highest-rule:preserve-the-split-between-centrally-managed-operating-system-files-and-project-owned-business-truth",
+      "kind": "rule",
+      "title": "Preserve the split between centrally managed operating-system files and proje...",
+      "summary": "Preserve the split between centrally managed operating-system files and project-owned business truth.",
+      "status": "active",
+      "path": "AGENTS.md",
+      "source_paths": [
+        "AGENTS.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo",
+        "memory"
+      ],
+      "tags": [
+        "rule",
+        "section-rule",
+        "highest-rule"
+      ],
+      "date": "2026-04-12"
+    },
+    {
+      "id": "rule:agents-md:highest-rule:do-not-turn-sula-into-a-one-project-template-repository",
+      "kind": "rule",
+      "title": "Do not turn Sula into a one-project template repository.",
+      "summary": "Do not turn Sula into a one-project template repository.",
+      "status": "active",
+      "path": "AGENTS.md",
+      "source_paths": [
+        "AGENTS.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo",
+        "memory"
+      ],
+      "tags": [
+        "rule",
+        "section-rule",
+        "highest-rule"
+      ],
+      "date": "2026-04-12"
+    },
+    {
+      "id": "rule:agents-md:working-rules:keep-sula-improvements-portable-across-adopted-projects",
+      "kind": "rule",
+      "title": "Keep Sula improvements portable across adopted projects.",
+      "summary": "Keep Sula improvements portable across adopted projects.",
+      "status": "active",
+      "path": "AGENTS.md",
+      "source_paths": [
+        "AGENTS.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo",
+        "memory"
+      ],
+      "tags": [
+        "rule",
+        "section-rule",
+        "working-rules"
+      ],
+      "date": "2026-04-12"
+    },
+    {
+      "id": "rule:agents-md:working-rules:prefer-profile-level-abstractions-over-project-specific-wording",
+      "kind": "rule",
+      "title": "Prefer profile-level abstractions over project-specific wording.",
+      "summary": "Prefer profile-level abstractions over project-specific wording.",
+      "status": "active",
+      "path": "AGENTS.md",
+      "source_paths": [
+        "AGENTS.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo",
+        "memory"
+      ],
+      "tags": [
+        "rule",
+        "section-rule",
+        "working-rules"
+      ],
+      "date": "2026-04-12"
+    },
+    {
+      "id": "rule:agents-md:working-rules:keep-bootstrap-scripts-dependency-light",
+      "kind": "rule",
+      "title": "Keep bootstrap scripts dependency-light.",
+      "summary": "Keep bootstrap scripts dependency-light.",
+      "status": "active",
+      "path": "AGENTS.md",
+      "source_paths": [
+        "AGENTS.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo",
+        "memory"
+      ],
+      "tags": [
+        "rule",
+        "section-rule",
+        "working-rules"
+      ],
+      "date": "2026-04-12"
+    },
+    {
+      "id": "rule:agents-md:working-rules:do-not-make-python-3-11-or-third-party-packages-mandatory-without-a-strong-reason",
+      "kind": "rule",
+      "title": "Do not make Python 3.11+ or third-party packages mandatory without a strong r...",
+      "summary": "Do not make Python 3.11+ or third-party packages mandatory without a strong reason.",
+      "status": "active",
+      "path": "AGENTS.md",
+      "source_paths": [
+        "AGENTS.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo",
+        "memory"
+      ],
+      "tags": [
+        "rule",
+        "section-rule",
+        "working-rules"
+      ],
+      "date": "2026-04-12"
+    },
+    {
+      "id": "rule:agents-md:working-rules:when-changing-managed-templates-consider-sync-impact-on-existing-projects",
+      "kind": "rule",
+      "title": "When changing managed templates, consider sync impact on existing projects.",
+      "summary": "When changing managed templates, consider sync impact on existing projects.",
+      "status": "active",
+      "path": "AGENTS.md",
+      "source_paths": [
+        "AGENTS.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo",
+        "memory"
+      ],
+      "tags": [
+        "rule",
+        "section-rule",
+        "working-rules"
+      ],
+      "date": "2026-04-12"
+    },
+    {
+      "id": "rule:agents-md:working-rules:when-changing-scaffold-templates-keep-them-as-starters-not-as-centrally-enforced-truth",
+      "kind": "rule",
+      "title": "When changing scaffold templates, keep them as starters, not as centrally enf...",
+      "summary": "When changing scaffold templates, keep them as starters, not as centrally enforced truth.",
+      "status": "active",
+      "path": "AGENTS.md",
+      "source_paths": [
+        "AGENTS.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo",
+        "memory"
+      ],
+      "tags": [
+        "rule",
+        "section-rule",
+        "working-rules"
+      ],
+      "date": "2026-04-12"
+    },
+    {
+      "id": "rule:agents-md:working-rules:update-sula-docs-when-introducing-new-profiles-manifest-fields-or-sync-behavior",
+      "kind": "rule",
+      "title": "Update Sula docs when introducing new profiles, manifest fields, or sync beha...",
+      "summary": "Update Sula docs when introducing new profiles, manifest fields, or sync behavior.",
+      "status": "active",
+      "path": "AGENTS.md",
+      "source_paths": [
+        "AGENTS.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo",
+        "memory"
+      ],
+      "tags": [
+        "rule",
+        "section-rule",
+        "working-rules"
+      ],
+      "date": "2026-04-12"
     },
     {
       "id": "object:source:change-records-md",
@@ -2066,6 +2578,194 @@
         "discovered-source"
       ],
       "date": null
+    },
+    {
+      "id": "rule:change-records-md:keep-this-file-short-and-index-oriented",
+      "kind": "rule",
+      "title": "keep this file short and index-oriented",
+      "summary": "keep this file short and index-oriented",
+      "status": "active",
+      "path": "CHANGE-RECORDS.md",
+      "source_paths": [
+        "CHANGE-RECORDS.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "memory",
+        "repo"
+      ],
+      "tags": [
+        "rule",
+        "section-object"
+      ],
+      "date": "2026-04-18"
+    },
+    {
+      "id": "rule:change-records-md:put-detailed-records-in-docs-change-records",
+      "kind": "rule",
+      "title": "put detailed records in `docs/change-records/`",
+      "summary": "put detailed records in `docs/change-records/`",
+      "status": "active",
+      "path": "CHANGE-RECORDS.md",
+      "source_paths": [
+        "CHANGE-RECORDS.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "memory",
+        "repo"
+      ],
+      "tags": [
+        "rule",
+        "section-object"
+      ],
+      "date": "2026-04-18"
+    },
+    {
+      "id": "rule:change-records-md:mention-sync-impact-explicitly-in-non-trivial-records",
+      "kind": "rule",
+      "title": "mention sync impact explicitly in non-trivial records",
+      "summary": "mention sync impact explicitly in non-trivial records",
+      "status": "active",
+      "path": "CHANGE-RECORDS.md",
+      "source_paths": [
+        "CHANGE-RECORDS.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "memory",
+        "repo"
+      ],
+      "tags": [
+        "rule",
+        "section-object"
+      ],
+      "date": "2026-04-18"
+    },
+    {
+      "id": "rule:change-records-md:use-release-records-when-the-rollout-itself-needs-durable-history",
+      "kind": "rule",
+      "title": "use release records when the rollout itself needs durable history",
+      "summary": "use release records when the rollout itself needs durable history",
+      "status": "active",
+      "path": "CHANGE-RECORDS.md",
+      "source_paths": [
+        "CHANGE-RECORDS.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "memory",
+        "repo"
+      ],
+      "tags": [
+        "rule",
+        "section-object"
+      ],
+      "date": "2026-04-18"
+    },
+    {
+      "id": "rule:change-records-md:rules:keep-this-file-short-and-index-oriented",
+      "kind": "rule",
+      "title": "keep this file short and index-oriented",
+      "summary": "keep this file short and index-oriented",
+      "status": "active",
+      "path": "CHANGE-RECORDS.md",
+      "source_paths": [
+        "CHANGE-RECORDS.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "memory",
+        "repo"
+      ],
+      "tags": [
+        "rule",
+        "section-rule",
+        "rules"
+      ],
+      "date": "2026-04-18"
+    },
+    {
+      "id": "rule:change-records-md:rules:put-detailed-records-in-docs-change-records",
+      "kind": "rule",
+      "title": "put detailed records in `docs/change-records/`",
+      "summary": "put detailed records in `docs/change-records/`",
+      "status": "active",
+      "path": "CHANGE-RECORDS.md",
+      "source_paths": [
+        "CHANGE-RECORDS.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "memory",
+        "repo"
+      ],
+      "tags": [
+        "rule",
+        "section-rule",
+        "rules"
+      ],
+      "date": "2026-04-18"
+    },
+    {
+      "id": "rule:change-records-md:rules:mention-sync-impact-explicitly-in-non-trivial-records",
+      "kind": "rule",
+      "title": "mention sync impact explicitly in non-trivial records",
+      "summary": "mention sync impact explicitly in non-trivial records",
+      "status": "active",
+      "path": "CHANGE-RECORDS.md",
+      "source_paths": [
+        "CHANGE-RECORDS.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "memory",
+        "repo"
+      ],
+      "tags": [
+        "rule",
+        "section-rule",
+        "rules"
+      ],
+      "date": "2026-04-18"
+    },
+    {
+      "id": "rule:change-records-md:rules:use-release-records-when-the-rollout-itself-needs-durable-history",
+      "kind": "rule",
+      "title": "use release records when the rollout itself needs durable history",
+      "summary": "use release records when the rollout itself needs durable history",
+      "status": "active",
+      "path": "CHANGE-RECORDS.md",
+      "source_paths": [
+        "CHANGE-RECORDS.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "memory",
+        "repo"
+      ],
+      "tags": [
+        "rule",
+        "section-rule",
+        "rules"
+      ],
+      "date": "2026-04-18"
     },
     {
       "id": "object:source:changelog-md",
@@ -2240,7 +2940,7 @@
       "id": "object:source:status-md",
       "kind": "document",
       "title": "STATUS.md",
-      "summary": "- last updated: 2026-04-16",
+      "summary": "- last updated: 2026-04-18",
       "status": "indexed",
       "path": "STATUS.md",
       "source_paths": [
@@ -2256,7 +2956,7 @@
       "tags": [
         "discovered-source"
       ],
-      "date": "2026-04-16"
+      "date": "2026-04-18"
     },
     {
       "id": "object:source:docs-readme-md",
@@ -2276,6 +2976,30 @@
       ],
       "tags": [
         "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "rule:docs-readme-md:maintenance-rule",
+      "kind": "rule",
+      "title": "Maintenance Rule",
+      "summary": "When adding durable ops, architecture, or runbook documents, update this map in the same change.",
+      "status": "active",
+      "path": "docs/README.md",
+      "source_paths": [
+        "docs/README.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo",
+        "memory"
+      ],
+      "tags": [
+        "rule",
+        "section-rule",
+        "maintenance-rule"
       ],
       "date": null
     },
@@ -3147,14 +3871,14 @@
       "date": "2026-04-16"
     },
     {
-      "id": "object:source:docs-change-records-2026-04-16-document-superpowers-capability-absorption-plan-md",
+      "id": "object:source:docs-change-records-2026-04-16-document-workflow-capability-absorption-plan-md",
       "kind": "document",
-      "title": "2026-04-16-document-superpowers-capability-absorption-plan.md",
+      "title": "2026-04-16-document-workflow-capability-absorption-plan.md",
       "summary": "- date: 2026-04-16 - executor: Codex - branch: codex/release-main - related commit(s): pending - status: completed",
       "status": "indexed",
-      "path": "docs/change-records/2026-04-16-document-superpowers-capability-absorption-plan.md",
+      "path": "docs/change-records/2026-04-16-document-workflow-capability-absorption-plan.md",
       "source_paths": [
-        "docs/change-records/2026-04-16-document-superpowers-capability-absorption-plan.md"
+        "docs/change-records/2026-04-16-document-workflow-capability-absorption-plan.md"
       ],
       "adapters": [
         "generic-project",
@@ -3234,6 +3958,50 @@
         "source"
       ],
       "date": "2026-04-16"
+    },
+    {
+      "id": "object:source:docs-change-records-2026-04-18-add-staged-memory-captures-rule-registry-and-query-routing-md",
+      "kind": "document",
+      "title": "2026-04-18-add-staged-memory-captures-rule-registry-and-query-routing.md",
+      "summary": "- date: 2026-04-18 - executor: Codex - branch: codex/release-main - related commit(s): pending - status: completed",
+      "status": "indexed",
+      "path": "docs/change-records/2026-04-18-add-staged-memory-captures-rule-registry-and-query-routing.md",
+      "source_paths": [
+        "docs/change-records/2026-04-18-add-staged-memory-captures-rule-registry-and-query-routing.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "memory",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": "2026-04-18"
+    },
+    {
+      "id": "object:source:docs-change-records-2026-04-18-document-memory-capability-implementation-plan-md",
+      "kind": "document",
+      "title": "2026-04-18-document-memory-capability-implementation-plan.md",
+      "summary": "- date: 2026-04-18 - executor: Codex - branch: codex/release-main - related commit(s): pending - status: completed",
+      "status": "indexed",
+      "path": "docs/change-records/2026-04-18-document-memory-capability-implementation-plan.md",
+      "source_paths": [
+        "docs/change-records/2026-04-18-document-memory-capability-implementation-plan.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "memory",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": "2026-04-18"
     },
     {
       "id": "object:source:docs-change-records-readme-md",
@@ -3600,6 +4368,315 @@
       "date": null
     },
     {
+      "id": "object:source:docs-reference-memory-capability-implementation-plan-md",
+      "kind": "document",
+      "title": "memory-capability-implementation-plan.md",
+      "summary": "Sula should strengthen its project-memory layer without turning memory into a second truth system.",
+      "status": "indexed",
+      "path": "docs/reference/memory-capability-implementation-plan.md",
+      "source_paths": [
+        "docs/reference/memory-capability-implementation-plan.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "rule:docs-reference-memory-capability-implementation-plan-md:design-rules:source-files",
+      "kind": "rule",
+      "title": "source files",
+      "summary": "source files",
+      "status": "active",
+      "path": "docs/reference/memory-capability-implementation-plan.md",
+      "source_paths": [
+        "docs/reference/memory-capability-implementation-plan.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo",
+        "memory"
+      ],
+      "tags": [
+        "rule",
+        "section-rule",
+        "design-rules"
+      ],
+      "date": null
+    },
+    {
+      "id": "rule:docs-reference-memory-capability-implementation-plan-md:design-rules:registered-project-documents",
+      "kind": "rule",
+      "title": "registered project documents",
+      "summary": "registered project documents",
+      "status": "active",
+      "path": "docs/reference/memory-capability-implementation-plan.md",
+      "source_paths": [
+        "docs/reference/memory-capability-implementation-plan.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo",
+        "memory"
+      ],
+      "tags": [
+        "rule",
+        "section-rule",
+        "design-rules"
+      ],
+      "date": null
+    },
+    {
+      "id": "rule:docs-reference-memory-capability-implementation-plan-md:design-rules:status-md",
+      "kind": "rule",
+      "title": "`STATUS.md`",
+      "summary": "`STATUS.md`",
+      "status": "active",
+      "path": "docs/reference/memory-capability-implementation-plan.md",
+      "source_paths": [
+        "docs/reference/memory-capability-implementation-plan.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo",
+        "memory"
+      ],
+      "tags": [
+        "rule",
+        "section-rule",
+        "design-rules"
+      ],
+      "date": null
+    },
+    {
+      "id": "rule:docs-reference-memory-capability-implementation-plan-md:design-rules:docs-change-records",
+      "kind": "rule",
+      "title": "`docs/change-records/`",
+      "summary": "`docs/change-records/`",
+      "status": "active",
+      "path": "docs/reference/memory-capability-implementation-plan.md",
+      "source_paths": [
+        "docs/reference/memory-capability-implementation-plan.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo",
+        "memory"
+      ],
+      "tags": [
+        "rule",
+        "section-rule",
+        "design-rules"
+      ],
+      "date": null
+    },
+    {
+      "id": "rule:docs-reference-memory-capability-implementation-plan-md:design-rules:releases-incidents-and-runbooks",
+      "kind": "rule",
+      "title": "releases, incidents, and runbooks",
+      "summary": "releases, incidents, and runbooks",
+      "status": "active",
+      "path": "docs/reference/memory-capability-implementation-plan.md",
+      "source_paths": [
+        "docs/reference/memory-capability-implementation-plan.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo",
+        "memory"
+      ],
+      "tags": [
+        "rule",
+        "section-rule",
+        "design-rules"
+      ],
+      "date": null
+    },
+    {
+      "id": "rule:docs-reference-memory-capability-implementation-plan-md:design-rules:registered-provider-backed-artifacts",
+      "kind": "rule",
+      "title": "registered provider-backed artifacts",
+      "summary": "registered provider-backed artifacts",
+      "status": "active",
+      "path": "docs/reference/memory-capability-implementation-plan.md",
+      "source_paths": [
+        "docs/reference/memory-capability-implementation-plan.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo",
+        "memory"
+      ],
+      "tags": [
+        "rule",
+        "section-rule",
+        "design-rules"
+      ],
+      "date": null
+    },
+    {
+      "id": "rule:docs-reference-memory-capability-implementation-plan-md:design-rules:temporary-session-findings",
+      "kind": "rule",
+      "title": "temporary session findings",
+      "summary": "temporary session findings",
+      "status": "active",
+      "path": "docs/reference/memory-capability-implementation-plan.md",
+      "source_paths": [
+        "docs/reference/memory-capability-implementation-plan.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo",
+        "memory"
+      ],
+      "tags": [
+        "rule",
+        "section-rule",
+        "design-rules"
+      ],
+      "date": null
+    },
+    {
+      "id": "rule:docs-reference-memory-capability-implementation-plan-md:design-rules:promoted-durable-state",
+      "kind": "rule",
+      "title": "promoted durable state",
+      "summary": "promoted durable state",
+      "status": "active",
+      "path": "docs/reference/memory-capability-implementation-plan.md",
+      "source_paths": [
+        "docs/reference/memory-capability-implementation-plan.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo",
+        "memory"
+      ],
+      "tags": [
+        "rule",
+        "section-rule",
+        "design-rules"
+      ],
+      "date": null
+    },
+    {
+      "id": "rule:docs-reference-memory-capability-implementation-plan-md:design-rules:disposable-generated-summaries",
+      "kind": "rule",
+      "title": "disposable generated summaries",
+      "summary": "disposable generated summaries",
+      "status": "active",
+      "path": "docs/reference/memory-capability-implementation-plan.md",
+      "source_paths": [
+        "docs/reference/memory-capability-implementation-plan.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo",
+        "memory"
+      ],
+      "tags": [
+        "rule",
+        "section-rule",
+        "design-rules"
+      ],
+      "date": null
+    },
+    {
+      "id": "rule:docs-reference-memory-capability-implementation-plan-md:publication-hygiene:do-not-mention-external-research-repositories-or-products-in-public-docs-commit-messages-release-notes-or-managed-project-files-unless-there-is-a-separate-legal-or-attribution-requirement",
+      "kind": "rule",
+      "title": "do not mention external research, repositories, or products in public docs, c...",
+      "summary": "do not mention external research, repositories, or products in public docs, commit messages, release notes, or managed project files unless there is a separate legal or attribution requirement",
+      "status": "active",
+      "path": "docs/reference/memory-capability-implementation-plan.md",
+      "source_paths": [
+        "docs/reference/memory-capability-implementation-plan.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo",
+        "memory"
+      ],
+      "tags": [
+        "rule",
+        "section-rule",
+        "publication-hygiene"
+      ],
+      "date": null
+    },
+    {
+      "id": "rule:docs-reference-memory-capability-implementation-plan-md:publication-hygiene:keep-user-facing-language-centered-on-sula-s-architecture-contracts-and-operating-outcomes",
+      "kind": "rule",
+      "title": "keep user-facing language centered on Sula's architecture, contracts, and ope...",
+      "summary": "keep user-facing language centered on Sula's architecture, contracts, and operating outcomes",
+      "status": "active",
+      "path": "docs/reference/memory-capability-implementation-plan.md",
+      "source_paths": [
+        "docs/reference/memory-capability-implementation-plan.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo",
+        "memory"
+      ],
+      "tags": [
+        "rule",
+        "section-rule",
+        "publication-hygiene"
+      ],
+      "date": null
+    },
+    {
+      "id": "rule:docs-reference-memory-capability-implementation-plan-md:publication-hygiene:record-adoption-reasoning-in-sula-terms-such-as-portability-removability-source-first-truth-and-scientific-retrieval",
+      "kind": "rule",
+      "title": "record adoption reasoning in Sula terms such as portability, removability, so...",
+      "summary": "record adoption reasoning in Sula terms such as portability, removability, source-first truth, and scientific retrieval",
+      "status": "active",
+      "path": "docs/reference/memory-capability-implementation-plan.md",
+      "source_paths": [
+        "docs/reference/memory-capability-implementation-plan.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo",
+        "memory"
+      ],
+      "tags": [
+        "rule",
+        "section-rule",
+        "publication-hygiene"
+      ],
+      "date": null
+    },
+    {
       "id": "object:source:docs-reference-portfolio-adapter-workflow-contract-md",
       "kind": "document",
       "title": "portfolio-adapter-workflow-contract.md",
@@ -3685,6 +4762,198 @@
       "date": null
     },
     {
+      "id": "rule:docs-reference-project-memory-model-md:maintenance-rules:one-concern-one-source-of-truth",
+      "kind": "rule",
+      "title": "one concern, one source of truth",
+      "summary": "one concern, one source of truth",
+      "status": "active",
+      "path": "docs/reference/project-memory-model.md",
+      "source_paths": [
+        "docs/reference/project-memory-model.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo",
+        "memory"
+      ],
+      "tags": [
+        "rule",
+        "section-rule",
+        "maintenance-rules"
+      ],
+      "date": null
+    },
+    {
+      "id": "rule:docs-reference-project-memory-model-md:maintenance-rules:staged-captures-require-review-before-promotion",
+      "kind": "rule",
+      "title": "staged captures require review before promotion",
+      "summary": "staged captures require review before promotion",
+      "status": "active",
+      "path": "docs/reference/project-memory-model.md",
+      "source_paths": [
+        "docs/reference/project-memory-model.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo",
+        "memory"
+      ],
+      "tags": [
+        "rule",
+        "section-rule",
+        "maintenance-rules"
+      ],
+      "date": null
+    },
+    {
+      "id": "rule:docs-reference-project-memory-model-md:maintenance-rules:promotions-should-land-in-a-durable-source-document-not-in-a-hidden-parallel-truth-file",
+      "kind": "rule",
+      "title": "promotions should land in a durable source document, not in a hidden parallel...",
+      "summary": "promotions should land in a durable source document, not in a hidden parallel truth file",
+      "status": "active",
+      "path": "docs/reference/project-memory-model.md",
+      "source_paths": [
+        "docs/reference/project-memory-model.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo",
+        "memory"
+      ],
+      "tags": [
+        "rule",
+        "section-rule",
+        "maintenance-rules"
+      ],
+      "date": null
+    },
+    {
+      "id": "rule:docs-reference-project-memory-model-md:maintenance-rules:the-stable-operator-loop-is-capture-review-promote-query-clear",
+      "kind": "rule",
+      "title": "the stable operator loop is capture, review, promote, query, clear",
+      "summary": "the stable operator loop is capture, review, promote, query, clear",
+      "status": "active",
+      "path": "docs/reference/project-memory-model.md",
+      "source_paths": [
+        "docs/reference/project-memory-model.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo",
+        "memory"
+      ],
+      "tags": [
+        "rule",
+        "section-rule",
+        "maintenance-rules"
+      ],
+      "date": null
+    },
+    {
+      "id": "rule:docs-reference-project-memory-model-md:maintenance-rules:index-files-stay-short-and-link-to-detailed-records",
+      "kind": "rule",
+      "title": "index files stay short and link to detailed records",
+      "summary": "index files stay short and link to detailed records",
+      "status": "active",
+      "path": "docs/reference/project-memory-model.md",
+      "source_paths": [
+        "docs/reference/project-memory-model.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo",
+        "memory"
+      ],
+      "tags": [
+        "rule",
+        "section-rule",
+        "maintenance-rules"
+      ],
+      "date": null
+    },
+    {
+      "id": "rule:docs-reference-project-memory-model-md:maintenance-rules:generated-summaries-are-disposable-and-reproducible",
+      "kind": "rule",
+      "title": "generated summaries are disposable and reproducible",
+      "summary": "generated summaries are disposable and reproducible",
+      "status": "active",
+      "path": "docs/reference/project-memory-model.md",
+      "source_paths": [
+        "docs/reference/project-memory-model.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo",
+        "memory"
+      ],
+      "tags": [
+        "rule",
+        "section-rule",
+        "maintenance-rules"
+      ],
+      "date": null
+    },
+    {
+      "id": "rule:docs-reference-project-memory-model-md:maintenance-rules:non-trivial-work-should-leave-a-durable-trace",
+      "kind": "rule",
+      "title": "non-trivial work should leave a durable trace",
+      "summary": "non-trivial work should leave a durable trace",
+      "status": "active",
+      "path": "docs/reference/project-memory-model.md",
+      "source_paths": [
+        "docs/reference/project-memory-model.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo",
+        "memory"
+      ],
+      "tags": [
+        "rule",
+        "section-rule",
+        "maintenance-rules"
+      ],
+      "date": null
+    },
+    {
+      "id": "rule:docs-reference-project-memory-model-md:maintenance-rules:architecture-exceptions-should-point-back-to-change-records",
+      "kind": "rule",
+      "title": "architecture exceptions should point back to change records",
+      "summary": "architecture exceptions should point back to change records",
+      "status": "active",
+      "path": "docs/reference/project-memory-model.md",
+      "source_paths": [
+        "docs/reference/project-memory-model.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo",
+        "memory"
+      ],
+      "tags": [
+        "rule",
+        "section-rule",
+        "maintenance-rules"
+      ],
+      "date": null
+    },
+    {
       "id": "object:source:docs-reference-provider-backed-artifact-identity-md",
       "kind": "document",
       "title": "provider-backed-artifact-identity.md",
@@ -3749,14 +5018,14 @@
       "date": null
     },
     {
-      "id": "object:source:docs-reference-superpowers-capability-absorption-plan-md",
+      "id": "object:source:docs-reference-sync-impact-model-md",
       "kind": "document",
-      "title": "superpowers-capability-absorption-plan.md",
-      "summary": "Sula should audit `obra/superpowers` as a reusable workflow source, but it should not absorb Superpowers as a mandatory bundled methodology.",
+      "title": "sync-impact-model.md",
+      "summary": "Sula classifies managed-file sync changes so maintainers can review the right files first.",
       "status": "indexed",
-      "path": "docs/reference/superpowers-capability-absorption-plan.md",
+      "path": "docs/reference/sync-impact-model.md",
       "source_paths": [
-        "docs/reference/superpowers-capability-absorption-plan.md"
+        "docs/reference/sync-impact-model.md"
       ],
       "adapters": [
         "generic-project",
@@ -3770,14 +5039,14 @@
       "date": null
     },
     {
-      "id": "object:source:docs-reference-sync-impact-model-md",
+      "id": "object:source:docs-reference-workflow-capability-absorption-plan-md",
       "kind": "document",
-      "title": "sync-impact-model.md",
-      "summary": "Sula classifies managed-file sync changes so maintainers can review the right files first.",
+      "title": "workflow-capability-absorption-plan.md",
+      "summary": "Sula should absorb reusable workflow-governance capabilities, but it should not bundle one external delivery doctrine as a mandatory methodology.",
       "status": "indexed",
-      "path": "docs/reference/sync-impact-model.md",
+      "path": "docs/reference/workflow-capability-absorption-plan.md",
       "source_paths": [
-        "docs/reference/sync-impact-model.md"
+        "docs/reference/workflow-capability-absorption-plan.md"
       ],
       "adapters": [
         "generic-project",
@@ -3881,6 +5150,29 @@
         "discovered-source"
       ],
       "date": "2026-04-16"
+    },
+    {
+      "id": "object:source:docs-releases-2026-04-18-release-sula-0-13-0-stable-memory-kernel-and-operator-workflow-md",
+      "kind": "document",
+      "title": "2026-04-18-release-sula-0-13-0-stable-memory-kernel-and-operator-workflow.md",
+      "summary": "- date: 2026-04-18 - executor: Codex - branch: main - status: released",
+      "status": "indexed",
+      "path": "docs/releases/2026-04-18-release-sula-0-13-0-stable-memory-kernel-and-operator-workflow.md",
+      "source_paths": [
+        "docs/releases/2026-04-18-release-sula-0-13-0-stable-memory-kernel-and-operator-workflow.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "memory",
+        "repo",
+        "release"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": "2026-04-18"
     },
     {
       "id": "object:source:docs-releases-readme-md",
@@ -4018,6 +5310,75 @@
       "date": null
     },
     {
+      "id": "rule:docs-versioning-md:patch-wording-improvements-typo-fixes-low-risk-managed-file-changes",
+      "kind": "rule",
+      "title": "patch: wording improvements, typo fixes, low-risk managed-file changes",
+      "summary": "patch: wording improvements, typo fixes, low-risk managed-file changes",
+      "status": "active",
+      "path": "docs/versioning.md",
+      "source_paths": [
+        "docs/versioning.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo",
+        "release"
+      ],
+      "tags": [
+        "rule",
+        "section-object"
+      ],
+      "date": null
+    },
+    {
+      "id": "rule:docs-versioning-md:minor-new-managed-files-new-profile-docs-new-doctor-checks-backward-compatible-script-improvements-new-memory-tooling-new-adoption-automation",
+      "kind": "rule",
+      "title": "minor: new managed files, new profile docs, new doctor checks, backward-compa...",
+      "summary": "minor: new managed files, new profile docs, new doctor checks, backward-compatible script improvements, new memory tooling, new adoption automation",
+      "status": "active",
+      "path": "docs/versioning.md",
+      "source_paths": [
+        "docs/versioning.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo",
+        "release"
+      ],
+      "tags": [
+        "rule",
+        "section-object"
+      ],
+      "date": null
+    },
+    {
+      "id": "rule:docs-versioning-md:major-manifest-schema-breakage-projection-or-ownership-contract-changes-memory-contract-breakage-or-migration-required-sync-behavior",
+      "kind": "rule",
+      "title": "major: manifest schema breakage, projection or ownership contract changes, me...",
+      "summary": "major: manifest schema breakage, projection or ownership contract changes, memory contract breakage, or migration-required sync behavior",
+      "status": "active",
+      "path": "docs/versioning.md",
+      "source_paths": [
+        "docs/versioning.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo",
+        "release"
+      ],
+      "tags": [
+        "rule",
+        "section-object"
+      ],
+      "date": null
+    },
+    {
       "id": "agreement:source:docs-versioning-md",
       "kind": "agreement",
       "title": "Sula Versioning",
@@ -4037,6 +5398,81 @@
       "tags": [
         "agreement",
         "source"
+      ],
+      "date": null
+    },
+    {
+      "id": "rule:docs-versioning-md:rules:patch-wording-improvements-typo-fixes-low-risk-managed-file-changes",
+      "kind": "rule",
+      "title": "patch: wording improvements, typo fixes, low-risk managed-file changes",
+      "summary": "patch: wording improvements, typo fixes, low-risk managed-file changes",
+      "status": "active",
+      "path": "docs/versioning.md",
+      "source_paths": [
+        "docs/versioning.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo",
+        "release",
+        "memory"
+      ],
+      "tags": [
+        "rule",
+        "section-rule",
+        "rules"
+      ],
+      "date": null
+    },
+    {
+      "id": "rule:docs-versioning-md:rules:minor-new-managed-files-new-profile-docs-new-doctor-checks-backward-compatible-script-improvements-new-memory-tooling-new-adoption-automation",
+      "kind": "rule",
+      "title": "minor: new managed files, new profile docs, new doctor checks, backward-compa...",
+      "summary": "minor: new managed files, new profile docs, new doctor checks, backward-compatible script improvements, new memory tooling, new adoption automation",
+      "status": "active",
+      "path": "docs/versioning.md",
+      "source_paths": [
+        "docs/versioning.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo",
+        "release",
+        "memory"
+      ],
+      "tags": [
+        "rule",
+        "section-rule",
+        "rules"
+      ],
+      "date": null
+    },
+    {
+      "id": "rule:docs-versioning-md:rules:major-manifest-schema-breakage-projection-or-ownership-contract-changes-memory-contract-breakage-or-migration-required-sync-behavior",
+      "kind": "rule",
+      "title": "major: manifest schema breakage, projection or ownership contract changes, me...",
+      "summary": "major: manifest schema breakage, projection or ownership contract changes, memory contract breakage, or migration-required sync behavior",
+      "status": "active",
+      "path": "docs/versioning.md",
+      "source_paths": [
+        "docs/versioning.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo",
+        "release",
+        "memory"
+      ],
+      "tags": [
+        "rule",
+        "section-rule",
+        "rules"
       ],
       "date": null
     },
@@ -4062,6 +5498,30 @@
       "date": null
     },
     {
+      "id": "rule:examples-client-service-gdrive-agents-md:highest-rule:preserve-project-owned-truth-while-using-sula-as-a-removable-operating-kernel",
+      "kind": "rule",
+      "title": "`Preserve project-owned truth while using Sula as a removable operating kernel.`",
+      "summary": "`Preserve project-owned truth while using Sula as a removable operating kernel.`",
+      "status": "active",
+      "path": "examples/client-service-gdrive/AGENTS.md",
+      "source_paths": [
+        "examples/client-service-gdrive/AGENTS.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo",
+        "memory"
+      ],
+      "tags": [
+        "rule",
+        "section-rule",
+        "highest-rule"
+      ],
+      "date": null
+    },
+    {
       "id": "object:source:examples-client-service-gdrive-change-records-md",
       "kind": "document",
       "title": "CHANGE-RECORDS.md",
@@ -4081,6 +5541,190 @@
         "discovered-source"
       ],
       "date": null
+    },
+    {
+      "id": "rule:examples-client-service-gdrive-change-records-md:keep-this-file-short-and-index-oriented",
+      "kind": "rule",
+      "title": "keep this file short and index-oriented",
+      "summary": "keep this file short and index-oriented",
+      "status": "active",
+      "path": "examples/client-service-gdrive/CHANGE-RECORDS.md",
+      "source_paths": [
+        "examples/client-service-gdrive/CHANGE-RECORDS.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo"
+      ],
+      "tags": [
+        "rule",
+        "section-object"
+      ],
+      "date": "2026-04-16"
+    },
+    {
+      "id": "rule:examples-client-service-gdrive-change-records-md:put-detailed-records-in-docs-change-records",
+      "kind": "rule",
+      "title": "put detailed records in `docs/change-records/`",
+      "summary": "put detailed records in `docs/change-records/`",
+      "status": "active",
+      "path": "examples/client-service-gdrive/CHANGE-RECORDS.md",
+      "source_paths": [
+        "examples/client-service-gdrive/CHANGE-RECORDS.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo"
+      ],
+      "tags": [
+        "rule",
+        "section-object"
+      ],
+      "date": "2026-04-16"
+    },
+    {
+      "id": "rule:examples-client-service-gdrive-change-records-md:use-release-records-for-rollout-history-beyond-one-change",
+      "kind": "rule",
+      "title": "use release records for rollout history beyond one change",
+      "summary": "use release records for rollout history beyond one change",
+      "status": "active",
+      "path": "examples/client-service-gdrive/CHANGE-RECORDS.md",
+      "source_paths": [
+        "examples/client-service-gdrive/CHANGE-RECORDS.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo"
+      ],
+      "tags": [
+        "rule",
+        "section-object"
+      ],
+      "date": "2026-04-16"
+    },
+    {
+      "id": "rule:examples-client-service-gdrive-change-records-md:use-incident-records-for-broken-flows-outages-or-recovery-work",
+      "kind": "rule",
+      "title": "use incident records for broken flows, outages, or recovery work",
+      "summary": "use incident records for broken flows, outages, or recovery work",
+      "status": "active",
+      "path": "examples/client-service-gdrive/CHANGE-RECORDS.md",
+      "source_paths": [
+        "examples/client-service-gdrive/CHANGE-RECORDS.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo"
+      ],
+      "tags": [
+        "rule",
+        "section-object"
+      ],
+      "date": "2026-04-16"
+    },
+    {
+      "id": "rule:examples-client-service-gdrive-change-records-md:rules:keep-this-file-short-and-index-oriented",
+      "kind": "rule",
+      "title": "keep this file short and index-oriented",
+      "summary": "keep this file short and index-oriented",
+      "status": "active",
+      "path": "examples/client-service-gdrive/CHANGE-RECORDS.md",
+      "source_paths": [
+        "examples/client-service-gdrive/CHANGE-RECORDS.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo",
+        "memory"
+      ],
+      "tags": [
+        "rule",
+        "section-rule",
+        "rules"
+      ],
+      "date": "2026-04-16"
+    },
+    {
+      "id": "rule:examples-client-service-gdrive-change-records-md:rules:put-detailed-records-in-docs-change-records",
+      "kind": "rule",
+      "title": "put detailed records in `docs/change-records/`",
+      "summary": "put detailed records in `docs/change-records/`",
+      "status": "active",
+      "path": "examples/client-service-gdrive/CHANGE-RECORDS.md",
+      "source_paths": [
+        "examples/client-service-gdrive/CHANGE-RECORDS.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo",
+        "memory"
+      ],
+      "tags": [
+        "rule",
+        "section-rule",
+        "rules"
+      ],
+      "date": "2026-04-16"
+    },
+    {
+      "id": "rule:examples-client-service-gdrive-change-records-md:rules:use-release-records-for-rollout-history-beyond-one-change",
+      "kind": "rule",
+      "title": "use release records for rollout history beyond one change",
+      "summary": "use release records for rollout history beyond one change",
+      "status": "active",
+      "path": "examples/client-service-gdrive/CHANGE-RECORDS.md",
+      "source_paths": [
+        "examples/client-service-gdrive/CHANGE-RECORDS.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo",
+        "memory"
+      ],
+      "tags": [
+        "rule",
+        "section-rule",
+        "rules"
+      ],
+      "date": "2026-04-16"
+    },
+    {
+      "id": "rule:examples-client-service-gdrive-change-records-md:rules:use-incident-records-for-broken-flows-outages-or-recovery-work",
+      "kind": "rule",
+      "title": "use incident records for broken flows, outages, or recovery work",
+      "summary": "use incident records for broken flows, outages, or recovery work",
+      "status": "active",
+      "path": "examples/client-service-gdrive/CHANGE-RECORDS.md",
+      "source_paths": [
+        "examples/client-service-gdrive/CHANGE-RECORDS.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo",
+        "memory"
+      ],
+      "tags": [
+        "rule",
+        "section-rule",
+        "rules"
+      ],
+      "date": "2026-04-16"
     },
     {
       "id": "object:source:examples-client-service-gdrive-readme-md",
@@ -4326,6 +5970,30 @@
       "date": null
     },
     {
+      "id": "rule:examples-field-ops-generic-agents-md:highest-rule:preserve-project-owned-truth-while-using-sula-as-a-removable-operating-kernel",
+      "kind": "rule",
+      "title": "`Preserve project-owned truth while using Sula as a removable operating kernel.`",
+      "summary": "`Preserve project-owned truth while using Sula as a removable operating kernel.`",
+      "status": "active",
+      "path": "examples/field-ops-generic/AGENTS.md",
+      "source_paths": [
+        "examples/field-ops-generic/AGENTS.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo",
+        "memory"
+      ],
+      "tags": [
+        "rule",
+        "section-rule",
+        "highest-rule"
+      ],
+      "date": null
+    },
+    {
       "id": "object:source:examples-field-ops-generic-change-records-md",
       "kind": "document",
       "title": "CHANGE-RECORDS.md",
@@ -4345,6 +6013,190 @@
         "discovered-source"
       ],
       "date": null
+    },
+    {
+      "id": "rule:examples-field-ops-generic-change-records-md:keep-this-file-short-and-index-oriented",
+      "kind": "rule",
+      "title": "keep this file short and index-oriented",
+      "summary": "keep this file short and index-oriented",
+      "status": "active",
+      "path": "examples/field-ops-generic/CHANGE-RECORDS.md",
+      "source_paths": [
+        "examples/field-ops-generic/CHANGE-RECORDS.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo"
+      ],
+      "tags": [
+        "rule",
+        "section-object"
+      ],
+      "date": "2026-04-16"
+    },
+    {
+      "id": "rule:examples-field-ops-generic-change-records-md:put-detailed-records-in-docs-change-records",
+      "kind": "rule",
+      "title": "put detailed records in `docs/change-records/`",
+      "summary": "put detailed records in `docs/change-records/`",
+      "status": "active",
+      "path": "examples/field-ops-generic/CHANGE-RECORDS.md",
+      "source_paths": [
+        "examples/field-ops-generic/CHANGE-RECORDS.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo"
+      ],
+      "tags": [
+        "rule",
+        "section-object"
+      ],
+      "date": "2026-04-16"
+    },
+    {
+      "id": "rule:examples-field-ops-generic-change-records-md:use-release-records-for-rollout-history-beyond-one-change",
+      "kind": "rule",
+      "title": "use release records for rollout history beyond one change",
+      "summary": "use release records for rollout history beyond one change",
+      "status": "active",
+      "path": "examples/field-ops-generic/CHANGE-RECORDS.md",
+      "source_paths": [
+        "examples/field-ops-generic/CHANGE-RECORDS.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo"
+      ],
+      "tags": [
+        "rule",
+        "section-object"
+      ],
+      "date": "2026-04-16"
+    },
+    {
+      "id": "rule:examples-field-ops-generic-change-records-md:use-incident-records-for-broken-flows-outages-or-recovery-work",
+      "kind": "rule",
+      "title": "use incident records for broken flows, outages, or recovery work",
+      "summary": "use incident records for broken flows, outages, or recovery work",
+      "status": "active",
+      "path": "examples/field-ops-generic/CHANGE-RECORDS.md",
+      "source_paths": [
+        "examples/field-ops-generic/CHANGE-RECORDS.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo"
+      ],
+      "tags": [
+        "rule",
+        "section-object"
+      ],
+      "date": "2026-04-16"
+    },
+    {
+      "id": "rule:examples-field-ops-generic-change-records-md:rules:keep-this-file-short-and-index-oriented",
+      "kind": "rule",
+      "title": "keep this file short and index-oriented",
+      "summary": "keep this file short and index-oriented",
+      "status": "active",
+      "path": "examples/field-ops-generic/CHANGE-RECORDS.md",
+      "source_paths": [
+        "examples/field-ops-generic/CHANGE-RECORDS.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo",
+        "memory"
+      ],
+      "tags": [
+        "rule",
+        "section-rule",
+        "rules"
+      ],
+      "date": "2026-04-16"
+    },
+    {
+      "id": "rule:examples-field-ops-generic-change-records-md:rules:put-detailed-records-in-docs-change-records",
+      "kind": "rule",
+      "title": "put detailed records in `docs/change-records/`",
+      "summary": "put detailed records in `docs/change-records/`",
+      "status": "active",
+      "path": "examples/field-ops-generic/CHANGE-RECORDS.md",
+      "source_paths": [
+        "examples/field-ops-generic/CHANGE-RECORDS.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo",
+        "memory"
+      ],
+      "tags": [
+        "rule",
+        "section-rule",
+        "rules"
+      ],
+      "date": "2026-04-16"
+    },
+    {
+      "id": "rule:examples-field-ops-generic-change-records-md:rules:use-release-records-for-rollout-history-beyond-one-change",
+      "kind": "rule",
+      "title": "use release records for rollout history beyond one change",
+      "summary": "use release records for rollout history beyond one change",
+      "status": "active",
+      "path": "examples/field-ops-generic/CHANGE-RECORDS.md",
+      "source_paths": [
+        "examples/field-ops-generic/CHANGE-RECORDS.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo",
+        "memory"
+      ],
+      "tags": [
+        "rule",
+        "section-rule",
+        "rules"
+      ],
+      "date": "2026-04-16"
+    },
+    {
+      "id": "rule:examples-field-ops-generic-change-records-md:rules:use-incident-records-for-broken-flows-outages-or-recovery-work",
+      "kind": "rule",
+      "title": "use incident records for broken flows, outages, or recovery work",
+      "summary": "use incident records for broken flows, outages, or recovery work",
+      "status": "active",
+      "path": "examples/field-ops-generic/CHANGE-RECORDS.md",
+      "source_paths": [
+        "examples/field-ops-generic/CHANGE-RECORDS.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo",
+        "memory"
+      ],
+      "tags": [
+        "rule",
+        "section-rule",
+        "rules"
+      ],
+      "date": "2026-04-16"
     },
     {
       "id": "object:source:examples-field-ops-generic-readme-md",
@@ -4652,6 +6504,190 @@
       "date": null
     },
     {
+      "id": "rule:examples-okoktoto-change-records-md:keep-this-file-short-and-index-oriented",
+      "kind": "rule",
+      "title": "keep this file short and index-oriented",
+      "summary": "keep this file short and index-oriented",
+      "status": "active",
+      "path": "examples/okoktoto/CHANGE-RECORDS.md",
+      "source_paths": [
+        "examples/okoktoto/CHANGE-RECORDS.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo"
+      ],
+      "tags": [
+        "rule",
+        "section-object"
+      ],
+      "date": "2026-04-11"
+    },
+    {
+      "id": "rule:examples-okoktoto-change-records-md:put-detailed-records-in-docs-change-records",
+      "kind": "rule",
+      "title": "put detailed records in `docs/change-records/`",
+      "summary": "put detailed records in `docs/change-records/`",
+      "status": "active",
+      "path": "examples/okoktoto/CHANGE-RECORDS.md",
+      "source_paths": [
+        "examples/okoktoto/CHANGE-RECORDS.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo"
+      ],
+      "tags": [
+        "rule",
+        "section-object"
+      ],
+      "date": "2026-04-11"
+    },
+    {
+      "id": "rule:examples-okoktoto-change-records-md:use-release-records-for-rollout-history-that-goes-beyond-a-single-code-change",
+      "kind": "rule",
+      "title": "use release records for rollout history that goes beyond a single code change",
+      "summary": "use release records for rollout history that goes beyond a single code change",
+      "status": "active",
+      "path": "examples/okoktoto/CHANGE-RECORDS.md",
+      "source_paths": [
+        "examples/okoktoto/CHANGE-RECORDS.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo"
+      ],
+      "tags": [
+        "rule",
+        "section-object"
+      ],
+      "date": "2026-04-11"
+    },
+    {
+      "id": "rule:examples-okoktoto-change-records-md:use-incident-records-for-outages-broken-flows-or-recovery-work",
+      "kind": "rule",
+      "title": "use incident records for outages, broken flows, or recovery work",
+      "summary": "use incident records for outages, broken flows, or recovery work",
+      "status": "active",
+      "path": "examples/okoktoto/CHANGE-RECORDS.md",
+      "source_paths": [
+        "examples/okoktoto/CHANGE-RECORDS.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo"
+      ],
+      "tags": [
+        "rule",
+        "section-object"
+      ],
+      "date": "2026-04-11"
+    },
+    {
+      "id": "rule:examples-okoktoto-change-records-md:rules:keep-this-file-short-and-index-oriented",
+      "kind": "rule",
+      "title": "keep this file short and index-oriented",
+      "summary": "keep this file short and index-oriented",
+      "status": "active",
+      "path": "examples/okoktoto/CHANGE-RECORDS.md",
+      "source_paths": [
+        "examples/okoktoto/CHANGE-RECORDS.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo",
+        "memory"
+      ],
+      "tags": [
+        "rule",
+        "section-rule",
+        "rules"
+      ],
+      "date": "2026-04-11"
+    },
+    {
+      "id": "rule:examples-okoktoto-change-records-md:rules:put-detailed-records-in-docs-change-records",
+      "kind": "rule",
+      "title": "put detailed records in `docs/change-records/`",
+      "summary": "put detailed records in `docs/change-records/`",
+      "status": "active",
+      "path": "examples/okoktoto/CHANGE-RECORDS.md",
+      "source_paths": [
+        "examples/okoktoto/CHANGE-RECORDS.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo",
+        "memory"
+      ],
+      "tags": [
+        "rule",
+        "section-rule",
+        "rules"
+      ],
+      "date": "2026-04-11"
+    },
+    {
+      "id": "rule:examples-okoktoto-change-records-md:rules:use-release-records-for-rollout-history-that-goes-beyond-a-single-code-change",
+      "kind": "rule",
+      "title": "use release records for rollout history that goes beyond a single code change",
+      "summary": "use release records for rollout history that goes beyond a single code change",
+      "status": "active",
+      "path": "examples/okoktoto/CHANGE-RECORDS.md",
+      "source_paths": [
+        "examples/okoktoto/CHANGE-RECORDS.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo",
+        "memory"
+      ],
+      "tags": [
+        "rule",
+        "section-rule",
+        "rules"
+      ],
+      "date": "2026-04-11"
+    },
+    {
+      "id": "rule:examples-okoktoto-change-records-md:rules:use-incident-records-for-outages-broken-flows-or-recovery-work",
+      "kind": "rule",
+      "title": "use incident records for outages, broken flows, or recovery work",
+      "summary": "use incident records for outages, broken flows, or recovery work",
+      "status": "active",
+      "path": "examples/okoktoto/CHANGE-RECORDS.md",
+      "source_paths": [
+        "examples/okoktoto/CHANGE-RECORDS.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo",
+        "memory"
+      ],
+      "tags": [
+        "rule",
+        "section-rule",
+        "rules"
+      ],
+      "date": "2026-04-11"
+    },
+    {
       "id": "object:source:examples-okoktoto-claude-md",
       "kind": "document",
       "title": "CLAUDE.md",
@@ -4774,6 +6810,30 @@
       ],
       "tags": [
         "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "rule:examples-okoktoto-docs-readme-md:maintenance-rule",
+      "kind": "rule",
+      "title": "Maintenance Rule",
+      "summary": "When adding durable ops, architecture, or runbook documents, update this map in the same change.",
+      "status": "active",
+      "path": "examples/okoktoto/docs/README.md",
+      "source_paths": [
+        "examples/okoktoto/docs/README.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo",
+        "memory"
+      ],
+      "tags": [
+        "rule",
+        "section-rule",
+        "maintenance-rule"
       ],
       "date": null
     },
@@ -5409,7 +7469,7 @@
       "id": "object:source:registry-adopted-projects-toml",
       "kind": "config",
       "title": "adopted-projects.toml",
-      "summary": "[[project]] slug = \"okoktoto-v5-example\" name = \"OKOKTOTO v5 Example Canary\" profile = \"react-frontend-erpnext\" repository = \"in-repo example\" primary_branch = \"main\" deployment_branch = \"okoktoto-v5\" current_sula_version = \"0.11.0\" sync_st",
+      "summary": "[[project]] slug = \"okoktoto-v5-example\" name = \"OKOKTOTO v5 Example Canary\" profile = \"react-frontend-erpnext\" repository = \"in-repo example\" primary_branch = \"main\" deployment_branch = \"okoktoto-v5\" current_sula_version = \"0.13.0\" sync_st",
       "status": "indexed",
       "path": "registry/adopted-projects.toml",
       "source_paths": [
@@ -5452,7 +7512,7 @@
       "id": "object:source:registry-feedback-catalog-json",
       "kind": "config",
       "title": "catalog.json",
-      "summary": "{ \"version\": \"0.12.0\", \"updated_at\": \"\", \"items\": [] }",
+      "summary": "{ \"version\": \"0.13.0\", \"updated_at\": \"\", \"items\": [] }",
       "status": "indexed",
       "path": "registry/feedback/catalog.json",
       "source_paths": [
@@ -5778,7 +7838,7 @@
       "id": "object:source:site-sula-json",
       "kind": "config",
       "title": "sula.json",
-      "summary": "{ \"name\": \"Sula\", \"kind\": \"project-operating-system\", \"version\": \"0.12.0\", \"status\": \"public-source-published\", \"homepage_url\": \"https://sula.1stp.monster/\", \"launch_url\": \"https://sula.1stp.monster/launch/\", \"bootstrap_url\": \"https://sula.",
+      "summary": "{ \"name\": \"Sula\", \"kind\": \"project-operating-system\", \"version\": \"0.13.0\", \"status\": \"public-source-published\", \"homepage_url\": \"https://sula.1stp.monster/\", \"launch_url\": \"https://sula.1stp.monster/launch/\", \"bootstrap_url\": \"https://sula.",
       "status": "indexed",
       "path": "site/sula.json",
       "source_paths": [

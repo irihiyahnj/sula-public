@@ -1,8 +1,8 @@
-# Superpowers Capability Absorption Proposal
+# Workflow Capability Absorption Proposal
 
 ## Executive Summary
 
-Sula should audit `obra/superpowers` as a reusable workflow source, but it should not absorb Superpowers as a mandatory bundled methodology.
+Sula should absorb reusable workflow-governance capabilities, but it should not bundle one external delivery doctrine as a mandatory methodology.
 
 The durable opportunity is to extract a small set of cross-project operating capabilities that fit Sula's role as a project operating system:
 
@@ -18,28 +18,28 @@ The correct product shape is "Sula governs which workflow capabilities a project
 
 ### Objectives
 
-- define which Superpowers capabilities create long-term reusable value for Sula
+- define which workflow capabilities create long-term reusable value for Sula
 - separate portable operating-system value from platform-specific skill mechanics
 - propose a manifest, command, and rollout shape that preserves Sula's architecture boundaries
 - estimate expected return from adoption so rollout can be prioritized rationally
 
 ### Scope
 
-- workflow and governance capabilities visible in `obra/superpowers`
+- reusable workflow and governance capabilities relevant to Sula
 - Sula Core manifest and command surface implications
 - rollout sequencing for Sula Core and future adopted projects
 
 ### Out Of Scope
 
-- implementing a Superpowers-compatible plugin inside Sula
+- implementing a compatibility layer for any one external workflow system inside Sula
 - making strict TDD or mandatory brainstorming a universal Sula rule
 - changing the highest rule about managed operating-system files versus project-owned truth
 
 ## Current State And Constraints
 
-### What Superpowers Contributes
+### What The Workflow Pattern Contributes
 
-The current public Superpowers workflow centers on:
+The workflow pattern under review centers on:
 
 - brainstorming before implementation
 - explicit implementation plans
@@ -61,13 +61,13 @@ Sula already provides:
 
 ### Main Constraint
 
-Sula is an operating system for many project types. Superpowers is a strong software-delivery methodology for agentic coding environments. That means Sula should absorb the reusable governance layer, not the entire opinionated delivery doctrine.
+Sula is an operating system for many project types. A strong software-delivery methodology may be useful, but Sula should absorb the reusable governance layer, not the entire opinionated delivery doctrine.
 
 ## Proposed Approach
 
 ### Decision Rule
 
-Adopt only the parts of Superpowers that satisfy all of the following:
+Adopt only the workflow capabilities that satisfy all of the following:
 
 - reusable across more than one adopted project
 - represent durable project truth instead of one agent runtime preference
@@ -98,11 +98,11 @@ These ranges are directional estimates, not measured production benchmarks.
 | workflow capability registry + artifactized spec/plan/review | `20%` to `35%` better delivery consistency |
 | execution-mode and verification policy | `15%` to `30%` less rework on multi-step tasks |
 | isolation and close-out protocol | `10%` to `20%` less branch/worktree confusion and cleaner completion states |
-| hard-importing the full Superpowers doctrine as a default | only `5%` to `15%` likely net gain because friction rises on simple work |
+| hard-importing one full external workflow doctrine as a default | only `5%` to `15%` likely net gain because friction rises on simple work |
 
 ### Manifest Delta
 
-Sula should extend the optional `[workflow]` surface instead of inventing a separate Superpowers section.
+Sula should extend the optional `[workflow]` surface instead of inventing a source-specific section.
 
 Proposed additions:
 
@@ -212,7 +212,7 @@ These should be treated as project-owned workflow truth, while any agent-specifi
 
 ### Decisions
 
-- decide against importing Superpowers as a mandatory doctrine
+- decide against importing one external workflow doctrine as a mandatory default
 - decide for absorbing a smaller workflow capability model into Sula Core
 - decide that strict brainstorming and strict TDD should remain opt-in policy levels, not core defaults
 - decide that durable workflow artifacts are the highest-value near-term absorption target

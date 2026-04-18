@@ -29,6 +29,7 @@ Sula manages the cross-project operational layer so this repository can benefit 
 ### 4. Reference
 
 - `reference/`: durable contracts, capability models, and design references for Sula Core
+- `reference/memory-capability-implementation-plan.md`: phased implementation plan for stronger staged memory, rule indexing, promotion, and routing
 
 ### 5. Runbooks
 

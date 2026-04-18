@@ -1,5 +1,5 @@
 {
-  "version": "0.12.0",
+  "version": "0.13.0",
   "profile": "generic-project",
   "relations": [
     {
@@ -15,6 +15,11 @@
     {
       "from": "state:current",
       "to": "source:status-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "rule:manifest:highest-rule",
+      "to": "project-manifest",
       "type": "derived-from"
     },
     {
@@ -58,7 +63,52 @@
       "type": "derived-from"
     },
     {
+      "from": "rule:agents-md:highest-rule:preserve-project-owned-truth-while-using-sula-as-a-removable-operating-kernel",
+      "to": "source:agents-md",
+      "type": "derived-from"
+    },
+    {
       "from": "object:source:change-records-md",
+      "to": "source:change-records-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "rule:change-records-md:keep-this-file-short-and-index-oriented",
+      "to": "source:change-records-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "rule:change-records-md:put-detailed-records-in-docs-change-records",
+      "to": "source:change-records-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "rule:change-records-md:use-release-records-for-rollout-history-beyond-one-change",
+      "to": "source:change-records-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "rule:change-records-md:use-incident-records-for-broken-flows-outages-or-recovery-work",
+      "to": "source:change-records-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "rule:change-records-md:rules:keep-this-file-short-and-index-oriented",
+      "to": "source:change-records-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "rule:change-records-md:rules:put-detailed-records-in-docs-change-records",
+      "to": "source:change-records-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "rule:change-records-md:rules:use-release-records-for-rollout-history-beyond-one-change",
+      "to": "source:change-records-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "rule:change-records-md:rules:use-incident-records-for-broken-flows-outages-or-recovery-work",
       "to": "source:change-records-md",
       "type": "derived-from"
     },

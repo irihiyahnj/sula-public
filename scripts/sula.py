@@ -80,6 +80,13 @@ WORKFLOW_ISOLATION_CHOICES = ["none", "branch", "worktree"]
 WORKFLOW_TESTING_POLICY_CHOICES = ["inherit", "verify-first", "tdd"]
 WORKFLOW_CLOSEOUT_POLICY_CHOICES = ["inherit", "explicit"]
 WORKFLOW_SCAFFOLD_KIND_CHOICES = ["spec", "plan", "review"]
+MEMORY_CAPTURE_POLICY_CHOICES = ["off", "explicit", "guided"]
+MEMORY_PROMOTION_POLICY_CHOICES = ["manual", "review-required", "auto-derived"]
+MEMORY_QUERY_ROUTING_CHOICES = ["literal", "deterministic", "deterministic-plus-hints"]
+MEMORY_SEMANTIC_CACHE_CHOICES = ["off", "optional", "canary"]
+MEMORY_CAPTURE_CATEGORY_CHOICES = ["note", "task", "decision", "risk", "rule"]
+MEMORY_PROMOTION_TARGET_CHOICES = ["task", "decision", "risk", "rule", "state", "workflow-artifact"]
+MEMORY_CAPTURE_STATUS_CHOICES = ["staged", "promoted", "discarded"]
 FEEDBACK_KIND_CHOICES = ["bug", "improvement", "docs", "policy", "regression"]
 FEEDBACK_SEVERITY_CHOICES = ["low", "medium", "high", "critical"]
 FEEDBACK_DECISION_CHOICES = ["triaged", "accepted", "deferred", "rejected", "released"]
@@ -225,6 +232,14 @@ OPTIONAL_MANIFEST_SPEC = {
         "incident_record_directory": "string",
         "digest_file": "string",
         "status_max_age_days": "int",
+        "capture_policy": "string",
+        "promotion_policy": "string",
+        "rule_registry": "bool",
+        "job_tracking": "bool",
+        "query_routing": "string",
+        "semantic_cache": "string",
+        "session_retention_days": "int",
+        "promotion_file": "string",
     },
     "workflow": {
         "pack": "string",
@@ -368,6 +383,8 @@ SECTION_LABELS = {
     "Resolution": {"en": "Resolution", "zh": "解决"},
     "Tasks": {"en": "Tasks", "zh": "任务"},
     "Decisions": {"en": "Decisions", "zh": "决策"},
+    "State Updates": {"en": "State Updates", "zh": "状态更新"},
+    "Workflow Artifacts": {"en": "Workflow Artifacts", "zh": "工作流文档"},
     "People": {"en": "People", "zh": "人员"},
     "Agreements": {"en": "Agreements", "zh": "协议"},
     "Milestones": {"en": "Milestones", "zh": "里程碑"},
@@ -481,6 +498,26 @@ class ProjectConfig:
     @property
     def status_max_age_days(self) -> int:
         return int(self.memory_setting("status_max_age_days", 30))
+
+    @property
+    def session_retention_days(self) -> int:
+        return int(self.memory_setting("session_retention_days", 7))
+
+    @property
+    def promotion_file(self) -> Path:
+        return self.root / self.memory_setting("promotion_file", "docs/ops/session-promotions.md")
+
+    @property
+    def session_capture_store(self) -> Path:
+        return self.root / ".sula" / "state" / "session" / "captures.jsonl"
+
+    @property
+    def memory_jobs_history_path(self) -> Path:
+        return self.root / ".sula" / "state" / "jobs" / "history.jsonl"
+
+    @property
+    def memory_jobs_latest_path(self) -> Path:
+        return self.root / ".sula" / "state" / "jobs" / "latest.json"
 
     def workflow_setting(self, key: str, default):
         return self.data.get("workflow", {}).get(key, default)
@@ -1322,6 +1359,36 @@ def parse_args() -> argparse.Namespace:
     memory_digest_cmd.add_argument("--output", help="Optional output path relative to the project root")
     memory_digest_cmd.add_argument("--stdout", action="store_true", help="Print the digest instead of writing it")
     memory_digest_cmd.add_argument("--json", action="store_true", help="Print JSON instead of human-readable output")
+    memory_capture_cmd = memory_sub.add_parser("capture", help="Capture temporary session context for later review or promotion")
+    add_project_root_arg(memory_capture_cmd)
+    memory_capture_cmd.add_argument("--title", required=True)
+    memory_capture_cmd.add_argument("--summary", required=True)
+    memory_capture_cmd.add_argument("--category", choices=MEMORY_CAPTURE_CATEGORY_CHOICES, default="note")
+    memory_capture_cmd.add_argument("--source-path", help="Optional project-relative source path that informed the capture")
+    memory_capture_cmd.add_argument("--confidence", type=int, choices=[1, 2, 3, 4, 5], default=3)
+    memory_capture_cmd.add_argument("--session-id", default="")
+    memory_capture_cmd.add_argument("--json", action="store_true", help="Print JSON instead of human-readable output")
+    memory_review_cmd = memory_sub.add_parser("review", help="Review staged or historical session captures")
+    add_project_root_arg(memory_review_cmd)
+    memory_review_cmd.add_argument("--status", choices=MEMORY_CAPTURE_STATUS_CHOICES)
+    memory_review_cmd.add_argument("--limit", type=int, default=20)
+    memory_review_cmd.add_argument("--json", action="store_true", help="Print JSON instead of human-readable output")
+    memory_promote_cmd = memory_sub.add_parser("promote", help="Promote a reviewed capture into a durable operating source")
+    add_project_root_arg(memory_promote_cmd)
+    memory_promote_cmd.add_argument("--capture-id", required=True)
+    memory_promote_cmd.add_argument("--to", choices=MEMORY_PROMOTION_TARGET_CHOICES, required=True)
+    memory_promote_cmd.add_argument("--json", action="store_true", help="Print JSON instead of human-readable output")
+    memory_clear_cmd = memory_sub.add_parser("clear", help="Clear disposable memory state")
+    add_project_root_arg(memory_clear_cmd)
+    memory_clear_group = memory_clear_cmd.add_mutually_exclusive_group(required=True)
+    memory_clear_group.add_argument("--derived", action="store_true", help="Delete disposable query and sqlite caches")
+    memory_clear_group.add_argument("--reviewed-captures", action="store_true", help="Delete promoted and discarded captures from the session store")
+    memory_clear_group.add_argument("--all-captures", action="store_true", help="Delete the entire session capture store")
+    memory_clear_cmd.add_argument("--json", action="store_true", help="Print JSON instead of human-readable output")
+    memory_jobs_cmd = memory_sub.add_parser("jobs", help="Inspect memory-related job history")
+    add_project_root_arg(memory_jobs_cmd)
+    memory_jobs_cmd.add_argument("--limit", type=int, default=20)
+    memory_jobs_cmd.add_argument("--json", action="store_true", help="Print JSON instead of human-readable output")
 
     portfolio_cmd = sub.add_parser("portfolio", help="Manage and query a portfolio of adopted projects")
     portfolio_sub = portfolio_cmd.add_subparsers(dest="portfolio_command", required=True)
@@ -1784,6 +1851,11 @@ def onboarding_summary_payload(
             if zh
             else f"storage adapter metadata for `{storage['provider']}` without making the provider part of project truth"
         ),
+        (
+            f"staged memory 工作流：先写入 `{manifest['memory']['promotion_file']}` 对应的提升链路，再通过 review / promote 决定哪些临时结论成为长期上下文"
+            if zh
+            else f"staged memory workflow with review and promotion into durable context through `{manifest['memory']['promotion_file']}`"
+        ),
     ]
     if str(portfolio.get("workspace", "personal")) != "personal":
         will_manage.append(
@@ -1794,6 +1866,8 @@ def onboarding_summary_payload(
     next_commands = [
         "python3 scripts/sula.py status --project-root /path/to/project --json",
         "python3 scripts/sula.py query --project-root /path/to/project --q \"contract\" --json",
+        "python3 scripts/sula.py memory capture --project-root /path/to/project --title \"...\" --summary \"...\"",
+        "python3 scripts/sula.py memory review --project-root /path/to/project --json",
         "python3 scripts/sula.py artifact create --project-root /path/to/project --kind agreement --title \"...\"",
     ]
     if str(portfolio.get("workspace", "")):
@@ -1815,6 +1889,13 @@ def onboarding_summary_payload(
         "projection": {
             "mode": projection.get("mode", default_projection_mode_for_existing_consumer(str(manifest["project"]["profile"]))),
             "enabled_packs": projection.get("enabled_packs", []),
+        },
+        "memory": {
+            "capture_policy": manifest["memory"]["capture_policy"],
+            "promotion_policy": manifest["memory"]["promotion_policy"],
+            "query_routing": manifest["memory"]["query_routing"],
+            "promotion_file": manifest["memory"]["promotion_file"],
+            "session_retention_days": manifest["memory"]["session_retention_days"],
         },
         "storage": storage,
         "portfolio": portfolio,
@@ -1839,6 +1920,10 @@ def print_onboarding_summary(summary: dict[str, object]) -> None:
         print(f"项目: {project['name']} [{summary['profile']}]")
         print(f"投影模式: {summary['projection']['mode']} ({', '.join(summary['projection']['enabled_packs']) or 'none'})")
         print(f"工作流包: {workflow['pack']} (阶段: {workflow['stage']})")
+        print(
+            f"记忆流程: capture={summary['memory']['capture_policy']} / promote={summary['memory']['promotion_policy']} / route={summary['memory']['query_routing']}"
+        )
+        print(f"提升文件: {summary['memory']['promotion_file']} (保留 {summary['memory']['session_retention_days']} 天 staged captures)")
         print(f"存储提供方: {storage['provider']} ({storage['sync_mode']})")
         print(f"Portfolio 工作区: {portfolio['workspace']} / 负责人: {portfolio['owner']}")
         print(f"文档语言: {language['content_locale']} / 交互语言: {language['interaction_locale']}")
@@ -1848,6 +1933,10 @@ def print_onboarding_summary(summary: dict[str, object]) -> None:
         print(f"Project: {project['name']} [{summary['profile']}]")
         print(f"Projection mode: {summary['projection']['mode']} ({', '.join(summary['projection']['enabled_packs']) or 'none'})")
         print(f"Workflow pack: {workflow['pack']} (stage: {workflow['stage']})")
+        print(
+            f"Memory lifecycle: capture={summary['memory']['capture_policy']} / promote={summary['memory']['promotion_policy']} / route={summary['memory']['query_routing']}"
+        )
+        print(f"Promotion file: {summary['memory']['promotion_file']} (keep staged captures for {summary['memory']['session_retention_days']} days)")
         print(f"Storage provider: {storage['provider']} ({storage['sync_mode']})")
         print(f"Portfolio workspace: {portfolio['workspace']} / owner: {portfolio['owner']}")
         print(f"Document language: {language['content_locale']} / interaction language: {language['interaction_locale']}")
@@ -2155,9 +2244,7 @@ def main() -> int:
         raise AssertionError("unreachable")
 
     if args.command == "memory":
-        if args.memory_command == "digest":
-            return generate_memory_digest(config, args)
-        raise AssertionError("unreachable")
+        return handle_memory_command(config, args)
 
     if args.command == "query":
         return query_project_kernel(config, args)
@@ -2589,6 +2676,12 @@ def validate_manifest(data: dict) -> None:
         validate_choice_field("workflow", "workspace_isolation", workflow_section.get("workspace_isolation"), WORKFLOW_ISOLATION_CHOICES, invalid)
         validate_choice_field("workflow", "testing_policy", workflow_section.get("testing_policy"), WORKFLOW_TESTING_POLICY_CHOICES, invalid)
         validate_choice_field("workflow", "closeout_policy", workflow_section.get("closeout_policy"), WORKFLOW_CLOSEOUT_POLICY_CHOICES, invalid)
+    memory_section = data.get("memory")
+    if isinstance(memory_section, dict):
+        validate_choice_field("memory", "capture_policy", memory_section.get("capture_policy"), MEMORY_CAPTURE_POLICY_CHOICES, invalid)
+        validate_choice_field("memory", "promotion_policy", memory_section.get("promotion_policy"), MEMORY_PROMOTION_POLICY_CHOICES, invalid)
+        validate_choice_field("memory", "query_routing", memory_section.get("query_routing"), MEMORY_QUERY_ROUTING_CHOICES, invalid)
+        validate_choice_field("memory", "semantic_cache", memory_section.get("semantic_cache"), MEMORY_SEMANTIC_CACHE_CHOICES, invalid)
 
     issues: list[str] = []
     if missing:
@@ -2704,17 +2797,26 @@ def doctor_payload(
 
 
 def existing_consumer_payload(config: ProjectConfig) -> dict[str, object]:
+    memory_summary = memory_state_summary(config)
     return {
         "project": project_payload(config),
         "language": {
             "content_locale": config.content_locale,
             "interaction_locale": config.interaction_locale,
         },
+        "memory": {
+            "promotion_file": memory_summary["promotion_file"],
+            "session_capture_store": memory_summary["session_capture_store"],
+            "capture_policy": memory_summary["capture_policy"],
+            "promotion_policy": memory_summary["promotion_policy"],
+            "query_routing": memory_summary["query_routing"],
+        },
         "next_commands": [
             "python3 scripts/sula.py doctor --project-root /path/to/project --strict",
             "python3 scripts/sula.py sync --project-root /path/to/project --dry-run",
             "python3 scripts/sula.py projection list --project-root /path/to/project --json",
             "python3 scripts/sula.py status --project-root /path/to/project --json",
+            "python3 scripts/sula.py memory review --project-root /path/to/project --json",
         ],
     }
 
@@ -3203,6 +3305,14 @@ def default_memory_config() -> dict:
         "incident_record_directory": "docs/incidents",
         "digest_file": ".sula/memory-digest.md",
         "status_max_age_days": 30,
+        "capture_policy": "explicit",
+        "promotion_policy": "review-required",
+        "rule_registry": True,
+        "job_tracking": True,
+        "query_routing": "deterministic",
+        "semantic_cache": "off",
+        "session_retention_days": 7,
+        "promotion_file": "docs/ops/session-promotions.md",
     }
 
 
@@ -3681,7 +3791,7 @@ def export_public_release_tree(project_root: Path, output_root: Path, *, overwri
         "# Sula Public Export",
         "",
         f"- generated_on: {datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')}",
-        f"- source_root: {project_root}",
+        "- source_tree: tracked files exported from the private source repository",
         f"- file_count: {len(copied)}",
         "- public_release_strategy: fresh-public-repo",
         "",
@@ -3991,6 +4101,7 @@ def apply_adoption(
 
 def finalize_adoption_traceability(config: ProjectConfig) -> None:
     ensure_initial_status(config)
+    ensure_promotion_file(config)
     ensure_adoption_record(config)
 
 
@@ -4153,6 +4264,9 @@ def print_adoption_usage(config: ProjectConfig) -> None:
         print(f"  - 预览后续升级: {sula_command} sync --project-root {config.root} --dry-run")
         print(f"  - 预览移除: {sula_command} remove --project-root {config.root}")
         print(f"  - 添加非琐碎历史: {sula_command} record new --project-root {config.root} --title \"...\"")
+        print(f"  - capture 临时上下文: {sula_command} memory capture --project-root {config.root} --title \"...\" --summary \"...\"")
+        print(f"  - review / promote: {sula_command} memory review --project-root {config.root} --json")
+        print(f"  - 提升文件: {config.promotion_file}")
         print(f"  - 重新生成记忆摘要: {sula_command} memory digest --project-root {config.root}")
     else:
         print("How to use Sula after adoption:")
@@ -4161,6 +4275,9 @@ def print_adoption_usage(config: ProjectConfig) -> None:
         print(f"  - preview future upgrades: {sula_command} sync --project-root {config.root} --dry-run")
         print(f"  - preview removal: {sula_command} remove --project-root {config.root}")
         print(f"  - add non-trivial history: {sula_command} record new --project-root {config.root} --title \"...\"")
+        print(f"  - capture temporary context: {sula_command} memory capture --project-root {config.root} --title \"...\" --summary \"...\"")
+        print(f"  - review and promote memory: {sula_command} memory review --project-root {config.root} --json")
+        print(f"  - durable promotion file: {config.promotion_file}")
         print(f"  - regenerate recall summary: {sula_command} memory digest --project-root {config.root}")
 
 
@@ -4906,6 +5023,13 @@ def generate_memory_digest(config: ProjectConfig, args: argparse.Namespace, *, e
         return 0
     output_path.parent.mkdir(parents=True, exist_ok=True)
     output_path.write_text(digest, encoding="utf-8")
+    job = record_memory_job(
+        config,
+        job_type="memory.digest",
+        status="ok",
+        summary=f"Regenerated memory digest at `{output_path.relative_to(config.root).as_posix()}`.",
+        details={"output_path": output_path.relative_to(config.root).as_posix()},
+    )
     refresh_kernel_state(config, event_type="memory.digest", summary=f"Regenerated memory digest at `{output_path.relative_to(config.root).as_posix()}`.")
     if json_output_requested(args) and emit_output:
         emit_json(
@@ -4914,6 +5038,7 @@ def generate_memory_digest(config: ProjectConfig, args: argparse.Namespace, *, e
                 "status": "ok",
                 "project": project_payload(config),
                 "output_path": output_path.relative_to(config.root).as_posix(),
+                "job": job,
             }
         )
         return 0
@@ -5216,6 +5341,9 @@ def build_daily_check_commands(config: ProjectConfig, report: dict[str, object],
     project_root_arg = shlex.quote(str(config.root))
     if drift_errors:
         commands.append(f"python3 scripts/sula.py memory digest --project-root {project_root_arg}")
+    if any("staged capture" in str(item) for item in report["memory_errors"]):
+        commands.append(f"python3 scripts/sula.py memory review --project-root {project_root_arg} --json")
+        commands.append(f"python3 scripts/sula.py memory clear --project-root {project_root_arg} --reviewed-captures")
     if report["missing_files"] or report["drifted_files"] or report["placeholder_files"] or report["lock_issues"]:
         commands.append(f"python3 scripts/sula.py sync --project-root {project_root_arg} --dry-run")
     commands.append(f"python3 scripts/sula.py check --project-root {project_root_arg}")
@@ -5544,6 +5672,113 @@ def collect_memory_doctor_report(config: ProjectConfig) -> tuple[list[str], list
         errors.extend(register_errors)
         warnings.extend(register_warnings)
 
+    capture_errors, capture_warnings = validate_session_capture_store(config)
+    errors.extend(capture_errors)
+    warnings.extend(capture_warnings)
+
+    job_errors, job_warnings = validate_memory_jobs_store(config)
+    errors.extend(job_errors)
+    warnings.extend(job_warnings)
+
+    promotion_errors, promotion_warnings = validate_promotion_file(config)
+    errors.extend(promotion_errors)
+    warnings.extend(promotion_warnings)
+
+    return errors, warnings
+
+
+def validate_session_capture_store(config: ProjectConfig) -> tuple[list[str], list[str]]:
+    errors: list[str] = []
+    warnings: list[str] = []
+    path = config.session_capture_store
+    if not path.exists():
+        return errors, warnings
+    for line_number, raw_line in enumerate(path.read_text(encoding="utf-8").splitlines(), start=1):
+        if not raw_line.strip():
+            continue
+        try:
+            item = json.loads(raw_line)
+        except json.JSONDecodeError as exc:
+            errors.append(f"invalid session capture JSON at {path}:{line_number} ({exc})")
+            break
+        if not isinstance(item, dict):
+            errors.append(f"session capture entry is malformed: {path}:{line_number}")
+            break
+        capture_id = normalize_optional_text(item.get("id", "")).strip()
+        title = normalize_optional_text(item.get("title", "")).strip()
+        summary = normalize_optional_text(item.get("summary", "")).strip()
+        status = normalize_optional_text(item.get("status", "")).strip()
+        captured_at = normalize_optional_text(item.get("captured_at", "")).strip()
+        if not capture_id or not title or not summary:
+            errors.append(f"session capture entry is missing required fields: {path}:{line_number}")
+            break
+        if status not in MEMORY_CAPTURE_STATUS_CHOICES:
+            errors.append(f"{path}:{line_number}: unsupported session capture status `{status}`")
+            break
+        try:
+            normalized_captured_at = normalize_optional_timestamp(captured_at)
+        except SystemExit as exc:
+            errors.append(f"{path}:{line_number}: {exc}")
+            break
+        if status == "staged":
+            captured_date = datetime.fromisoformat(normalized_captured_at.replace("Z", "+00:00")).date()
+            age_days = (date.today() - captured_date).days
+            if age_days > config.session_retention_days:
+                errors.append(
+                    f"{path}:{line_number}: staged capture `{capture_id}` is {age_days} days old, over the {config.session_retention_days}-day review target"
+                )
+        if status == "promoted" and not normalize_optional_text(item.get("promotion_path", "")).strip():
+            warnings.append(f"{path}:{line_number}: promoted capture `{capture_id}` is missing `promotion_path`")
+    return errors, warnings
+
+
+def validate_memory_jobs_store(config: ProjectConfig) -> tuple[list[str], list[str]]:
+    errors: list[str] = []
+    warnings: list[str] = []
+    path = config.memory_jobs_history_path
+    if not path.exists():
+        return errors, warnings
+    for line_number, raw_line in enumerate(path.read_text(encoding="utf-8").splitlines(), start=1):
+        if not raw_line.strip():
+            continue
+        try:
+            item = json.loads(raw_line)
+        except json.JSONDecodeError as exc:
+            errors.append(f"invalid memory job JSON at {path}:{line_number} ({exc})")
+            break
+        if not isinstance(item, dict) or not normalize_optional_text(item.get("id", "")).strip():
+            errors.append(f"memory job entry is malformed: {path}:{line_number}")
+            break
+        if not normalize_optional_text(item.get("job_type", "")).strip():
+            warnings.append(f"{path}:{line_number}: memory job is missing `job_type`")
+    latest_path = config.memory_jobs_latest_path
+    if latest_path.exists():
+        try:
+            latest = json.loads(latest_path.read_text(encoding="utf-8"))
+        except json.JSONDecodeError as exc:
+            errors.append(f"invalid memory latest-job JSON: {latest_path} ({exc})")
+        else:
+            if latest and (not isinstance(latest, dict) or not normalize_optional_text(latest.get("id", "")).strip()):
+                errors.append(f"memory latest-job payload is malformed: {latest_path}")
+    return errors, warnings
+
+
+def validate_promotion_file(config: ProjectConfig) -> tuple[list[str], list[str]]:
+    errors: list[str] = []
+    warnings: list[str] = []
+    path = config.promotion_file
+    if not path.exists():
+        promoted_exists = any(item.get("status") == "promoted" for item in read_session_captures(config))
+        if promoted_exists:
+            errors.append(f"missing promotion file: {path}")
+        return errors, warnings
+    text = path.read_text(encoding="utf-8")
+    sections = markdown_sections(text)
+    for section_name in ["Rules", "Tasks", "Decisions", "Risks"]:
+        if section_name not in sections:
+            errors.append(f"{path}: missing section `## {section_name}`")
+    if not extract_markdown_title(text):
+        errors.append(f"{path}: missing top-level title")
     return errors, warnings
 
 
@@ -5711,6 +5946,10 @@ def refresh_kernel_state(config: ProjectConfig, *, event_type: str | None = None
     kernel_root = config.root / ".sula"
     for relative in ["adapters", "artifacts", "objects", "sources", "state", "events", "indexes", "cache", "exports"]:
         (kernel_root / relative).mkdir(parents=True, exist_ok=True)
+    (kernel_root / "state" / "session").mkdir(parents=True, exist_ok=True)
+    (kernel_root / "state" / "jobs").mkdir(parents=True, exist_ok=True)
+    ensure_session_capture_store(config)
+    ensure_memory_jobs_store(config)
 
     event_log_path = kernel_root / "events" / "log.jsonl"
     if not event_log_path.exists():
@@ -5740,7 +5979,7 @@ def refresh_kernel_state(config: ProjectConfig, *, event_type: str | None = None
 
 def append_kernel_event(config: ProjectConfig, event_log_path: Path, event_type: str, summary: str) -> None:
     event = {
-        "timestamp": datetime.utcnow().replace(microsecond=0).isoformat() + "Z",
+        "timestamp": datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z"),
         "event_type": event_type,
         "summary": summary,
         "profile": config.profile,
@@ -5768,6 +6007,8 @@ def render_kernel_manifest(config: ProjectConfig) -> str:
         'state_snapshot = ".sula/state/current.md"\n'
         'source_registry = ".sula/sources/registry.json"\n'
         'event_log = ".sula/events/log.jsonl"\n'
+        'session_captures = ".sula/state/session/captures.jsonl"\n'
+        'memory_jobs = ".sula/state/jobs/history.jsonl"\n'
         'index_catalog = ".sula/indexes/catalog.json"\n'
         'relation_index = ".sula/indexes/relations.json"\n'
         'sqlite_cache = ".sula/cache/kernel.db"\n'
@@ -5872,6 +6113,7 @@ def build_source_registry(config: ProjectConfig) -> list[dict[str, object]]:
         ("readme", "overview", "README.md"),
         ("app-shell", "project-entry", config.data["paths"]["app_shell"]),
         ("api-layer", "project-entry", config.data["paths"]["api_layer"]),
+        ("session-promotions", "operating-memory", config.memory_setting("promotion_file", "docs/ops/session-promotions.md")),
         ("kernel-state", "kernel-state", ".sula/state/current.md"),
         ("memory-digest", "derived-export", config.memory_setting("digest_file", ".sula/memory-digest.md")),
         ("artifacts-catalog", "artifact-index", ".sula/artifacts/catalog.json"),
@@ -6142,11 +6384,27 @@ def build_object_catalog(config: ProjectConfig) -> list[dict[str, object]]:
             "date": status_updated,
         }
     )
+    objects.append(
+        {
+            "id": "rule:manifest:highest-rule",
+            "kind": "rule",
+            "title": "Highest Rule",
+            "summary": str(config.data["rules"]["highest_rule"]),
+            "status": "active",
+            "path": MANIFEST_PATH.as_posix(),
+            "source_paths": [MANIFEST_PATH.as_posix()],
+            "adapters": ["generic-project", "memory"],
+            "tags": ["rule", "manifest"],
+            "date": status_updated,
+        }
+    )
     objects.extend(build_status_objects(config, status_sections, status_updated))
     objects.extend(build_record_objects(config.root, config.change_record_directory, "change", ["generic-project", "memory"]))
     objects.extend(build_record_objects(config.root, config.release_record_directory, "release", ["generic-project", "memory"]))
     objects.extend(build_record_objects(config.root, config.incident_record_directory, "incident", ["generic-project", "memory"]))
     objects.extend(build_artifact_objects(config))
+    objects.extend(build_session_capture_objects(config))
+    objects.extend(build_memory_job_objects(config))
     for source in build_source_registry(config):
         if not source.get("discovered"):
             continue
@@ -6166,7 +6424,10 @@ def build_object_catalog(config: ProjectConfig) -> list[dict[str, object]]:
                 "date": detect_source_date(source_path, source_summary_text),
             }
         )
-        objects.extend(build_discovered_source_objects(source_path, str(source["path"]), source.get("adapters", ["generic-project"])))
+        source_adapters = source.get("adapters", ["generic-project"])
+        objects.extend(build_discovered_source_objects(source_path, str(source["path"]), source_adapters))
+        if bool(config.memory_setting("rule_registry", True)):
+            objects.extend(build_rule_objects(str(source["path"]), source_path, source_adapters))
     return dedupe_objects(objects)
 
 
@@ -6221,6 +6482,76 @@ def build_artifact_objects(config: ProjectConfig) -> list[dict[str, object]]:
                 "provider_last_fetch_error": truth_summary["provider_last_fetch_error"],
                 "provider_snapshot_path": truth_summary["provider_snapshot_path"],
                 "truth_source_reason": truth_summary["truth_source_reason"],
+            }
+        )
+    return objects
+
+
+def build_session_capture_objects(config: ProjectConfig) -> list[dict[str, object]]:
+    objects: list[dict[str, object]] = []
+    relative_path = config.session_capture_store.relative_to(config.root).as_posix()
+    for item in read_session_captures(config):
+        capture_id = str(item.get("id", "")).strip()
+        if not capture_id:
+            continue
+        status = normalize_optional_text(item.get("status", "staged")) or "staged"
+        source_paths = [relative_path]
+        source_path = normalize_optional_text(item.get("source_path", "")).strip()
+        if source_path:
+            source_paths.append(source_path)
+        objects.append(
+            {
+                "id": capture_id,
+                "kind": "session_capture",
+                "title": normalize_optional_text(item.get("title", "")) or capture_id,
+                "summary": normalize_optional_text(item.get("summary", "")),
+                "status": status,
+                "path": relative_path,
+                "source_paths": dedupe_preserve_order(source_paths),
+                "adapters": ["generic-project", "memory"],
+                "tags": ["session-capture", normalize_optional_text(item.get("category", "note")) or "note"],
+                "date": normalize_optional_text(item.get("captured_at", ""))[:10],
+                "category": normalize_optional_text(item.get("category", "note")),
+            }
+        )
+        if status == "promoted" and normalize_optional_text(item.get("promoted_to", "")):
+            promotion_path = normalize_optional_text(item.get("promotion_path", "")).strip() or config.promotion_file.relative_to(config.root).as_posix()
+            objects.append(
+                {
+                    "id": f"promotion:{capture_id}",
+                    "kind": "promotion",
+                    "title": f"Promotion of {normalize_optional_text(item.get('title', capture_id))}",
+                    "summary": normalize_optional_text(item.get("promotion_summary", "")) or normalize_optional_text(item.get("summary", "")),
+                    "status": "recorded",
+                    "path": promotion_path,
+                    "source_paths": [promotion_path, relative_path],
+                    "adapters": ["generic-project", "memory", "docs"],
+                    "tags": ["promotion", normalize_optional_text(item.get("promoted_to", ""))],
+                    "date": normalize_optional_text(item.get("updated_at", ""))[:10],
+                }
+            )
+    return objects
+
+
+def build_memory_job_objects(config: ProjectConfig) -> list[dict[str, object]]:
+    objects: list[dict[str, object]] = []
+    relative_path = config.memory_jobs_history_path.relative_to(config.root).as_posix()
+    for item in read_memory_jobs(config):
+        job_id = normalize_optional_text(item.get("id", ""))
+        if not job_id:
+            continue
+        objects.append(
+            {
+                "id": job_id,
+                "kind": "job",
+                "title": normalize_optional_text(item.get("job_type", "memory-job")),
+                "summary": normalize_optional_text(item.get("summary", "")),
+                "status": normalize_optional_text(item.get("status", "")) or "recorded",
+                "path": relative_path,
+                "source_paths": [relative_path],
+                "adapters": ["generic-project", "memory"],
+                "tags": ["job", "memory-job"],
+                "date": normalize_optional_text(item.get("started_at", ""))[:10],
             }
         )
     return objects
@@ -6443,6 +6774,68 @@ def build_discovered_source_objects(source_path: Path, relative_path: str, adapt
     return objects
 
 
+def build_rule_objects(relative_path: str, source_path: Path, adapters: list[str]) -> list[dict[str, object]]:
+    if not source_path.exists() or source_path.is_dir():
+        return []
+    if source_path.suffix.lower() not in {".md", ".txt", ".rst"}:
+        return []
+    text = source_path.read_text(encoding="utf-8", errors="ignore")
+    if not text.strip():
+        return []
+    default_date = detect_source_date(source_path, text)
+    sections = markdown_sections(text)
+    rule_section_names = [
+        "Highest Rule",
+        "Working Rules",
+        "Rules",
+        "Maintenance Rule",
+        "Maintenance Rules",
+        "Design Rules",
+        "Publication Hygiene",
+    ]
+    objects: list[dict[str, object]] = []
+    for section_name in rule_section_names:
+        section_text = sections.get(section_name, "")
+        if not section_text.strip():
+            continue
+        bullet_items = markdown_bullet_items(section_text)
+        if bullet_items:
+            for item in bullet_items:
+                objects.append(
+                    {
+                        "id": f"rule:{sanitize_source_id(relative_path)}:{sanitize_source_id(section_name)}:{sanitize_source_id(item)}",
+                        "kind": "rule",
+                        "title": truncate_title(item),
+                        "summary": item,
+                        "status": "active",
+                        "path": relative_path,
+                        "source_paths": [relative_path],
+                        "adapters": dedupe_preserve_order(adapters + ["memory"]),
+                        "tags": ["rule", "section-rule", sanitize_slug(section_name)],
+                        "date": extract_inline_date(item) or default_date,
+                    }
+                )
+            continue
+        paragraph = first_readme_paragraph(section_text)
+        if not paragraph:
+            continue
+        objects.append(
+            {
+                "id": f"rule:{sanitize_source_id(relative_path)}:{sanitize_source_id(section_name)}",
+                "kind": "rule",
+                "title": section_name,
+                "summary": paragraph,
+                "status": "active",
+                "path": relative_path,
+                "source_paths": [relative_path],
+                "adapters": dedupe_preserve_order(adapters + ["memory"]),
+                "tags": ["rule", "section-rule", sanitize_slug(section_name)],
+                "date": default_date,
+            }
+        )
+    return objects
+
+
 def build_section_objects(
     relative_path: str,
     text: str,
@@ -6454,6 +6847,9 @@ def build_section_objects(
         "Tasks": ("task", "open", ["task"]),
         "Decisions": ("decision", "decided", ["decision"]),
         "Risks": ("risk", "open", ["risk"]),
+        "Rules": ("rule", "active", ["rule"]),
+        "State Updates": ("state", "active", ["state", "promotion-section"]),
+        "Workflow Artifacts": ("document", "active", ["workflow-artifact", "promotion-section"]),
         "People": ("person", "active", ["person"]),
         "Agreements": ("agreement", "active", ["agreement"]),
         "Milestones": ("milestone", "planned", ["milestone"]),
@@ -6720,6 +7116,13 @@ def build_query_documents(config: ProjectConfig) -> list[dict[str, object]]:
 def query_project_kernel(config: ProjectConfig, args: argparse.Namespace) -> int:
     freshness_intent = detect_freshness_intent(args.q)
     effective_query = strip_freshness_intent_phrases(args.q) if freshness_intent else args.q
+    route = determine_query_route(
+        effective_query,
+        kind=args.kind,
+        timeline=args.timeline,
+        freshness_intent=freshness_intent,
+        routing_policy=normalize_optional_text(config.memory_setting("query_routing", "deterministic")),
+    )
     refresh_report = None
     if freshness_intent:
         refresh_report = refresh_provider_artifact_batch(
@@ -6743,6 +7146,7 @@ def query_project_kernel(config: ProjectConfig, args: argparse.Namespace) -> int
         timeline=args.timeline,
         limit=args.limit,
         freshness_intent=freshness_intent,
+        route=route,
     )
     if args.json:
         print(
@@ -6750,6 +7154,7 @@ def query_project_kernel(config: ProjectConfig, args: argparse.Namespace) -> int
                 {
                     "query": args.q,
                     "effective_query": effective_query,
+                    "route": route,
                     "freshness_intent_detected": freshness_intent,
                     "refresh": refresh_report,
                     "kind": args.kind,
@@ -6771,6 +7176,7 @@ def query_project_kernel(config: ProjectConfig, args: argparse.Namespace) -> int
     if not results:
         print("  没有结果。" if zh else "  No results.")
         return 0
+    print(f"  路由: {route}" if zh else f"  Route: {route}")
     for result in results:
         date_prefix = f"{result['date']} " if result.get("date") else ""
         status_suffix = f" status={result['status']}" if result.get("status") else ""
@@ -6784,12 +7190,41 @@ def query_project_kernel(config: ProjectConfig, args: argparse.Namespace) -> int
         missing_suffix = ""
         if result.get("missing_provider_metadata"):
             missing_suffix = " missing=" + ",".join(str(value) for value in result["missing_provider_metadata"])
+        route_suffix = f" route={result['route']}" if result.get("route") else ""
         print(
             "  - "
-            f"{date_prefix}[{result['kind']}] score={result['score']}{status_suffix}{related_suffix}{truth_suffix}{refresh_suffix}{stale_suffix}{provider_path_suffix}{missing_suffix} "
+            f"{date_prefix}[{result['kind']}] score={result['score']}{status_suffix}{related_suffix}{truth_suffix}{refresh_suffix}{stale_suffix}{provider_path_suffix}{missing_suffix}{route_suffix} "
             f"{result['title']} :: {result['path']}"
         )
     return 0
+
+
+def determine_query_route(
+    query: str,
+    *,
+    kind: str | None,
+    timeline: bool,
+    freshness_intent: bool,
+    routing_policy: str,
+) -> str:
+    if routing_policy == "literal":
+        return "literal"
+    if kind:
+        return "kind"
+    if freshness_intent:
+        return "freshness"
+    if timeline:
+        return "timeline"
+    token_set = set(tokenize_text(query))
+    if token_set & {"rule", "rules", "policy", "policies", "constraint", "constraints", "governance", "guideline", "guidelines"}:
+        return "rules"
+    if token_set & {"status", "state", "health", "summary", "current", "progress"}:
+        return "state"
+    if token_set & {"change", "changes", "release", "incident", "history", "why", "decision"}:
+        return "record"
+    if token_set & {"task", "todo", "next", "deliver", "milestone", "plan", "workflow", "review", "spec"}:
+        return "execution"
+    return "general"
 
 
 def search_kernel(
@@ -6805,6 +7240,7 @@ def search_kernel(
     timeline: bool,
     limit: int,
     freshness_intent: bool = False,
+    route: str = "general",
 ) -> list[dict[str, object]]:
     normalized_query = query.strip().lower()
     query_tokens = tokenize_text(normalized_query)
@@ -6830,6 +7266,7 @@ def search_kernel(
             timeline=timeline,
             limit=limit,
             freshness_intent=freshness_intent,
+            route=route,
         )
         if sqlite_results:
             return sqlite_results
@@ -6853,6 +7290,7 @@ def search_kernel(
             until=until,
             allow_empty=timeline or freshness_intent,
             freshness_intent=freshness_intent,
+            route=route,
         )
         if result is not None:
             candidates.append(result)
@@ -6883,6 +7321,7 @@ def search_kernel(
             until=until,
             allow_empty=timeline or freshness_intent,
             freshness_intent=freshness_intent,
+            route=route,
         )
         if result is not None:
             candidates.append(result)
@@ -6895,6 +7334,7 @@ def search_kernel(
         explicit_kind=kind,
         normalized_query=normalized_query,
         query_tokens=query_tokens,
+        route=route,
     )
 
 
@@ -6924,6 +7364,7 @@ def score_candidate(
     until: str | None,
     allow_empty: bool,
     freshness_intent: bool = False,
+    route: str = "general",
 ) -> dict[str, object] | None:
     candidate_kind = str(item.get("kind", "unknown"))
     if kind and candidate_kind != kind:
@@ -6998,6 +7439,7 @@ def score_candidate(
             score += 28
         if freshness_status == "provider-metadata-missing":
             score += 32
+    score += route_score_bonus(route, candidate_kind)
     haystack_tokens = set(tokenize_text(haystack))
     for token in query_tokens:
         if token in haystack_tokens:
@@ -7039,6 +7481,7 @@ def score_candidate(
         "provider_last_fetch_error": provider_last_fetch_error,
         "provider_snapshot_path": provider_snapshot_path,
         "truth_source_reason": truth_source_reason,
+        "route": route,
     }
 
 
@@ -7067,6 +7510,7 @@ def finalize_query_results(
     explicit_kind: str | None,
     normalized_query: str,
     query_tokens: list[str],
+    route: str,
 ) -> list[dict[str, object]]:
     ordered = sorted(candidates, key=lambda item: candidate_sort_key(item, timeline), reverse=timeline)
     deduped: list[dict[str, object]] = []
@@ -7092,6 +7536,7 @@ def finalize_query_results(
         limit=limit,
         normalized_query=normalized_query,
         query_tokens=query_tokens,
+        route=route,
     )
 
 
@@ -7125,6 +7570,7 @@ def compact_query_result_families(
     limit: int,
     normalized_query: str,
     query_tokens: list[str],
+    route: str,
 ) -> list[dict[str, object]]:
     intent_weights = family_intent_weights(normalized_query, query_tokens)
     grouped: dict[str, list[dict[str, object]]] = {}
@@ -7160,7 +7606,10 @@ def compact_query_result_families(
 
     combined = passthrough + compacted
     combined.sort(key=lambda item: candidate_sort_key(item, timeline), reverse=timeline)
-    return combined[: max(1, limit)]
+    finalized = combined[: max(1, limit)]
+    for item in finalized:
+        item.setdefault("route", route)
+    return finalized
 
 
 def choose_family_representatives(
@@ -7237,6 +7686,19 @@ def family_intent_weights(normalized_query: str, query_tokens: list[str]) -> dic
     return weights
 
 
+def route_score_bonus(route: str, kind: str) -> int:
+    family = kind_family(kind)
+    route_family_bonus = {
+        "rules": {"governance": 18},
+        "state": {"state": 18},
+        "record": {"record": 18, "governance": 6},
+        "execution": {"execution": 18},
+        "freshness": {"source": 8, "record": 4, "state": 4},
+        "timeline": {"record": 8, "event": 8},
+    }
+    return route_family_bonus.get(route, {}).get(family, 0)
+
+
 def entity_type_score_bonus(entity_type: str) -> int:
     bonuses = {
         "object": 6,
@@ -7250,10 +7712,14 @@ def kind_family(kind: str) -> str:
     families = {
         "project": "state",
         "state": "state",
+        "session_capture": "state",
+        "job": "state",
         "task": "execution",
         "milestone": "execution",
         "decision": "governance",
         "risk": "governance",
+        "rule": "governance",
+        "promotion": "governance",
         "agreement": "business",
         "person": "business",
         "change": "record",
@@ -7275,9 +7741,13 @@ def kind_score_bonus(kind: str) -> int:
     bonuses = {
         "project": 8,
         "state": 7,
+        "session_capture": 6,
+        "job": 5,
         "task": 6,
         "decision": 6,
         "risk": 6,
+        "rule": 7,
+        "promotion": 5,
         "person": 5,
         "agreement": 5,
         "milestone": 5,
@@ -7305,19 +7775,23 @@ def kind_sort_priority(kind: str) -> int:
     priorities = {
         "project": 0,
         "state": 1,
-        "task": 2,
-        "decision": 3,
-        "risk": 4,
-        "agreement": 5,
-        "milestone": 6,
-        "person": 7,
-        "change": 8,
-        "release": 9,
-        "incident": 10,
-        "event": 11,
-        "document": 12,
-        "code": 13,
-        "config": 14,
+        "session_capture": 2,
+        "job": 3,
+        "task": 4,
+        "decision": 5,
+        "risk": 6,
+        "rule": 7,
+        "promotion": 8,
+        "agreement": 9,
+        "milestone": 10,
+        "person": 11,
+        "change": 12,
+        "release": 13,
+        "incident": 14,
+        "event": 15,
+        "document": 16,
+        "code": 17,
+        "config": 18,
     }
     return priorities.get(kind, 99)
 
@@ -7613,6 +8087,7 @@ def search_kernel_sqlite(
     timeline: bool,
     limit: int,
     freshness_intent: bool = False,
+    route: str = "general",
 ) -> list[dict[str, object]]:
     where_clauses = ["1 = 1"]
     parameters: list[object] = []
@@ -7698,6 +8173,7 @@ def search_kernel_sqlite(
                 until=None,
                 allow_empty=timeline or freshness_intent,
                 freshness_intent=freshness_intent,
+                route=route,
             )
             if result is not None:
                 results.append(result)
@@ -7710,6 +8186,7 @@ def search_kernel_sqlite(
         explicit_kind=kind,
         normalized_query=normalized_query,
         query_tokens=query_tokens,
+        route=route,
     )
 
 
@@ -7822,7 +8299,14 @@ def project_status(config: ProjectConfig, args: argparse.Namespace) -> int:
         print(f"  健康状态: {payload['health']}")
         print(f"  开放任务: {payload['counts']['open_tasks']}")
         print(f"  开放风险: {payload['counts']['open_risks']}")
+        print(f"  规则对象: {payload['counts']['rules']}")
         print(f"  文件产物: {payload['counts']['artifacts']}")
+        print(
+            "  记忆: "
+            f"staged={payload['memory']['counts']['staged']} "
+            f"promoted={payload['memory']['counts']['promoted']} "
+            f"routing={payload['memory']['query_routing']}"
+        )
         print(
             "  事实源: "
             f"provider-native={payload['truth_sources']['provider_native']} "
@@ -7838,12 +8322,37 @@ def project_status(config: ProjectConfig, args: argparse.Namespace) -> int:
         print(f"  Health: {payload['health']}")
         print(f"  Open tasks: {payload['counts']['open_tasks']}")
         print(f"  Open risks: {payload['counts']['open_risks']}")
+        print(f"  Rule objects: {payload['counts']['rules']}")
         print(f"  Artifacts: {payload['counts']['artifacts']}")
+        print(
+            "  Memory: "
+            f"staged={payload['memory']['counts']['staged']} "
+            f"promoted={payload['memory']['counts']['promoted']} "
+            f"routing={payload['memory']['query_routing']}"
+        )
         print(
             "  Truth sources: "
             f"provider-native={payload['truth_sources']['provider_native']} "
             f"workspace={payload['truth_sources']['workspace']} "
             f"risk={payload['truth_sources']['local_copy_risk_count']}"
+        )
+    if payload["memory"]["recent_promotions"]:
+        print("  最近提升:" if locale_family(config.interaction_locale) == "zh" else "  Recent promotions:")
+        for item in payload["memory"]["recent_promotions"]:
+            print(
+                f"    - {item.get('updated_at', item.get('captured_at', ''))} {item.get('promoted_to', '')}: {item.get('title', '')}"
+            )
+    if payload["memory"]["last_job"]:
+        last_job = payload["memory"]["last_job"]
+        print(
+            ("  最近记忆任务: " if locale_family(config.interaction_locale) == "zh" else "  Last memory job: ")
+            + f"{last_job.get('started_at', '')} {last_job.get('job_type', '')} [{last_job.get('status', '')}]"
+        )
+    if payload["memory"]["last_failed_job"]:
+        failed_job = payload["memory"]["last_failed_job"]
+        print(
+            ("  最近失败记忆任务: " if locale_family(config.interaction_locale) == "zh" else "  Last failed memory job: ")
+            + f"{failed_job.get('started_at', '')} {failed_job.get('job_type', '')} :: {failed_job.get('summary', '')}"
         )
     if payload["truth_sources"]["artifacts_at_risk"]:
         print("  事实源风险:" if locale_family(config.interaction_locale) == "zh" else "  Truth-source risks:")
@@ -7895,6 +8404,8 @@ def project_status_payload(config: ProjectConfig) -> dict[str, object]:
     open_tasks = [item for item in objects if isinstance(item, dict) and item.get("kind") == "task" and item.get("status") in {"open", "planned"}]
     open_risks = [item for item in objects if isinstance(item, dict) and item.get("kind") == "risk" and item.get("status") in {"open", "watch", "incident"}]
     milestones = [item for item in objects if isinstance(item, dict) and item.get("kind") == "milestone"]
+    rule_objects = [item for item in objects if isinstance(item, dict) and item.get("kind") == "rule"]
+    memory_summary = memory_state_summary(config)
     unique_family_summaries: dict[str, dict[str, object]] = {}
     for item in artifact_summaries:
         family_key = normalize_optional_text(item.get("family_key", "")) or normalize_optional_text(item.get("id", ""))
@@ -7948,7 +8459,9 @@ def project_status_payload(config: ProjectConfig) -> dict[str, object]:
             "milestones": len(milestones),
             "artifacts": len(artifact_catalog.get("artifacts", [])),
             "sources": len(load_json_file(kernel_root / "sources" / "registry.json", default=[])),
+            "rules": len(rule_objects),
         },
+        "memory": memory_summary,
         "truth_sources": {
             "artifact_families": len(truth_source_rows),
             "collaborative_artifacts": sum(1 for item in truth_source_rows if item.get("collaboration_mode") == "multi-editor"),
@@ -11257,6 +11770,13 @@ def handle_portfolio_command(args: argparse.Namespace) -> int:
                 until=args.until,
                 timeline=args.timeline,
                 limit=max(args.limit, 20),
+                route=determine_query_route(
+                    args.q,
+                    kind=args.kind,
+                    timeline=args.timeline,
+                    freshness_intent=False,
+                    routing_policy=normalize_optional_text(config.memory_setting("query_routing", "deterministic")),
+                ),
             ):
                 merged = dict(result)
                 merged["project_name"] = config.data["project"]["name"]
@@ -11399,7 +11919,384 @@ def feedback_inbox_root(config: ProjectConfig) -> Path:
 
 
 def utc_timestamp() -> str:
-    return datetime.utcnow().replace(microsecond=0).isoformat() + "Z"
+    return datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
+
+
+def build_memory_capture_id(config: ProjectConfig, title: str, summary: str, captured_at: str) -> str:
+    fingerprint = hashlib.sha1(
+        f"{config.data['project']['slug']}\n{title}\n{summary}\n{captured_at}".encode("utf-8")
+    ).hexdigest()[:8]
+    stem = sanitize_slug(title)[:32] or "capture"
+    timestamp = captured_at.replace("-", "").replace(":", "").replace("T", "-").replace("Z", "")
+    return f"capture-{timestamp}-{stem}-{fingerprint}"
+
+
+def ensure_session_capture_store(config: ProjectConfig) -> None:
+    config.session_capture_store.parent.mkdir(parents=True, exist_ok=True)
+    if not config.session_capture_store.exists():
+        config.session_capture_store.write_text("", encoding="utf-8")
+
+
+def ensure_memory_jobs_store(config: ProjectConfig) -> None:
+    config.memory_jobs_history_path.parent.mkdir(parents=True, exist_ok=True)
+    if not config.memory_jobs_history_path.exists():
+        config.memory_jobs_history_path.write_text("", encoding="utf-8")
+    if not config.memory_jobs_latest_path.exists():
+        config.memory_jobs_latest_path.write_text("{}\n", encoding="utf-8")
+
+
+def ensure_promotion_file(config: ProjectConfig) -> None:
+    promotion_path = config.promotion_file
+    promotion_path.parent.mkdir(parents=True, exist_ok=True)
+    if promotion_path.exists():
+        return
+    zh = locale_family(config.content_locale) == "zh"
+    text = "\n".join(
+        [
+            "# 会话提升记录" if zh else "# Session Promotions",
+            "",
+            "Sula records promoted operating insights here so they become durable project context."
+            if not zh
+            else "Sula 在此记录已经提升的临时操作洞察，使其成为长期项目上下文。",
+            "",
+            "## Rules" if not zh else "## 规则",
+            "",
+            "## Tasks" if not zh else "## 任务",
+            "",
+            "## Decisions" if not zh else "## 决策",
+            "",
+            "## State Updates" if not zh else "## 状态更新",
+            "",
+            "## Workflow Artifacts" if not zh else "## 工作流文档",
+            "",
+            "## Risks" if not zh else "## 风险",
+            "",
+        ]
+    ).rstrip() + "\n"
+    promotion_path.write_text(text, encoding="utf-8")
+
+
+def memory_state_summary(config: ProjectConfig) -> dict[str, object]:
+    captures = read_session_captures(config)
+    jobs = read_memory_jobs(config)
+    counts = {
+        "staged": sum(1 for item in captures if item.get("status") == "staged"),
+        "promoted": sum(1 for item in captures if item.get("status") == "promoted"),
+        "discarded": sum(1 for item in captures if item.get("status") == "discarded"),
+    }
+    promotions = [
+        item
+        for item in captures
+        if item.get("status") == "promoted" and normalize_optional_text(item.get("promoted_to", "")).strip()
+    ]
+    promotions.sort(key=lambda item: normalize_optional_timestamp(item.get("updated_at", "")) or "", reverse=True)
+    last_success = next((item for item in jobs if item.get("status") == "ok"), None)
+    last_failed = next((item for item in jobs if item.get("status") not in {"ok", "recorded"}), None)
+    return {
+        "capture_policy": normalize_optional_text(config.memory_setting("capture_policy", "explicit")),
+        "promotion_policy": normalize_optional_text(config.memory_setting("promotion_policy", "review-required")),
+        "query_routing": normalize_optional_text(config.memory_setting("query_routing", "deterministic")),
+        "semantic_cache": normalize_optional_text(config.memory_setting("semantic_cache", "off")),
+        "promotion_file": config.promotion_file.relative_to(config.root).as_posix(),
+        "session_capture_store": config.session_capture_store.relative_to(config.root).as_posix(),
+        "session_retention_days": config.session_retention_days,
+        "counts": counts,
+        "recent_promotions": promotions[:3],
+        "recent_jobs": jobs[:5],
+        "last_job": jobs[0] if jobs else None,
+        "last_successful_job": last_success,
+        "last_failed_job": last_failed,
+    }
+
+
+def read_session_captures(config: ProjectConfig) -> list[dict[str, object]]:
+    ensure_session_capture_store(config)
+    captures: list[dict[str, object]] = []
+    for line_number, raw_line in enumerate(config.session_capture_store.read_text(encoding="utf-8").splitlines(), start=1):
+        if not raw_line.strip():
+            continue
+        try:
+            item = json.loads(raw_line)
+        except json.JSONDecodeError:
+            continue
+        if isinstance(item, dict):
+            item["_line_number"] = line_number
+            captures.append(item)
+    captures.sort(key=lambda item: normalize_optional_timestamp(item.get("captured_at", "")) or "", reverse=True)
+    return captures
+
+
+def write_session_captures(config: ProjectConfig, captures: list[dict[str, object]]) -> None:
+    ensure_session_capture_store(config)
+    lines = []
+    for item in captures:
+        cleaned = {key: value for key, value in item.items() if key != "_line_number"}
+        lines.append(json.dumps(cleaned, ensure_ascii=True))
+    config.session_capture_store.write_text(("\n".join(lines) + ("\n" if lines else "")), encoding="utf-8")
+
+
+def find_session_capture(config: ProjectConfig, capture_id: str) -> tuple[list[dict[str, object]], dict[str, object]]:
+    captures = read_session_captures(config)
+    for item in captures:
+        if item.get("id") == capture_id:
+            return captures, item
+    raise SystemExit(f"Unknown memory capture: {capture_id}")
+
+
+def capture_status_sort_key(item: dict[str, object]) -> tuple[int, str]:
+    priority = {"staged": 0, "promoted": 1, "discarded": 2}
+    return (priority.get(str(item.get("status", "")), 99), normalize_optional_timestamp(item.get("captured_at", "")) or "")
+
+
+def build_memory_job_id(job_type: str, started_at: str) -> str:
+    return f"job:{job_type}:{started_at.replace(':', '').replace('-', '').replace('T', '-').replace('Z', '')}"
+
+
+def record_memory_job(
+    config: ProjectConfig,
+    *,
+    job_type: str,
+    status: str,
+    summary: str,
+    details: dict[str, object] | None = None,
+) -> dict[str, object]:
+    if not bool(config.memory_setting("job_tracking", True)):
+        return {}
+    ensure_memory_jobs_store(config)
+    started_at = current_utc_timestamp()
+    item = {
+        "id": build_memory_job_id(job_type, started_at),
+        "job_type": job_type,
+        "status": status,
+        "summary": summary,
+        "details": details or {},
+        "started_at": started_at,
+        "finished_at": started_at,
+    }
+    with config.memory_jobs_history_path.open("a", encoding="utf-8") as handle:
+        handle.write(json.dumps(item, ensure_ascii=True) + "\n")
+    config.memory_jobs_latest_path.write_text(json.dumps(item, indent=2, ensure_ascii=True) + "\n", encoding="utf-8")
+    return item
+
+
+def read_memory_jobs(config: ProjectConfig) -> list[dict[str, object]]:
+    ensure_memory_jobs_store(config)
+    jobs: list[dict[str, object]] = []
+    for raw_line in config.memory_jobs_history_path.read_text(encoding="utf-8").splitlines():
+        if not raw_line.strip():
+            continue
+        try:
+            item = json.loads(raw_line)
+        except json.JSONDecodeError:
+            continue
+        if isinstance(item, dict):
+            jobs.append(item)
+    jobs.sort(key=lambda item: normalize_optional_timestamp(item.get("started_at", "")) or "", reverse=True)
+    return jobs
+
+
+def promoted_section_name(target: str, locale: str) -> str:
+    zh = locale_family(locale) == "zh"
+    mapping = {
+        "rule": "规则" if zh else "Rules",
+        "task": "任务" if zh else "Tasks",
+        "decision": "决策" if zh else "Decisions",
+        "risk": "风险" if zh else "Risks",
+        "state": "状态更新" if zh else "State Updates",
+        "workflow-artifact": "工作流文档" if zh else "Workflow Artifacts",
+    }
+    return mapping[target]
+
+
+def promoted_bullet_text(capture: dict[str, object]) -> str:
+    title = normalize_optional_text(capture.get("title", "")).strip()
+    summary = normalize_optional_text(capture.get("summary", "")).strip()
+    captured_at = normalize_optional_text(capture.get("captured_at", "")).strip()
+    date_prefix = captured_at[:10] if MEMORY_DATE_PATTERN.fullmatch(captured_at[:10]) else ""
+    parts = [part for part in [date_prefix + ":" if date_prefix else "", title, summary] if part]
+    if not parts:
+        return "Promoted capture"
+    text = " ".join(parts).strip()
+    text = re.sub(r"\s+", " ", text)
+    return text
+
+
+def append_markdown_section_bullet(path: Path, section_name: str, bullet_text: str) -> None:
+    text = path.read_text(encoding="utf-8") if path.exists() else ""
+    if not text.strip():
+        text = f"# Session Promotions\n\n## {section_name}\n\n"
+    sections = markdown_sections(text)
+    existing = markdown_bullet_items(sections.get(section_name, ""))
+    if bullet_text in existing:
+        return
+    lines = text.splitlines()
+    heading = f"## {section_name}"
+    for index, line in enumerate(lines):
+        if line.strip() != heading:
+            continue
+        insert_at = index + 1
+        while insert_at < len(lines) and lines[insert_at].strip():
+            insert_at += 1
+        insertion = ["", f"- {bullet_text}"]
+        lines[insert_at:insert_at] = insertion
+        path.write_text("\n".join(lines).rstrip() + "\n", encoding="utf-8")
+        return
+    text = text.rstrip() + f"\n\n## {section_name}\n\n- {bullet_text}\n"
+    path.write_text(text, encoding="utf-8")
+
+
+def handle_memory_command(config: ProjectConfig, args: argparse.Namespace) -> int:
+    if args.memory_command == "digest":
+        return generate_memory_digest(config, args)
+    if args.memory_command == "capture":
+        captured_at = current_utc_timestamp()
+        item = {
+            "id": build_memory_capture_id(config, args.title, args.summary, captured_at),
+            "title": args.title.strip(),
+            "summary": args.summary.strip(),
+            "category": args.category,
+            "status": "staged",
+            "captured_at": captured_at,
+            "updated_at": captured_at,
+            "source_path": normalize_optional_text(getattr(args, "source_path", "")).strip(),
+            "confidence": int(getattr(args, "confidence", 3)),
+            "session_id": normalize_optional_text(getattr(args, "session_id", "")).strip(),
+        }
+        captures = read_session_captures(config)
+        captures.append(item)
+        write_session_captures(config, captures)
+        job = record_memory_job(
+            config,
+            job_type="memory.capture",
+            status="ok",
+            summary=f"Captured staged memory `{item['id']}`.",
+            details={"capture_id": item["id"], "category": item["category"]},
+        )
+        refresh_kernel_state(config, event_type="memory.capture", summary=f"Captured staged memory `{item['id']}`.")
+        if json_output_requested(args):
+            emit_json({"command": "memory.capture", "status": "ok", "project": project_payload(config), "capture": item, "job": job})
+            return 0
+        print(f"Captured staged memory {item['id']}")
+        print(f"  Category: {item['category']}")
+        print(f"  Title: {item['title']}")
+        return 0
+    if args.memory_command == "review":
+        captures = read_session_captures(config)
+        if getattr(args, "status", None):
+            captures = [item for item in captures if item.get("status") == args.status]
+        captures.sort(key=capture_status_sort_key)
+        captures = captures[: max(1, int(args.limit))]
+        if json_output_requested(args):
+            emit_json({"command": "memory.review", "status": "ok", "project": project_payload(config), "captures": captures})
+            return 0
+        print(f"Memory captures for {config.data['project']['name']}")
+        if not captures:
+            print("  No captures.")
+            return 0
+        for item in captures:
+            print(
+                "  - "
+                f"{item['id']} [{item.get('status', 'unknown')}] ({item.get('category', 'note')}) "
+                f"{item.get('captured_at', '')} {item.get('title', '')}"
+            )
+            if item.get("source_path"):
+                print(f"      source={item.get('source_path')}")
+            if item.get("promoted_to"):
+                print(f"      promoted_to={item.get('promoted_to')} path={item.get('promotion_path', '')}")
+        return 0
+    if args.memory_command == "promote":
+        captures, capture = find_session_capture(config, args.capture_id)
+        if capture.get("status") != "staged":
+            raise SystemExit(f"Memory capture `{args.capture_id}` is already {capture.get('status')}")
+        ensure_promotion_file(config)
+        section_name = promoted_section_name(args.to, config.content_locale)
+        bullet_text = promoted_bullet_text(capture)
+        append_markdown_section_bullet(config.promotion_file, section_name, bullet_text)
+        promoted_at = current_utc_timestamp()
+        capture["status"] = "promoted"
+        capture["updated_at"] = promoted_at
+        capture["promoted_to"] = args.to
+        capture["promotion_path"] = config.promotion_file.relative_to(config.root).as_posix()
+        capture["promotion_summary"] = bullet_text
+        write_session_captures(config, captures)
+        job = record_memory_job(
+            config,
+            job_type="memory.promote",
+            status="ok",
+            summary=f"Promoted capture `{args.capture_id}` to `{args.to}`.",
+            details={"capture_id": args.capture_id, "target": args.to},
+        )
+        refresh_kernel_state(config, event_type="memory.promote", summary=f"Promoted capture `{args.capture_id}` to `{args.to}`.")
+        if json_output_requested(args):
+            emit_json({"command": "memory.promote", "status": "ok", "project": project_payload(config), "capture": capture, "job": job})
+            return 0
+        print(f"Promoted {args.capture_id} to {args.to}")
+        print(f"  Path: {capture['promotion_path']}")
+        return 0
+    if args.memory_command == "clear":
+        cleared_paths: list[str] = []
+        if args.derived:
+            for path in [
+                config.root / ".sula" / "cache" / "kernel.db",
+                config.root / ".sula" / "cache" / "query-index.json",
+                config.root / ".sula" / "cache" / "semantic",
+            ]:
+                if not path.exists():
+                    continue
+                if path.is_dir():
+                    shutil.rmtree(path)
+                else:
+                    path.unlink()
+                cleared_paths.append(path.relative_to(config.root).as_posix())
+        else:
+            captures = read_session_captures(config)
+            if args.reviewed_captures:
+                captures = [item for item in captures if item.get("status") == "staged"]
+            elif args.all_captures:
+                captures = []
+            write_session_captures(config, captures)
+            cleared_paths.append(config.session_capture_store.relative_to(config.root).as_posix())
+        job = record_memory_job(
+            config,
+            job_type="memory.clear",
+            status="ok",
+            summary="Cleared disposable memory state.",
+            details={"paths": cleared_paths},
+        )
+        if args.derived:
+            event_log_path = config.root / ".sula" / "events" / "log.jsonl"
+            event_log_path.parent.mkdir(parents=True, exist_ok=True)
+            if not event_log_path.exists():
+                event_log_path.write_text("", encoding="utf-8")
+            append_kernel_event(config, event_log_path, "memory.clear", "Cleared disposable memory state.")
+        else:
+            refresh_kernel_state(config, event_type="memory.clear", summary="Cleared disposable memory state.")
+        if json_output_requested(args):
+            emit_json({"command": "memory.clear", "status": "ok", "project": project_payload(config), "cleared_paths": cleared_paths, "job": job})
+            return 0
+        print("Cleared memory state:")
+        for item in cleared_paths:
+            print(f"  - {item}")
+        return 0
+    if args.memory_command == "jobs":
+        jobs = read_memory_jobs(config)[: max(1, int(args.limit))]
+        if json_output_requested(args):
+            emit_json({"command": "memory.jobs", "status": "ok", "project": project_payload(config), "jobs": jobs})
+            return 0
+        print(f"Memory jobs for {config.data['project']['name']}")
+        if not jobs:
+            print("  No jobs.")
+            return 0
+        last_success = next((item for item in jobs if item.get("status") == "ok"), None)
+        last_failed = next((item for item in jobs if item.get("status") not in {"ok", "recorded"}), None)
+        if last_success:
+            print(f"  Last successful job: {last_success.get('started_at', '')} {last_success.get('job_type', '')}")
+        if last_failed:
+            print(f"  Last failed job: {last_failed.get('started_at', '')} {last_failed.get('job_type', '')}")
+        for item in jobs:
+            print(f"  - {item.get('started_at', '')} [{item.get('job_type', '')}] {item.get('status', '')} :: {item.get('summary', '')}")
+        return 0
+    raise AssertionError("unreachable")
 
 
 def sha256_text(text: str) -> str:
@@ -11987,6 +12884,9 @@ def inspect_removal(project_root: Path) -> RemovalReport:
     kernel_root = project_root / ".sula"
     if not kernel_root.exists():
         warnings.append("`.sula/` is already missing; only managed files can be removed")
+    promotion_path = config.promotion_file
+    if promotion_path.exists() and promotion_path.is_relative_to(project_root):
+        managed_paths = sorted({*managed_paths, promotion_path}, key=lambda path: path.as_posix())
     return RemovalReport(
         project_root=project_root,
         config=config,
