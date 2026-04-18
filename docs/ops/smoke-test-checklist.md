@@ -1,0 +1,23 @@
+# Sula Smoke Test Checklist
+
+Apply the global checks plus the impacted module checks.
+
+## Global
+
+- [ ] application shell opens
+- [ ] login and session behavior are sane
+- [ ] primary navigation loads
+- [ ] no obvious fatal API or runtime errors
+
+## Impacted Flows
+
+- [ ] changed feature path is manually exercised
+- [ ] error state is checked
+- [ ] permission or role boundaries are checked if relevant
+
+## Deployment-Specific
+
+- [ ] production path `/` is correct
+- [ ] public bootstrap URLs are reachable: `/`, `/launch/`, `/launch/bootstrap.py`, `/sula.json`
+- [ ] if `site/sula.json` declares a published public source, that repository URL is reachable
+- [ ] deployment workflow reference is correct: `.github/workflows/ci.yml`

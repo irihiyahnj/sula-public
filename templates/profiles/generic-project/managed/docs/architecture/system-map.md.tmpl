@@ -1,0 +1,32 @@
+# {{PROJECT_NAME}} System Map
+
+This profile is the generic Sula baseline for projects that do not yet need a narrower stack-specific profile.
+
+## System Boundary
+
+- operating model: `generic-project`
+- project stack summary: {{FRONTEND_STACK}} / {{BACKEND_STACK}}
+- highest rule: `{{HIGHEST_RULE}}`
+- git mode: `{{GIT_MODE}}`
+
+## Operating Shape
+
+```mermaid
+flowchart TD
+    A["User Or Maintainer"] --> B["Project Truth Sources"]
+    B --> C["Sula Kernel In .sula/"]
+    C --> D["Current State And Recall Views"]
+    C --> E["Indexed Source Registry And Events"]
+```
+
+## Key Anchors
+
+- operational entry: [{{APP_SHELL_PATH}}](../../{{APP_SHELL_PATH}})
+- current state snapshot: [{{STATE_LAYER_PATH}}](../../{{STATE_LAYER_PATH}})
+- current working lane: [{{API_LAYER_PATH}}](../../{{API_LAYER_PATH}})
+
+## Invariants
+
+1. Project-owned truth remains in project files and source documents.
+2. Sula stays removable and namespaced under `.sula/`.
+3. A narrower profile should only replace this baseline when it expresses the project more truthfully.

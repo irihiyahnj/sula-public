@@ -1,0 +1,82 @@
+{
+  "name": "Sula",
+  "kind": "project-operating-system",
+  "version": "0.13.0",
+  "status": "public-source-published",
+  "homepage_url": "https://sula.1stp.monster/",
+  "launch_url": "https://sula.1stp.monster/launch/",
+  "bootstrap_url": "https://sula.1stp.monster/bootstrap/",
+  "docs_url": "https://sula.1stp.monster/launch/",
+  "public_release_strategy": "fresh-public-repo",
+  "public_source_status": "published",
+  "source_repository_url": "https://github.com/irihiyahnj/sula-public.git",
+  "source_ref": "main",
+  "source_script_path": "scripts/sula.py",
+  "default_flow": [
+    "read-launch-contract",
+    "resolve-launcher",
+    "inspect-project-state",
+    "route-onboard-or-review",
+    "validate",
+    "report-result"
+  ],
+  "copy_prompts": {
+    "zh": "请按 https://sula.1stp.monster/launch/ 的启动协议接管当前项目。",
+    "en": "Please take over the current project using the launch contract at https://sula.1stp.monster/launch/."
+  },
+  "protocol": {
+    "requires_explicit_approval": true,
+    "preserve_project_owned_truth": true,
+    "no_global_lookup": true,
+    "startup_rule": [
+      "Do not search npm packages, global commands, or guessed local aliases when the project does not already vendor Sula.",
+      "Read launch_url and this descriptor first, then resolve the canonical launcher or source from the declared URLs.",
+      "If local scripts/sula.py is missing, use vendored-project first, then explicit-local-source, and finally clone source_repository_url at source_ref.",
+      "Treat source_repository_url plus source_ref as the canonical public source for first-time bootstrap."
+    ],
+    "already_adopted_behavior": [
+      "If .sula/project.toml already exists, classify the repository as an existing Sula consumer.",
+      "Report existing-consumer state explicitly instead of narrating a fresh adoption.",
+      "Prefer doctor --strict and sync --dry-run before proposing first-time adopt writes."
+    ],
+    "new_project_behavior": [
+      "Prefer onboard as the first-touch flow for projects that are not yet adopted.",
+      "Ask only the minimum missing questions.",
+      "Explain what Sula will manage, where files will route, and which source was used."
+    ],
+    "post_approval_output": [
+      "source used",
+      "validation result",
+      "changes applied",
+      "remaining risks",
+      "usage instructions"
+    ]
+  },
+  "launcher": {
+    "preferred_entrypoint": "onboard",
+    "default_source_dir": "~/.sula/source",
+    "bootstrap_python_url": "https://sula.1stp.monster/launch/bootstrap.py",
+    "public_source_requirement": "Use vendored-project or explicit-local-source when they exist; otherwise clone the published canonical public source.",
+    "resolution_order": [
+      "vendored-project",
+      "explicit-local-source",
+      "cloned-canonical-source"
+    ],
+    "review_commands": [
+      "python3 scripts/sula.py doctor --project-root <project> --strict",
+      "python3 scripts/sula.py sync --project-root <project> --dry-run"
+    ]
+  },
+  "entrypoints": {
+    "url_launch_prompt_zh": "请按 https://sula.1stp.monster/launch/ 的启动协议接管当前项目。",
+    "url_launch_prompt_en": "Please take over the current project using the launch contract at https://sula.1stp.monster/launch/.",
+    "launcher_bootstrap": "python3 bootstrap.py --project-root <project>",
+    "launcher_bootstrap_apply": "python3 bootstrap.py --project-root <project> --accept-suggested --approve",
+    "cli_onboard": "python3 scripts/sula.py onboard --project-root <project>",
+    "cli_onboard_apply": "python3 scripts/sula.py onboard --project-root <project> --accept-suggested --approve",
+    "cli_existing_consumer_review": [
+      "python3 scripts/sula.py doctor --project-root <project> --strict",
+      "python3 scripts/sula.py sync --project-root <project> --dry-run"
+    ]
+  }
+}

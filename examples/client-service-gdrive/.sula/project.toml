@@ -1,0 +1,94 @@
+[project]
+name = "Client Service Drive Canary"
+slug = "client-service-drive-canary"
+description = "Client-service canary with Google Drive adapter metadata"
+profile = "generic-project"
+default_agent = "Codex"
+
+[repository]
+primary_branch = "n/a"
+working_branch_prefix = "codex/"
+deployment_branch = "n/a"
+
+[rules]
+highest_rule = "Preserve project-owned truth while using Sula as a removable operating kernel."
+custom_backend_allowed = true
+react_router_allowed = false
+
+[stack]
+frontend = "Project-defined components"
+backend = "Project-defined systems"
+
+[paths]
+api_layer = "README.md"
+state_layer = ".sula/state/current.md"
+app_shell = "README.md"
+status_file = "STATUS.md"
+change_records_file = "CHANGE-RECORDS.md"
+
+[commands]
+install = "n/a"
+dev = "n/a"
+build = "n/a"
+typecheck = "n/a"
+
+[deploy]
+base_path = "/"
+production_url = "local-only"
+workflow = "n/a"
+
+[auth]
+session_expiry_codes = ["n/a"]
+permission_denied_codes = ["n/a"]
+
+[memory]
+change_record_directory = "docs/change-records"
+release_record_directory = "docs/releases"
+incident_record_directory = "docs/incidents"
+digest_file = ".sula/memory-digest.md"
+status_max_age_days = 30
+
+[workflow]
+pack = "client-service"
+stage = "active"
+artifacts_root = "artifacts"
+docs_root = "docs/workflows"
+execution_mode = "solo-inline"
+design_gate = "complex-only"
+plan_gate = "multi-step"
+review_policy = "batch"
+workspace_isolation = "none"
+testing_policy = "inherit"
+closeout_policy = "explicit"
+
+[storage]
+provider = "google-drive"
+sync_mode = "local-sync"
+workspace_root = "."
+provider_root_url = "unrecorded"
+provider_root_id = "unrecorded"
+
+[portfolio]
+portfolio_id = "default"
+workspace = "personal"
+owner = "n/a"
+
+[language]
+content_locale = "en"
+interaction_locale = "en"
+preserve_user_input_language = true
+
+[document_design]
+principles_path = "n/a"
+source_first = true
+register_derived_artifacts = true
+preferred_source_format = "markdown"
+schedule_bundle = "monthly-gantt-dual-actions-raci"
+proposal_bundle = "problem-solution-workplan-raci"
+report_bundle = "executive-findings-actions"
+process_bundle = "purpose-workflow-controls-records"
+training_bundle = "outcomes-agenda-delivery-assessment-followup"
+
+[projection]
+mode = "detached"
+enabled_packs = ["project-memory", "record-templates"]

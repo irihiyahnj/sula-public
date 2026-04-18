@@ -1,0 +1,702 @@
+{
+  "version": "0.13.0",
+  "profile": "generic-project",
+  "objects": [
+    {
+      "id": "project:client-service-drive-canary",
+      "kind": "project",
+      "title": "Client Service Drive Canary",
+      "summary": "Client-service canary with Google Drive adapter metadata",
+      "status": "active",
+      "path": ".sula/project.toml",
+      "source_paths": [
+        ".sula/project.toml",
+        "STATUS.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "docs",
+        "memory",
+        "repo",
+        "google-drive"
+      ],
+      "tags": [
+        "generic-project"
+      ],
+      "date": "2026-04-16"
+    },
+    {
+      "id": "state:current",
+      "kind": "state",
+      "title": "Current Project State",
+      "summary": "- This in-repo client-service canary exists to validate generic-project adoption with the `client-service` workflow pack and Google Drive adapter metadata.",
+      "status": "current",
+      "path": "STATUS.md",
+      "source_paths": [
+        "STATUS.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "state"
+      ],
+      "date": "2026-04-16"
+    },
+    {
+      "id": "rule:manifest:highest-rule",
+      "kind": "rule",
+      "title": "Highest Rule",
+      "summary": "Preserve project-owned truth while using Sula as a removable operating kernel.",
+      "status": "active",
+      "path": ".sula/project.toml",
+      "source_paths": [
+        ".sula/project.toml"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "rule",
+        "manifest"
+      ],
+      "date": "2026-04-16"
+    },
+    {
+      "id": "task:status:keep-the-client-service-workflow-pack-and-google-drive-manifest-defaults-verifiable-through-a-local-canary",
+      "kind": "task",
+      "title": "keep the `client-service` workflow pack and Google Drive manifest defaults ve...",
+      "summary": "keep the `client-service` workflow pack and Google Drive manifest defaults verifiable through a local canary",
+      "status": "open",
+      "path": "STATUS.md",
+      "source_paths": [
+        "STATUS.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "current-focus",
+        "status"
+      ],
+      "date": "2026-04-16"
+    },
+    {
+      "id": "task:status:use-the-canary-for-rollout-checks-before-changing-provider-backed-artifact-behavior",
+      "kind": "task",
+      "title": "use the canary for rollout checks before changing provider-backed artifact be...",
+      "summary": "use the canary for rollout checks before changing provider-backed artifact behavior",
+      "status": "open",
+      "path": "STATUS.md",
+      "source_paths": [
+        "STATUS.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "current-focus",
+        "status"
+      ],
+      "date": "2026-04-16"
+    },
+    {
+      "id": "decision:status:2026-04-16-promoted-this-example-into-a-client-service-rollout-canary-for-local-sula-verification",
+      "kind": "decision",
+      "title": "2026-04-16: promoted this example into a client-service rollout canary for lo...",
+      "summary": "2026-04-16: promoted this example into a client-service rollout canary for local Sula verification",
+      "status": "decided",
+      "path": "STATUS.md",
+      "source_paths": [
+        "STATUS.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "recent-decision",
+        "status"
+      ],
+      "date": "2026-04-16"
+    },
+    {
+      "id": "decision:status:2026-04-16-added-promote-client-service-drive-example-into-canary-docs-change-records-2026-04-16-promote-client-service-drive-example-into-canary-md",
+      "kind": "decision",
+      "title": "2026-04-16: added [Promote client service drive example into canary](docs/cha...",
+      "summary": "2026-04-16: added [Promote client service drive example into canary](docs/change-records/2026-04-16-promote-client-service-drive-example-into-canary.md)",
+      "status": "decided",
+      "path": "STATUS.md",
+      "source_paths": [
+        "STATUS.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "recent-decision",
+        "status"
+      ],
+      "date": "2026-04-16"
+    },
+    {
+      "id": "person:status:sula-core-maintainers",
+      "kind": "person",
+      "title": "Sula Core maintainers",
+      "summary": "Current review owner for Client Service Drive Canary.",
+      "status": "responsible",
+      "path": "STATUS.md",
+      "source_paths": [
+        "STATUS.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "next-review-owner",
+        "status"
+      ],
+      "date": "2026-04-16"
+    },
+    {
+      "id": "milestone:status:next-review:2026-04-23",
+      "kind": "milestone",
+      "title": "Next Review",
+      "summary": "Next review checkpoint. review again before changing client-service workflow defaults or Google Drive adapter contracts",
+      "status": "planned",
+      "path": "STATUS.md",
+      "source_paths": [
+        "STATUS.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "next-review",
+        "status"
+      ],
+      "date": "2026-04-23"
+    },
+    {
+      "id": "change:2026-04-16-promote-client-service-drive-example-into-canary",
+      "kind": "change",
+      "title": "Promote client service drive example into canary",
+      "summary": "- date: 2026-04-16 - executor: Codex - branch: main - related commit(s): pending - status: completed",
+      "status": "recorded",
+      "path": "docs/change-records/2026-04-16-promote-client-service-drive-example-into-canary.md",
+      "source_paths": [
+        "docs/change-records/2026-04-16-promote-client-service-drive-example-into-canary.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "change"
+      ],
+      "date": "2026-04-16"
+    },
+    {
+      "id": "job:memory.digest:20260418-025221",
+      "kind": "job",
+      "title": "memory.digest",
+      "summary": "Regenerated memory digest at `.sula/memory-digest.md`.",
+      "status": "ok",
+      "path": ".sula/state/jobs/history.jsonl",
+      "source_paths": [
+        ".sula/state/jobs/history.jsonl"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "job",
+        "memory-job"
+      ],
+      "date": "2026-04-18"
+    },
+    {
+      "id": "object:source:agents-md",
+      "kind": "document",
+      "title": "AGENTS.md",
+      "summary": "This file is the primary instruction source for AI agents working in this project.",
+      "status": "indexed",
+      "path": "AGENTS.md",
+      "source_paths": [
+        "AGENTS.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "google-drive",
+        "docs",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "rule:agents-md:highest-rule:preserve-project-owned-truth-while-using-sula-as-a-removable-operating-kernel",
+      "kind": "rule",
+      "title": "`Preserve project-owned truth while using Sula as a removable operating kernel.`",
+      "summary": "`Preserve project-owned truth while using Sula as a removable operating kernel.`",
+      "status": "active",
+      "path": "AGENTS.md",
+      "source_paths": [
+        "AGENTS.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "google-drive",
+        "docs",
+        "repo",
+        "memory"
+      ],
+      "tags": [
+        "rule",
+        "section-rule",
+        "highest-rule"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:change-records-md",
+      "kind": "document",
+      "title": "CHANGE-RECORDS.md",
+      "summary": "This file is the index for non-trivial project changes.",
+      "status": "indexed",
+      "path": "CHANGE-RECORDS.md",
+      "source_paths": [
+        "CHANGE-RECORDS.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "google-drive",
+        "docs",
+        "memory",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "rule:change-records-md:keep-this-file-short-and-index-oriented",
+      "kind": "rule",
+      "title": "keep this file short and index-oriented",
+      "summary": "keep this file short and index-oriented",
+      "status": "active",
+      "path": "CHANGE-RECORDS.md",
+      "source_paths": [
+        "CHANGE-RECORDS.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "google-drive",
+        "docs",
+        "memory",
+        "repo"
+      ],
+      "tags": [
+        "rule",
+        "section-object"
+      ],
+      "date": "2026-04-16"
+    },
+    {
+      "id": "rule:change-records-md:put-detailed-records-in-docs-change-records",
+      "kind": "rule",
+      "title": "put detailed records in `docs/change-records/`",
+      "summary": "put detailed records in `docs/change-records/`",
+      "status": "active",
+      "path": "CHANGE-RECORDS.md",
+      "source_paths": [
+        "CHANGE-RECORDS.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "google-drive",
+        "docs",
+        "memory",
+        "repo"
+      ],
+      "tags": [
+        "rule",
+        "section-object"
+      ],
+      "date": "2026-04-16"
+    },
+    {
+      "id": "rule:change-records-md:use-release-records-for-rollout-history-beyond-one-change",
+      "kind": "rule",
+      "title": "use release records for rollout history beyond one change",
+      "summary": "use release records for rollout history beyond one change",
+      "status": "active",
+      "path": "CHANGE-RECORDS.md",
+      "source_paths": [
+        "CHANGE-RECORDS.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "google-drive",
+        "docs",
+        "memory",
+        "repo"
+      ],
+      "tags": [
+        "rule",
+        "section-object"
+      ],
+      "date": "2026-04-16"
+    },
+    {
+      "id": "rule:change-records-md:use-incident-records-for-broken-flows-outages-or-recovery-work",
+      "kind": "rule",
+      "title": "use incident records for broken flows, outages, or recovery work",
+      "summary": "use incident records for broken flows, outages, or recovery work",
+      "status": "active",
+      "path": "CHANGE-RECORDS.md",
+      "source_paths": [
+        "CHANGE-RECORDS.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "google-drive",
+        "docs",
+        "memory",
+        "repo"
+      ],
+      "tags": [
+        "rule",
+        "section-object"
+      ],
+      "date": "2026-04-16"
+    },
+    {
+      "id": "rule:change-records-md:rules:keep-this-file-short-and-index-oriented",
+      "kind": "rule",
+      "title": "keep this file short and index-oriented",
+      "summary": "keep this file short and index-oriented",
+      "status": "active",
+      "path": "CHANGE-RECORDS.md",
+      "source_paths": [
+        "CHANGE-RECORDS.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "google-drive",
+        "docs",
+        "memory",
+        "repo"
+      ],
+      "tags": [
+        "rule",
+        "section-rule",
+        "rules"
+      ],
+      "date": "2026-04-16"
+    },
+    {
+      "id": "rule:change-records-md:rules:put-detailed-records-in-docs-change-records",
+      "kind": "rule",
+      "title": "put detailed records in `docs/change-records/`",
+      "summary": "put detailed records in `docs/change-records/`",
+      "status": "active",
+      "path": "CHANGE-RECORDS.md",
+      "source_paths": [
+        "CHANGE-RECORDS.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "google-drive",
+        "docs",
+        "memory",
+        "repo"
+      ],
+      "tags": [
+        "rule",
+        "section-rule",
+        "rules"
+      ],
+      "date": "2026-04-16"
+    },
+    {
+      "id": "rule:change-records-md:rules:use-release-records-for-rollout-history-beyond-one-change",
+      "kind": "rule",
+      "title": "use release records for rollout history beyond one change",
+      "summary": "use release records for rollout history beyond one change",
+      "status": "active",
+      "path": "CHANGE-RECORDS.md",
+      "source_paths": [
+        "CHANGE-RECORDS.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "google-drive",
+        "docs",
+        "memory",
+        "repo"
+      ],
+      "tags": [
+        "rule",
+        "section-rule",
+        "rules"
+      ],
+      "date": "2026-04-16"
+    },
+    {
+      "id": "rule:change-records-md:rules:use-incident-records-for-broken-flows-outages-or-recovery-work",
+      "kind": "rule",
+      "title": "use incident records for broken flows, outages, or recovery work",
+      "summary": "use incident records for broken flows, outages, or recovery work",
+      "status": "active",
+      "path": "CHANGE-RECORDS.md",
+      "source_paths": [
+        "CHANGE-RECORDS.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "google-drive",
+        "docs",
+        "memory",
+        "repo"
+      ],
+      "tags": [
+        "rule",
+        "section-rule",
+        "rules"
+      ],
+      "date": "2026-04-16"
+    },
+    {
+      "id": "object:source:readme-md",
+      "kind": "document",
+      "title": "README.md",
+      "summary": "Client-service canary with Google Drive adapter metadata",
+      "status": "indexed",
+      "path": "README.md",
+      "source_paths": [
+        "README.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "google-drive",
+        "docs",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:status-md",
+      "kind": "document",
+      "title": "STATUS.md",
+      "summary": "- last updated: 2026-04-16",
+      "status": "indexed",
+      "path": "STATUS.md",
+      "source_paths": [
+        "STATUS.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "google-drive",
+        "docs",
+        "memory",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": "2026-04-16"
+    },
+    {
+      "id": "object:source:docs-change-records-2026-04-16-promote-client-service-drive-example-into-canary-md",
+      "kind": "document",
+      "title": "2026-04-16-promote-client-service-drive-example-into-canary.md",
+      "summary": "- date: 2026-04-16 - executor: Codex - branch: main - related commit(s): pending - status: completed",
+      "status": "indexed",
+      "path": "docs/change-records/2026-04-16-promote-client-service-drive-example-into-canary.md",
+      "source_paths": [
+        "docs/change-records/2026-04-16-promote-client-service-drive-example-into-canary.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "google-drive",
+        "docs",
+        "memory",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": "2026-04-16"
+    },
+    {
+      "id": "object:source:docs-change-records-readme-md",
+      "kind": "document",
+      "title": "README.md",
+      "summary": "Store detailed non-trivial change records in this directory.",
+      "status": "indexed",
+      "path": "docs/change-records/README.md",
+      "source_paths": [
+        "docs/change-records/README.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "google-drive",
+        "docs",
+        "memory",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:docs-change-records-template-md",
+      "kind": "document",
+      "title": "_template.md",
+      "summary": "- date: {{DATE}} - executor: {{EXECUTOR}} - branch: {{BRANCH}} - related commit(s): {{RELATED_COMMITS}} - status: {{STATUS}}",
+      "status": "indexed",
+      "path": "docs/change-records/_template.md",
+      "source_paths": [
+        "docs/change-records/_template.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "google-drive",
+        "docs",
+        "memory",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:docs-incidents-readme-md",
+      "kind": "document",
+      "title": "README.md",
+      "summary": "Store incident or recovery history in this directory.",
+      "status": "indexed",
+      "path": "docs/incidents/README.md",
+      "source_paths": [
+        "docs/incidents/README.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "google-drive",
+        "docs",
+        "memory",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:docs-incidents-template-md",
+      "kind": "document",
+      "title": "_template.md",
+      "summary": "- date: {{DATE}} - executor: {{EXECUTOR}} - branch: {{BRANCH}} - status: {{STATUS}}",
+      "status": "indexed",
+      "path": "docs/incidents/_template.md",
+      "source_paths": [
+        "docs/incidents/_template.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "google-drive",
+        "docs",
+        "memory",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:docs-releases-readme-md",
+      "kind": "document",
+      "title": "README.md",
+      "summary": "Store release-specific rollout notes in this directory when deployment history matters.",
+      "status": "indexed",
+      "path": "docs/releases/README.md",
+      "source_paths": [
+        "docs/releases/README.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "google-drive",
+        "docs",
+        "memory",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:docs-releases-template-md",
+      "kind": "document",
+      "title": "_template.md",
+      "summary": "- date: {{DATE}} - executor: {{EXECUTOR}} - branch: {{BRANCH}} - status: {{STATUS}}",
+      "status": "indexed",
+      "path": "docs/releases/_template.md",
+      "source_paths": [
+        "docs/releases/_template.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "google-drive",
+        "docs",
+        "memory",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "risk:docs-releases-template-md:fill-in-risks",
+      "kind": "risk",
+      "title": "_fill in risks_",
+      "summary": "_fill in risks_",
+      "status": "open",
+      "path": "docs/releases/_template.md",
+      "source_paths": [
+        "docs/releases/_template.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "google-drive",
+        "docs",
+        "memory",
+        "repo"
+      ],
+      "tags": [
+        "risk",
+        "section-object"
+      ],
+      "date": null
+    }
+  ]
+}

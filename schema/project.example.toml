@@ -1,0 +1,94 @@
+[project]
+name = "Example Project"
+slug = "example-project"
+description = "Short description"
+profile = "generic-project"
+default_agent = "Codex"
+
+[repository]
+primary_branch = "n/a"
+working_branch_prefix = "codex/"
+deployment_branch = "n/a"
+
+[rules]
+highest_rule = "Preserve project-owned truth while using Sula as a removable operating kernel."
+custom_backend_allowed = true
+react_router_allowed = false
+
+[stack]
+frontend = "Project-defined components"
+backend = "Project-defined systems"
+
+[paths]
+api_layer = "README.md"
+state_layer = ".sula/state/current.md"
+app_shell = "README.md"
+status_file = "STATUS.md"
+change_records_file = "CHANGE-RECORDS.md"
+
+[commands]
+install = "n/a"
+dev = "n/a"
+build = "n/a"
+typecheck = "n/a"
+
+[deploy]
+base_path = "/"
+production_url = "local-only"
+workflow = "n/a"
+
+[auth]
+session_expiry_codes = ["401", "440"]
+permission_denied_codes = ["403"]
+
+[memory]
+change_record_directory = "docs/change-records"
+release_record_directory = "docs/releases"
+incident_record_directory = "docs/incidents"
+digest_file = ".sula/memory-digest.md"
+status_max_age_days = 30
+
+[workflow]
+pack = "client-service"
+stage = "active"
+artifacts_root = "artifacts"
+docs_root = "docs/workflows"
+execution_mode = "solo-inline"
+design_gate = "complex-only"
+plan_gate = "multi-step"
+review_policy = "batch"
+workspace_isolation = "none"
+testing_policy = "inherit"
+closeout_policy = "explicit"
+
+[storage]
+provider = "google-drive"
+sync_mode = "local-sync"
+workspace_root = "."
+provider_root_url = "https://drive.google.com/drive/folders/example"
+provider_root_id = "drive-folder-id"
+
+[portfolio]
+portfolio_id = "studio"
+workspace = "external-clients"
+owner = "Jing"
+
+[language]
+content_locale = "zh-CN"
+interaction_locale = "zh-CN"
+preserve_user_input_language = true
+
+[projection]
+mode = "detached"
+enabled_packs = ["project-memory", "record-templates"]
+
+[document_design]
+principles_path = "n/a"
+source_first = true
+register_derived_artifacts = true
+preferred_source_format = "markdown"
+schedule_bundle = "monthly-gantt-dual-actions-raci"
+proposal_bundle = "problem-solution-workplan-raci"
+report_bundle = "executive-findings-actions"
+process_bundle = "purpose-workflow-controls-records"
+training_bundle = "outcomes-agenda-delivery-assessment-followup"

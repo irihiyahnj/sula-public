@@ -1,0 +1,60 @@
+{
+  "version": "0.13.0",
+  "mode": "detached",
+  "packs": {
+    "record-templates": [
+      {
+        "path": "docs/change-records/README.md",
+        "managed": false,
+        "origin": "core-scaffold"
+      },
+      {
+        "path": "docs/change-records/_template.md",
+        "managed": false,
+        "origin": "core-scaffold"
+      },
+      {
+        "path": "docs/incidents/README.md",
+        "managed": false,
+        "origin": "core-scaffold"
+      },
+      {
+        "path": "docs/incidents/_template.md",
+        "managed": false,
+        "origin": "core-scaffold"
+      },
+      {
+        "path": "docs/releases/README.md",
+        "managed": false,
+        "origin": "core-scaffold"
+      },
+      {
+        "path": "docs/releases/_template.md",
+        "managed": false,
+        "origin": "core-scaffold"
+      }
+    ],
+    "project-memory": [
+      {
+        "path": "AGENTS.md",
+        "managed": false,
+        "origin": "scaffold:generic-project"
+      },
+      {
+        "path": "CHANGE-RECORDS.md",
+        "managed": false,
+        "origin": "scaffold:generic-project"
+      },
+      {
+        "path": "README.md",
+        "managed": false,
+        "origin": "scaffold:generic-project"
+      },
+      {
+        "path": "STATUS.md",
+        "managed": false,
+        "origin": "scaffold:generic-project"
+      }
+    ]
+  }
+}
