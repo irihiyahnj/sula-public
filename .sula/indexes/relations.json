@@ -703,6 +703,11 @@
       "type": "derived-from"
     },
     {
+      "from": "object:source:public-export-md",
+      "to": "source:public-export-md",
+      "type": "derived-from"
+    },
+    {
       "from": "object:source:readme-md",
       "to": "source:readme-md",
       "type": "derived-from"

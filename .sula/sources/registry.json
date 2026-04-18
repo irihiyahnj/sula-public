@@ -367,6 +367,22 @@
     ]
   },
   {
+    "id": "source:public-export-md",
+    "kind": "document",
+    "path": "PUBLIC-EXPORT.md",
+    "exists": true,
+    "source_of_truth": true,
+    "discovered": true,
+    "size_bytes": 697,
+    "anchor_strategy": "heading-or-line",
+    "adapters": [
+      "generic-project",
+      "local-fs",
+      "docs",
+      "repo"
+    ]
+  },
+  {
     "id": "source:readme-md",
     "kind": "document",
     "path": "README.md",
@@ -2597,7 +2613,7 @@
     "exists": true,
     "source_of_truth": true,
     "discovered": true,
-    "size_bytes": 579518,
+    "size_bytes": 579560,
     "anchor_strategy": "line",
     "adapters": [
       "generic-project",
@@ -2812,7 +2828,7 @@
     "exists": true,
     "source_of_truth": true,
     "discovered": true,
-    "size_bytes": 161268,
+    "size_bytes": 161328,
     "anchor_strategy": "line",
     "adapters": [
       "generic-project",

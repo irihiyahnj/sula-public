@@ -2119,6 +2119,26 @@
       "date": "2026-04-12"
     },
     {
+      "id": "job:memory.digest:20260418-032503",
+      "kind": "job",
+      "title": "memory.digest",
+      "summary": "Regenerated memory digest at `.sula/memory-digest.md`.",
+      "status": "ok",
+      "path": ".sula/state/jobs/history.jsonl",
+      "source_paths": [
+        ".sula/state/jobs/history.jsonl"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "job",
+        "memory-job"
+      ],
+      "date": "2026-04-18"
+    },
+    {
       "id": "job:memory.digest:20260418-025909",
       "kind": "job",
       "title": "memory.digest",
@@ -2882,6 +2902,27 @@
       "path": "GEMINI.md",
       "source_paths": [
         "GEMINI.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:public-export-md",
+      "kind": "document",
+      "title": "PUBLIC-EXPORT.md",
+      "summary": "- generated_on: 2026-04-18T03:24:03Z - source_tree: tracked files exported from the private source repository - file_count: 292 - public_release_strategy: fresh-public-repo",
+      "status": "indexed",
+      "path": "PUBLIC-EXPORT.md",
+      "source_paths": [
+        "PUBLIC-EXPORT.md"
       ],
       "adapters": [
         "generic-project",
