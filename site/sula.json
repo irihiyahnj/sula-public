@@ -1,7 +1,7 @@
 {
   "name": "Sula",
   "kind": "project-operating-system",
-  "version": "0.13.0",
+  "version": "0.14.0",
   "status": "public-source-published",
   "homepage_url": "https://sula.1stp.monster/",
   "launch_url": "https://sula.1stp.monster/launch/",
@@ -10,7 +10,7 @@
   "public_release_strategy": "fresh-public-repo",
   "public_source_status": "published",
   "source_repository_url": "https://github.com/irihiyahnj/sula-public.git",
-  "source_ref": "main",
+  "source_ref": "v0.14.0",
   "source_script_path": "scripts/sula.py",
   "default_flow": [
     "read-launch-contract",

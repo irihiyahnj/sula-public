@@ -292,7 +292,7 @@
     "exists": true,
     "source_of_truth": true,
     "discovered": true,
-    "size_bytes": 1122,
+    "size_bytes": 1914,
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
@@ -309,7 +309,7 @@
     "exists": true,
     "source_of_truth": true,
     "discovered": true,
-    "size_bytes": 2593,
+    "size_bytes": 2878,
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
@@ -491,7 +491,7 @@
     "exists": true,
     "source_of_truth": true,
     "discovered": true,
-    "size_bytes": 2089,
+    "size_bytes": 4172,
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",

@@ -1,5 +1,5 @@
 {
-  "version": "0.13.0",
+  "version": "0.14.0",
   "profile": "react-frontend-erpnext",
   "relations": [
     {
@@ -54,6 +54,11 @@
     },
     {
       "from": "milestone:status:next-review:2026-04-18",
+      "to": "source:status-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "task:handoff:review-docs-change-records-2026-04-11-adopt-sula-memory-model-md-run-python3-scripts-sula-py-sync-project-root-dry-run",
       "to": "source:status-md",
       "type": "derived-from"
     },

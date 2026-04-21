@@ -1,6 +1,6 @@
 # Current State Snapshot
 
-- generated on: 2026-04-18
+- generated on: 2026-04-22
 - project: OKOKTOTO v5
 - profile: `react-frontend-erpnext`
 - source priority: STATUS.md and project records override this generated snapshot
@@ -35,3 +35,22 @@
 - owner: Sula Core maintainers
 - date: 2026-04-18
 - trigger: review again after the next managed-template or doctor-contract change
+
+## Handoff
+
+- ready: yes
+- start here: `docs/change-records/2026-04-11-adopt-sula-memory-model.md`; `STATUS.md`
+- latest record: `docs/change-records/2026-04-11-adopt-sula-memory-model.md`
+- next action: review `docs/change-records/2026-04-11-adopt-sula-memory-model.md`; run `python3 scripts/sula.py sync --project-root . --dry-run`
+- next owner: Sula Core maintainers
+- next due: 2026-04-22
+- done when: result `sync dry run reviewed`; artifact `STATUS.md`
+- blockers: none
+- source of truth: `STATUS.md`; `docs/change-records/2026-04-11-adopt-sula-memory-model.md`
+- source freshness: n/a
+- verification command: `python3 scripts/sula.py check --project-root .`
+- verification result: n/a
+- verification date: 2026-04-22
+- git branch: main
+- git commit: fae5174
+- git working tree: dirty

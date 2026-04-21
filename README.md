@@ -245,8 +245,8 @@ Use `check` as the daily close-out gate after changing `STATUS.md`, `CHANGE-RECO
 When Sula is already published, prefer a tagged Git checkout over an arbitrary local source path:
 
 ```bash
-git clone --branch v0.13.0 --depth 1 https://github.com/irihiyahnj/sula-public.git /opt/sula/v0.13.0
-export SULA_ROOT=/opt/sula/v0.13.0
+git clone --branch v0.14.0 --depth 1 https://github.com/irihiyahnj/sula-public.git /opt/sula/v0.14.0
+export SULA_ROOT=/opt/sula/v0.14.0
 export PROJECT_ROOT=/path/to/project
 
 python3 "$SULA_ROOT/scripts/sula.py" sync --project-root "$PROJECT_ROOT" --dry-run
@@ -351,7 +351,7 @@ python3 scripts/sula.py feedback decide \
   --feedback-id <feedback-id> \
   --decision accepted \
   --note "Absorb this into the shared release path." \
-  --target-version 0.13.0 \
+  --target-version 0.14.0 \
   --json
 ```
 
@@ -523,7 +523,7 @@ This searches the local kernel object catalog, source registry, and event timeli
 
 ## Current Version
 
-Sula version: `0.13.0`
+Sula version: `0.14.0`
 
 Versioning rules are in [docs/versioning.md](docs/versioning.md).
 
