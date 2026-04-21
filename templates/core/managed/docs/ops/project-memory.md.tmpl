@@ -23,6 +23,8 @@ The goal is simple:
 
 - [{{STATUS_FILE}}](../{{STATUS_FILE}})
 
+`{{STATUS_FILE}}` is the live handoff page. Its `## Handoff` section is the machine-checked transfer contract for the next device or operator.
+
 ### Decision And Delivery History
 
 - [{{CHANGE_RECORDS_FILE}}](../{{CHANGE_RECORDS_FILE}})
@@ -47,10 +49,22 @@ This digest is generated for fast recall. It is not a source of truth and should
 4. If an incident affects availability, permissions, data, or deployment safety, add an incident record.
 5. Every architecture exception should reference a change record.
 6. If work touches `STATUS.md`, `CHANGE-RECORDS.md`, `docs/change-records/*`, `.sula/state/current.md`, `.sula/events/log.jsonl`, or `.sula/memory-digest.md`, finish by running `python3 scripts/sula.py check --project-root .` and require `SULA CHECK OK`.
+7. `SULA CHECK OK` also requires `{{STATUS_FILE}}` to be at least as recent as the latest durable change, release, or incident record. A newer durable record without a status refresh is a hard failure.
+8. `{{STATUS_FILE}}` must include a complete `## Handoff` contract with `ready: yes`, `start here`, `latest record`, a structured `next action`, `next owner`, `next due`, `done when`, `blockers`, `source of truth`, `source freshness`, structured verification fields, and explicit Git handoff state.
+`next action` must include at least one actionable reference step and one runnable command step, for example:
+`- next action: review \`docs/change-records/YYYY-MM-DD-topic.md\`; run \`python3 scripts/sula.py check --project-root .\``
+`next due` must use `YYYY-MM-DD`, and `done when` should define the concrete handoff completion condition.
+`done when` should be semi-structured and include at least one `result` or `artifact` step, for example:
+`- done when: result \`SULA CHECK OK\`; artifact \`STATUS.md\``
+Preferred standard `result` values include `SULA CHECK OK`, `doctor strict passed`, `sync dry run reviewed`, `record created`, and `handoff updated`. Custom results are still allowed, but Sula will surface an advisory so teams can standardize wording over time.
+9. `## Recent Decisions` is a current-state panel, not a history log. Keep only the most recent `5` items; older decisions belong in change records.
+10. If `Recent Decisions` overflows during automated updates, move the trimmed items into the status archive instead of dropping them.
+11. `## Current Focus` and `## Blockers` are also capped current-state panels. If they outgrow the configured limit, archive or promote the overflow instead of stretching `{{STATUS_FILE}}`.
 
 ## Freshness Target
 
 - `{{STATUS_FILE}}` should normally be updated at least every `{{STATUS_MAX_AGE_DAYS}}` days while the project is active.
+- This freshness target is only an idle-project backstop. It does not replace the handoff rule above: after non-trivial work, `{{STATUS_FILE}}` still needs to catch up to the latest durable record before `check` can pass.
 
 ## Anti-patterns
 

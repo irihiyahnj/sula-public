@@ -63,7 +63,11 @@ The safe baseline profile is `generic-project`. Narrower profiles can add more s
 - `release_record_directory`
 - `incident_record_directory`
 - `digest_file`
-- `status_max_age_days`
+- `status_max_age_days`: idle-project freshness backstop for `STATUS.md`; this does not override the stricter rule that `STATUS.md` cannot lag behind the latest durable record and still pass `check`
+- `status_recent_decision_limit`: maximum number of `## Recent Decisions` bullets allowed in `STATUS.md`; older decisions should stay in durable records instead of the current-state page
+- `status_current_focus_limit`: maximum number of `## Current Focus` bullets allowed in `STATUS.md`
+- `status_blocker_limit`: maximum number of `## Blockers` bullets allowed in `STATUS.md`
+- `status_archive_file`: durable archive file where overflow items trimmed out of `STATUS.md` should be preserved
 
 ### `[workflow]` (optional but recommended)
 

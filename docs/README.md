@@ -30,10 +30,12 @@ Sula manages the cross-project operational layer so this repository can benefit 
 
 - `reference/`: durable contracts, capability models, and design references for Sula Core
 - `reference/memory-capability-implementation-plan.md`: phased implementation plan for stronger staged memory, rule indexing, promotion, and routing
+- `reference/model-upgrade-prompts.md`: standard prompts for asking large models to upgrade adopted projects from a published Sula Git release
 
 ### 5. Runbooks
 
 - `runbooks/`: operational runbooks when the `profile-runbooks` projection pack is enabled
+- `runbooks/git-release-upgrade.md`: canonical Git-tagged rollout flow for upgrading scattered adopted projects from a published Sula release
 
 ### 6. Traceability
 

@@ -232,6 +232,10 @@ OPTIONAL_MANIFEST_SPEC = {
         "incident_record_directory": "string",
         "digest_file": "string",
         "status_max_age_days": "int",
+        "status_recent_decision_limit": "int",
+        "status_current_focus_limit": "int",
+        "status_blocker_limit": "int",
+        "status_archive_file": "string",
         "capture_policy": "string",
         "promotion_policy": "string",
         "rule_registry": "bool",
@@ -303,6 +307,7 @@ STATUS_REQUIRED_SECTIONS = [
     "Blockers",
     "Recent Decisions",
     "Next Review",
+    "Handoff",
 ]
 
 CHANGE_RECORDS_REQUIRED_SECTIONS = [
@@ -361,6 +366,7 @@ SECTION_LABELS = {
     "Blockers": {"en": "Blockers", "zh": "阻塞项"},
     "Recent Decisions": {"en": "Recent Decisions", "zh": "近期决策"},
     "Next Review": {"en": "Next Review", "zh": "下次复盘"},
+    "Handoff": {"en": "Handoff", "zh": "交接"},
     "Purpose": {"en": "Purpose", "zh": "用途"},
     "Rules": {"en": "Rules", "zh": "规则"},
     "Index": {"en": "Index", "zh": "索引"},
@@ -404,6 +410,22 @@ FIELD_LABEL_ALIASES = {
     "owner": {"en": "owner", "zh": "负责人"},
     "date": {"en": "date", "zh": "日期"},
     "trigger": {"en": "trigger", "zh": "触发条件"},
+    "ready": {"en": "ready", "zh": "可交接"},
+    "start here": {"en": "start here", "zh": "从这里开始"},
+    "latest record": {"en": "latest record", "zh": "最新记录"},
+    "next action": {"en": "next action", "zh": "下一步动作"},
+    "next owner": {"en": "next owner", "zh": "下一步负责人"},
+    "next due": {"en": "next due", "zh": "下一步截止"},
+    "done when": {"en": "done when", "zh": "完成定义"},
+    "blockers": {"en": "blockers", "zh": "阻塞"},
+    "source of truth": {"en": "source of truth", "zh": "真相源"},
+    "source freshness": {"en": "source freshness", "zh": "真相新鲜度"},
+    "verification command": {"en": "verification command", "zh": "验证命令"},
+    "verification result": {"en": "verification result", "zh": "验证结果"},
+    "verification date": {"en": "verification date", "zh": "验证日期"},
+    "git branch": {"en": "git branch", "zh": "Git 分支"},
+    "git commit": {"en": "git commit", "zh": "Git 提交"},
+    "git working tree": {"en": "git working tree", "zh": "Git 工作区"},
     "executor": {"en": "executor", "zh": "执行者"},
     "branch": {"en": "branch", "zh": "分支"},
     "related commit(s)": {"en": "related commit(s)", "zh": "关联提交"},
@@ -497,7 +519,23 @@ class ProjectConfig:
 
     @property
     def status_max_age_days(self) -> int:
-        return int(self.memory_setting("status_max_age_days", 30))
+        return int(self.memory_setting("status_max_age_days", 14))
+
+    @property
+    def status_recent_decision_limit(self) -> int:
+        return int(self.memory_setting("status_recent_decision_limit", 5))
+
+    @property
+    def status_current_focus_limit(self) -> int:
+        return int(self.memory_setting("status_current_focus_limit", 5))
+
+    @property
+    def status_blocker_limit(self) -> int:
+        return int(self.memory_setting("status_blocker_limit", 5))
+
+    @property
+    def status_archive_file(self) -> Path:
+        return self.root / self.memory_setting("status_archive_file", "docs/ops/status-archive.md")
 
     @property
     def session_retention_days(self) -> int:
@@ -718,7 +756,7 @@ class ProjectConfig:
             "RELEASE_RECORD_DIRECTORY": self.memory_setting("release_record_directory", "docs/releases"),
             "INCIDENT_RECORD_DIRECTORY": self.memory_setting("incident_record_directory", "docs/incidents"),
             "MEMORY_DIGEST_FILE": self.memory_setting("digest_file", ".sula/memory-digest.md"),
-            "STATUS_MAX_AGE_DAYS": str(self.memory_setting("status_max_age_days", 30)),
+            "STATUS_MAX_AGE_DAYS": str(self.memory_setting("status_max_age_days", 14)),
             "INSTALL_COMMAND": self.data["commands"]["install"],
             "DEV_COMMAND": self.data["commands"]["dev"],
             "BUILD_COMMAND": self.data["commands"]["build"],
@@ -871,6 +909,23 @@ def template_locale_tokens(locale: str) -> dict[str, str]:
             "STATUS_NEXT_REVIEW_OWNER_LINE": "- 负责人: _填写负责人_",
             "STATUS_NEXT_REVIEW_DATE_LINE": "- 日期: YYYY-MM-DD",
             "STATUS_NEXT_REVIEW_TRIGGER_LINE": "- 触发条件: _写下触发下次复盘的条件_",
+            "STATUS_HANDOFF_HEADING": "## 交接",
+            "STATUS_HANDOFF_READY_LINE": "- 可交接: no",
+            "STATUS_HANDOFF_START_HERE_LINE": "- 从这里开始: `path/to/file`; `another/path`",
+            "STATUS_HANDOFF_LATEST_RECORD_LINE": "- 最新记录: `docs/change-records/YYYY-MM-DD-topic.md`",
+            "STATUS_HANDOFF_NEXT_ACTION_LINE": "- 下一步动作: 查看 `docs/change-records/YYYY-MM-DD-topic.md`; 运行 `python3 scripts/sula.py check --project-root .`",
+            "STATUS_HANDOFF_NEXT_OWNER_LINE": "- 下一步负责人: _写下接手人_",
+            "STATUS_HANDOFF_NEXT_DUE_LINE": "- 下一步截止: YYYY-MM-DD",
+            "STATUS_HANDOFF_DONE_WHEN_LINE": "- 完成定义: 结果 `SULA CHECK OK`; 产物 `STATUS.md`",
+            "STATUS_HANDOFF_BLOCKERS_LINE": "- 阻塞: _写无，或写明阻塞点_",
+            "STATUS_HANDOFF_SOURCE_OF_TRUTH_LINE": "- 真相源: _写下当前应优先查看的真相文件或链接_",
+            "STATUS_HANDOFF_SOURCE_FRESHNESS_LINE": "- 真相新鲜度: n/a / current / needs-refresh / stale-risk",
+            "STATUS_HANDOFF_VERIFICATION_COMMAND_LINE": "- 验证命令: _写下最后一次关键验证命令_",
+            "STATUS_HANDOFF_VERIFICATION_RESULT_LINE": "- 验证结果: pass / fail / n/a",
+            "STATUS_HANDOFF_VERIFICATION_DATE_LINE": "- 验证日期: YYYY-MM-DD",
+            "STATUS_HANDOFF_GIT_BRANCH_LINE": "- Git 分支: n/a",
+            "STATUS_HANDOFF_GIT_COMMIT_LINE": "- Git 提交: n/a",
+            "STATUS_HANDOFF_GIT_WORKTREE_LINE": "- Git 工作区: n/a / clean / dirty",
             "CHANGE_RECORDS_H1": "# {{PROJECT_NAME}} 变更记录",
             "CHANGE_RECORDS_INTRO": "这个文件用于索引项目中的非琐碎变更。",
             "CHANGE_RECORDS_PURPOSE_HEADING": "## 用途",
@@ -940,6 +995,23 @@ def template_locale_tokens(locale: str) -> dict[str, str]:
         "STATUS_NEXT_REVIEW_OWNER_LINE": "- owner: _set owner_",
         "STATUS_NEXT_REVIEW_DATE_LINE": "- date: YYYY-MM-DD",
         "STATUS_NEXT_REVIEW_TRIGGER_LINE": "- trigger: _write what should trigger the next review_",
+        "STATUS_HANDOFF_HEADING": "## Handoff",
+        "STATUS_HANDOFF_READY_LINE": "- ready: no",
+        "STATUS_HANDOFF_START_HERE_LINE": "- start here: `path/to/file`; `another/path`",
+        "STATUS_HANDOFF_LATEST_RECORD_LINE": "- latest record: `docs/change-records/YYYY-MM-DD-topic.md`",
+        "STATUS_HANDOFF_NEXT_ACTION_LINE": "- next action: review `docs/change-records/YYYY-MM-DD-topic.md`; run `python3 scripts/sula.py check --project-root .`",
+        "STATUS_HANDOFF_NEXT_OWNER_LINE": "- next owner: _write the next responsible operator_",
+        "STATUS_HANDOFF_NEXT_DUE_LINE": "- next due: YYYY-MM-DD",
+        "STATUS_HANDOFF_DONE_WHEN_LINE": "- done when: result `SULA CHECK OK`; artifact `STATUS.md`",
+        "STATUS_HANDOFF_BLOCKERS_LINE": "- blockers: _write none or name the blocker_",
+        "STATUS_HANDOFF_SOURCE_OF_TRUTH_LINE": "- source of truth: _write the file or link the next operator should trust first_",
+        "STATUS_HANDOFF_SOURCE_FRESHNESS_LINE": "- source freshness: n/a / current / needs-refresh / stale-risk",
+        "STATUS_HANDOFF_VERIFICATION_COMMAND_LINE": "- verification command: _write the last critical verification command_",
+        "STATUS_HANDOFF_VERIFICATION_RESULT_LINE": "- verification result: pass / fail / n/a",
+        "STATUS_HANDOFF_VERIFICATION_DATE_LINE": "- verification date: YYYY-MM-DD",
+        "STATUS_HANDOFF_GIT_BRANCH_LINE": "- git branch: n/a",
+        "STATUS_HANDOFF_GIT_COMMIT_LINE": "- git commit: n/a",
+        "STATUS_HANDOFF_GIT_WORKTREE_LINE": "- git working tree: n/a / clean / dirty",
         "CHANGE_RECORDS_H1": "# {{PROJECT_NAME}} Change Records",
         "CHANGE_RECORDS_INTRO": "This file is the index for non-trivial project changes.",
         "CHANGE_RECORDS_PURPOSE_HEADING": "## Purpose",
@@ -2781,6 +2853,7 @@ def doctor_payload(
     lock_issues: list[str],
     kernel_errors: list[str],
     warnings: list[str],
+    advisories: list[str],
     passed: bool,
 ) -> dict[str, object]:
     return {
@@ -2793,6 +2866,7 @@ def doctor_payload(
         "lock_issues": lock_issues,
         "kernel_errors": kernel_errors,
         "warnings": warnings,
+        "advisories": advisories,
     }
 
 
@@ -3304,7 +3378,11 @@ def default_memory_config() -> dict:
         "release_record_directory": "docs/releases",
         "incident_record_directory": "docs/incidents",
         "digest_file": ".sula/memory-digest.md",
-        "status_max_age_days": 30,
+        "status_max_age_days": 14,
+        "status_recent_decision_limit": 5,
+        "status_current_focus_limit": 5,
+        "status_blocker_limit": 5,
+        "status_archive_file": "docs/ops/status-archive.md",
         "capture_policy": "explicit",
         "promotion_policy": "review-required",
         "rule_registry": True,
@@ -3479,6 +3557,21 @@ def run_git(project_root: Path, args: list[str]) -> subprocess.CompletedProcess[
 def is_clean_git_worktree(project_root: Path) -> bool:
     result = run_git(project_root, ["status", "--short"])
     return result is not None and result.returncode == 0 and not result.stdout.strip()
+
+
+def detect_git_commit(project_root: Path) -> str:
+    if not is_git_repository(project_root):
+        return "n/a"
+    result = run_git(project_root, ["rev-parse", "--short=12", "HEAD"])
+    if result is None or result.returncode != 0:
+        return "no-commits"
+    return result.stdout.strip() or "no-commits"
+
+
+def detect_git_worktree_state(project_root: Path) -> str:
+    if not is_git_repository(project_root):
+        return "n/a"
+    return "clean" if is_clean_git_worktree(project_root) else "dirty"
 
 
 def parse_table_array_toml(text: str, table_name: str) -> list[dict[str, object]]:
@@ -4105,6 +4198,24 @@ def finalize_adoption_traceability(config: ProjectConfig) -> None:
     ensure_adoption_record(config)
 
 
+def initial_adoption_record_path(config: ProjectConfig, record_date: str) -> Path:
+    return config.change_record_directory / f"{record_date}-adopt-sula-operating-system.md"
+
+
+def current_truth_source_freshness_status(config: ProjectConfig) -> str:
+    payload = project_status_payload(config)
+    truth_sources = payload.get("truth_sources", {}) if isinstance(payload, dict) else {}
+    if not isinstance(truth_sources, dict):
+        return "n/a"
+    if truth_sources.get("provider_errors") or truth_sources.get("local_copy_risk_count"):
+        return "stale-risk"
+    if truth_sources.get("provider_native") and not normalize_optional_text(truth_sources.get("last_provider_check_at", "")):
+        return "needs-refresh"
+    if truth_sources.get("artifact_families"):
+        return "current"
+    return "n/a"
+
+
 def ensure_initial_status(config: ProjectConfig) -> None:
     status_path = config.root / config.data["paths"]["status_file"]
     if status_path.exists():
@@ -4112,6 +4223,12 @@ def ensure_initial_status(config: ProjectConfig) -> None:
         if not any(placeholder in text for placeholder in STATUS_PLACEHOLDERS):
             return
     today = date.today().isoformat()
+    initial_record_path = initial_adoption_record_path(config, today)
+    relative_record_path = os.path.relpath(initial_record_path, start=status_path.parent).replace(os.sep, "/")
+    git_branch = detect_git_branch(config.root) if is_git_repository(config.root) else "n/a"
+    git_commit = detect_git_commit(config.root)
+    git_worktree = detect_git_worktree_state(config.root)
+    source_freshness = current_truth_source_freshness_status(config)
     if locale_family(config.content_locale) == "zh":
         text = (
             "# 项目状态\n\n"
@@ -4132,7 +4249,24 @@ def ensure_initial_status(config: ProjectConfig) -> None:
             "## 下次复盘\n\n"
             "- 负责人: 项目维护者\n"
             f"- 日期: {today}\n"
-            "- 触发条件: 第一次 managed-file sync 之后，或项目规则进一步收紧之后\n"
+            "- 触发条件: 第一次 managed-file sync 之后，或项目规则进一步收紧之后\n\n"
+            "## 交接\n\n"
+            "- 可交接: yes\n"
+            f"- 从这里开始: `{relative_record_path}`; `STATUS.md`\n"
+            f"- 最新记录: `{relative_record_path}`\n"
+            f"- 下一步动作: 查看 `{relative_record_path}`; 运行 `python3 scripts/sula.py sync --project-root . --dry-run`\n"
+            "- 下一步负责人: 项目维护者\n"
+            f"- 下一步截止: {today}\n"
+            "- 完成定义: 结果 `已审阅首次 sync dry-run`; 产物 `STATUS.md`\n"
+            "- 阻塞: 无\n"
+            f"- 真相源: `STATUS.md`; `{relative_record_path}`\n"
+            f"- 真相新鲜度: {source_freshness}\n"
+            "- 验证命令: `python3 scripts/sula.py doctor --project-root . --strict`\n"
+            "- 验证结果: pass\n"
+            f"- 验证日期: {today}\n"
+            f"- Git 分支: {git_branch}\n"
+            f"- Git 提交: {git_commit}\n"
+            f"- Git 工作区: {git_worktree}\n"
         )
     else:
         text = (
@@ -4154,7 +4288,24 @@ def ensure_initial_status(config: ProjectConfig) -> None:
             "## Next Review\n\n"
             "- owner: project maintainers\n"
             f"- date: {today}\n"
-            "- trigger: review after the first managed-file sync or after tightening project-specific rules\n"
+            "- trigger: review after the first managed-file sync or after tightening project-specific rules\n\n"
+            "## Handoff\n\n"
+            "- ready: yes\n"
+            f"- start here: `{relative_record_path}`; `STATUS.md`\n"
+            f"- latest record: `{relative_record_path}`\n"
+            f"- next action: review `{relative_record_path}`; run `python3 scripts/sula.py sync --project-root . --dry-run`\n"
+            "- next owner: project maintainers\n"
+            f"- next due: {today}\n"
+            "- done when: result `first sync dry run reviewed`; artifact `STATUS.md`\n"
+            "- blockers: none\n"
+            f"- source of truth: `STATUS.md`; `{relative_record_path}`\n"
+            f"- source freshness: {source_freshness}\n"
+            "- verification command: `python3 scripts/sula.py doctor --project-root . --strict`\n"
+            "- verification result: pass\n"
+            f"- verification date: {today}\n"
+            f"- git branch: {git_branch}\n"
+            f"- git commit: {git_commit}\n"
+            f"- git working tree: {git_worktree}\n"
         )
     status_path.write_text(text, encoding="utf-8")
 
@@ -4956,6 +5107,7 @@ def update_status_for_new_record(
     if not status_path.exists():
         return
     text = status_path.read_text(encoding="utf-8")
+    status_updated_date = date.today().isoformat()
     relative_link_path = os.path.relpath(record_path, start=status_path.parent).replace(os.sep, "/")
     locale = config.content_locale
     if kind == "change":
@@ -4976,24 +5128,206 @@ def update_status_for_new_record(
             if locale_family(locale) == "zh"
             else f"- {record_date}: added incident record [{title}]({relative_link_path})"
         )
+    latest_record_date, latest_record_path = latest_memory_record_reference(config)
     updated_label = localized_field_label("last updated", locale)
-    text = STATUS_UPDATED_PATTERN.sub(f"- {updated_label}: {record_date}", text, count=1)
-    text = append_bullet_to_section(text, "Recent Decisions", bullet)
+    text = STATUS_UPDATED_PATTERN.sub(f"- {updated_label}: {status_updated_date}", text, count=1)
+    text, archived_items = append_bullet_to_section(
+        text,
+        "Recent Decisions",
+        bullet,
+        max_items=config.status_recent_decision_limit,
+    )
+    if latest_record_path is not None:
+        relative_latest_path = os.path.relpath(latest_record_path, start=status_path.parent).replace(os.sep, "/")
+        text = update_status_handoff_fields(
+            text,
+            locale=locale,
+            updates={
+                "start here": f"`{relative_latest_path}`; `STATUS.md`",
+                "latest record": f"`{relative_latest_path}`",
+                "source of truth": f"`STATUS.md`; `{relative_latest_path}`",
+                "source freshness": current_truth_source_freshness_status(config),
+                "git branch": detect_git_branch(config.root) if is_git_repository(config.root) else "n/a",
+                "git commit": detect_git_commit(config.root),
+                "git working tree": detect_git_worktree_state(config.root),
+            },
+        )
     status_path.write_text(text.rstrip() + "\n", encoding="utf-8")
+    if archived_items:
+        archive_status_section_items(config, "Recent Decisions", archived_items, archived_on=record_date)
 
 
-def append_bullet_to_section(text: str, section_name: str, bullet: str) -> str:
+def section_placeholder_bullets(section_name: str) -> list[str]:
+    placeholders = {
+        "Recent Decisions": ["- _add recent decisions_", "- _补充近期决策_"],
+    }
+    return placeholders.get(section_name, [])
+
+
+def status_archive_heading(config: ProjectConfig) -> str:
+    return "# 状态归档" if locale_family(config.content_locale) == "zh" else "# Status Archive"
+
+
+def status_archive_intro(config: ProjectConfig) -> str:
+    if locale_family(config.content_locale) == "zh":
+        return "这个文件保存从 `STATUS.md` 当前态页移出的超限条目，避免状态页变成长日志。"
+    return "This file stores overflow items moved out of `STATUS.md` so the current-state page does not turn into a long log."
+
+
+def ensure_status_archive_file(config: ProjectConfig) -> Path:
+    archive_path = config.status_archive_file
+    if archive_path.exists():
+        return archive_path
+    archive_path.parent.mkdir(parents=True, exist_ok=True)
+    archive_path.write_text(
+        f"{status_archive_heading(config)}\n\n{status_archive_intro(config)}\n",
+        encoding="utf-8",
+    )
+    return archive_path
+
+
+def archive_status_section_items(config: ProjectConfig, section_name: str, items: list[str], *, archived_on: str) -> None:
+    if not items:
+        return
+    archive_path = ensure_status_archive_file(config)
+    localized_section = localized_section_name(section_name, config.content_locale)
+    text = archive_path.read_text(encoding="utf-8")
+    marker = f"## {localized_section}"
+    entry_lines = [f"### {archived_on}", ""]
+    entry_lines.extend(f"- {item}" for item in items)
+    entry_block = "\n".join(entry_lines) + "\n"
     span = markdown_section_span(text, section_name)
     if span is None:
-        marker = f"## {section_name}"
-        return text.rstrip() + f"\n\n{marker}\n\n{bullet}\n"
+        text = text.rstrip() + f"\n\n{marker}\n\n" + entry_block
+    else:
+        _, start, end = span
+        section_body = text[start:end].rstrip()
+        new_body = section_body + ("\n\n" if section_body.strip() else "\n\n") + entry_block
+        text = text[:start] + new_body + text[end:]
+    archive_path.write_text(text.rstrip() + "\n", encoding="utf-8")
+
+
+def trim_status_section_overflow(text: str, section_name: str, *, max_items: int | None) -> tuple[str, list[str]]:
+    if max_items is None or max_items <= 0:
+        return text, []
+    span = markdown_section_span(text, section_name)
+    if span is None:
+        return text, []
     _, start, end = span
     section_body = text[start:end]
-    if bullet in section_body:
+    items = markdown_bullet_items(section_body)
+    items = [item for item in items if f"- {item}" not in section_placeholder_bullets(section_name)]
+    if len(items) <= max_items:
+        return text, []
+    archived_items = items[:-max_items]
+    kept_items = items[-max_items:]
+    new_body = "\n\n" + "\n".join(f"- {item}" for item in kept_items) + "\n"
+    return text[:start] + new_body + text[end:], archived_items
+
+
+def normalize_status_current_state_sections(config: ProjectConfig) -> bool:
+    status_path = config.root / config.data["paths"]["status_file"]
+    if not status_path.exists():
+        return False
+    text = status_path.read_text(encoding="utf-8")
+    changed = False
+    archived_on = date.today().isoformat()
+    for section_name, max_items in [
+        ("Current Focus", config.status_current_focus_limit),
+        ("Blockers", config.status_blocker_limit),
+        ("Recent Decisions", config.status_recent_decision_limit),
+    ]:
+        text, archived_items = trim_status_section_overflow(text, section_name, max_items=max_items)
+        if archived_items:
+            archive_status_section_items(config, section_name, archived_items, archived_on=archived_on)
+            changed = True
+    if changed:
+        status_path.write_text(text.rstrip() + "\n", encoding="utf-8")
+    return changed
+
+
+def append_bullet_to_section(text: str, section_name: str, bullet: str, *, max_items: int | None = None) -> tuple[str, list[str]]:
+    span = markdown_section_span(text, section_name)
+    bullet_value = bullet[2:].strip() if bullet.startswith("- ") else bullet.strip()
+    if span is None:
+        marker = f"## {section_name}"
+        items = [bullet_value]
+        body = "\n".join(f"- {item}" for item in items)
+        new_text = text.rstrip() + f"\n\n{marker}\n\n{body}\n"
+        return trim_status_section_overflow(new_text, section_name, max_items=max_items)
+    _, start, end = span
+    section_body = text[start:end]
+    items = markdown_bullet_items(section_body)
+    items = [item for item in items if f"- {item}" not in section_placeholder_bullets(section_name)]
+    if bullet_value in items:
+        return text, []
+    items.append(bullet_value)
+    new_body = "\n\n" + "\n".join(f"- {item}" for item in items) + "\n"
+    return trim_status_section_overflow(text[:start] + new_body + text[end:], section_name, max_items=max_items)
+
+
+def update_status_handoff_fields(text: str, *, locale: str, updates: dict[str, str]) -> str:
+    span = markdown_section_span(text, "Handoff")
+    if span is None:
         return text
-    cleaned = section_body.replace("- _add recent decisions_", "").replace("- _补充近期决策_", "").rstrip()
-    new_body = cleaned + ("\n\n" if cleaned.strip() else "\n\n") + bullet + "\n"
+    _, start, end = span
+    section_body = text[start:end]
+    fields = markdown_key_values(section_body)
+    fields.update({key: value for key, value in updates.items() if value})
+    ordered_keys = [
+        "ready",
+        "start here",
+        "latest record",
+        "next action",
+        "next owner",
+        "next due",
+        "done when",
+        "blockers",
+        "source of truth",
+        "source freshness",
+        "verification command",
+        "verification result",
+        "verification date",
+        "git branch",
+        "git commit",
+        "git working tree",
+    ]
+    extra_keys = [key for key in fields if key not in ordered_keys]
+    rendered_lines = []
+    for key in ordered_keys + extra_keys:
+        value = fields.get(key, "").strip()
+        if not value:
+            continue
+        rendered_lines.append(f"- {localized_field_label(key, locale)}: {value}")
+    if not rendered_lines:
+        return text
+    new_body = "\n\n" + "\n".join(rendered_lines) + "\n"
     return text[:start] + new_body + text[end:]
+
+
+def sync_status_handoff_runtime_fields(config: ProjectConfig, *, bump_last_updated: bool) -> bool:
+    status_path = config.root / config.data["paths"]["status_file"]
+    if not status_path.exists():
+        return False
+    original_text = status_path.read_text(encoding="utf-8")
+    text = original_text
+    if bump_last_updated:
+        updated_label = localized_field_label("last updated", config.content_locale)
+        text = STATUS_UPDATED_PATTERN.sub(f"- {updated_label}: {date.today().isoformat()}", text, count=1)
+    text = update_status_handoff_fields(
+        text,
+        locale=config.content_locale,
+        updates={
+            "source freshness": current_truth_source_freshness_status(config),
+            "git branch": detect_git_branch(config.root) if is_git_repository(config.root) else "n/a",
+            "git commit": detect_git_commit(config.root),
+            "git working tree": detect_git_worktree_state(config.root),
+        },
+    )
+    if text == original_text:
+        return False
+    status_path.write_text(text.rstrip() + "\n", encoding="utf-8")
+    return True
 
 
 def markdown_section_span(text: str, canonical_name: str) -> tuple[str, int, int] | None:
@@ -5016,6 +5350,7 @@ def markdown_section_span(text: str, canonical_name: str) -> tuple[str, int, int
 
 
 def generate_memory_digest(config: ProjectConfig, args: argparse.Namespace, *, emit_output: bool = True) -> int:
+    normalize_status_current_state_sections(config)
     output_path = config.digest_file if not args.output else (config.root / args.output)
     digest = build_memory_digest(config, output_path)
     if args.stdout and emit_output:
@@ -5080,6 +5415,7 @@ def build_memory_digest(config: ProjectConfig, output_path: Path) -> str:
     lines.extend(section_digest_lines("Blockers", status_sections.get("Blockers", localized_string("_missing_", config.content_locale)), locale=config.content_locale))
     lines.extend(section_digest_lines("Recent Decisions", status_sections.get("Recent Decisions", localized_string("_missing_", config.content_locale)), locale=config.content_locale))
     lines.extend(section_digest_lines("Next Review", status_sections.get("Next Review", localized_string("_missing_", config.content_locale)), locale=config.content_locale))
+    lines.extend(section_digest_lines("Handoff", status_sections.get("Handoff", localized_string("_missing_", config.content_locale)), locale=config.content_locale))
 
     lines.extend([f"## {localized_section_name('Recent Change Records', config.content_locale)}", ""])
     lines.extend(record_summary_lines(config.change_record_directory, output_path, limit=5, locale=config.content_locale))
@@ -5194,8 +5530,10 @@ def inspect_doctor_state(config: ProjectConfig, *, strict: bool) -> dict[str, ob
     placeholder_files: list[str] = []
     lock_issues: list[str] = []
     warnings = collect_doctor_warnings(config)
-    memory_errors, memory_warnings = collect_memory_doctor_report(config)
+    advisories: list[str] = []
+    memory_errors, memory_warnings, memory_advisories = collect_memory_doctor_report(config)
     warnings.extend(memory_warnings)
+    advisories.extend(memory_advisories)
     kernel_errors, kernel_warnings = collect_kernel_doctor_report(config)
     warnings.extend(kernel_warnings)
 
@@ -5220,6 +5558,7 @@ def inspect_doctor_state(config: ProjectConfig, *, strict: bool) -> dict[str, ob
         "lock_issues": lock_issues,
         "kernel_errors": kernel_errors,
         "warnings": warnings,
+        "advisories": advisories,
         "passed": passed,
         "has_errors": has_errors,
     }
@@ -5234,6 +5573,7 @@ def doctor(config: ProjectConfig, *, strict: bool, json_mode: bool = False, emit
     lock_issues = report["lock_issues"]
     kernel_errors = report["kernel_errors"]
     warnings = report["warnings"]
+    advisories = report["advisories"]
 
     if emit_output and not json_mode and missing_files:
         print("Missing managed files:")
@@ -5263,6 +5603,10 @@ def doctor(config: ProjectConfig, *, strict: bool, json_mode: bool = False, emit
         print("Warnings:")
         for item in warnings:
             print(f"  - {item}")
+    if emit_output and not json_mode and advisories:
+        print("Advisories:")
+        for item in advisories:
+            print(f"  - {item}")
 
     passed = bool(report["passed"])
     if json_mode and emit_output:
@@ -5279,6 +5623,7 @@ def doctor(config: ProjectConfig, *, strict: bool, json_mode: bool = False, emit
                     lock_issues=lock_issues,
                     kernel_errors=kernel_errors,
                     warnings=warnings,
+                    advisories=advisories,
                     passed=passed,
                 ),
             }
@@ -5326,6 +5671,7 @@ def flatten_daily_check_issues(report: dict[str, object], drift_errors: list[str
     issues.extend(str(item) for item in report["lock_issues"])
     issues.extend(str(item) for item in report["kernel_errors"])
     issues.extend(f"warning: {item}" for item in report["warnings"])
+    issues.extend(f"advisory: {item}" for item in report["advisories"])
     issues.extend(drift_errors)
     return issues
 
@@ -5379,6 +5725,7 @@ def daily_check_payload(config: ProjectConfig, report: dict[str, object], drift_
             lock_issues=report["lock_issues"],
             kernel_errors=report["kernel_errors"],
             warnings=report["warnings"],
+            advisories=report["advisories"],
             passed=bool(report["passed"]),
         ),
     }
@@ -5403,6 +5750,11 @@ def daily_check(config: ProjectConfig, *, json_mode: bool = False, emit_output: 
         print(f"status_updated={payload['status_updated'] or 'missing'}")
         print(f"event_log_entries={payload['event_log_entries']}")
         print(f"change_records={payload['change_record_count']}")
+        advisories = payload["doctor"].get("advisories", [])
+        if advisories:
+            print("advisories:")
+            for item in advisories:
+                print(f"  - {item}")
         return 0
 
     print("SULA CHECK FAILED")
@@ -5621,17 +5973,25 @@ def collect_kernel_doctor_report(config: ProjectConfig) -> tuple[list[str], list
     return errors, warnings
 
 
-def collect_memory_doctor_report(config: ProjectConfig) -> tuple[list[str], list[str]]:
+def collect_memory_doctor_report(config: ProjectConfig) -> tuple[list[str], list[str], list[str]]:
     errors: list[str] = []
     warnings: list[str] = []
+    advisories: list[str] = []
 
     status_path = config.root / config.data["paths"]["status_file"]
     if not status_path.exists():
         errors.append(f"missing status file: {status_path}")
     else:
-        status_errors, status_warnings = validate_status_file(status_path, config.status_max_age_days)
+        latest_record_date, latest_record_path = latest_memory_record_reference(config)
+        status_errors, status_warnings, status_advisories = validate_status_file(
+            status_path,
+            config,
+            latest_record_date=latest_record_date,
+            latest_record_path=latest_record_path,
+        )
         errors.extend(status_errors)
         warnings.extend(status_warnings)
+        advisories.extend(status_advisories)
 
     index_path = config.root / config.data["paths"]["change_records_file"]
     if not index_path.exists():
@@ -5684,7 +6044,7 @@ def collect_memory_doctor_report(config: ProjectConfig) -> tuple[list[str], list
     errors.extend(promotion_errors)
     warnings.extend(promotion_warnings)
 
-    return errors, warnings
+    return errors, warnings, advisories
 
 
 def validate_session_capture_store(config: ProjectConfig) -> tuple[list[str], list[str]]:
@@ -5782,9 +6142,381 @@ def validate_promotion_file(config: ProjectConfig) -> tuple[list[str], list[str]
     return errors, warnings
 
 
-def validate_status_file(status_path: Path, status_max_age_days: int) -> tuple[list[str], list[str]]:
+def latest_memory_record_reference(config: ProjectConfig) -> tuple[str | None, Path | None]:
+    latest_date: str | None = None
+    latest_path: Path | None = None
+    for directory in [config.change_record_directory, config.release_record_directory, config.incident_record_directory]:
+        for record_path in list_record_files(directory):
+            text = record_path.read_text(encoding="utf-8")
+            record_date = detect_record_date(record_path, text)
+            if not record_date:
+                continue
+            if latest_date is None or record_date > latest_date:
+                latest_date = record_date
+                latest_path = record_path
+    return latest_date, latest_path
+
+
+def contains_status_placeholder(value: str) -> bool:
+    return any(placeholder in value for placeholder in STATUS_PLACEHOLDERS)
+
+
+def normalize_status_reference_value(value: str) -> str:
+    stripped = value.strip()
+    link_match = re.fullmatch(r"\[([^\]]+)\]\(([^)]+)\)", stripped)
+    if link_match:
+        stripped = link_match.group(2).strip()
+    if stripped.startswith("`") and stripped.endswith("`") and len(stripped) >= 2:
+        stripped = stripped[1:-1].strip()
+    return stripped
+
+
+def normalize_handoff_ready_value(value: str) -> str | None:
+    lowered = value.strip().lower()
+    if lowered in {"yes", "true", "ready", "ok", "是", "已就绪"}:
+        return "yes"
+    if lowered in {"no", "false", "not ready", "否", "未就绪"}:
+        return "no"
+    return None
+
+
+def normalize_git_worktree_value(value: str) -> str | None:
+    lowered = value.strip().lower()
+    if lowered in {"n/a", "na", "none", "not-git"}:
+        return "n/a"
+    if lowered in {"clean", "dirty"}:
+        return lowered
+    return None
+
+
+def normalize_source_freshness_value(value: str) -> str | None:
+    lowered = value.strip().lower()
+    if lowered in {"n/a", "na"}:
+        return "n/a"
+    if lowered in {"current", "needs-refresh", "stale-risk"}:
+        return lowered
+    return None
+
+
+def normalize_verification_result_value(value: str) -> str | None:
+    lowered = value.strip().lower()
+    if lowered in {"pass", "passed", "ok", "green"}:
+        return "pass"
+    if lowered in {"fail", "failed", "red"}:
+        return "fail"
+    if lowered in {"n/a", "na"}:
+        return "n/a"
+    return None
+
+
+def split_status_reference_values(value: str) -> list[str]:
+    if ";" in value:
+        return [part.strip() for part in value.split(";") if part.strip()]
+    return [value.strip()] if value.strip() else []
+
+
+NEXT_ACTION_REFERENCE_VERBS = {
+    "open",
+    "read",
+    "review",
+    "inspect",
+    "follow",
+    "edit",
+    "打开",
+    "阅读",
+    "查看",
+    "审阅",
+    "检查",
+    "编辑",
+}
+
+NEXT_ACTION_COMMAND_VERBS = {
+    "run",
+    "execute",
+    "rerun",
+    "运行",
+    "执行",
+    "重跑",
+}
+
+DONE_WHEN_RESULT_VERBS = {
+    "result",
+    "results",
+    "status",
+    "结果",
+    "状态",
+}
+
+DONE_WHEN_ARTIFACT_VERBS = {
+    "artifact",
+    "artifacts",
+    "file",
+    "document",
+    "doc",
+    "产物",
+    "文件",
+    "文档",
+}
+
+DONE_WHEN_COMMAND_VERBS = {
+    "command",
+    "commands",
+    "cmd",
+    "命令",
+}
+
+STANDARD_DONE_WHEN_RESULTS = [
+    "SULA CHECK OK",
+    "doctor strict passed",
+    "sync dry run reviewed",
+    "record created",
+    "handoff updated",
+    "Sula 检查通过",
+    "doctor strict 已通过",
+    "已审阅 sync dry-run",
+    "已创建记录",
+    "已更新交接",
+]
+STANDARD_DONE_WHEN_RESULTS_NORMALIZED = {item.casefold() for item in STANDARD_DONE_WHEN_RESULTS}
+
+
+def strip_wrapping_code_ticks(value: str) -> str:
+    stripped = value.strip()
+    if stripped.startswith("`") and stripped.endswith("`") and len(stripped) >= 2:
+        return stripped[1:-1].strip()
+    return stripped
+
+
+def parse_structured_handoff_steps(value: str) -> tuple[list[tuple[str, str]], list[str]]:
+    steps: list[tuple[str, str]] = []
+    invalid_steps: list[str] = []
+    for raw_step in split_status_reference_values(value):
+        match = re.fullmatch(r"(.+?)\s+(`[^`]+`|\[[^\]]+\]\([^)]+\))", raw_step)
+        if not match:
+            invalid_steps.append(raw_step)
+            continue
+        verb = match.group(1).strip().casefold()
+        target = match.group(2).strip()
+        steps.append((verb, target))
+    return steps, invalid_steps
+
+
+def parse_handoff_next_action_steps(value: str) -> tuple[list[tuple[str, str]], list[str]]:
+    return parse_structured_handoff_steps(value)
+
+
+def parse_handoff_done_when_steps(value: str) -> tuple[list[tuple[str, str]], list[str]]:
+    return parse_structured_handoff_steps(value)
+
+
+def validate_status_reference_target(status_path: Path, reference_value: str) -> str | None:
+    normalized_reference = normalize_status_reference_value(reference_value)
+    if not normalized_reference:
+        return f"{status_path}: status reference is empty"
+    lowered = normalized_reference.lower()
+    if lowered.startswith("http://") or lowered.startswith("https://"):
+        return None
+    reference_path = Path(normalized_reference)
+    if not reference_path.is_absolute():
+        reference_path = (status_path.parent / reference_path).resolve()
+    else:
+        reference_path = reference_path.resolve()
+    if not reference_path.exists():
+        return f"{status_path}: status reference target is missing -> {normalized_reference}"
+    return None
+
+
+def validate_status_handoff_section(
+    config: ProjectConfig,
+    status_path: Path,
+    handoff_text: str,
+    *,
+    latest_record_path: Path | None = None,
+) -> tuple[list[str], list[str]]:
+    errors: list[str] = []
+    advisories: list[str] = []
+    fields = markdown_key_values(handoff_text)
+
+    ready_value = normalize_handoff_ready_value(fields.get("ready", ""))
+    if ready_value != "yes":
+        errors.append(f"{status_path}: `## Handoff` must declare `ready: yes` before `check` can pass")
+
+    required_fields = [
+        "start here",
+        "latest record",
+        "next action",
+        "next owner",
+        "next due",
+        "done when",
+        "blockers",
+        "source of truth",
+        "source freshness",
+        "verification command",
+        "verification result",
+        "verification date",
+        "git branch",
+        "git commit",
+        "git working tree",
+    ]
+    fields_allow_na = {"source freshness", "verification result", "git branch", "git commit", "git working tree"}
+    for field_name in required_fields:
+        value = fields.get(field_name, "").strip()
+        if not value:
+            errors.append(f"{status_path}: `## Handoff` is missing `- {field_name}: ...`")
+            continue
+        if field_name == "blockers":
+            if contains_status_placeholder(value):
+                errors.append(f"{status_path}: `## Handoff` field `{field_name}` still contains placeholder text")
+            continue
+        if field_name in fields_allow_na and value.strip().lower() in {"n/a", "na"}:
+            continue
+        if line_is_empty_placeholder(value) or contains_status_placeholder(value):
+            errors.append(f"{status_path}: `## Handoff` field `{field_name}` still contains placeholder text")
+
+    latest_record_value = fields.get("latest record", "").strip()
+    if latest_record_value:
+        normalized_reference = normalize_status_reference_value(latest_record_value)
+        if normalized_reference:
+            reference_path = Path(normalized_reference)
+            if not reference_path.is_absolute():
+                reference_path = (status_path.parent / reference_path).resolve()
+            else:
+                reference_path = reference_path.resolve()
+            if not reference_path.exists():
+                errors.append(f"{status_path}: `## Handoff` latest record target is missing -> {normalized_reference}")
+            elif latest_record_path is not None and reference_path != latest_record_path.resolve():
+                errors.append(
+                    f"{status_path}: `## Handoff` latest record points to {normalized_reference}, but the latest durable record is {latest_record_path}"
+                )
+    elif latest_record_path is not None:
+        errors.append(f"{status_path}: `## Handoff` must reference the latest durable record {latest_record_path}")
+    start_here_value = fields.get("start here", "").strip()
+    start_here_references = split_status_reference_values(start_here_value)
+    if not start_here_references:
+        errors.append(f"{status_path}: `## Handoff` start here must list at least one file or URL reference")
+    for reference_value in start_here_references:
+        reference_error = validate_status_reference_target(status_path, reference_value)
+        if reference_error:
+            errors.append(reference_error.replace("status reference", "`## Handoff` start here reference"))
+    next_action_value = fields.get("next action", "").strip()
+    next_action_steps, invalid_next_action_steps = parse_handoff_next_action_steps(next_action_value)
+    if invalid_next_action_steps:
+        errors.append(
+            f"{status_path}: `## Handoff` next action must use structured steps like `review <path>`; `run <command>`"
+        )
+    reference_step_count = 0
+    command_step_count = 0
+    for verb, target in next_action_steps:
+        if verb in NEXT_ACTION_REFERENCE_VERBS:
+            reference_step_count += 1
+            reference_error = validate_status_reference_target(status_path, target)
+            if reference_error:
+                errors.append(reference_error.replace("status reference", "`## Handoff` next action reference"))
+            continue
+        if verb in NEXT_ACTION_COMMAND_VERBS:
+            command_step_count += 1
+            normalized_command = strip_wrapping_code_ticks(target)
+            if not normalized_command or contains_status_placeholder(normalized_command):
+                errors.append(f"{status_path}: `## Handoff` next action command is empty or still placeholder text")
+            continue
+        errors.append(f"{status_path}: `## Handoff` next action verb `{verb}` is not allowed")
+    if next_action_value and not invalid_next_action_steps:
+        if reference_step_count == 0:
+            errors.append(f"{status_path}: `## Handoff` next action must include at least one file or URL reference step")
+        if command_step_count == 0:
+            errors.append(f"{status_path}: `## Handoff` next action must include at least one runnable command step")
+    next_due_value = fields.get("next due", "").strip()
+    if next_due_value and not MEMORY_DATE_PATTERN.fullmatch(next_due_value):
+        errors.append(f"{status_path}: `## Handoff` next due must use YYYY-MM-DD")
+    done_when_value = fields.get("done when", "").strip()
+    done_when_steps, invalid_done_when_steps = parse_handoff_done_when_steps(done_when_value)
+    if invalid_done_when_steps:
+        errors.append(
+            f"{status_path}: `## Handoff` done when must use structured steps like `result <status>`; `artifact <path>`"
+        )
+    done_when_result_count = 0
+    done_when_artifact_count = 0
+    for verb, target in done_when_steps:
+        if verb in DONE_WHEN_RESULT_VERBS:
+            done_when_result_count += 1
+            normalized_result = strip_wrapping_code_ticks(target)
+            if not normalized_result or contains_status_placeholder(normalized_result):
+                errors.append(f"{status_path}: `## Handoff` done when result is empty or still placeholder text")
+            elif normalized_result.casefold() not in STANDARD_DONE_WHEN_RESULTS_NORMALIZED:
+                advisories.append(
+                    f"{status_path}: `## Handoff` done when result `{normalized_result}` is custom; prefer a standard result such as {', '.join(STANDARD_DONE_WHEN_RESULTS[:5])}"
+                )
+            continue
+        if verb in DONE_WHEN_ARTIFACT_VERBS:
+            done_when_artifact_count += 1
+            reference_error = validate_status_reference_target(status_path, target)
+            if reference_error:
+                errors.append(reference_error.replace("status reference", "`## Handoff` done when artifact"))
+            continue
+        if verb in DONE_WHEN_COMMAND_VERBS:
+            normalized_command = strip_wrapping_code_ticks(target)
+            if not normalized_command or contains_status_placeholder(normalized_command):
+                errors.append(f"{status_path}: `## Handoff` done when command is empty or still placeholder text")
+            continue
+        errors.append(f"{status_path}: `## Handoff` done when verb `{verb}` is not allowed")
+    if done_when_value and not invalid_done_when_steps and (done_when_result_count + done_when_artifact_count) == 0:
+        errors.append(f"{status_path}: `## Handoff` done when must include at least one result or artifact step")
+    source_of_truth_value = fields.get("source of truth", "").strip()
+    for reference_value in split_status_reference_values(source_of_truth_value):
+        reference_error = validate_status_reference_target(status_path, reference_value)
+        if reference_error:
+            errors.append(reference_error)
+    source_freshness_value = normalize_source_freshness_value(fields.get("source freshness", ""))
+    actual_source_freshness = current_truth_source_freshness_status(config)
+    if source_freshness_value is None:
+        errors.append(f"{status_path}: `## Handoff` has invalid `source freshness` value")
+    elif source_freshness_value != actual_source_freshness:
+        errors.append(
+            f"{status_path}: `## Handoff` source freshness is {source_freshness_value}, but the current truth-source freshness is {actual_source_freshness}"
+        )
+    verification_date = fields.get("verification date", "").strip()
+    if verification_date and not MEMORY_DATE_PATTERN.fullmatch(verification_date):
+        errors.append(f"{status_path}: `## Handoff` verification date must use YYYY-MM-DD")
+    verification_result = normalize_verification_result_value(fields.get("verification result", ""))
+    if verification_result is None:
+        errors.append(f"{status_path}: `## Handoff` has invalid `verification result` value")
+    git_branch_value = fields.get("git branch", "").strip()
+    git_commit_value = fields.get("git commit", "").strip()
+    git_worktree_value = normalize_git_worktree_value(fields.get("git working tree", ""))
+    actual_git_branch = detect_git_branch(config.root) if is_git_repository(config.root) else "n/a"
+    actual_git_commit = detect_git_commit(config.root)
+    actual_git_worktree = detect_git_worktree_state(config.root)
+    if git_branch_value != actual_git_branch:
+        errors.append(f"{status_path}: `## Handoff` git branch is {git_branch_value}, but the repo is on {actual_git_branch}")
+    if not (
+        git_commit_value == actual_git_commit
+        or (actual_git_commit not in {"n/a", "no-commits"} and actual_git_commit.startswith(git_commit_value))
+        or (git_commit_value not in {"n/a", "no-commits"} and git_commit_value.startswith(actual_git_commit))
+    ):
+        errors.append(f"{status_path}: `## Handoff` git commit is {git_commit_value}, but the repo head is {actual_git_commit}")
+    if git_worktree_value is None:
+        errors.append(f"{status_path}: `## Handoff` has invalid `git working tree` value")
+    elif git_worktree_value != actual_git_worktree:
+        errors.append(f"{status_path}: `## Handoff` git working tree is {git_worktree_value}, but the repo is {actual_git_worktree}")
+    if ready_value == "yes":
+        blockers_value = fields.get("blockers", "").strip()
+        if not line_is_empty_placeholder(blockers_value):
+            errors.append(f"{status_path}: `## Handoff` cannot declare `ready: yes` while blockers are still present")
+        if verification_result not in {"pass", "n/a"}:
+            errors.append(f"{status_path}: `## Handoff` cannot declare `ready: yes` while verification result is not pass")
+    return errors, advisories
+
+
+def validate_status_file(
+    status_path: Path,
+    config: ProjectConfig,
+    *,
+    latest_record_date: str | None = None,
+    latest_record_path: Path | None = None,
+) -> tuple[list[str], list[str], list[str]]:
     errors: list[str] = []
     warnings: list[str] = []
+    advisories: list[str] = []
     text = status_path.read_text(encoding="utf-8")
     sections = markdown_sections(text)
     for section in STATUS_REQUIRED_SECTIONS:
@@ -5799,17 +6531,46 @@ def validate_status_file(status_path: Path, status_max_age_days: int) -> tuple[l
         if not MEMORY_DATE_PATTERN.fullmatch(raw_date):
             errors.append(f"{status_path}: invalid last updated date `{raw_date}`")
         else:
-            age_days = (date.today() - datetime.strptime(raw_date, "%Y-%m-%d").date()).days
-            if age_days > status_max_age_days:
-                warnings.append(
-                    f"{status_path}: status is {age_days} days old, over the {status_max_age_days}-day freshness target"
+            if latest_record_date and raw_date < latest_record_date:
+                latest_record_reference = str(latest_record_path) if latest_record_path is not None else latest_record_date
+                errors.append(
+                    f"{status_path}: last updated date {raw_date} is older than the latest durable record {latest_record_date} in {latest_record_reference}"
                 )
+            age_days = (date.today() - datetime.strptime(raw_date, "%Y-%m-%d").date()).days
+            if age_days > config.status_max_age_days:
+                warnings.append(
+                    f"{status_path}: status is {age_days} days old, over the {config.status_max_age_days}-day freshness target"
+                )
+    current_focus = markdown_bullet_items(sections.get("Current Focus", ""))
+    if config.status_current_focus_limit > 0 and len(current_focus) > config.status_current_focus_limit:
+        errors.append(
+            f"{status_path}: `## Current Focus` has {len(current_focus)} items, over the {config.status_current_focus_limit}-item current-state limit"
+        )
+    blockers = markdown_bullet_items(sections.get("Blockers", ""))
+    if config.status_blocker_limit > 0 and len(blockers) > config.status_blocker_limit:
+        errors.append(
+            f"{status_path}: `## Blockers` has {len(blockers)} items, over the {config.status_blocker_limit}-item current-state limit"
+        )
+    recent_decisions = markdown_bullet_items(sections.get("Recent Decisions", ""))
+    if config.status_recent_decision_limit > 0 and len(recent_decisions) > config.status_recent_decision_limit:
+        errors.append(
+            f"{status_path}: `## Recent Decisions` has {len(recent_decisions)} items, over the {config.status_recent_decision_limit}-item current-state limit"
+        )
 
     for placeholder in STATUS_PLACEHOLDERS:
         if placeholder in text:
             warnings.append(f"{status_path}: placeholder content still present ({placeholder})")
             break
-    return errors, warnings
+    if "Handoff" in sections:
+        handoff_errors, handoff_advisories = validate_status_handoff_section(
+            config,
+            status_path,
+            sections["Handoff"],
+            latest_record_path=latest_record_path,
+        )
+        errors.extend(handoff_errors)
+        advisories.extend(handoff_advisories)
+    return errors, warnings, advisories
 
 
 def validate_change_record_index(index_path: Path, config: ProjectConfig) -> tuple[list[str], list[str]]:
@@ -6744,6 +7505,23 @@ def build_status_objects(
                 "date": status_updated,
             }
         )
+    handoff_fields = markdown_key_values(status_sections.get("Handoff", ""))
+    next_action = handoff_fields.get("next action", "")
+    if next_action and not contains_status_placeholder(next_action):
+        objects.append(
+            {
+                "id": f"task:handoff:{sanitize_source_id(next_action)}",
+                "kind": "task",
+                "title": truncate_title(next_action),
+                "summary": next_action,
+                "status": "open",
+                "path": status_path,
+                "source_paths": [status_path],
+                "adapters": adapters,
+                "tags": ["handoff", "next-action", "status"],
+                "date": status_updated,
+            }
+        )
     return objects
 
 
@@ -6978,7 +7756,7 @@ def render_kernel_current_state(config: ProjectConfig) -> str:
         "- 真相优先级: STATUS.md 与项目记录高于这份生成快照" if zh else "- source priority: STATUS.md and project records override this generated snapshot",
         "",
     ]
-    for section_name in ["Summary", "Health", "Current Focus", "Blockers", "Recent Decisions", "Next Review"]:
+    for section_name in ["Summary", "Health", "Current Focus", "Blockers", "Recent Decisions", "Next Review", "Handoff"]:
         lines.append(f"## {localized_section_name(section_name, config.content_locale)}")
         lines.append("")
         lines.append((status_sections.get(section_name, localized_string("_missing_", config.content_locale)) or localized_string("_missing_", config.content_locale)).strip())
@@ -8430,6 +9208,7 @@ def project_status_payload(config: ProjectConfig) -> dict[str, object]:
         "blockers": markdown_bullet_items(state_sections.get("Blockers", "")),
         "recent_decisions": markdown_bullet_items(state_sections.get("Recent Decisions", "")),
         "next_review": markdown_key_values(state_sections.get("Next Review", "")),
+        "handoff": markdown_key_values(state_sections.get("Handoff", "")),
         "workflow": {
             "pack": config.workflow_pack,
             "stage": config.workflow_stage,
@@ -10366,6 +11145,7 @@ def workflow_scaffold(config: ProjectConfig, args: argparse.Namespace) -> int:
         last_refreshed_at=current_utc_timestamp(),
         last_provider_sync_at="",
     )
+    sync_status_handoff_runtime_fields(config, bump_last_updated=True)
     refresh_kernel_state(config, event_type="workflow.scaffold", summary=f"Created workflow {kind} `{args.title}`.")
     payload = {
         "command": "workflow.scaffold",
@@ -10441,6 +11221,8 @@ def workflow_branch(config: ProjectConfig, args: argparse.Namespace) -> int:
                 raise SystemExit(completed.stderr.strip() if completed is not None else "git is not available")
             status = "created"
             created_root = str(worktree_path)
+    if args.create and status == "created" and sync_status_handoff_runtime_fields(config, bump_last_updated=True):
+        refresh_kernel_state(config, event_type="workflow.branch", summary=f"Created workflow branch `{payload['branch_name']}`.")
     wrapped = {
         "command": "workflow.branch",
         "status": status,
@@ -10482,6 +11264,13 @@ def workflow_close(config: ProjectConfig, args: argparse.Namespace) -> int:
                 matched[kind] = item
                 break
     missing = [kind for kind in required_kinds if kind not in matched]
+    if sync_status_handoff_runtime_fields(config, bump_last_updated=False):
+        refresh_kernel_state(config)
+    generate_memory_digest(
+        config,
+        argparse.Namespace(output=None, stdout=False, json=False),
+        emit_output=False,
+    )
     doctor_code = doctor(config, strict=bool(args.doctor_strict), emit_output=False)
     check_code = daily_check(config, emit_output=False)
     branch_name = detect_git_branch(config.root) if is_git_repository(config.root) else "n/a"
