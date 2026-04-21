@@ -1,5 +1,5 @@
 {
-  "version": "0.13.0",
+  "version": "0.14.0",
   "profile": "generic-project",
   "objects": [
     {
@@ -23,7 +23,7 @@
       "tags": [
         "generic-project"
       ],
-      "date": "2026-04-16"
+      "date": "2026-04-22"
     },
     {
       "id": "state:current",
@@ -42,7 +42,7 @@
       "tags": [
         "state"
       ],
-      "date": "2026-04-16"
+      "date": "2026-04-22"
     },
     {
       "id": "rule:manifest:highest-rule",
@@ -62,7 +62,7 @@
         "rule",
         "manifest"
       ],
-      "date": "2026-04-16"
+      "date": "2026-04-22"
     },
     {
       "id": "task:status:keep-the-client-service-workflow-pack-and-google-drive-manifest-defaults-verifiable-through-a-local-canary",
@@ -82,7 +82,7 @@
         "current-focus",
         "status"
       ],
-      "date": "2026-04-16"
+      "date": "2026-04-22"
     },
     {
       "id": "task:status:use-the-canary-for-rollout-checks-before-changing-provider-backed-artifact-behavior",
@@ -102,7 +102,7 @@
         "current-focus",
         "status"
       ],
-      "date": "2026-04-16"
+      "date": "2026-04-22"
     },
     {
       "id": "decision:status:2026-04-16-promoted-this-example-into-a-client-service-rollout-canary-for-local-sula-verification",
@@ -162,7 +162,7 @@
         "next-review-owner",
         "status"
       ],
-      "date": "2026-04-16"
+      "date": "2026-04-22"
     },
     {
       "id": "milestone:status:next-review:2026-04-23",
@@ -185,6 +185,27 @@
       "date": "2026-04-23"
     },
     {
+      "id": "task:handoff:review-docs-change-records-2026-04-16-promote-client-service-drive-example-into-canary-md-run-python3-scripts-sula-py-check-project-root",
+      "kind": "task",
+      "title": "review `docs/change-records/2026-04-16-promote-client-service-drive-example-i...",
+      "summary": "review `docs/change-records/2026-04-16-promote-client-service-drive-example-into-canary.md`; run `python3 scripts/sula.py check --project-root .`",
+      "status": "open",
+      "path": "STATUS.md",
+      "source_paths": [
+        "STATUS.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "handoff",
+        "next-action",
+        "status"
+      ],
+      "date": "2026-04-22"
+    },
+    {
       "id": "change:2026-04-16-promote-client-service-drive-example-into-canary",
       "kind": "change",
       "title": "Promote client service drive example into canary",
@@ -204,7 +225,7 @@
       "date": "2026-04-16"
     },
     {
-      "id": "job:memory.digest:20260418-032503",
+      "id": "job:memory.digest:20260421-164038",
       "kind": "job",
       "title": "memory.digest",
       "summary": "Regenerated memory digest at `.sula/memory-digest.md`.",
@@ -221,7 +242,27 @@
         "job",
         "memory-job"
       ],
-      "date": "2026-04-18"
+      "date": "2026-04-21"
+    },
+    {
+      "id": "job:memory.digest:20260421-163546",
+      "kind": "job",
+      "title": "memory.digest",
+      "summary": "Regenerated memory digest at `.sula/memory-digest.md`.",
+      "status": "ok",
+      "path": ".sula/state/jobs/history.jsonl",
+      "source_paths": [
+        ".sula/state/jobs/history.jsonl"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "job",
+        "memory-job"
+      ],
+      "date": "2026-04-21"
     },
     {
       "id": "job:memory.digest:20260418-025221",
@@ -523,7 +564,7 @@
       "id": "object:source:status-md",
       "kind": "document",
       "title": "STATUS.md",
-      "summary": "- last updated: 2026-04-16",
+      "summary": "- last updated: 2026-04-22",
       "status": "indexed",
       "path": "STATUS.md",
       "source_paths": [
@@ -539,7 +580,7 @@
       "tags": [
         "discovered-source"
       ],
-      "date": "2026-04-16"
+      "date": "2026-04-22"
     },
     {
       "id": "object:source:docs-change-records-2026-04-16-promote-client-service-drive-example-into-canary-md",

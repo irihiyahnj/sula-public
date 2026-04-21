@@ -1,5 +1,5 @@
 {
-  "version": "0.13.0",
+  "version": "0.14.0",
   "profile": "sula-core",
   "objects": [
     {
@@ -25,7 +25,7 @@
       "tags": [
         "sula-core"
       ],
-      "date": "2026-04-18"
+      "date": "2026-04-22"
     },
     {
       "id": "state:current",
@@ -44,7 +44,7 @@
       "tags": [
         "state"
       ],
-      "date": "2026-04-18"
+      "date": "2026-04-22"
     },
     {
       "id": "rule:manifest:highest-rule",
@@ -64,187 +64,7 @@
         "rule",
         "manifest"
       ],
-      "date": "2026-04-18"
-    },
-    {
-      "id": "task:status:roll-out-sula-0-13-0-to-external-canaries-and-confirm-the-staged-memory-workflow-is-understandable-outside-the-source-repository",
-      "kind": "task",
-      "title": "roll out Sula 0.13.0 to external canaries and confirm the staged-memory workf...",
-      "summary": "roll out Sula 0.13.0 to external canaries and confirm the staged-memory workflow is understandable outside the source repository",
-      "status": "open",
-      "path": "STATUS.md",
-      "source_paths": [
-        "STATUS.md"
-      ],
-      "adapters": [
-        "generic-project",
-        "memory"
-      ],
-      "tags": [
-        "current-focus",
-        "status"
-      ],
-      "date": "2026-04-18"
-    },
-    {
-      "id": "task:status:validate-the-new-adopt-flow-against-the-first-external-repository",
-      "kind": "task",
-      "title": "validate the new `adopt` flow against the first external repository",
-      "summary": "validate the new `adopt` flow against the first external repository",
-      "status": "open",
-      "path": "STATUS.md",
-      "source_paths": [
-        "STATUS.md"
-      ],
-      "adapters": [
-        "generic-project",
-        "memory"
-      ],
-      "tags": [
-        "current-focus",
-        "status"
-      ],
-      "date": "2026-04-18"
-    },
-    {
-      "id": "task:status:run-the-first-external-canaries-through-the-new-canary-verify-contract",
-      "kind": "task",
-      "title": "run the first external canaries through the new `canary verify` contract",
-      "summary": "run the first external canaries through the new `canary verify` contract",
-      "status": "open",
-      "path": "STATUS.md",
-      "source_paths": [
-        "STATUS.md"
-      ],
-      "adapters": [
-        "generic-project",
-        "memory"
-      ],
-      "tags": [
-        "current-focus",
-        "status"
-      ],
-      "date": "2026-04-18"
-    },
-    {
-      "id": "task:status:keep-sula-core-and-react-frontend-erpnext-profiles-aligned-with-real-usage",
-      "kind": "task",
-      "title": "keep `sula-core` and `react-frontend-erpnext` profiles aligned with real usage",
-      "summary": "keep `sula-core` and `react-frontend-erpnext` profiles aligned with real usage",
-      "status": "open",
-      "path": "STATUS.md",
-      "source_paths": [
-        "STATUS.md"
-      ],
-      "adapters": [
-        "generic-project",
-        "memory"
-      ],
-      "tags": [
-        "current-focus",
-        "status"
-      ],
-      "date": "2026-04-18"
-    },
-    {
-      "id": "task:status:validate-the-new-generic-project-and-remove-flows-against-external-canaries",
-      "kind": "task",
-      "title": "validate the new `generic-project` and `remove` flows against external canaries",
-      "summary": "validate the new `generic-project` and `remove` flows against external canaries",
-      "status": "open",
-      "path": "STATUS.md",
-      "source_paths": [
-        "STATUS.md"
-      ],
-      "adapters": [
-        "generic-project",
-        "memory"
-      ],
-      "tags": [
-        "current-focus",
-        "status"
-      ],
-      "date": "2026-04-18"
-    },
-    {
-      "id": "task:status:validate-portfolio-registration-artifact-routing-and-google-drive-local-sync-behavior-against-the-first-real-client-service-workspace",
-      "kind": "task",
-      "title": "validate portfolio registration, artifact routing, and `google-drive` local-s...",
-      "summary": "validate portfolio registration, artifact routing, and `google-drive` local-sync behavior against the first real client-service workspace",
-      "status": "open",
-      "path": "STATUS.md",
-      "source_paths": [
-        "STATUS.md"
-      ],
-      "adapters": [
-        "generic-project",
-        "memory"
-      ],
-      "tags": [
-        "current-focus",
-        "status"
-      ],
-      "date": "2026-04-18"
-    },
-    {
-      "id": "task:status:validate-the-new-formal-document-bundles-against-the-first-real-planning-heavy-client-workspace-and-confirm-where-google-docs-import-needs-richer-tabular-bridge-defaults",
-      "kind": "task",
-      "title": "validate the new formal-document bundles against the first real planning-heav...",
-      "summary": "validate the new formal-document bundles against the first real planning-heavy client workspace and confirm where Google Docs import needs richer tabular bridge defaults",
-      "status": "open",
-      "path": "STATUS.md",
-      "source_paths": [
-        "STATUS.md"
-      ],
-      "adapters": [
-        "generic-project",
-        "memory"
-      ],
-      "tags": [
-        "current-focus",
-        "status"
-      ],
-      "date": "2026-04-18"
-    },
-    {
-      "id": "task:status:validate-the-released-feedback-bundle-lifecycle-through-the-first-external-adopted-project-and-the-first-real-sula-core-feedback-item-that-flows-through-the-queue-end-to-end",
-      "kind": "task",
-      "title": "validate the released feedback-bundle lifecycle through the first external ad...",
-      "summary": "validate the released feedback-bundle lifecycle through the first external adopted project and the first real Sula Core feedback item that flows through the queue end to end",
-      "status": "open",
-      "path": "STATUS.md",
-      "source_paths": [
-        "STATUS.md"
-      ],
-      "adapters": [
-        "generic-project",
-        "memory"
-      ],
-      "tags": [
-        "current-focus",
-        "status"
-      ],
-      "date": "2026-04-18"
-    },
-    {
-      "id": "task:status:validate-the-now-complete-workflow-policy-scaffold-branch-and-close-loop-against-the-first-external-software-delivery-canary",
-      "kind": "task",
-      "title": "validate the now-complete workflow policy, scaffold, branch, and close loop a...",
-      "summary": "validate the now-complete workflow policy, scaffold, branch, and close loop against the first external software-delivery canary",
-      "status": "open",
-      "path": "STATUS.md",
-      "source_paths": [
-        "STATUS.md"
-      ],
-      "adapters": [
-        "generic-project",
-        "memory"
-      ],
-      "tags": [
-        "current-focus",
-        "status"
-      ],
-      "date": "2026-04-18"
+      "date": "2026-04-22"
     },
     {
       "id": "task:status:turn-the-recorded-vnext-architecture-into-stronger-adapter-composition-and-better-result-quality-over-the-new-sqlite-backed-retrieval-path",
@@ -264,7 +84,7 @@
         "current-focus",
         "status"
       ],
-      "date": "2026-04-18"
+      "date": "2026-04-22"
     },
     {
       "id": "task:status:maintain-clear-approval-reporting-so-managed-scaffold-boundaries-remain-obvious-during-onboarding",
@@ -284,7 +104,7 @@
         "current-focus",
         "status"
       ],
-      "date": "2026-04-18"
+      "date": "2026-04-22"
     },
     {
       "id": "task:status:keep-the-public-bootstrap-contract-aligned-with-real-consumer-behavior-and-protocol-failures-seen-in-live-use",
@@ -304,7 +124,7 @@
         "current-focus",
         "status"
       ],
-      "date": "2026-04-18"
+      "date": "2026-04-22"
     },
     {
       "id": "task:status:switch-site-sula-json-and-site-launch-bootstrap-py-to-the-published-public-source-after-that-repository-exists",
@@ -324,7 +144,7 @@
         "current-focus",
         "status"
       ],
-      "date": "2026-04-18"
+      "date": "2026-04-22"
     },
     {
       "id": "task:status:decide-whether-to-keep-the-hosted-site-on-fly-or-migrate-it-onto-the-existing-digitalocean-infrastructure-once-server-write-access-is-available",
@@ -344,587 +164,7 @@
         "current-focus",
         "status"
       ],
-      "date": "2026-04-18"
-    },
-    {
-      "id": "decision:status:2026-04-11-added-refine-the-public-bootstrap-contract-for-existing-sula-consumers-docs-change-records-2026-04-11-refine-the-public-bootstrap-contract-for-existing-sula-consumers-md",
-      "kind": "decision",
-      "title": "2026-04-11: added [Refine the public bootstrap contract for existing Sula con...",
-      "summary": "2026-04-11: added [Refine the public bootstrap contract for existing Sula consumers](docs/change-records/2026-04-11-refine-the-public-bootstrap-contract-for-existing-sula-consumers.md)",
-      "status": "decided",
-      "path": "STATUS.md",
-      "source_paths": [
-        "STATUS.md"
-      ],
-      "adapters": [
-        "generic-project",
-        "memory"
-      ],
-      "tags": [
-        "recent-decision",
-        "status"
-      ],
-      "date": "2026-04-11"
-    },
-    {
-      "id": "decision:status:2026-04-11-added-deploy-the-sula-bootstrap-site-to-fly-and-prepare-the-custom-domain-docs-change-records-2026-04-11-deploy-the-sula-bootstrap-site-to-fly-and-prepare-the-custom-domain-md",
-      "kind": "decision",
-      "title": "2026-04-11: added [Deploy the Sula bootstrap site to Fly and prepare the cust...",
-      "summary": "2026-04-11: added [Deploy the Sula bootstrap site to Fly and prepare the custom domain](docs/change-records/2026-04-11-deploy-the-sula-bootstrap-site-to-fly-and-prepare-the-custom-domain.md)",
-      "status": "decided",
-      "path": "STATUS.md",
-      "source_paths": [
-        "STATUS.md"
-      ],
-      "adapters": [
-        "generic-project",
-        "memory"
-      ],
-      "tags": [
-        "recent-decision",
-        "status"
-      ],
-      "date": "2026-04-11"
-    },
-    {
-      "id": "decision:status:2026-04-11-added-add-bootstrap-site-assets-for-the-public-sula-protocol-docs-change-records-2026-04-11-add-bootstrap-site-assets-for-the-public-sula-protocol-md",
-      "kind": "decision",
-      "title": "2026-04-11: added [Add bootstrap site assets for the public Sula protocol](do...",
-      "summary": "2026-04-11: added [Add bootstrap site assets for the public Sula protocol](docs/change-records/2026-04-11-add-bootstrap-site-assets-for-the-public-sula-protocol.md)",
-      "status": "decided",
-      "path": "STATUS.md",
-      "source_paths": [
-        "STATUS.md"
-      ],
-      "adapters": [
-        "generic-project",
-        "memory"
-      ],
-      "tags": [
-        "recent-decision",
-        "status"
-      ],
-      "date": "2026-04-11"
-    },
-    {
-      "id": "decision:status:2026-04-11-added-prepare-sula-for-public-release-docs-change-records-2026-04-11-prepare-sula-for-public-release-md",
-      "kind": "decision",
-      "title": "2026-04-11: added [Prepare Sula for public release](docs/change-records/2026-...",
-      "summary": "2026-04-11: added [Prepare Sula for public release](docs/change-records/2026-04-11-prepare-sula-for-public-release.md)",
-      "status": "decided",
-      "path": "STATUS.md",
-      "source_paths": [
-        "STATUS.md"
-      ],
-      "adapters": [
-        "generic-project",
-        "memory"
-      ],
-      "tags": [
-        "recent-decision",
-        "status"
-      ],
-      "date": "2026-04-11"
-    },
-    {
-      "id": "decision:status:2026-04-11-promoted-examples-okoktoto-into-the-in-repo-memory-canary",
-      "kind": "decision",
-      "title": "2026-04-11: promoted `examples/okoktoto` into the in-repo memory canary",
-      "summary": "2026-04-11: promoted `examples/okoktoto` into the in-repo memory canary",
-      "status": "decided",
-      "path": "STATUS.md",
-      "source_paths": [
-        "STATUS.md"
-      ],
-      "adapters": [
-        "generic-project",
-        "memory"
-      ],
-      "tags": [
-        "recent-decision",
-        "status"
-      ],
-      "date": "2026-04-11"
-    },
-    {
-      "id": "decision:status:2026-04-11-introduced-durable-project-memory-strict-memory-doctor-checks-and-generated-memory-digests",
-      "kind": "decision",
-      "title": "2026-04-11: introduced durable project memory, strict memory doctor checks, a...",
-      "summary": "2026-04-11: introduced durable project memory, strict memory doctor checks, and generated memory digests",
-      "status": "decided",
-      "path": "STATUS.md",
-      "source_paths": [
-        "STATUS.md"
-      ],
-      "adapters": [
-        "generic-project",
-        "memory"
-      ],
-      "tags": [
-        "recent-decision",
-        "status"
-      ],
-      "date": "2026-04-11"
-    },
-    {
-      "id": "decision:status:2026-04-11-added-add-adoption-agent-flow-for-one-sentence-onboarding-docs-change-records-2026-04-11-add-adoption-agent-flow-for-one-sentence-onboarding-md",
-      "kind": "decision",
-      "title": "2026-04-11: added [Add adoption-agent flow for one-sentence onboarding](docs/...",
-      "summary": "2026-04-11: added [Add adoption-agent flow for one-sentence onboarding](docs/change-records/2026-04-11-add-adoption-agent-flow-for-one-sentence-onboarding.md)",
-      "status": "decided",
-      "path": "STATUS.md",
-      "source_paths": [
-        "STATUS.md"
-      ],
-      "adapters": [
-        "generic-project",
-        "memory"
-      ],
-      "tags": [
-        "recent-decision",
-        "status"
-      ],
-      "date": "2026-04-11"
-    },
-    {
-      "id": "decision:status:2026-04-11-added-self-adopt-sula-root-under-sula-core-profile-docs-change-records-2026-04-11-self-adopt-sula-root-under-sula-core-profile-md",
-      "kind": "decision",
-      "title": "2026-04-11: added [Self-adopt Sula root under sula-core profile](docs/change-...",
-      "summary": "2026-04-11: added [Self-adopt Sula root under sula-core profile](docs/change-records/2026-04-11-self-adopt-sula-root-under-sula-core-profile.md)",
-      "status": "decided",
-      "path": "STATUS.md",
-      "source_paths": [
-        "STATUS.md"
-      ],
-      "adapters": [
-        "generic-project",
-        "memory"
-      ],
-      "tags": [
-        "recent-decision",
-        "status"
-      ],
-      "date": "2026-04-11"
-    },
-    {
-      "id": "decision:status:2026-04-12-added-define-sula-vnext-project-kernel-docs-change-records-2026-04-12-define-sula-vnext-project-kernel-md",
-      "kind": "decision",
-      "title": "2026-04-12: added [Define Sula vNext project kernel](docs/change-records/2026...",
-      "summary": "2026-04-12: added [Define Sula vNext project kernel](docs/change-records/2026-04-12-define-sula-vnext-project-kernel.md)",
-      "status": "decided",
-      "path": "STATUS.md",
-      "source_paths": [
-        "STATUS.md"
-      ],
-      "adapters": [
-        "generic-project",
-        "memory"
-      ],
-      "tags": [
-        "recent-decision",
-        "status"
-      ],
-      "date": "2026-04-12"
-    },
-    {
-      "id": "decision:status:2026-04-12-added-implement-generic-project-kernel-and-removal-flow-docs-change-records-2026-04-12-implement-generic-project-kernel-and-removal-flow-md",
-      "kind": "decision",
-      "title": "2026-04-12: added [Implement generic-project kernel and removal flow](docs/ch...",
-      "summary": "2026-04-12: added [Implement generic-project kernel and removal flow](docs/change-records/2026-04-12-implement-generic-project-kernel-and-removal-flow.md)",
-      "status": "decided",
-      "path": "STATUS.md",
-      "source_paths": [
-        "STATUS.md"
-      ],
-      "adapters": [
-        "generic-project",
-        "memory"
-      ],
-      "tags": [
-        "recent-decision",
-        "status"
-      ],
-      "date": "2026-04-12"
-    },
-    {
-      "id": "decision:status:2026-04-12-added-add-kernel-object-query-and-bundle-contracts-docs-change-records-2026-04-12-add-kernel-object-query-and-bundle-contracts-md",
-      "kind": "decision",
-      "title": "2026-04-12: added [Add kernel object, query, and bundle contracts](docs/chang...",
-      "summary": "2026-04-12: added [Add kernel object, query, and bundle contracts](docs/change-records/2026-04-12-add-kernel-object-query-and-bundle-contracts.md)",
-      "status": "decided",
-      "path": "STATUS.md",
-      "source_paths": [
-        "STATUS.md"
-      ],
-      "adapters": [
-        "generic-project",
-        "memory"
-      ],
-      "tags": [
-        "recent-decision",
-        "status"
-      ],
-      "date": "2026-04-12"
-    },
-    {
-      "id": "decision:status:2026-04-12-added-add-sqlite-kernel-cache-richer-object-extraction-and-timeline-query-filters-docs-change-records-2026-04-12-add-sqlite-kernel-cache-richer-object-extraction-and-timeline-query-filters-md",
-      "kind": "decision",
-      "title": "2026-04-12: added [Add SQLite kernel cache, richer object extraction, and tim...",
-      "summary": "2026-04-12: added [Add SQLite kernel cache, richer object extraction, and timeline query filters](docs/change-records/2026-04-12-add-sqlite-kernel-cache-richer-object-extraction-and-timeline-query-filters.md)",
-      "status": "decided",
-      "path": "STATUS.md",
-      "source_paths": [
-        "STATUS.md"
-      ],
-      "adapters": [
-        "generic-project",
-        "memory"
-      ],
-      "tags": [
-        "recent-decision",
-        "status"
-      ],
-      "date": "2026-04-12"
-    },
-    {
-      "id": "decision:status:2026-04-12-added-add-machine-json-interfaces-artifact-routing-portfolio-registry-and-google-drive-local-sync-contracts-docs-change-records-2026-04-12-add-machine-json-interfaces-artifact-routing-portfolio-registry-and-google-drive-local-sync-contracts-md",
-      "kind": "decision",
-      "title": "2026-04-12: added [Add machine JSON interfaces, artifact routing, portfolio r...",
-      "summary": "2026-04-12: added [Add machine JSON interfaces, artifact routing, portfolio registry, and Google Drive local-sync contracts](docs/change-records/2026-04-12-add-machine-json-interfaces-artifact-routing-portfolio-registry-and-google-drive-local-sync-contracts.md)",
-      "status": "decided",
-      "path": "STATUS.md",
-      "source_paths": [
-        "STATUS.md"
-      ],
-      "adapters": [
-        "generic-project",
-        "memory"
-      ],
-      "tags": [
-        "recent-decision",
-        "status"
-      ],
-      "date": "2026-04-12"
-    },
-    {
-      "id": "decision:status:2026-04-12-added-add-formal-document-design-bundles-docs-change-records-2026-04-12-add-formal-document-design-bundles-md",
-      "kind": "decision",
-      "title": "2026-04-12: added [Add formal document design bundles](docs/change-records/20...",
-      "summary": "2026-04-12: added [Add formal document design bundles](docs/change-records/2026-04-12-add-formal-document-design-bundles.md)",
-      "status": "decided",
-      "path": "STATUS.md",
-      "source_paths": [
-        "STATUS.md"
-      ],
-      "adapters": [
-        "generic-project",
-        "memory"
-      ],
-      "tags": [
-        "recent-decision",
-        "status"
-      ],
-      "date": "2026-04-12"
-    },
-    {
-      "id": "decision:status:2026-04-12-added-add-truth-source-and-freshness-checks-for-collaborative-provider-backed-artifacts-docs-change-records-2026-04-12-add-truth-source-and-freshness-checks-for-collaborative-provider-artifacts-md",
-      "kind": "decision",
-      "title": "2026-04-12: added [Add truth-source and freshness checks for collaborative pr...",
-      "summary": "2026-04-12: added [Add truth-source and freshness checks for collaborative provider-backed artifacts](docs/change-records/2026-04-12-add-truth-source-and-freshness-checks-for-collaborative-provider-artifacts.md)",
-      "status": "decided",
-      "path": "STATUS.md",
-      "source_paths": [
-        "STATUS.md"
-      ],
-      "adapters": [
-        "generic-project",
-        "memory"
-      ],
-      "tags": [
-        "recent-decision",
-        "status"
-      ],
-      "date": "2026-04-12"
-    },
-    {
-      "id": "decision:status:2026-04-12-added-add-provider-native-read-only-refresh-and-artifact-refresh-command-docs-change-records-2026-04-12-add-provider-native-read-only-refresh-and-artifact-refresh-command-md",
-      "kind": "decision",
-      "title": "2026-04-12: added [Add provider-native read-only refresh and artifact refresh...",
-      "summary": "2026-04-12: added [Add provider-native read-only refresh and artifact refresh command](docs/change-records/2026-04-12-add-provider-native-read-only-refresh-and-artifact-refresh-command.md)",
-      "status": "decided",
-      "path": "STATUS.md",
-      "source_paths": [
-        "STATUS.md"
-      ],
-      "adapters": [
-        "generic-project",
-        "memory"
-      ],
-      "tags": [
-        "recent-decision",
-        "status"
-      ],
-      "date": "2026-04-12"
-    },
-    {
-      "id": "decision:status:2026-04-15-added-add-daily-sula-check-workflow-for-state-sync-verification-docs-change-records-2026-04-15-add-daily-sula-check-workflow-for-state-sync-verification-md",
-      "kind": "decision",
-      "title": "2026-04-15: added [Add daily Sula check workflow for state-sync verification]...",
-      "summary": "2026-04-15: added [Add daily Sula check workflow for state-sync verification](docs/change-records/2026-04-15-add-daily-sula-check-workflow-for-state-sync-verification.md)",
-      "status": "decided",
-      "path": "STATUS.md",
-      "source_paths": [
-        "STATUS.md"
-      ],
-      "adapters": [
-        "generic-project",
-        "memory"
-      ],
-      "tags": [
-        "recent-decision",
-        "status"
-      ],
-      "date": "2026-04-15"
-    },
-    {
-      "id": "decision:status:2026-04-16-added-document-workflow-capability-absorption-plan-docs-change-records-2026-04-16-document-workflow-capability-absorption-plan-md",
-      "kind": "decision",
-      "title": "2026-04-16: added [Document workflow capability absorption plan](docs/change-...",
-      "summary": "2026-04-16: added [Document workflow capability absorption plan](docs/change-records/2026-04-16-document-workflow-capability-absorption-plan.md)",
-      "status": "decided",
-      "path": "STATUS.md",
-      "source_paths": [
-        "STATUS.md"
-      ],
-      "adapters": [
-        "generic-project",
-        "memory"
-      ],
-      "tags": [
-        "recent-decision",
-        "status"
-      ],
-      "date": "2026-04-16"
-    },
-    {
-      "id": "decision:status:2026-04-16-added-add-workflow-policy-and-source-first-workflow-scaffolds-docs-change-records-2026-04-16-add-workflow-policy-and-source-first-workflow-scaffolds-md",
-      "kind": "decision",
-      "title": "2026-04-16: added [Add workflow policy and source-first workflow scaffolds](d...",
-      "summary": "2026-04-16: added [Add workflow policy and source-first workflow scaffolds](docs/change-records/2026-04-16-add-workflow-policy-and-source-first-workflow-scaffolds.md)",
-      "status": "decided",
-      "path": "STATUS.md",
-      "source_paths": [
-        "STATUS.md"
-      ],
-      "adapters": [
-        "generic-project",
-        "memory"
-      ],
-      "tags": [
-        "recent-decision",
-        "status"
-      ],
-      "date": "2026-04-16"
-    },
-    {
-      "id": "decision:status:2026-04-16-added-complete-workflow-close-canary-verification-and-release-readiness-docs-change-records-2026-04-16-complete-workflow-close-canary-and-release-readiness-md",
-      "kind": "decision",
-      "title": "2026-04-16: added [Complete workflow close, canary verification, and release...",
-      "summary": "2026-04-16: added [Complete workflow close, canary verification, and release readiness](docs/change-records/2026-04-16-complete-workflow-close-canary-and-release-readiness.md)",
-      "status": "decided",
-      "path": "STATUS.md",
-      "source_paths": [
-        "STATUS.md"
-      ],
-      "adapters": [
-        "generic-project",
-        "memory"
-      ],
-      "tags": [
-        "recent-decision",
-        "status"
-      ],
-      "date": "2026-04-16"
-    },
-    {
-      "id": "decision:status:2026-04-16-added-choose-fresh-public-repository-as-the-default-release-path-docs-change-records-2026-04-16-choose-fresh-public-repository-as-the-default-release-path-md",
-      "kind": "decision",
-      "title": "2026-04-16: added [Choose fresh public repository as the default release path...",
-      "summary": "2026-04-16: added [Choose fresh public repository as the default release path](docs/change-records/2026-04-16-choose-fresh-public-repository-as-the-default-release-path.md)",
-      "status": "decided",
-      "path": "STATUS.md",
-      "source_paths": [
-        "STATUS.md"
-      ],
-      "adapters": [
-        "generic-project",
-        "memory"
-      ],
-      "tags": [
-        "recent-decision",
-        "status"
-      ],
-      "date": "2026-04-16"
-    },
-    {
-      "id": "decision:status:2026-04-16-added-publish-the-fresh-public-sula-source-docs-change-records-2026-04-16-publish-the-fresh-public-sula-source-md",
-      "kind": "decision",
-      "title": "2026-04-16: added [Publish the fresh public Sula source](docs/change-records/...",
-      "summary": "2026-04-16: added [Publish the fresh public Sula source](docs/change-records/2026-04-16-publish-the-fresh-public-sula-source.md)",
-      "status": "decided",
-      "path": "STATUS.md",
-      "source_paths": [
-        "STATUS.md"
-      ],
-      "adapters": [
-        "generic-project",
-        "memory"
-      ],
-      "tags": [
-        "recent-decision",
-        "status"
-      ],
-      "date": "2026-04-16"
-    },
-    {
-      "id": "decision:status:2026-04-16-released-sula-0-12-0-freshness-workflow-and-unicode-source-id-fixes-docs-releases-2026-04-16-release-sula-0-12-0-freshness-workflow-and-unicode-source-id-fixes-md",
-      "kind": "decision",
-      "title": "2026-04-16: released [Sula 0.12.0 freshness, workflow, and Unicode source-id...",
-      "summary": "2026-04-16: released [Sula 0.12.0 freshness, workflow, and Unicode source-id fixes](docs/releases/2026-04-16-release-sula-0-12-0-freshness-workflow-and-unicode-source-id-fixes.md)",
-      "status": "decided",
-      "path": "STATUS.md",
-      "source_paths": [
-        "STATUS.md"
-      ],
-      "adapters": [
-        "generic-project",
-        "memory"
-      ],
-      "tags": [
-        "recent-decision",
-        "status"
-      ],
-      "date": "2026-04-16"
-    },
-    {
-      "id": "decision:status:2026-04-18-added-document-memory-capability-implementation-plan-docs-change-records-2026-04-18-document-memory-capability-implementation-plan-md",
-      "kind": "decision",
-      "title": "2026-04-18: added [Document memory capability implementation plan](docs/chang...",
-      "summary": "2026-04-18: added [Document memory capability implementation plan](docs/change-records/2026-04-18-document-memory-capability-implementation-plan.md)",
-      "status": "decided",
-      "path": "STATUS.md",
-      "source_paths": [
-        "STATUS.md"
-      ],
-      "adapters": [
-        "generic-project",
-        "memory"
-      ],
-      "tags": [
-        "recent-decision",
-        "status"
-      ],
-      "date": "2026-04-18"
-    },
-    {
-      "id": "decision:status:2026-04-18-added-add-staged-memory-captures-rule-registry-and-query-routing-docs-change-records-2026-04-18-add-staged-memory-captures-rule-registry-and-query-routing-md",
-      "kind": "decision",
-      "title": "2026-04-18: added [Add staged memory captures, rule registry, and query routi...",
-      "summary": "2026-04-18: added [Add staged memory captures, rule registry, and query routing](docs/change-records/2026-04-18-add-staged-memory-captures-rule-registry-and-query-routing.md)",
-      "status": "decided",
-      "path": "STATUS.md",
-      "source_paths": [
-        "STATUS.md"
-      ],
-      "adapters": [
-        "generic-project",
-        "memory"
-      ],
-      "tags": [
-        "recent-decision",
-        "status"
-      ],
-      "date": "2026-04-18"
-    },
-    {
-      "id": "decision:status:2026-04-18-released-sula-0-13-0-stable-memory-kernel-and-operator-workflow-docs-releases-2026-04-18-release-sula-0-13-0-stable-memory-kernel-and-operator-workflow-md",
-      "kind": "decision",
-      "title": "2026-04-18: released [Sula 0.13.0 stable memory kernel and operator workflow]...",
-      "summary": "2026-04-18: released [Sula 0.13.0 stable memory kernel and operator workflow](docs/releases/2026-04-18-release-sula-0-13-0-stable-memory-kernel-and-operator-workflow.md)",
-      "status": "decided",
-      "path": "STATUS.md",
-      "source_paths": [
-        "STATUS.md"
-      ],
-      "adapters": [
-        "generic-project",
-        "memory"
-      ],
-      "tags": [
-        "recent-decision",
-        "status"
-      ],
-      "date": "2026-04-18"
-    },
-    {
-      "id": "decision:status:2026-04-12-added-add-guided-onboarding-and-zero-memory-setup-flow-docs-change-records-2026-04-12-add-guided-onboarding-and-zero-memory-setup-flow-md",
-      "kind": "decision",
-      "title": "2026-04-12: added [Add guided onboarding and zero-memory setup flow](docs/cha...",
-      "summary": "2026-04-12: added [Add guided onboarding and zero-memory setup flow](docs/change-records/2026-04-12-add-guided-onboarding-and-zero-memory-setup-flow.md)",
-      "status": "decided",
-      "path": "STATUS.md",
-      "source_paths": [
-        "STATUS.md"
-      ],
-      "adapters": [
-        "generic-project",
-        "memory"
-      ],
-      "tags": [
-        "recent-decision",
-        "status"
-      ],
-      "date": "2026-04-12"
-    },
-    {
-      "id": "decision:status:2026-04-12-added-add-site-launch-contract-and-canonical-bootstrap-shim-docs-change-records-2026-04-12-add-site-launch-contract-and-canonical-bootstrap-shim-md",
-      "kind": "decision",
-      "title": "2026-04-12: added [Add site launch contract and canonical bootstrap shim](doc...",
-      "summary": "2026-04-12: added [Add site launch contract and canonical bootstrap shim](docs/change-records/2026-04-12-add-site-launch-contract-and-canonical-bootstrap-shim.md)",
-      "status": "decided",
-      "path": "STATUS.md",
-      "source_paths": [
-        "STATUS.md"
-      ],
-      "adapters": [
-        "generic-project",
-        "memory"
-      ],
-      "tags": [
-        "recent-decision",
-        "status"
-      ],
-      "date": "2026-04-12"
-    },
-    {
-      "id": "decision:status:2026-04-12-added-add-feedback-bundles-and-sula-core-review-workflow-docs-change-records-2026-04-12-add-feedback-bundles-and-core-review-workflow-md",
-      "kind": "decision",
-      "title": "2026-04-12: added [Add feedback bundles and Sula Core review workflow](docs/c...",
-      "summary": "2026-04-12: added [Add feedback bundles and Sula Core review workflow](docs/change-records/2026-04-12-add-feedback-bundles-and-core-review-workflow.md)",
-      "status": "decided",
-      "path": "STATUS.md",
-      "source_paths": [
-        "STATUS.md"
-      ],
-      "adapters": [
-        "generic-project",
-        "memory"
-      ],
-      "tags": [
-        "recent-decision",
-        "status"
-      ],
-      "date": "2026-04-12"
+      "date": "2026-04-22"
     },
     {
       "id": "decision:status:2026-04-12-released-sula-0-11-0-formal-document-workflows-and-feedback-bundles-docs-releases-2026-04-12-release-sula-0-11-0-formal-document-workflows-and-feedback-bundles-md",
@@ -1007,6 +247,26 @@
       "date": "2026-04-12"
     },
     {
+      "id": "decision:status:2026-04-22-added-release-record-release-sula-0-14-0-handoff-contract-and-git-release-upgrade-flow-docs-releases-2026-04-22-release-sula-0-14-0-handoff-contract-and-git-release-upgrade-flow-md",
+      "kind": "decision",
+      "title": "2026-04-22: added release record [Release Sula 0.14.0 handoff contract and Gi...",
+      "summary": "2026-04-22: added release record [Release Sula 0.14.0 handoff contract and Git release upgrade flow](docs/releases/2026-04-22-release-sula-0-14-0-handoff-contract-and-git-release-upgrade-flow.md)",
+      "status": "decided",
+      "path": "STATUS.md",
+      "source_paths": [
+        "STATUS.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "recent-decision",
+        "status"
+      ],
+      "date": "2026-04-22"
+    },
+    {
       "id": "person:status:sula-core-maintainers",
       "kind": "person",
       "title": "Sula Core maintainers",
@@ -1024,7 +284,7 @@
         "next-review-owner",
         "status"
       ],
-      "date": "2026-04-18"
+      "date": "2026-04-22"
     },
     {
       "id": "milestone:status:next-review:2026-04-21",
@@ -1045,6 +305,27 @@
         "status"
       ],
       "date": "2026-04-21"
+    },
+    {
+      "id": "task:handoff:review-docs-change-records-2026-04-18-document-memory-capability-implementation-plan-md-run-python3-scripts-sula-py-canary-verify-project-root-all",
+      "kind": "task",
+      "title": "review `docs/change-records/2026-04-18-document-memory-capability-implementat...",
+      "summary": "review `docs/change-records/2026-04-18-document-memory-capability-implementation-plan.md`; run `python3 scripts/sula.py canary verify --project-root . --all`",
+      "status": "open",
+      "path": "STATUS.md",
+      "source_paths": [
+        "STATUS.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "handoff",
+        "next-action",
+        "status"
+      ],
+      "date": "2026-04-22"
     },
     {
       "id": "change:2026-04-18-document-memory-capability-implementation-plan",
@@ -1826,6 +1107,181 @@
       "date": "2026-04-11"
     },
     {
+      "id": "release:2026-04-22-release-sula-0-14-0-handoff-contract-and-git-release-upgrade-flow",
+      "kind": "release",
+      "title": "Release Sula 0.14.0 handoff contract and Git release upgrade flow",
+      "summary": "- date: 2026-04-22 - executor: Codex - branch: main - status: draft",
+      "status": "recorded",
+      "path": "docs/releases/2026-04-22-release-sula-0-14-0-handoff-contract-and-git-release-upgrade-flow.md",
+      "source_paths": [
+        "docs/releases/2026-04-22-release-sula-0-14-0-handoff-contract-and-git-release-upgrade-flow.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "release"
+      ],
+      "date": "2026-04-22"
+    },
+    {
+      "id": "milestone:2026-04-22-release-sula-0-14-0-handoff-contract-and-git-release-upgrade-flow",
+      "kind": "milestone",
+      "title": "Release Sula 0.14.0 handoff contract and Git release upgrade flow",
+      "summary": "- date: 2026-04-22 - executor: Codex - branch: main - status: draft",
+      "status": "shipped",
+      "path": "docs/releases/2026-04-22-release-sula-0-14-0-handoff-contract-and-git-release-upgrade-flow.md",
+      "source_paths": [
+        "docs/releases/2026-04-22-release-sula-0-14-0-handoff-contract-and-git-release-upgrade-flow.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "release-milestone"
+      ],
+      "date": "2026-04-22"
+    },
+    {
+      "id": "risk:docs-releases-2026-04-22-release-sula-0-14-0-handoff-contract-and-git-release-upgrade-flow-md:fill-in-risks",
+      "kind": "risk",
+      "title": "_fill in risks_",
+      "summary": "_fill in risks_",
+      "status": "open",
+      "path": "docs/releases/2026-04-22-release-sula-0-14-0-handoff-contract-and-git-release-upgrade-flow.md",
+      "source_paths": [
+        "docs/releases/2026-04-22-release-sula-0-14-0-handoff-contract-and-git-release-upgrade-flow.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "risk",
+        "section-object"
+      ],
+      "date": "2026-04-22"
+    },
+    {
+      "id": "agreement:2026-04-22-release-sula-0-14-0-handoff-contract-and-git-release-upgrade-flow",
+      "kind": "agreement",
+      "title": "Release Sula 0.14.0 handoff contract and Git release upgrade flow",
+      "summary": "- date: 2026-04-22 - executor: Codex - branch: main - status: draft",
+      "status": "active",
+      "path": "docs/releases/2026-04-22-release-sula-0-14-0-handoff-contract-and-git-release-upgrade-flow.md",
+      "source_paths": [
+        "docs/releases/2026-04-22-release-sula-0-14-0-handoff-contract-and-git-release-upgrade-flow.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "agreement"
+      ],
+      "date": "2026-04-22"
+    },
+    {
+      "id": "release:2026-04-18-rollout-sula-0-13-0-adopted-project-upgrade-checklist",
+      "kind": "release",
+      "title": "Roll out Sula 0.13.0 to adopted projects",
+      "summary": "- date: 2026-04-18 - executor: Codex - branch: main - status: active rollout guidance",
+      "status": "recorded",
+      "path": "docs/releases/2026-04-18-rollout-sula-0-13-0-adopted-project-upgrade-checklist.md",
+      "source_paths": [
+        "docs/releases/2026-04-18-rollout-sula-0-13-0-adopted-project-upgrade-checklist.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "release"
+      ],
+      "date": "2026-04-18"
+    },
+    {
+      "id": "milestone:2026-04-18-rollout-sula-0-13-0-adopted-project-upgrade-checklist",
+      "kind": "milestone",
+      "title": "Roll out Sula 0.13.0 to adopted projects",
+      "summary": "- date: 2026-04-18 - executor: Codex - branch: main - status: active rollout guidance",
+      "status": "shipped",
+      "path": "docs/releases/2026-04-18-rollout-sula-0-13-0-adopted-project-upgrade-checklist.md",
+      "source_paths": [
+        "docs/releases/2026-04-18-rollout-sula-0-13-0-adopted-project-upgrade-checklist.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "release-milestone"
+      ],
+      "date": "2026-04-18"
+    },
+    {
+      "id": "risk:docs-releases-2026-04-18-rollout-sula-0-13-0-adopted-project-upgrade-checklist-md:projects-that-accumulated-private-scratch-notes-or-informal-temporary-memory-may-fail-check-until-they-explicitly-review-promote-or-clear-that-state",
+      "kind": "risk",
+      "title": "projects that accumulated private scratch notes or informal temporary memory...",
+      "summary": "projects that accumulated private scratch notes or informal temporary memory may fail `check` until they explicitly review, promote, or clear that state",
+      "status": "open",
+      "path": "docs/releases/2026-04-18-rollout-sula-0-13-0-adopted-project-upgrade-checklist.md",
+      "source_paths": [
+        "docs/releases/2026-04-18-rollout-sula-0-13-0-adopted-project-upgrade-checklist.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "risk",
+        "section-object"
+      ],
+      "date": "2026-04-18"
+    },
+    {
+      "id": "risk:docs-releases-2026-04-18-rollout-sula-0-13-0-adopted-project-upgrade-checklist-md:teams-may-over-promote-low-signal-notes-if-they-do-not-keep-the-promotion-bar-narrow-to-durable-rules-state-decisions-risks-or-workflow-artifact-expectations",
+      "kind": "risk",
+      "title": "teams may over-promote low-signal notes if they do not keep the promotion bar...",
+      "summary": "teams may over-promote low-signal notes if they do not keep the promotion bar narrow to durable rules, state, decisions, risks, or workflow-artifact expectations",
+      "status": "open",
+      "path": "docs/releases/2026-04-18-rollout-sula-0-13-0-adopted-project-upgrade-checklist.md",
+      "source_paths": [
+        "docs/releases/2026-04-18-rollout-sula-0-13-0-adopted-project-upgrade-checklist.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "risk",
+        "section-object"
+      ],
+      "date": "2026-04-18"
+    },
+    {
+      "id": "risk:docs-releases-2026-04-18-rollout-sula-0-13-0-adopted-project-upgrade-checklist-md:reusable-local-managed-file-drift-can-be-lost-as-one-off-divergence-if-operators-skip-feedback-capture-during-rollout",
+      "kind": "risk",
+      "title": "reusable local managed-file drift can be lost as one-off divergence if operat...",
+      "summary": "reusable local managed-file drift can be lost as one-off divergence if operators skip `feedback capture` during rollout",
+      "status": "open",
+      "path": "docs/releases/2026-04-18-rollout-sula-0-13-0-adopted-project-upgrade-checklist.md",
+      "source_paths": [
+        "docs/releases/2026-04-18-rollout-sula-0-13-0-adopted-project-upgrade-checklist.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "risk",
+        "section-object"
+      ],
+      "date": "2026-04-18"
+    },
+    {
       "id": "release:2026-04-18-release-sula-0-13-0-stable-memory-kernel-and-operator-workflow",
       "kind": "release",
       "title": "Release Sula 0.13.0 stable memory kernel and operator workflow",
@@ -2119,7 +1575,87 @@
       "date": "2026-04-12"
     },
     {
-      "id": "job:memory.digest:20260418-032503",
+      "id": "job:memory.digest:20260421-164038",
+      "kind": "job",
+      "title": "memory.digest",
+      "summary": "Regenerated memory digest at `.sula/memory-digest.md`.",
+      "status": "ok",
+      "path": ".sula/state/jobs/history.jsonl",
+      "source_paths": [
+        ".sula/state/jobs/history.jsonl"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "job",
+        "memory-job"
+      ],
+      "date": "2026-04-21"
+    },
+    {
+      "id": "job:memory.digest:20260421-163546",
+      "kind": "job",
+      "title": "memory.digest",
+      "summary": "Regenerated memory digest at `.sula/memory-digest.md`.",
+      "status": "ok",
+      "path": ".sula/state/jobs/history.jsonl",
+      "source_paths": [
+        ".sula/state/jobs/history.jsonl"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "job",
+        "memory-job"
+      ],
+      "date": "2026-04-21"
+    },
+    {
+      "id": "job:memory.digest:20260418-040048",
+      "kind": "job",
+      "title": "memory.digest",
+      "summary": "Regenerated memory digest at `.sula/memory-digest.md`.",
+      "status": "ok",
+      "path": ".sula/state/jobs/history.jsonl",
+      "source_paths": [
+        ".sula/state/jobs/history.jsonl"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "job",
+        "memory-job"
+      ],
+      "date": "2026-04-18"
+    },
+    {
+      "id": "job:memory.digest:20260418-035214",
+      "kind": "job",
+      "title": "memory.digest",
+      "summary": "Regenerated memory digest at `.sula/memory-digest.md`.",
+      "status": "ok",
+      "path": ".sula/state/jobs/history.jsonl",
+      "source_paths": [
+        ".sula/state/jobs/history.jsonl"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "job",
+        "memory-job"
+      ],
+      "date": "2026-04-18"
+    },
+    {
+      "id": "job:memory.digest:20260418-034539",
       "kind": "job",
       "title": "memory.digest",
       "summary": "Regenerated memory digest at `.sula/memory-digest.md`.",
@@ -2810,6 +2346,29 @@
       "date": null
     },
     {
+      "id": "agreement:source:changelog-md",
+      "kind": "agreement",
+      "title": "Changelog",
+      "summary": "All notable changes to Sula Core should be recorded here with explicit sync impact.",
+      "status": "active",
+      "path": "CHANGELOG.md",
+      "source_paths": [
+        "CHANGELOG.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo",
+        "release"
+      ],
+      "tags": [
+        "agreement",
+        "source"
+      ],
+      "date": "2026-04-22"
+    },
+    {
       "id": "object:source:claude-md",
       "kind": "document",
       "title": "CLAUDE.md",
@@ -2915,27 +2474,6 @@
       "date": null
     },
     {
-      "id": "object:source:public-export-md",
-      "kind": "document",
-      "title": "PUBLIC-EXPORT.md",
-      "summary": "- generated_on: 2026-04-18T03:24:03Z - source_tree: tracked files exported from the private source repository - file_count: 292 - public_release_strategy: fresh-public-repo",
-      "status": "indexed",
-      "path": "PUBLIC-EXPORT.md",
-      "source_paths": [
-        "PUBLIC-EXPORT.md"
-      ],
-      "adapters": [
-        "generic-project",
-        "local-fs",
-        "docs",
-        "repo"
-      ],
-      "tags": [
-        "discovered-source"
-      ],
-      "date": null
-    },
-    {
       "id": "object:source:readme-md",
       "kind": "document",
       "title": "README.md",
@@ -2981,7 +2519,7 @@
       "id": "object:source:status-md",
       "kind": "document",
       "title": "STATUS.md",
-      "summary": "- last updated: 2026-04-18",
+      "summary": "- last updated: 2026-04-22",
       "status": "indexed",
       "path": "STATUS.md",
       "source_paths": [
@@ -2997,7 +2535,7 @@
       "tags": [
         "discovered-source"
       ],
-      "date": "2026-04-18"
+      "date": "2026-04-22"
     },
     {
       "id": "object:source:docs-readme-md",
@@ -4282,6 +3820,49 @@
       "date": null
     },
     {
+      "id": "object:source:docs-ops-status-archive-md",
+      "kind": "document",
+      "title": "status-archive.md",
+      "summary": "This file stores overflow items moved out of `STATUS.md` so the current-state page does not turn into a long log.",
+      "status": "indexed",
+      "path": "docs/ops/status-archive.md",
+      "source_paths": [
+        "docs/ops/status-archive.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "agreement:source:docs-ops-status-archive-md",
+      "kind": "agreement",
+      "title": "Status Archive",
+      "summary": "This file stores overflow items moved out of `STATUS.md` so the current-state page does not turn into a long log.",
+      "status": "active",
+      "path": "docs/ops/status-archive.md",
+      "source_paths": [
+        "docs/ops/status-archive.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo"
+      ],
+      "tags": [
+        "agreement",
+        "source"
+      ],
+      "date": "2026-04-22"
+    },
+    {
       "id": "object:source:docs-ops-team-operating-model-md",
       "kind": "document",
       "title": "team-operating-model.md",
@@ -4714,6 +4295,27 @@
         "rule",
         "section-rule",
         "publication-hygiene"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:docs-reference-model-upgrade-prompts-md",
+      "kind": "document",
+      "title": "model-upgrade-prompts.md",
+      "summary": "Use these prompts when you want a large model to upgrade an already-adopted project to a published Sula release with minimal operator explanation.",
+      "status": "indexed",
+      "path": "docs/reference/model-upgrade-prompts.md",
+      "source_paths": [
+        "docs/reference/model-upgrade-prompts.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
       ],
       "date": null
     },
@@ -5216,6 +4818,76 @@
       "date": "2026-04-18"
     },
     {
+      "id": "object:source:docs-releases-2026-04-18-rollout-sula-0-13-0-adopted-project-upgrade-checklist-md",
+      "kind": "document",
+      "title": "2026-04-18-rollout-sula-0-13-0-adopted-project-upgrade-checklist.md",
+      "summary": "- date: 2026-04-18 - executor: Codex - branch: main - status: active rollout guidance",
+      "status": "indexed",
+      "path": "docs/releases/2026-04-18-rollout-sula-0-13-0-adopted-project-upgrade-checklist.md",
+      "source_paths": [
+        "docs/releases/2026-04-18-rollout-sula-0-13-0-adopted-project-upgrade-checklist.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "memory",
+        "repo",
+        "release"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": "2026-04-18"
+    },
+    {
+      "id": "object:source:docs-releases-2026-04-22-release-sula-0-14-0-handoff-contract-and-git-release-upgrade-flow-md",
+      "kind": "document",
+      "title": "2026-04-22-release-sula-0-14-0-handoff-contract-and-git-release-upgrade-flow.md",
+      "summary": "- date: 2026-04-22 - executor: Codex - branch: main - status: draft",
+      "status": "indexed",
+      "path": "docs/releases/2026-04-22-release-sula-0-14-0-handoff-contract-and-git-release-upgrade-flow.md",
+      "source_paths": [
+        "docs/releases/2026-04-22-release-sula-0-14-0-handoff-contract-and-git-release-upgrade-flow.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "memory",
+        "repo",
+        "release"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": "2026-04-22"
+    },
+    {
+      "id": "agreement:source:docs-releases-2026-04-22-release-sula-0-14-0-handoff-contract-and-git-release-upgrade-flow-md",
+      "kind": "agreement",
+      "title": "Release Sula 0.14.0 handoff contract and Git release upgrade flow",
+      "summary": "- date: 2026-04-22 - executor: Codex - branch: main - status: draft",
+      "status": "active",
+      "path": "docs/releases/2026-04-22-release-sula-0-14-0-handoff-contract-and-git-release-upgrade-flow.md",
+      "source_paths": [
+        "docs/releases/2026-04-22-release-sula-0-14-0-handoff-contract-and-git-release-upgrade-flow.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "memory",
+        "repo",
+        "release"
+      ],
+      "tags": [
+        "agreement",
+        "source"
+      ],
+      "date": "2026-04-22"
+    },
+    {
       "id": "object:source:docs-releases-readme-md",
       "kind": "document",
       "title": "README.md",
@@ -5282,6 +4954,28 @@
       "tags": [
         "risk",
         "section-object"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:docs-runbooks-git-release-upgrade-md",
+      "kind": "document",
+      "title": "git-release-upgrade.md",
+      "summary": "Use this runbook when Sula has already been published as a tagged public Git release and you need to upgrade one or many adopted repositories from that canonical source.",
+      "status": "indexed",
+      "path": "docs/runbooks/git-release-upgrade.md",
+      "source_paths": [
+        "docs/runbooks/git-release-upgrade.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo",
+        "release"
+      ],
+      "tags": [
+        "discovered-source"
       ],
       "date": null
     },
@@ -5792,7 +5486,7 @@
       "id": "object:source:examples-client-service-gdrive-status-md",
       "kind": "document",
       "title": "STATUS.md",
-      "summary": "- last updated: 2026-04-16",
+      "summary": "- last updated: 2026-04-22",
       "status": "indexed",
       "path": "examples/client-service-gdrive/STATUS.md",
       "source_paths": [
@@ -5807,7 +5501,7 @@
       "tags": [
         "discovered-source"
       ],
-      "date": "2026-04-16"
+      "date": "2026-04-22"
     },
     {
       "id": "object:source:examples-client-service-gdrive-docs-change-records-2026-04-16-promote-client-service-drive-example-into-canary-md",
@@ -6264,7 +5958,7 @@
       "id": "object:source:examples-field-ops-generic-status-md",
       "kind": "document",
       "title": "STATUS.md",
-      "summary": "- last updated: 2026-04-16",
+      "summary": "- last updated: 2026-04-22",
       "status": "indexed",
       "path": "examples/field-ops-generic/STATUS.md",
       "source_paths": [
@@ -6279,7 +5973,7 @@
       "tags": [
         "discovered-source"
       ],
-      "date": "2026-04-16"
+      "date": "2026-04-22"
     },
     {
       "id": "object:source:examples-field-ops-generic-docs-change-records-2026-04-16-promote-field-ops-example-into-generic-project-canary-md",
@@ -6816,7 +6510,7 @@
       "id": "object:source:examples-okoktoto-status-md",
       "kind": "document",
       "title": "STATUS.md",
-      "summary": "- last updated: 2026-04-11",
+      "summary": "- last updated: 2026-04-22",
       "status": "indexed",
       "path": "examples/okoktoto/STATUS.md",
       "source_paths": [
@@ -6831,7 +6525,7 @@
       "tags": [
         "discovered-source"
       ],
-      "date": "2026-04-11"
+      "date": "2026-04-22"
     },
     {
       "id": "object:source:examples-okoktoto-docs-readme-md",
@@ -7510,7 +7204,7 @@
       "id": "object:source:registry-adopted-projects-toml",
       "kind": "config",
       "title": "adopted-projects.toml",
-      "summary": "[[project]] slug = \"okoktoto-v5-example\" name = \"OKOKTOTO v5 Example Canary\" profile = \"react-frontend-erpnext\" repository = \"in-repo example\" primary_branch = \"main\" deployment_branch = \"okoktoto-v5\" current_sula_version = \"0.13.0\" sync_st",
+      "summary": "[[project]] slug = \"okoktoto-v5-example\" name = \"OKOKTOTO v5 Example Canary\" profile = \"react-frontend-erpnext\" repository = \"in-repo example\" primary_branch = \"main\" deployment_branch = \"okoktoto-v5\" current_sula_version = \"0.14.0\" sync_st",
       "status": "indexed",
       "path": "registry/adopted-projects.toml",
       "source_paths": [
@@ -7553,7 +7247,7 @@
       "id": "object:source:registry-feedback-catalog-json",
       "kind": "config",
       "title": "catalog.json",
-      "summary": "{ \"version\": \"0.13.0\", \"updated_at\": \"\", \"items\": [] }",
+      "summary": "{ \"version\": \"0.14.0\", \"updated_at\": \"\", \"items\": [] }",
       "status": "indexed",
       "path": "registry/feedback/catalog.json",
       "source_paths": [
@@ -7879,7 +7573,7 @@
       "id": "object:source:site-sula-json",
       "kind": "config",
       "title": "sula.json",
-      "summary": "{ \"name\": \"Sula\", \"kind\": \"project-operating-system\", \"version\": \"0.13.0\", \"status\": \"public-source-published\", \"homepage_url\": \"https://sula.1stp.monster/\", \"launch_url\": \"https://sula.1stp.monster/launch/\", \"bootstrap_url\": \"https://sula.",
+      "summary": "{ \"name\": \"Sula\", \"kind\": \"project-operating-system\", \"version\": \"0.14.0\", \"status\": \"public-source-published\", \"homepage_url\": \"https://sula.1stp.monster/\", \"launch_url\": \"https://sula.1stp.monster/launch/\", \"bootstrap_url\": \"https://sula.",
       "status": "indexed",
       "path": "site/sula.json",
       "source_paths": [

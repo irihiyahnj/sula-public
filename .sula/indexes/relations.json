@@ -1,5 +1,5 @@
 {
-  "version": "0.13.0",
+  "version": "0.14.0",
   "profile": "sula-core",
   "relations": [
     {
@@ -20,51 +20,6 @@
     {
       "from": "rule:manifest:highest-rule",
       "to": "project-manifest",
-      "type": "derived-from"
-    },
-    {
-      "from": "task:status:roll-out-sula-0-13-0-to-external-canaries-and-confirm-the-staged-memory-workflow-is-understandable-outside-the-source-repository",
-      "to": "source:status-md",
-      "type": "derived-from"
-    },
-    {
-      "from": "task:status:validate-the-new-adopt-flow-against-the-first-external-repository",
-      "to": "source:status-md",
-      "type": "derived-from"
-    },
-    {
-      "from": "task:status:run-the-first-external-canaries-through-the-new-canary-verify-contract",
-      "to": "source:status-md",
-      "type": "derived-from"
-    },
-    {
-      "from": "task:status:keep-sula-core-and-react-frontend-erpnext-profiles-aligned-with-real-usage",
-      "to": "source:status-md",
-      "type": "derived-from"
-    },
-    {
-      "from": "task:status:validate-the-new-generic-project-and-remove-flows-against-external-canaries",
-      "to": "source:status-md",
-      "type": "derived-from"
-    },
-    {
-      "from": "task:status:validate-portfolio-registration-artifact-routing-and-google-drive-local-sync-behavior-against-the-first-real-client-service-workspace",
-      "to": "source:status-md",
-      "type": "derived-from"
-    },
-    {
-      "from": "task:status:validate-the-new-formal-document-bundles-against-the-first-real-planning-heavy-client-workspace-and-confirm-where-google-docs-import-needs-richer-tabular-bridge-defaults",
-      "to": "source:status-md",
-      "type": "derived-from"
-    },
-    {
-      "from": "task:status:validate-the-released-feedback-bundle-lifecycle-through-the-first-external-adopted-project-and-the-first-real-sula-core-feedback-item-that-flows-through-the-queue-end-to-end",
-      "to": "source:status-md",
-      "type": "derived-from"
-    },
-    {
-      "from": "task:status:validate-the-now-complete-workflow-policy-scaffold-branch-and-close-loop-against-the-first-external-software-delivery-canary",
-      "to": "source:status-md",
       "type": "derived-from"
     },
     {
@@ -93,151 +48,6 @@
       "type": "derived-from"
     },
     {
-      "from": "decision:status:2026-04-11-added-refine-the-public-bootstrap-contract-for-existing-sula-consumers-docs-change-records-2026-04-11-refine-the-public-bootstrap-contract-for-existing-sula-consumers-md",
-      "to": "source:status-md",
-      "type": "derived-from"
-    },
-    {
-      "from": "decision:status:2026-04-11-added-deploy-the-sula-bootstrap-site-to-fly-and-prepare-the-custom-domain-docs-change-records-2026-04-11-deploy-the-sula-bootstrap-site-to-fly-and-prepare-the-custom-domain-md",
-      "to": "source:status-md",
-      "type": "derived-from"
-    },
-    {
-      "from": "decision:status:2026-04-11-added-add-bootstrap-site-assets-for-the-public-sula-protocol-docs-change-records-2026-04-11-add-bootstrap-site-assets-for-the-public-sula-protocol-md",
-      "to": "source:status-md",
-      "type": "derived-from"
-    },
-    {
-      "from": "decision:status:2026-04-11-added-prepare-sula-for-public-release-docs-change-records-2026-04-11-prepare-sula-for-public-release-md",
-      "to": "source:status-md",
-      "type": "derived-from"
-    },
-    {
-      "from": "decision:status:2026-04-11-promoted-examples-okoktoto-into-the-in-repo-memory-canary",
-      "to": "source:status-md",
-      "type": "derived-from"
-    },
-    {
-      "from": "decision:status:2026-04-11-introduced-durable-project-memory-strict-memory-doctor-checks-and-generated-memory-digests",
-      "to": "source:status-md",
-      "type": "derived-from"
-    },
-    {
-      "from": "decision:status:2026-04-11-added-add-adoption-agent-flow-for-one-sentence-onboarding-docs-change-records-2026-04-11-add-adoption-agent-flow-for-one-sentence-onboarding-md",
-      "to": "source:status-md",
-      "type": "derived-from"
-    },
-    {
-      "from": "decision:status:2026-04-11-added-self-adopt-sula-root-under-sula-core-profile-docs-change-records-2026-04-11-self-adopt-sula-root-under-sula-core-profile-md",
-      "to": "source:status-md",
-      "type": "derived-from"
-    },
-    {
-      "from": "decision:status:2026-04-12-added-define-sula-vnext-project-kernel-docs-change-records-2026-04-12-define-sula-vnext-project-kernel-md",
-      "to": "source:status-md",
-      "type": "derived-from"
-    },
-    {
-      "from": "decision:status:2026-04-12-added-implement-generic-project-kernel-and-removal-flow-docs-change-records-2026-04-12-implement-generic-project-kernel-and-removal-flow-md",
-      "to": "source:status-md",
-      "type": "derived-from"
-    },
-    {
-      "from": "decision:status:2026-04-12-added-add-kernel-object-query-and-bundle-contracts-docs-change-records-2026-04-12-add-kernel-object-query-and-bundle-contracts-md",
-      "to": "source:status-md",
-      "type": "derived-from"
-    },
-    {
-      "from": "decision:status:2026-04-12-added-add-sqlite-kernel-cache-richer-object-extraction-and-timeline-query-filters-docs-change-records-2026-04-12-add-sqlite-kernel-cache-richer-object-extraction-and-timeline-query-filters-md",
-      "to": "source:status-md",
-      "type": "derived-from"
-    },
-    {
-      "from": "decision:status:2026-04-12-added-add-machine-json-interfaces-artifact-routing-portfolio-registry-and-google-drive-local-sync-contracts-docs-change-records-2026-04-12-add-machine-json-interfaces-artifact-routing-portfolio-registry-and-google-drive-local-sync-contracts-md",
-      "to": "source:status-md",
-      "type": "derived-from"
-    },
-    {
-      "from": "decision:status:2026-04-12-added-add-formal-document-design-bundles-docs-change-records-2026-04-12-add-formal-document-design-bundles-md",
-      "to": "source:status-md",
-      "type": "derived-from"
-    },
-    {
-      "from": "decision:status:2026-04-12-added-add-truth-source-and-freshness-checks-for-collaborative-provider-backed-artifacts-docs-change-records-2026-04-12-add-truth-source-and-freshness-checks-for-collaborative-provider-artifacts-md",
-      "to": "source:status-md",
-      "type": "derived-from"
-    },
-    {
-      "from": "decision:status:2026-04-12-added-add-provider-native-read-only-refresh-and-artifact-refresh-command-docs-change-records-2026-04-12-add-provider-native-read-only-refresh-and-artifact-refresh-command-md",
-      "to": "source:status-md",
-      "type": "derived-from"
-    },
-    {
-      "from": "decision:status:2026-04-15-added-add-daily-sula-check-workflow-for-state-sync-verification-docs-change-records-2026-04-15-add-daily-sula-check-workflow-for-state-sync-verification-md",
-      "to": "source:status-md",
-      "type": "derived-from"
-    },
-    {
-      "from": "decision:status:2026-04-16-added-document-workflow-capability-absorption-plan-docs-change-records-2026-04-16-document-workflow-capability-absorption-plan-md",
-      "to": "source:status-md",
-      "type": "derived-from"
-    },
-    {
-      "from": "decision:status:2026-04-16-added-add-workflow-policy-and-source-first-workflow-scaffolds-docs-change-records-2026-04-16-add-workflow-policy-and-source-first-workflow-scaffolds-md",
-      "to": "source:status-md",
-      "type": "derived-from"
-    },
-    {
-      "from": "decision:status:2026-04-16-added-complete-workflow-close-canary-verification-and-release-readiness-docs-change-records-2026-04-16-complete-workflow-close-canary-and-release-readiness-md",
-      "to": "source:status-md",
-      "type": "derived-from"
-    },
-    {
-      "from": "decision:status:2026-04-16-added-choose-fresh-public-repository-as-the-default-release-path-docs-change-records-2026-04-16-choose-fresh-public-repository-as-the-default-release-path-md",
-      "to": "source:status-md",
-      "type": "derived-from"
-    },
-    {
-      "from": "decision:status:2026-04-16-added-publish-the-fresh-public-sula-source-docs-change-records-2026-04-16-publish-the-fresh-public-sula-source-md",
-      "to": "source:status-md",
-      "type": "derived-from"
-    },
-    {
-      "from": "decision:status:2026-04-16-released-sula-0-12-0-freshness-workflow-and-unicode-source-id-fixes-docs-releases-2026-04-16-release-sula-0-12-0-freshness-workflow-and-unicode-source-id-fixes-md",
-      "to": "source:status-md",
-      "type": "derived-from"
-    },
-    {
-      "from": "decision:status:2026-04-18-added-document-memory-capability-implementation-plan-docs-change-records-2026-04-18-document-memory-capability-implementation-plan-md",
-      "to": "source:status-md",
-      "type": "derived-from"
-    },
-    {
-      "from": "decision:status:2026-04-18-added-add-staged-memory-captures-rule-registry-and-query-routing-docs-change-records-2026-04-18-add-staged-memory-captures-rule-registry-and-query-routing-md",
-      "to": "source:status-md",
-      "type": "derived-from"
-    },
-    {
-      "from": "decision:status:2026-04-18-released-sula-0-13-0-stable-memory-kernel-and-operator-workflow-docs-releases-2026-04-18-release-sula-0-13-0-stable-memory-kernel-and-operator-workflow-md",
-      "to": "source:status-md",
-      "type": "derived-from"
-    },
-    {
-      "from": "decision:status:2026-04-12-added-add-guided-onboarding-and-zero-memory-setup-flow-docs-change-records-2026-04-12-add-guided-onboarding-and-zero-memory-setup-flow-md",
-      "to": "source:status-md",
-      "type": "derived-from"
-    },
-    {
-      "from": "decision:status:2026-04-12-added-add-site-launch-contract-and-canonical-bootstrap-shim-docs-change-records-2026-04-12-add-site-launch-contract-and-canonical-bootstrap-shim-md",
-      "to": "source:status-md",
-      "type": "derived-from"
-    },
-    {
-      "from": "decision:status:2026-04-12-added-add-feedback-bundles-and-sula-core-review-workflow-docs-change-records-2026-04-12-add-feedback-bundles-and-core-review-workflow-md",
-      "to": "source:status-md",
-      "type": "derived-from"
-    },
-    {
       "from": "decision:status:2026-04-12-released-sula-0-11-0-formal-document-workflows-and-feedback-bundles-docs-releases-2026-04-12-release-sula-0-11-0-formal-document-workflows-and-feedback-bundles-md",
       "to": "source:status-md",
       "type": "derived-from"
@@ -258,12 +68,22 @@
       "type": "derived-from"
     },
     {
+      "from": "decision:status:2026-04-22-added-release-record-release-sula-0-14-0-handoff-contract-and-git-release-upgrade-flow-docs-releases-2026-04-22-release-sula-0-14-0-handoff-contract-and-git-release-upgrade-flow-md",
+      "to": "source:status-md",
+      "type": "derived-from"
+    },
+    {
       "from": "person:status:sula-core-maintainers",
       "to": "source:status-md",
       "type": "derived-from"
     },
     {
       "from": "milestone:status:next-review:2026-04-21",
+      "to": "source:status-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "task:handoff:review-docs-change-records-2026-04-18-document-memory-capability-implementation-plan-md-run-python3-scripts-sula-py-canary-verify-project-root-all",
       "to": "source:status-md",
       "type": "derived-from"
     },
@@ -473,6 +293,51 @@
       "type": "derived-from"
     },
     {
+      "from": "release:2026-04-22-release-sula-0-14-0-handoff-contract-and-git-release-upgrade-flow",
+      "to": "source:docs-releases-2026-04-22-release-sula-0-14-0-handoff-contract-and-git-release-upgrade-flow-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "milestone:2026-04-22-release-sula-0-14-0-handoff-contract-and-git-release-upgrade-flow",
+      "to": "source:docs-releases-2026-04-22-release-sula-0-14-0-handoff-contract-and-git-release-upgrade-flow-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "risk:docs-releases-2026-04-22-release-sula-0-14-0-handoff-contract-and-git-release-upgrade-flow-md:fill-in-risks",
+      "to": "source:docs-releases-2026-04-22-release-sula-0-14-0-handoff-contract-and-git-release-upgrade-flow-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "agreement:2026-04-22-release-sula-0-14-0-handoff-contract-and-git-release-upgrade-flow",
+      "to": "source:docs-releases-2026-04-22-release-sula-0-14-0-handoff-contract-and-git-release-upgrade-flow-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "release:2026-04-18-rollout-sula-0-13-0-adopted-project-upgrade-checklist",
+      "to": "source:docs-releases-2026-04-18-rollout-sula-0-13-0-adopted-project-upgrade-checklist-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "milestone:2026-04-18-rollout-sula-0-13-0-adopted-project-upgrade-checklist",
+      "to": "source:docs-releases-2026-04-18-rollout-sula-0-13-0-adopted-project-upgrade-checklist-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "risk:docs-releases-2026-04-18-rollout-sula-0-13-0-adopted-project-upgrade-checklist-md:projects-that-accumulated-private-scratch-notes-or-informal-temporary-memory-may-fail-check-until-they-explicitly-review-promote-or-clear-that-state",
+      "to": "source:docs-releases-2026-04-18-rollout-sula-0-13-0-adopted-project-upgrade-checklist-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "risk:docs-releases-2026-04-18-rollout-sula-0-13-0-adopted-project-upgrade-checklist-md:teams-may-over-promote-low-signal-notes-if-they-do-not-keep-the-promotion-bar-narrow-to-durable-rules-state-decisions-risks-or-workflow-artifact-expectations",
+      "to": "source:docs-releases-2026-04-18-rollout-sula-0-13-0-adopted-project-upgrade-checklist-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "risk:docs-releases-2026-04-18-rollout-sula-0-13-0-adopted-project-upgrade-checklist-md:reusable-local-managed-file-drift-can-be-lost-as-one-off-divergence-if-operators-skip-feedback-capture-during-rollout",
+      "to": "source:docs-releases-2026-04-18-rollout-sula-0-13-0-adopted-project-upgrade-checklist-md",
+      "type": "derived-from"
+    },
+    {
       "from": "release:2026-04-18-release-sula-0-13-0-stable-memory-kernel-and-operator-workflow",
       "to": "source:docs-releases-2026-04-18-release-sula-0-13-0-stable-memory-kernel-and-operator-workflow-md",
       "type": "derived-from"
@@ -678,6 +543,11 @@
       "type": "derived-from"
     },
     {
+      "from": "agreement:source:changelog-md",
+      "to": "source:changelog-md",
+      "type": "derived-from"
+    },
+    {
       "from": "object:source:claude-md",
       "to": "source:claude-md",
       "type": "derived-from"
@@ -700,11 +570,6 @@
     {
       "from": "object:source:gemini-md",
       "to": "source:gemini-md",
-      "type": "derived-from"
-    },
-    {
-      "from": "object:source:public-export-md",
-      "to": "source:public-export-md",
       "type": "derived-from"
     },
     {
@@ -1013,6 +878,16 @@
       "type": "derived-from"
     },
     {
+      "from": "object:source:docs-ops-status-archive-md",
+      "to": "source:docs-ops-status-archive-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "agreement:source:docs-ops-status-archive-md",
+      "to": "source:docs-ops-status-archive-md",
+      "type": "derived-from"
+    },
+    {
       "from": "object:source:docs-ops-team-operating-model-md",
       "to": "source:docs-ops-team-operating-model-md",
       "type": "derived-from"
@@ -1105,6 +980,11 @@
     {
       "from": "rule:docs-reference-memory-capability-implementation-plan-md:publication-hygiene:record-adoption-reasoning-in-sula-terms-such-as-portability-removability-source-first-truth-and-scientific-retrieval",
       "to": "source:docs-reference-memory-capability-implementation-plan-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "object:source:docs-reference-model-upgrade-prompts-md",
+      "to": "source:docs-reference-model-upgrade-prompts-md",
       "type": "derived-from"
     },
     {
@@ -1218,6 +1098,21 @@
       "type": "derived-from"
     },
     {
+      "from": "object:source:docs-releases-2026-04-18-rollout-sula-0-13-0-adopted-project-upgrade-checklist-md",
+      "to": "source:docs-releases-2026-04-18-rollout-sula-0-13-0-adopted-project-upgrade-checklist-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "object:source:docs-releases-2026-04-22-release-sula-0-14-0-handoff-contract-and-git-release-upgrade-flow-md",
+      "to": "source:docs-releases-2026-04-22-release-sula-0-14-0-handoff-contract-and-git-release-upgrade-flow-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "agreement:source:docs-releases-2026-04-22-release-sula-0-14-0-handoff-contract-and-git-release-upgrade-flow-md",
+      "to": "source:docs-releases-2026-04-22-release-sula-0-14-0-handoff-contract-and-git-release-upgrade-flow-md",
+      "type": "derived-from"
+    },
+    {
       "from": "object:source:docs-releases-readme-md",
       "to": "source:docs-releases-readme-md",
       "type": "derived-from"
@@ -1230,6 +1125,11 @@
     {
       "from": "risk:docs-releases-template-md:fill-in-risks",
       "to": "source:docs-releases-template-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "object:source:docs-runbooks-git-release-upgrade-md",
+      "to": "source:docs-runbooks-git-release-upgrade-md",
       "type": "derived-from"
     },
     {

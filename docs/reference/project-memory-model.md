@@ -23,6 +23,11 @@ This should answer:
 - whether the project is healthy
 - what is blocked
 - what must be reviewed next
+- how the next operator should resume without prior chat context
+
+The `## Handoff` block inside `STATUS.md` is the transfer contract. Its `next action` field should be structured as explicit steps, with at least one reference step and one runnable command step. The block should also name the next owner, a concrete due date, and a clear done-when condition. `done when` should use semi-structured `result`, `artifact`, or `command` steps so the completion test is inspectable. Standard `result` phrases are preferred for consistency, but custom results remain allowed and should trigger advisories rather than hard failures.
+
+If the current-state page grows beyond its configured limits, overflow belongs in a durable archive or record, not in an ever-growing `STATUS.md`.
 
 ### 3. Decisions And Change History
 

@@ -240,6 +240,30 @@ python3 scripts/sula.py check --project-root /path/to/project
 Use `--dry-run` before every real sync so you can review which managed files would change and how risky they are.
 Use `check` as the daily close-out gate after changing `STATUS.md`, `CHANGE-RECORDS.md`, `docs/change-records/*`, or generated `.sula/*` state; only `SULA CHECK OK` counts as a finished state-sync update.
 
+### Upgrade From The Published Git Release
+
+When Sula is already published, prefer a tagged Git checkout over an arbitrary local source path:
+
+```bash
+git clone --branch v0.14.0 --depth 1 https://github.com/irihiyahnj/sula-public.git /opt/sula/v0.14.0
+export SULA_ROOT=/opt/sula/v0.14.0
+export PROJECT_ROOT=/path/to/project
+
+python3 "$SULA_ROOT/scripts/sula.py" sync --project-root "$PROJECT_ROOT" --dry-run
+python3 "$SULA_ROOT/scripts/sula.py" sync --project-root "$PROJECT_ROOT"
+python3 "$SULA_ROOT/scripts/sula.py" memory digest --project-root "$PROJECT_ROOT"
+python3 "$SULA_ROOT/scripts/sula.py" doctor --project-root "$PROJECT_ROOT" --strict
+python3 "$SULA_ROOT/scripts/sula.py" check --project-root "$PROJECT_ROOT"
+```
+
+For one-to-many rollout across scattered repositories, use the standard runbook:
+
+- [docs/runbooks/git-release-upgrade.md](docs/runbooks/git-release-upgrade.md)
+
+If you want a large model to perform the release upgrade from one instruction, use the standard prompt set:
+
+- [docs/reference/model-upgrade-prompts.md](docs/reference/model-upgrade-prompts.md)
+
 ### Control Visible Projections
 
 ```bash
@@ -327,7 +351,7 @@ python3 scripts/sula.py feedback decide \
   --feedback-id <feedback-id> \
   --decision accepted \
   --note "Absorb this into the shared release path." \
-  --target-version 0.13.0 \
+  --target-version 0.14.0 \
   --json
 ```
 
@@ -499,7 +523,7 @@ This searches the local kernel object catalog, source registry, and event timeli
 
 ## Current Version
 
-Sula version: `0.13.0`
+Sula version: `0.14.0`
 
 Versioning rules are in [docs/versioning.md](docs/versioning.md).
 

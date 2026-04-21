@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import date
+from datetime import date, timedelta
 import subprocess
 import tempfile
 from pathlib import Path
@@ -231,6 +231,57 @@ class SulaCliTests(unittest.TestCase):
         )
 
     def write_valid_status(self, project_root: Path) -> None:
+        change_record_directory = project_root / "docs" / "change-records"
+        change_record_directory.mkdir(parents=True, exist_ok=True)
+        (change_record_directory / "2026-04-11-adopt-memory-contract.md").write_text(
+            """# Adopt memory contract
+
+## Metadata
+
+- date: 2026-04-11
+- executor: Codex
+- branch: main
+- related commit(s): fixture
+- status: completed
+
+## Background
+
+Fixture record for a valid handoff contract.
+
+## Analysis
+
+- the status file should point at a real durable record
+
+## Chosen Plan
+
+- seed one durable record for tests
+
+## Execution
+
+- wrote the fixture record
+
+## Verification
+
+- fixture only
+
+## Rollback
+
+- remove the fixture record
+
+## Data Side-effects
+
+- none
+
+## Follow-up
+
+- none
+
+## Architecture Boundary Check
+
+- highest rule impact: preserved
+""",
+            encoding="utf-8",
+        )
         (project_root / "STATUS.md").write_text(
             """# STATUS
 
@@ -262,6 +313,25 @@ class SulaCliTests(unittest.TestCase):
 - owner: Codex
 - date: 2026-04-18
 - trigger: next major delivery
+
+## Handoff
+
+- ready: yes
+- start here: `docs/change-records/2026-04-11-adopt-memory-contract.md`; `STATUS.md`
+- latest record: `docs/change-records/2026-04-11-adopt-memory-contract.md`
+- next action: review `docs/change-records/2026-04-11-adopt-memory-contract.md`; run `python3 scripts/sula.py memory digest --project-root .`
+- next owner: Codex
+- next due: 2026-04-18
+- done when: result `memory digest regenerated`; artifact `STATUS.md`
+- blockers: none
+- source of truth: `STATUS.md`; `docs/change-records/2026-04-11-adopt-memory-contract.md`
+- source freshness: n/a
+- verification command: `python3 scripts/sula.py memory digest --project-root .`
+- verification result: pass
+- verification date: 2026-04-11
+- git branch: n/a
+- git commit: n/a
+- git working tree: n/a
 """,
             encoding="utf-8",
         )
@@ -3104,6 +3174,344 @@ notes = "Fixture"
             self.assertEqual(passed.returncode, 0, passed.stderr)
             self.assertIn("SULA CHECK OK", passed.stdout)
 
+    def test_check_fails_when_status_lags_latest_durable_record(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            project_root = Path(tmpdir)
+            self.create_generic_project(project_root)
+            adopt_result = run_cli("adopt", "--project-root", str(project_root), "--approve")
+            self.assertEqual(adopt_result.returncode, 0, adopt_result.stderr)
+
+            stale_date = (date.today() - timedelta(days=2)).isoformat()
+
+            status_path = project_root / "STATUS.md"
+            status_lines = status_path.read_text(encoding="utf-8").splitlines()
+            for index, line in enumerate(status_lines):
+                if line.startswith("- last updated: "):
+                    status_lines[index] = f"- last updated: {stale_date}"
+                    break
+            status_path.write_text("\n".join(status_lines) + "\n", encoding="utf-8")
+
+            rebuild = run_cli("memory", "digest", "--project-root", str(project_root))
+            self.assertEqual(rebuild.returncode, 0, rebuild.stderr)
+
+            failed = run_cli("check", "--project-root", str(project_root))
+            self.assertNotEqual(failed.returncode, 0)
+            self.assertIn("SULA CHECK FAILED", failed.stdout)
+            self.assertIn("last updated date", failed.stdout)
+            self.assertIn("docs/change-records/", failed.stdout)
+
+    def test_check_fails_without_handoff_contract(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            project_root = Path(tmpdir)
+            self.create_generic_project(project_root)
+            adopt_result = run_cli("adopt", "--project-root", str(project_root), "--approve")
+            self.assertEqual(adopt_result.returncode, 0, adopt_result.stderr)
+
+            status_path = project_root / "STATUS.md"
+            status_text = status_path.read_text(encoding="utf-8")
+            handoff_start = status_text.index("## Handoff")
+            status_path.write_text(status_text[:handoff_start].rstrip() + "\n", encoding="utf-8")
+
+            rebuild = run_cli("memory", "digest", "--project-root", str(project_root))
+            self.assertEqual(rebuild.returncode, 0, rebuild.stderr)
+
+            failed = run_cli("check", "--project-root", str(project_root))
+            self.assertNotEqual(failed.returncode, 0)
+            self.assertIn("missing section `## Handoff`", failed.stdout)
+
+    def test_check_fails_when_start_here_is_not_a_reference_list(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            project_root = Path(tmpdir)
+            init_result = run_cli("init", "--project-root", str(project_root))
+            self.assertEqual(init_result.returncode, 0, init_result.stderr)
+            self.write_valid_status(project_root)
+
+            status_path = project_root / "STATUS.md"
+            status_text = status_path.read_text(encoding="utf-8")
+            status_text = status_text.replace(
+                "- start here: `docs/change-records/2026-04-11-adopt-memory-contract.md`; `STATUS.md`",
+                "- start here: open the change record first and then look around manually",
+            )
+            status_path.write_text(status_text, encoding="utf-8")
+
+            failed = run_cli("check", "--project-root", str(project_root))
+            self.assertNotEqual(failed.returncode, 0)
+            self.assertIn("`## Handoff` start here reference target is missing", failed.stdout)
+
+    def test_check_fails_when_next_action_is_not_structured(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            project_root = Path(tmpdir)
+            init_result = run_cli("init", "--project-root", str(project_root))
+            self.assertEqual(init_result.returncode, 0, init_result.stderr)
+            self.write_valid_status(project_root)
+
+            status_path = project_root / "STATUS.md"
+            status_text = status_path.read_text(encoding="utf-8")
+            status_text = status_text.replace(
+                "- next action: review `docs/change-records/2026-04-11-adopt-memory-contract.md`; run `python3 scripts/sula.py memory digest --project-root .`",
+                "- next action: think through the next step and continue from there",
+            )
+            status_path.write_text(status_text, encoding="utf-8")
+
+            failed = run_cli("check", "--project-root", str(project_root))
+            self.assertNotEqual(failed.returncode, 0)
+            self.assertIn("`## Handoff` next action must use structured steps", failed.stdout)
+
+    def test_check_fails_when_next_action_lacks_reference_or_command(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            project_root = Path(tmpdir)
+            init_result = run_cli("init", "--project-root", str(project_root))
+            self.assertEqual(init_result.returncode, 0, init_result.stderr)
+            self.write_valid_status(project_root)
+
+            status_path = project_root / "STATUS.md"
+            status_text = status_path.read_text(encoding="utf-8")
+            status_text = status_text.replace(
+                "- next action: review `docs/change-records/2026-04-11-adopt-memory-contract.md`; run `python3 scripts/sula.py memory digest --project-root .`",
+                "- next action: review `docs/change-records/2026-04-11-adopt-memory-contract.md`",
+            )
+            status_path.write_text(status_text, encoding="utf-8")
+
+            failed = run_cli("check", "--project-root", str(project_root))
+            self.assertNotEqual(failed.returncode, 0)
+            self.assertIn("`## Handoff` next action must include at least one runnable command step", failed.stdout)
+
+    def test_check_fails_when_handoff_next_fields_are_missing_or_invalid(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            project_root = Path(tmpdir)
+            init_result = run_cli("init", "--project-root", str(project_root))
+            self.assertEqual(init_result.returncode, 0, init_result.stderr)
+            self.write_valid_status(project_root)
+
+            status_path = project_root / "STATUS.md"
+            status_text = status_path.read_text(encoding="utf-8")
+            status_text = status_text.replace("- next owner: Codex\n", "")
+            status_text = status_text.replace("- next due: 2026-04-18", "- next due: tomorrow")
+            status_text = status_text.replace("- done when: result `memory digest regenerated`; artifact `STATUS.md`", "- done when: _write the concrete completion condition_")
+            status_path.write_text(status_text, encoding="utf-8")
+
+            failed = run_cli("check", "--project-root", str(project_root))
+            self.assertNotEqual(failed.returncode, 0)
+            self.assertIn("`## Handoff` is missing `- next owner: ...`", failed.stdout)
+            self.assertIn("`## Handoff` next due must use YYYY-MM-DD", failed.stdout)
+            self.assertIn("`## Handoff` field `done when` still contains placeholder text", failed.stdout)
+
+    def test_check_fails_when_done_when_is_not_structured(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            project_root = Path(tmpdir)
+            init_result = run_cli("init", "--project-root", str(project_root))
+            self.assertEqual(init_result.returncode, 0, init_result.stderr)
+            self.write_valid_status(project_root)
+
+            status_path = project_root / "STATUS.md"
+            status_text = status_path.read_text(encoding="utf-8")
+            status_text = status_text.replace(
+                "- done when: result `memory digest regenerated`; artifact `STATUS.md`",
+                "- done when: the handoff feels complete",
+            )
+            status_path.write_text(status_text, encoding="utf-8")
+
+            failed = run_cli("check", "--project-root", str(project_root))
+            self.assertNotEqual(failed.returncode, 0)
+            self.assertIn("`## Handoff` done when must use structured steps", failed.stdout)
+
+    def test_check_fails_when_done_when_lacks_result_or_artifact(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            project_root = Path(tmpdir)
+            init_result = run_cli("init", "--project-root", str(project_root))
+            self.assertEqual(init_result.returncode, 0, init_result.stderr)
+            self.write_valid_status(project_root)
+
+            status_path = project_root / "STATUS.md"
+            status_text = status_path.read_text(encoding="utf-8")
+            status_text = status_text.replace(
+                "- done when: result `memory digest regenerated`; artifact `STATUS.md`",
+                "- done when: command `python3 scripts/sula.py memory digest --project-root .`",
+            )
+            status_path.write_text(status_text, encoding="utf-8")
+
+            failed = run_cli("check", "--project-root", str(project_root))
+            self.assertNotEqual(failed.returncode, 0)
+            self.assertIn("`## Handoff` done when must include at least one result or artifact step", failed.stdout)
+
+    def test_check_passes_with_custom_done_when_result_and_prints_advisory(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            project_root = Path(tmpdir)
+            self.create_generic_project(project_root)
+            adopt_result = run_cli("adopt", "--project-root", str(project_root), "--approve")
+            self.assertEqual(adopt_result.returncode, 0, adopt_result.stderr)
+
+            status_path = project_root / "STATUS.md"
+            status_text = status_path.read_text(encoding="utf-8")
+            status_text = status_text.replace(
+                "- done when: result `first sync dry run reviewed`; artifact `STATUS.md`",
+                "- done when: result `client signoff captured`; artifact `STATUS.md`",
+            )
+            status_path.write_text(status_text, encoding="utf-8")
+            rebuild = run_cli("memory", "digest", "--project-root", str(project_root))
+            self.assertEqual(rebuild.returncode, 0, rebuild.stderr)
+
+            passed = run_cli("check", "--project-root", str(project_root))
+            self.assertEqual(passed.returncode, 0, passed.stderr)
+            self.assertIn("SULA CHECK OK", passed.stdout)
+            self.assertIn("advisories:", passed.stdout)
+            self.assertIn("client signoff captured", passed.stdout)
+
+    def test_check_fails_when_recent_decisions_exceed_current_state_limit(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            project_root = Path(tmpdir)
+            init_result = run_cli("init", "--project-root", str(project_root))
+            self.assertEqual(init_result.returncode, 0, init_result.stderr)
+            self.write_valid_status(project_root)
+
+            status_path = project_root / "STATUS.md"
+            status_text = status_path.read_text(encoding="utf-8")
+            oversized_decisions = "\n".join(
+                [
+                    "- 2026-04-11: decision one",
+                    "- 2026-04-12: decision two",
+                    "- 2026-04-13: decision three",
+                    "- 2026-04-14: decision four",
+                    "- 2026-04-15: decision five",
+                    "- 2026-04-16: decision six",
+                ]
+            )
+            status_text = status_text.replace(
+                "- 2026-04-11: established the initial memory contract",
+                oversized_decisions,
+            )
+            status_path.write_text(status_text, encoding="utf-8")
+
+            failed = run_cli("check", "--project-root", str(project_root))
+            self.assertNotEqual(failed.returncode, 0)
+            self.assertIn("`## Recent Decisions` has 6 items", failed.stdout)
+
+    def test_check_fails_when_current_focus_and_blockers_exceed_limits(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            project_root = Path(tmpdir)
+            init_result = run_cli("init", "--project-root", str(project_root))
+            self.assertEqual(init_result.returncode, 0, init_result.stderr)
+            self.write_valid_status(project_root)
+
+            status_path = project_root / "STATUS.md"
+            status_text = status_path.read_text(encoding="utf-8")
+            oversized_focus = "\n".join([f"- focus item {index}" for index in range(1, 7)])
+            oversized_blockers = "\n".join([f"- blocker item {index}" for index in range(1, 7)])
+            status_text = status_text.replace("- memory rollout", oversized_focus)
+            status_text = status_text.replace("- none", oversized_blockers, 1)
+            status_path.write_text(status_text, encoding="utf-8")
+
+            failed = run_cli("check", "--project-root", str(project_root))
+            self.assertNotEqual(failed.returncode, 0)
+            self.assertIn("`## Current Focus` has 6 items", failed.stdout)
+            self.assertIn("`## Blockers` has 6 items", failed.stdout)
+
+    def test_memory_digest_archives_current_focus_and_blocker_overflow(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            project_root = Path(tmpdir)
+            init_result = run_cli("init", "--project-root", str(project_root))
+            self.assertEqual(init_result.returncode, 0, init_result.stderr)
+            self.write_valid_status(project_root)
+
+            status_path = project_root / "STATUS.md"
+            status_text = status_path.read_text(encoding="utf-8")
+            oversized_focus = "\n".join([f"- focus item {index}" for index in range(1, 7)])
+            oversized_blockers = "\n".join([f"- blocker item {index}" for index in range(1, 7)])
+            status_text = status_text.replace("- memory rollout", oversized_focus)
+            status_text = status_text.replace("- none", oversized_blockers, 1)
+            status_path.write_text(status_text, encoding="utf-8")
+
+            digest_result = run_cli("memory", "digest", "--project-root", str(project_root))
+            self.assertEqual(digest_result.returncode, 0, digest_result.stderr)
+
+            normalized_status = status_path.read_text(encoding="utf-8")
+            current_focus_text = normalized_status.split("## Current Focus", 1)[1].split("## Blockers", 1)[0]
+            blockers_text = normalized_status.split("## Blockers", 1)[1].split("## Recent Decisions", 1)[0]
+            focus_lines = [line.strip() for line in current_focus_text.splitlines() if line.strip().startswith("- ")]
+            blocker_lines = [line.strip() for line in blockers_text.splitlines() if line.strip().startswith("- ")]
+
+            self.assertEqual(len(focus_lines), 5)
+            self.assertEqual(len(blocker_lines), 5)
+            archive_text = (project_root / "docs" / "ops" / "status-archive.md").read_text(encoding="utf-8")
+            self.assertIn("## Current Focus", archive_text)
+            self.assertIn("## Blockers", archive_text)
+            self.assertIn("focus item 1", archive_text)
+            self.assertIn("blocker item 1", archive_text)
+
+    def test_check_fails_when_handoff_ready_conflicts_with_blockers_or_verification(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            project_root = Path(tmpdir)
+            init_result = run_cli("init", "--project-root", str(project_root))
+            self.assertEqual(init_result.returncode, 0, init_result.stderr)
+            self.write_valid_status(project_root)
+
+            status_path = project_root / "STATUS.md"
+            status_text = status_path.read_text(encoding="utf-8")
+            status_text = status_text.replace("- blockers: none", "- blockers: waiting on legal approval")
+            status_text = status_text.replace("- source freshness: n/a", "- source freshness: current")
+            status_text = status_text.replace("- verification result: pass", "- verification result: fail")
+            status_path.write_text(status_text, encoding="utf-8")
+
+            rebuild = run_cli("memory", "digest", "--project-root", str(project_root))
+            self.assertEqual(rebuild.returncode, 0, rebuild.stderr)
+
+            failed = run_cli("check", "--project-root", str(project_root))
+            self.assertNotEqual(failed.returncode, 0)
+            self.assertIn("source freshness is current", failed.stdout)
+            self.assertIn("cannot declare `ready: yes` while blockers are still present", failed.stdout)
+            self.assertIn("cannot declare `ready: yes` while verification result is not pass", failed.stdout)
+
+    def test_check_fails_when_handoff_git_state_mismatches_repo(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            project_root = Path(tmpdir)
+            init_result = run_cli("init", "--project-root", str(project_root))
+            self.assertEqual(init_result.returncode, 0, init_result.stderr)
+            self.write_valid_status(project_root)
+            self.init_git_repo(project_root)
+
+            rebuild = run_cli("memory", "digest", "--project-root", str(project_root))
+            self.assertEqual(rebuild.returncode, 0, rebuild.stderr)
+
+            failed = run_cli("check", "--project-root", str(project_root))
+            self.assertNotEqual(failed.returncode, 0)
+            self.assertIn("git branch is n/a", failed.stdout)
+            self.assertIn("git commit is n/a", failed.stdout)
+            self.assertIn("git working tree is n/a", failed.stdout)
+
+    def test_record_new_trims_recent_decisions_to_current_state_limit(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            project_root = Path(tmpdir)
+            init_result = run_cli("init", "--project-root", str(project_root))
+            self.assertEqual(init_result.returncode, 0, init_result.stderr)
+            self.write_valid_status(project_root)
+
+            for offset, day in enumerate(range(12, 18), start=1):
+                result = run_cli(
+                    "record",
+                    "new",
+                    "--project-root",
+                    str(project_root),
+                    "--title",
+                    f"Decision {offset}",
+                    "--summary",
+                    f"Decision summary {offset}.",
+                    "--date",
+                    f"2026-04-{day:02d}",
+                )
+                self.assertEqual(result.returncode, 0, result.stderr)
+
+            status_text = (project_root / "STATUS.md").read_text(encoding="utf-8")
+            recent_decisions_text = status_text.split("## Recent Decisions", 1)[1].split("## Next Review", 1)[0]
+            recent_decision_lines = [line.strip() for line in recent_decisions_text.splitlines() if line.strip().startswith("- ")]
+
+            self.assertEqual(len(recent_decision_lines), 5)
+            self.assertFalse(any("2026-04-11" in line for line in recent_decision_lines))
+            self.assertFalse(any("2026-04-12" in line for line in recent_decision_lines))
+            self.assertTrue(any("2026-04-17" in line for line in recent_decision_lines))
+            archive_text = (project_root / "docs" / "ops" / "status-archive.md").read_text(encoding="utf-8")
+            self.assertIn("2026-04-11: established the initial memory contract", archive_text)
+            self.assertIn("2026-04-12: added [Decision 1]", archive_text)
+
     def test_record_new_creates_change_record_and_updates_memory_files(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
             project_root = Path(tmpdir)
@@ -3117,18 +3525,47 @@ notes = "Fixture"
                 "--project-root",
                 str(project_root),
                 "--title",
-                "Adopt memory contract",
+                "Capture memory baseline",
                 "--summary",
                 "Created the first durable memory record.",
                 "--date",
-                "2026-04-11",
+                "2026-04-12",
             )
 
             self.assertEqual(result.returncode, 0, result.stderr)
-            record_path = project_root / "docs" / "change-records" / "2026-04-11-adopt-memory-contract.md"
+            record_path = project_root / "docs" / "change-records" / "2026-04-12-capture-memory-baseline.md"
             self.assertTrue(record_path.exists())
-            self.assertIn("Adopt memory contract", (project_root / "CHANGE-RECORDS.md").read_text(encoding="utf-8"))
-            self.assertIn("Adopt memory contract", (project_root / "STATUS.md").read_text(encoding="utf-8"))
+            self.assertIn("Capture memory baseline", (project_root / "CHANGE-RECORDS.md").read_text(encoding="utf-8"))
+            status_text = (project_root / "STATUS.md").read_text(encoding="utf-8")
+            self.assertIn("Capture memory baseline", status_text)
+            self.assertIn("- latest record: `docs/change-records/2026-04-12-capture-memory-baseline.md`", status_text)
+            self.assertIn(f"- last updated: {date.today().isoformat()}", status_text)
+
+    def test_record_new_backfill_keeps_handoff_pointed_at_latest_durable_record(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            project_root = Path(tmpdir)
+            init_result = run_cli("init", "--project-root", str(project_root))
+            self.assertEqual(init_result.returncode, 0, init_result.stderr)
+            self.write_valid_status(project_root)
+
+            result = run_cli(
+                "record",
+                "new",
+                "--project-root",
+                str(project_root),
+                "--title",
+                "Older backfill",
+                "--summary",
+                "Backfilled older project history.",
+                "--date",
+                "2026-04-10",
+            )
+
+            self.assertEqual(result.returncode, 0, result.stderr)
+            status_text = (project_root / "STATUS.md").read_text(encoding="utf-8")
+            self.assertIn("- latest record: `docs/change-records/2026-04-11-adopt-memory-contract.md`", status_text)
+            self.assertIn("- start here: `docs/change-records/2026-04-11-adopt-memory-contract.md`; `STATUS.md`", status_text)
+            self.assertIn(f"- last updated: {date.today().isoformat()}", status_text)
 
     def test_memory_digest_generates_summary_file(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:

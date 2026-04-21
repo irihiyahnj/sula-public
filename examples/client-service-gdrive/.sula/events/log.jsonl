@@ -9,4 +9,6 @@
 {"timestamp": "2026-04-16T15:53:46Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "generic-project", "project": "client-service-drive-canary"}
 {"timestamp": "2026-04-18T02:51:34Z", "event_type": "sync.applied", "summary": "Synchronized enabled Sula projections.", "profile": "generic-project", "project": "client-service-drive-canary"}
 {"timestamp": "2026-04-18T02:52:21Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "generic-project", "project": "client-service-drive-canary"}
-{"timestamp": "2026-04-18T03:25:03Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "generic-project", "project": "client-service-drive-canary"}
+{"timestamp": "2026-04-21T16:35:46Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "generic-project", "project": "client-service-drive-canary"}
+{"timestamp": "2026-04-21T16:40:03Z", "event_type": "sync.applied", "summary": "Synchronized enabled Sula projections.", "profile": "generic-project", "project": "client-service-drive-canary"}
+{"timestamp": "2026-04-21T16:40:38Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "generic-project", "project": "client-service-drive-canary"}

@@ -54,4 +54,12 @@
 {"timestamp": "2026-04-18T02:58:49Z", "event_type": "sync.applied", "summary": "Synchronized enabled Sula projections.", "profile": "sula-core", "project": "sula"}
 {"timestamp": "2026-04-18T02:59:02Z", "event_type": "sync.applied", "summary": "Synchronized enabled Sula projections.", "profile": "sula-core", "project": "sula"}
 {"timestamp": "2026-04-18T02:59:09Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "sula-core", "project": "sula"}
-{"timestamp": "2026-04-18T03:25:03Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-04-18T03:45:39Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-04-18T03:52:14Z", "event_type": "sync.applied", "summary": "Synchronized enabled Sula projections.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-04-18T03:52:14Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-04-18T04:00:48Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-04-18T04:00:49Z", "event_type": "sync.applied", "summary": "Synchronized enabled Sula projections.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-04-21T16:35:46Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-04-21T16:39:22Z", "event_type": "record.release", "summary": "Added release record `Release Sula 0.14.0 handoff contract and Git release upgrade flow`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-04-21T16:40:03Z", "event_type": "sync.applied", "summary": "Synchronized enabled Sula projections.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-04-21T16:40:38Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "sula-core", "project": "sula"}

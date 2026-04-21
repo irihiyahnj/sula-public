@@ -6,6 +6,25 @@ All notable changes to Sula Core should be recorded here with explicit sync impa
 
 - no entries yet
 
+## 0.14.0 - 2026-04-22
+
+### Added
+
+- a structured `## Handoff` contract in `STATUS.md`, including machine-checkable ownership, due date, next action, acceptance criteria, source freshness, verification, and git-runtime fields
+- published Git release upgrade assets, including a dedicated runbook and model-facing prompt set for one-project and fleet rollout
+- status-archive spillover support for current-state sections so long-lived projects can keep a compact dashboard without deleting historical context
+
+### Changed
+
+- `doctor --strict` and `check` now require `STATUS.md` to stay aligned with the latest durable record, enforce the structured handoff contract, and gate closeout on a current-state page instead of a loose status note
+- `done when` validation now prefers standard result values while still allowing custom result text through advisories instead of hard failure
+- `record new`, workflow closeout flows, and memory-digest normalization now keep handoff runtime fields and generated state aligned with the current repository state
+
+### Sync Impact
+
+- adopted projects syncing to `0.14.0` must refresh `STATUS.md` so it contains a valid `## Handoff` section and stays within the configured current-state limits before `doctor --strict` and `check` will pass
+- teams can now upgrade from the published Git release source and reuse one-line model prompts instead of depending on one mutable local Sula checkout
+- projects that already manage their own status narrative remain compatible, but closeout now requires a machine-checkable handoff contract before downstream operators should treat the project as ready to continue
 ## 0.13.0 - 2026-04-18
 
 ### Added

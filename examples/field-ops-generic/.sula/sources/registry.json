@@ -188,7 +188,7 @@
     "exists": true,
     "source_of_truth": true,
     "discovered": true,
-    "size_bytes": 998,
+    "size_bytes": 1893,
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",

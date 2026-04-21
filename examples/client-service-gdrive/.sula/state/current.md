@@ -1,6 +1,6 @@
 # Current State Snapshot
 
-- generated on: 2026-04-18
+- generated on: 2026-04-22
 - project: Client Service Drive Canary
 - profile: `generic-project`
 - source priority: STATUS.md and project records override this generated snapshot
@@ -34,3 +34,22 @@
 - owner: Sula Core maintainers
 - date: 2026-04-23
 - trigger: review again before changing client-service workflow defaults or Google Drive adapter contracts
+
+## Handoff
+
+- ready: yes
+- start here: `docs/change-records/2026-04-16-promote-client-service-drive-example-into-canary.md`; `STATUS.md`
+- latest record: `docs/change-records/2026-04-16-promote-client-service-drive-example-into-canary.md`
+- next action: review `docs/change-records/2026-04-16-promote-client-service-drive-example-into-canary.md`; run `python3 scripts/sula.py check --project-root .`
+- next owner: Sula Core maintainers
+- next due: 2026-04-22
+- done when: result `SULA CHECK OK`; artifact `STATUS.md`
+- blockers: none
+- source of truth: `STATUS.md`; `docs/change-records/2026-04-16-promote-client-service-drive-example-into-canary.md`
+- source freshness: n/a
+- verification command: `python3 scripts/sula.py check --project-root .`
+- verification result: n/a
+- verification date: 2026-04-22
+- git branch: main
+- git commit: fae5174
+- git working tree: dirty

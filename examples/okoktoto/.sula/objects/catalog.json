@@ -1,5 +1,5 @@
 {
-  "version": "0.13.0",
+  "version": "0.14.0",
   "profile": "react-frontend-erpnext",
   "objects": [
     {
@@ -25,7 +25,7 @@
       "tags": [
         "react-frontend-erpnext"
       ],
-      "date": "2026-04-11"
+      "date": "2026-04-22"
     },
     {
       "id": "state:current",
@@ -44,7 +44,7 @@
       "tags": [
         "state"
       ],
-      "date": "2026-04-11"
+      "date": "2026-04-22"
     },
     {
       "id": "rule:manifest:highest-rule",
@@ -64,7 +64,7 @@
         "rule",
         "manifest"
       ],
-      "date": "2026-04-11"
+      "date": "2026-04-22"
     },
     {
       "id": "task:status:verify-that-the-canary-passes-sula-doctor-strict",
@@ -84,7 +84,7 @@
         "current-focus",
         "status"
       ],
-      "date": "2026-04-11"
+      "date": "2026-04-22"
     },
     {
       "id": "task:status:keep-the-example-aligned-with-the-latest-memory-aware-templates",
@@ -104,7 +104,7 @@
         "current-focus",
         "status"
       ],
-      "date": "2026-04-11"
+      "date": "2026-04-22"
     },
     {
       "id": "decision:status:2026-04-11-adopted-the-memory-canary-release-note-prepare-sula-memory-canary-rollout-docs-releases-2026-04-11-prepare-sula-memory-canary-rollout-md",
@@ -184,7 +184,7 @@
         "next-review-owner",
         "status"
       ],
-      "date": "2026-04-11"
+      "date": "2026-04-22"
     },
     {
       "id": "milestone:status:next-review:2026-04-18",
@@ -205,6 +205,27 @@
         "status"
       ],
       "date": "2026-04-18"
+    },
+    {
+      "id": "task:handoff:review-docs-change-records-2026-04-11-adopt-sula-memory-model-md-run-python3-scripts-sula-py-sync-project-root-dry-run",
+      "kind": "task",
+      "title": "review `docs/change-records/2026-04-11-adopt-sula-memory-model.md`; run `pyth...",
+      "summary": "review `docs/change-records/2026-04-11-adopt-sula-memory-model.md`; run `python3 scripts/sula.py sync --project-root . --dry-run`",
+      "status": "open",
+      "path": "STATUS.md",
+      "source_paths": [
+        "STATUS.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "handoff",
+        "next-action",
+        "status"
+      ],
+      "date": "2026-04-22"
     },
     {
       "id": "change:2026-04-11-adopt-sula-memory-model",
@@ -342,7 +363,7 @@
       "date": "2026-04-11"
     },
     {
-      "id": "job:memory.digest:20260418-032503",
+      "id": "job:memory.digest:20260421-164038",
       "kind": "job",
       "title": "memory.digest",
       "summary": "Regenerated memory digest at `.sula/memory-digest.md`.",
@@ -359,7 +380,27 @@
         "job",
         "memory-job"
       ],
-      "date": "2026-04-18"
+      "date": "2026-04-21"
+    },
+    {
+      "id": "job:memory.digest:20260421-163546",
+      "kind": "job",
+      "title": "memory.digest",
+      "summary": "Regenerated memory digest at `.sula/memory-digest.md`.",
+      "status": "ok",
+      "path": ".sula/state/jobs/history.jsonl",
+      "source_paths": [
+        ".sula/state/jobs/history.jsonl"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "job",
+        "memory-job"
+      ],
+      "date": "2026-04-21"
     },
     {
       "id": "job:memory.digest:20260418-025221",
@@ -742,7 +783,7 @@
       "id": "object:source:status-md",
       "kind": "document",
       "title": "STATUS.md",
-      "summary": "- last updated: 2026-04-11",
+      "summary": "- last updated: 2026-04-22",
       "status": "indexed",
       "path": "STATUS.md",
       "source_paths": [
@@ -758,7 +799,7 @@
       "tags": [
         "discovered-source"
       ],
-      "date": "2026-04-11"
+      "date": "2026-04-22"
     },
     {
       "id": "object:source:docs-readme-md",

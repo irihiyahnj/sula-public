@@ -1,8 +1,8 @@
 # Sula Public Export
 
-- generated_on: 2026-04-18T03:24:03Z
+- generated_on: 2026-04-21T16:43:02Z
 - source_tree: tracked files exported from the private source repository
-- file_count: 292
+- file_count: 295
 - public_release_strategy: fresh-public-repo
 
 This export intentionally omits git history so maintainers can create a fresh public repository from a clean tracked-file tree.

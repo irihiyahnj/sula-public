@@ -276,7 +276,7 @@
     "exists": true,
     "source_of_truth": true,
     "discovered": true,
-    "size_bytes": 18301,
+    "size_bytes": 19942,
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
@@ -367,29 +367,13 @@
     ]
   },
   {
-    "id": "source:public-export-md",
-    "kind": "document",
-    "path": "PUBLIC-EXPORT.md",
-    "exists": true,
-    "source_of_truth": true,
-    "discovered": true,
-    "size_bytes": 697,
-    "anchor_strategy": "heading-or-line",
-    "adapters": [
-      "generic-project",
-      "local-fs",
-      "docs",
-      "repo"
-    ]
-  },
-  {
     "id": "source:readme-md",
     "kind": "document",
     "path": "README.md",
     "exists": true,
     "source_of_truth": true,
     "discovered": true,
-    "size_bytes": 25237,
+    "size_bytes": 26320,
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
@@ -421,7 +405,7 @@
     "exists": true,
     "source_of_truth": true,
     "discovered": true,
-    "size_bytes": 12862,
+    "size_bytes": 8252,
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
@@ -438,7 +422,7 @@
     "exists": true,
     "source_of_truth": true,
     "discovered": true,
-    "size_bytes": 2579,
+    "size_bytes": 2864,
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
@@ -1149,7 +1133,7 @@
     "exists": true,
     "source_of_truth": true,
     "discovered": true,
-    "size_bytes": 2082,
+    "size_bytes": 4165,
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
@@ -1199,6 +1183,22 @@
     "source_of_truth": true,
     "discovered": true,
     "size_bytes": 733,
+    "anchor_strategy": "heading-or-line",
+    "adapters": [
+      "generic-project",
+      "local-fs",
+      "docs",
+      "repo"
+    ]
+  },
+  {
+    "id": "source:docs-ops-status-archive-md",
+    "kind": "document",
+    "path": "docs/ops/status-archive.md",
+    "exists": true,
+    "source_of_truth": true,
+    "discovered": true,
+    "size_bytes": 6001,
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
@@ -1304,6 +1304,22 @@
     ]
   },
   {
+    "id": "source:docs-reference-model-upgrade-prompts-md",
+    "kind": "document",
+    "path": "docs/reference/model-upgrade-prompts.md",
+    "exists": true,
+    "source_of_truth": true,
+    "discovered": true,
+    "size_bytes": 6373,
+    "anchor_strategy": "heading-or-line",
+    "adapters": [
+      "generic-project",
+      "local-fs",
+      "docs",
+      "repo"
+    ]
+  },
+  {
     "id": "source:docs-reference-portfolio-adapter-workflow-contract-md",
     "kind": "document",
     "path": "docs/reference/portfolio-adapter-workflow-contract.md",
@@ -1326,7 +1342,7 @@
     "exists": true,
     "source_of_truth": true,
     "discovered": true,
-    "size_bytes": 4992,
+    "size_bytes": 5657,
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
@@ -1342,7 +1358,7 @@
     "exists": true,
     "source_of_truth": true,
     "discovered": true,
-    "size_bytes": 2484,
+    "size_bytes": 3258,
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
@@ -1504,6 +1520,42 @@
     ]
   },
   {
+    "id": "source:docs-releases-2026-04-18-rollout-sula-0-13-0-adopted-project-upgrade-checklist-md",
+    "kind": "document",
+    "path": "docs/releases/2026-04-18-rollout-sula-0-13-0-adopted-project-upgrade-checklist.md",
+    "exists": true,
+    "source_of_truth": true,
+    "discovered": true,
+    "size_bytes": 5464,
+    "anchor_strategy": "heading-or-line",
+    "adapters": [
+      "generic-project",
+      "local-fs",
+      "docs",
+      "memory",
+      "repo",
+      "release"
+    ]
+  },
+  {
+    "id": "source:docs-releases-2026-04-22-release-sula-0-14-0-handoff-contract-and-git-release-upgrade-flow-md",
+    "kind": "document",
+    "path": "docs/releases/2026-04-22-release-sula-0-14-0-handoff-contract-and-git-release-upgrade-flow.md",
+    "exists": true,
+    "source_of_truth": true,
+    "discovered": true,
+    "size_bytes": 463,
+    "anchor_strategy": "heading-or-line",
+    "adapters": [
+      "generic-project",
+      "local-fs",
+      "docs",
+      "memory",
+      "repo",
+      "release"
+    ]
+  },
+  {
     "id": "source:docs-releases-readme-md",
     "kind": "document",
     "path": "docs/releases/README.md",
@@ -1535,6 +1587,23 @@
       "local-fs",
       "docs",
       "memory",
+      "repo",
+      "release"
+    ]
+  },
+  {
+    "id": "source:docs-runbooks-git-release-upgrade-md",
+    "kind": "document",
+    "path": "docs/runbooks/git-release-upgrade.md",
+    "exists": true,
+    "source_of_truth": true,
+    "discovered": true,
+    "size_bytes": 4104,
+    "anchor_strategy": "heading-or-line",
+    "adapters": [
+      "generic-project",
+      "local-fs",
+      "docs",
       "repo",
       "release"
     ]
@@ -1644,7 +1713,7 @@
     "exists": true,
     "source_of_truth": true,
     "discovered": true,
-    "size_bytes": 1031,
+    "size_bytes": 1906,
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
@@ -1829,7 +1898,7 @@
     "exists": true,
     "source_of_truth": true,
     "discovered": true,
-    "size_bytes": 998,
+    "size_bytes": 1893,
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
@@ -2093,7 +2162,7 @@
     "exists": true,
     "source_of_truth": true,
     "discovered": true,
-    "size_bytes": 1122,
+    "size_bytes": 1914,
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
@@ -2109,7 +2178,7 @@
     "exists": true,
     "source_of_truth": true,
     "discovered": true,
-    "size_bytes": 2593,
+    "size_bytes": 2878,
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
@@ -2291,7 +2360,7 @@
     "exists": true,
     "source_of_truth": true,
     "discovered": true,
-    "size_bytes": 2089,
+    "size_bytes": 4172,
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
@@ -2613,7 +2682,7 @@
     "exists": true,
     "source_of_truth": true,
     "discovered": true,
-    "size_bytes": 579560,
+    "size_bytes": 616842,
     "anchor_strategy": "line",
     "adapters": [
       "generic-project",
@@ -2828,7 +2897,7 @@
     "exists": true,
     "source_of_truth": true,
     "discovered": true,
-    "size_bytes": 161328,
+    "size_bytes": 183693,
     "anchor_strategy": "line",
     "adapters": [
       "generic-project",
