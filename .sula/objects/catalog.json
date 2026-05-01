@@ -1,5 +1,5 @@
 {
-  "version": "0.14.0",
+  "version": "0.15.0",
   "profile": "sula-core",
   "objects": [
     {
@@ -25,13 +25,13 @@
       "tags": [
         "sula-core"
       ],
-      "date": "2026-04-22"
+      "date": "2026-05-01"
     },
     {
       "id": "state:current",
       "kind": "state",
       "title": "Current Project State",
-      "summary": "- Sula now manages itself as a first-class `sula-core` consumer while still acting as the source repository for reusable operating-system assets.\n- The repository has memory-aware governance, an in-repo canary, a root self-adoption path, and an approval-based adoption agent for bringing new repositories under Sula.\n- Public-release governance is now in place, and the remaining blocker is historical lineage cleanup rather than working-tree quality.\n- The future `sula.1stp.monster` landing page is now represented by real static site assets with canonical long-form bootstrap prompts and protocol pages.\n- The bootstrap site is now live on both `https://sula.fly.dev/` and `https://sula.1stp.monster/`, with the public bootstrap contract explicitly handling existing Sula consumers and canonical tool-source resolution.\n- Sula now has a recorded vNext architecture target for a `generic-project` kernel, adapter bundles, scientific retrieval, and first-class removal semantics.\n- The first milestone of that direction is now implemented: unknown and non-Git projects can adopt through `generic-project`, `.sula/` holds kernel artifacts, and removal has a report-first command.\n- The second milestone is now implemented as well: local retrieval can rebuild from SQLite, kernel objects cover task/decision/risk/person/agreement/milestone shapes, and query supports stronger filters plus timeline output.\n- The next operating milestone is now implemented too: machine-readable CLI responses, workflow/storage/portfolio manifest sections, artifact routing, and portfolio registration are available for non-code client projects.\n- Drive-synced projects can now describe `google-drive` as an adapter instead of pretending that storage provider is a project type, which keeps the kernel portable for future providers.\n- Collaborative provider-backed artifact families can now declare their truth source, refresh state, and stale-local-copy risk, so Sula can prefer shared Google-native facts when users ask for the latest version in natural language.\n- Sula now has a real read-only provider refresh path for Google Docs and Google Sheets, plus `artifact refresh` and cached provider snapshots, so freshness intent can trigger an actual provider metadata refresh instead of only local re-ranking.\n- Sula now has a first-class daily `check` workflow, so state-sync work can fail fast when `.sula/state/current.md` or `.sula/memory-digest.md` drift away from the current status and change records.\n- Formal document design is now a first-class Sula capability: adopted projects can carry reusable source-first structure bundles for schedule, proposal, report, process, and training documents instead of relying on one-off prompt instructions.\n- Sula now has a documented proposal for absorbing long-term value from reusable workflow-governance patterns through manifest-driven capability contracts instead of platform-specific skill lock-in.\n- Sula now implements the first workflow-capability slice from that proposal: manifest-level workflow rigor policy plus source-first `spec`, `plan`, and `review` scaffolds under `docs/workflows/`.\n- Sula now completes that workflow slice with first-class `workflow branch` and `workflow close` commands, so complex work can move from policy assessment to explicit closeout readiness.\n- The next UX milestone is now implemented too: `onboard` provides a zero-memory interview flow that asks setup questions, explains what Sula will manage, and then applies adoption through the same kernel contract.\n- The next launch milestone is now implemented too: the public site exposes `/launch/`, a machine-readable launcher descriptor, and a downloadable `bootstrap.py` shim so startup no longer depends on guessing local commands.\n- The feedback-bundle lifecycle is now released in the Git-backed Sula 0.11.0 source state: adopted projects can capture reusable local Sula fixes as feedback bundles, and Sula Core can ingest, review, and release them through a central queue.\n- Sula 0.12.0 is now released in source form, bundling truth-source freshness checks, the daily `check` workflow, stronger workflow/release governance, and Unicode-safe discovered source ids into one downstream sync target.\n- Sula 0.13.0 is now released in source form, bundling staged session captures, durable memory promotion, rule-aware retrieval routing, memory-job inspection, and stable operator-facing memory workflows into one downstream sync target.\n- Sula now has registry-backed in-repo canary verification across `sula-core`, `software-delivery`, `generic-project`, and `client-service`-style examples, plus public-release readiness and export commands that isolate remaining publication risk to git history rather than content drift.\n- Sula now has a chosen default public-release path: keep this repository as the private pre-public lineage, publish a fresh public repository from `release export-public`, and only then point the site descriptor at the public source.\n- The fresh public source now exists at `irihiyahnj/sula-public`, so `https://sula.1stp.monster/launch/` can resolve a real canonical clone source instead of depending on a local checkout.",
+      "summary": "- Sula now manages itself as a first-class `sula-core` consumer while still acting as the source repository for reusable operating-system assets.\n- The repository has memory-aware governance, an in-repo canary, a root self-adoption path, and an approval-based adoption agent for bringing new repositories under Sula.\n- Public-release governance is now in place, and the remaining blocker is historical lineage cleanup rather than working-tree quality.\n- The future `sula.1stp.monster` landing page is now represented by real static site assets with canonical long-form bootstrap prompts and protocol pages.\n- The bootstrap site is now live on both `https://sula.fly.dev/` and `https://sula.1stp.monster/`, with the public bootstrap contract explicitly handling existing Sula consumers and canonical tool-source resolution.\n- Sula now has a recorded vNext architecture target for a `generic-project` kernel, adapter bundles, scientific retrieval, and first-class removal semantics.\n- The first milestone of that direction is now implemented: unknown and non-Git projects can adopt through `generic-project`, `.sula/` holds kernel artifacts, and removal has a report-first command.\n- The second milestone is now implemented as well: local retrieval can rebuild from SQLite, kernel objects cover task/decision/risk/person/agreement/milestone shapes, and query supports stronger filters plus timeline output.\n- The next operating milestone is now implemented too: machine-readable CLI responses, workflow/storage/portfolio manifest sections, artifact routing, and portfolio registration are available for non-code client projects.\n- Drive-synced projects can now describe `google-drive` as an adapter instead of pretending that storage provider is a project type, which keeps the kernel portable for future providers.\n- Collaborative provider-backed artifact families can now declare their truth source, refresh state, and stale-local-copy risk, so Sula can prefer shared Google-native facts when users ask for the latest version in natural language.\n- Sula now has a real read-only provider refresh path for Google Docs and Google Sheets, plus `artifact refresh` and cached provider snapshots, so freshness intent can trigger an actual provider metadata refresh instead of only local re-ranking.\n- Sula now has a first-class daily `check` workflow, so state-sync work can fail fast when `.sula/state/current.md` or `.sula/memory-digest.md` drift away from the current status and change records.\n- Formal document design is now a first-class Sula capability: adopted projects can carry reusable source-first structure bundles for schedule, proposal, report, process, and training documents instead of relying on one-off prompt instructions.\n- Sula now has a documented proposal for absorbing long-term value from reusable workflow-governance patterns through manifest-driven capability contracts instead of platform-specific skill lock-in.\n- Sula now implements the first workflow-capability slice from that proposal: manifest-level workflow rigor policy plus source-first `spec`, `plan`, and `review` scaffolds under `docs/workflows/`.\n- Sula now completes that workflow slice with first-class `workflow branch` and `workflow close` commands, so complex work can move from policy assessment to explicit closeout readiness.\n- The next UX milestone is now implemented too: `onboard` provides a zero-memory interview flow that asks setup questions, explains what Sula will manage, and then applies adoption through the same kernel contract.\n- The next launch milestone is now implemented too: the public site exposes `/launch/`, a machine-readable launcher descriptor, and a downloadable `bootstrap.py` shim so startup no longer depends on guessing local commands.\n- The feedback-bundle lifecycle is now released in the Git-backed Sula 0.11.0 source state: adopted projects can capture reusable local Sula fixes as feedback bundles, and Sula Core can ingest, review, and release them through a central queue.\n- Sula 0.12.0 is now released in source form, bundling truth-source freshness checks, the daily `check` workflow, stronger workflow/release governance, and Unicode-safe discovered source ids into one downstream sync target.\n- Sula 0.13.0 is now released in source form, bundling staged session captures, durable memory promotion, rule-aware retrieval routing, memory-job inspection, and stable operator-facing memory workflows into one downstream sync target.\n- Sula now has registry-backed in-repo canary verification across `sula-core`, `software-delivery`, `generic-project`, and `client-service`-style examples, plus public-release readiness and export commands that isolate remaining publication risk to git history rather than content drift.\n- Sula now has a chosen default public-release path: keep this repository as the private pre-public lineage, publish a fresh public repository from `release export-public`, and only then point the site descriptor at the public source.\n- The fresh public source now exists at `irihiyahnj/sula-public`, so `https://sula.1stp.monster/launch/` can resolve a real canonical clone source instead of depending on a local checkout.\n- Sula now has a durable Symphony-style orchestration absorption plan and execution culture, so future AI sessions can implement the upgrade from repository truth instead of chat history.\n- Sula now has the first executable Symphony-style orchestration slice: optional disabled-by-default manifest policy, local task normalization, dry-run run records, safety gates, and JSON orchestration commands.\n- Sula now captures CLI/user intent as auditable orchestration tasks and requires closeout evidence beyond dry-run scheduling before a run can be accepted.\n- Sula now absorbs Karpathy-inspired coding guidance as a portable `[agent_behavior]` policy with run-record quality checklists and verification/success-criteria closeout gates.\n- Sula orchestration now has a generic trigger surface, a dependency-light `shell-command` real runner with isolated copy-workspace evidence, machine closeout evaluation, and review-required promotion candidates.\n- Sula orchestration now reads provider task document mirrors and exposes portfolio-level orchestration summaries across registered projects.\n- Sula orchestration closeout now validates task requirements, touched files, links, and requested `sula check` evidence before accepting a run.\n- Sula orchestration closeout now emits typed verification checks for local files, artifact catalog entries, provider metadata, PR URLs, and ordinary URLs through manifest-controlled verification adapters.\n- Sula orchestration now has a `provider-api` task source contract with provider task item identity, provider adapter task fetching, and fixture-backed Google Drive task ingestion.\n- Sula orchestration now has policy-controlled remote verification for PR/provider closeout references plus `codex-sdk` and `codex-app-server` runner adapters behind explicit project settings.\n- Sula now has a first-class automation kernel above orchestration: normal `check`, `doctor`, `status`, `query`, `sync`, and artifact freshness entrypoints can create events and intents automatically, so users do not need to remember a manual trigger command before Sula can plan follow-up work.",
       "status": "current",
       "path": "STATUS.md",
       "source_paths": [
@@ -44,7 +44,7 @@
       "tags": [
         "state"
       ],
-      "date": "2026-04-22"
+      "date": "2026-05-01"
     },
     {
       "id": "rule:manifest:highest-rule",
@@ -64,47 +64,7 @@
         "rule",
         "manifest"
       ],
-      "date": "2026-04-22"
-    },
-    {
-      "id": "task:status:turn-the-recorded-vnext-architecture-into-stronger-adapter-composition-and-better-result-quality-over-the-new-sqlite-backed-retrieval-path",
-      "kind": "task",
-      "title": "turn the recorded vNext architecture into stronger adapter composition and be...",
-      "summary": "turn the recorded vNext architecture into stronger adapter composition and better result quality over the new SQLite-backed retrieval path",
-      "status": "open",
-      "path": "STATUS.md",
-      "source_paths": [
-        "STATUS.md"
-      ],
-      "adapters": [
-        "generic-project",
-        "memory"
-      ],
-      "tags": [
-        "current-focus",
-        "status"
-      ],
-      "date": "2026-04-22"
-    },
-    {
-      "id": "task:status:maintain-clear-approval-reporting-so-managed-scaffold-boundaries-remain-obvious-during-onboarding",
-      "kind": "task",
-      "title": "maintain clear approval reporting so managed/scaffold boundaries remain obvio...",
-      "summary": "maintain clear approval reporting so managed/scaffold boundaries remain obvious during onboarding",
-      "status": "open",
-      "path": "STATUS.md",
-      "source_paths": [
-        "STATUS.md"
-      ],
-      "adapters": [
-        "generic-project",
-        "memory"
-      ],
-      "tags": [
-        "current-focus",
-        "status"
-      ],
-      "date": "2026-04-22"
+      "date": "2026-05-01"
     },
     {
       "id": "task:status:keep-the-public-bootstrap-contract-aligned-with-real-consumer-behavior-and-protocol-failures-seen-in-live-use",
@@ -124,13 +84,13 @@
         "current-focus",
         "status"
       ],
-      "date": "2026-04-22"
+      "date": "2026-05-01"
     },
     {
-      "id": "task:status:switch-site-sula-json-and-site-launch-bootstrap-py-to-the-published-public-source-after-that-repository-exists",
+      "id": "task:status:run-credentialed-real-project-canaries-for-github-pr-verification-provider-backed-artifact-verification-and-codex-runner-endpoints-before-broad-orchestration-rollout",
       "kind": "task",
-      "title": "switch `site/sula.json` and `site/launch/bootstrap.py` to the published publi...",
-      "summary": "switch `site/sula.json` and `site/launch/bootstrap.py` to the published public source after that repository exists",
+      "title": "run credentialed real-project canaries for GitHub PR verification, provider-b...",
+      "summary": "run credentialed real-project canaries for GitHub PR verification, provider-backed artifact verification, and Codex runner endpoints before broad orchestration rollout",
       "status": "open",
       "path": "STATUS.md",
       "source_paths": [
@@ -144,13 +104,13 @@
         "current-focus",
         "status"
       ],
-      "date": "2026-04-22"
+      "date": "2026-05-01"
     },
     {
-      "id": "task:status:decide-whether-to-keep-the-hosted-site-on-fly-or-migrate-it-onto-the-existing-digitalocean-infrastructure-once-server-write-access-is-available",
+      "id": "task:status:add-authenticated-provider-task-adapters-beyond-the-current-google-drive-document-checklist-contract-when-a-real-provider-task-api-target-is-selected",
       "kind": "task",
-      "title": "decide whether to keep the hosted site on Fly or migrate it onto the existing...",
-      "summary": "decide whether to keep the hosted site on Fly or migrate it onto the existing DigitalOcean infrastructure once server write access is available",
+      "title": "add authenticated provider task adapters beyond the current Google Drive docu...",
+      "summary": "add authenticated provider task adapters beyond the current Google Drive document/checklist contract when a real provider task API target is selected",
       "status": "open",
       "path": "STATUS.md",
       "source_paths": [
@@ -164,13 +124,53 @@
         "current-focus",
         "status"
       ],
-      "date": "2026-04-22"
+      "date": "2026-05-01"
     },
     {
-      "id": "decision:status:2026-04-12-released-sula-0-11-0-formal-document-workflows-and-feedback-bundles-docs-releases-2026-04-12-release-sula-0-11-0-formal-document-workflows-and-feedback-bundles-md",
+      "id": "task:status:harden-long-running-remote-runner-cancellation-and-streamed-event-capture-after-the-first-real-app-server-canary",
+      "kind": "task",
+      "title": "harden long-running remote runner cancellation and streamed event capture aft...",
+      "summary": "harden long-running remote runner cancellation and streamed event capture after the first real app-server canary",
+      "status": "open",
+      "path": "STATUS.md",
+      "source_paths": [
+        "STATUS.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "current-focus",
+        "status"
+      ],
+      "date": "2026-05-01"
+    },
+    {
+      "id": "task:status:expand-automation-classifiers-after-real-projects-reveal-recurring-provider-status-and-workflow-failure-patterns",
+      "kind": "task",
+      "title": "expand automation classifiers after real projects reveal recurring provider,...",
+      "summary": "expand automation classifiers after real projects reveal recurring provider, status, and workflow failure patterns",
+      "status": "open",
+      "path": "STATUS.md",
+      "source_paths": [
+        "STATUS.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "current-focus",
+        "status"
+      ],
+      "date": "2026-05-01"
+    },
+    {
+      "id": "decision:status:2026-05-01-added-add-provider-api-task-source-docs-change-records-2026-05-01-zzz-add-provider-api-task-source-md",
       "kind": "decision",
-      "title": "2026-04-12: released [Sula 0.11.0 formal document workflows and feedback bund...",
-      "summary": "2026-04-12: released [Sula 0.11.0 formal document workflows and feedback bundles](docs/releases/2026-04-12-release-sula-0-11-0-formal-document-workflows-and-feedback-bundles.md)",
+      "title": "2026-05-01: added [Add Provider API Task Source](docs/change-records/2026-05-...",
+      "summary": "2026-05-01: added [Add Provider API Task Source](docs/change-records/2026-05-01-zzz-add-provider-api-task-source.md)",
       "status": "decided",
       "path": "STATUS.md",
       "source_paths": [
@@ -184,13 +184,13 @@
         "recent-decision",
         "status"
       ],
-      "date": "2026-04-12"
+      "date": "2026-05-01"
     },
     {
-      "id": "decision:status:2026-04-16-added-release-record-release-sula-0-12-0-freshness-workflow-and-unicode-source-id-fixes-docs-releases-2026-04-16-release-sula-0-12-0-freshness-workflow-and-unicode-source-id-fixes-md",
+      "id": "decision:status:2026-05-01-added-add-closeout-verification-adapters-docs-change-records-2026-05-01-zz-add-closeout-verification-adapters-md",
       "kind": "decision",
-      "title": "2026-04-16: added release record [Release Sula 0.12.0 freshness, workflow, an...",
-      "summary": "2026-04-16: added release record [Release Sula 0.12.0 freshness, workflow, and Unicode source-id fixes](docs/releases/2026-04-16-release-sula-0-12-0-freshness-workflow-and-unicode-source-id-fixes.md)",
+      "title": "2026-05-01: added [Add Closeout Verification Adapters](docs/change-records/20...",
+      "summary": "2026-05-01: added [Add Closeout Verification Adapters](docs/change-records/2026-05-01-zz-add-closeout-verification-adapters.md)",
       "status": "decided",
       "path": "STATUS.md",
       "source_paths": [
@@ -204,13 +204,13 @@
         "recent-decision",
         "status"
       ],
-      "date": "2026-04-16"
+      "date": "2026-05-01"
     },
     {
-      "id": "decision:status:2026-04-18-added-release-record-release-sula-0-13-0-stable-memory-kernel-and-operator-workflow-docs-releases-2026-04-18-release-sula-0-13-0-stable-memory-kernel-and-operator-workflow-md",
+      "id": "decision:status:2026-05-01-added-strengthen-orchestration-closeout-evaluator-docs-change-records-2026-05-01-z-strengthen-orchestration-closeout-evaluator-md",
       "kind": "decision",
-      "title": "2026-04-18: added release record [Release Sula 0.13.0 stable memory kernel an...",
-      "summary": "2026-04-18: added release record [Release Sula 0.13.0 stable memory kernel and operator workflow](docs/releases/2026-04-18-release-sula-0-13-0-stable-memory-kernel-and-operator-workflow.md)",
+      "title": "2026-05-01: added [Strengthen Orchestration Closeout Evaluator](docs/change-r...",
+      "summary": "2026-05-01: added [Strengthen Orchestration Closeout Evaluator](docs/change-records/2026-05-01-z-strengthen-orchestration-closeout-evaluator.md)",
       "status": "decided",
       "path": "STATUS.md",
       "source_paths": [
@@ -224,13 +224,13 @@
         "recent-decision",
         "status"
       ],
-      "date": "2026-04-18"
+      "date": "2026-05-01"
     },
     {
-      "id": "decision:status:2026-04-12-added-release-record-release-sula-0-11-0-formal-document-workflows-and-feedback-bundles-docs-releases-2026-04-12-release-sula-0-11-0-formal-document-workflows-and-feedback-bundles-md",
+      "id": "decision:status:2026-05-01-added-wire-provider-task-source-and-portfolio-orchestration-docs-change-records-2026-05-01-wire-provider-task-source-and-portfolio-orchestration-md",
       "kind": "decision",
-      "title": "2026-04-12: added release record [Release Sula 0.11.0 formal document workflo...",
-      "summary": "2026-04-12: added release record [Release Sula 0.11.0 formal document workflows and feedback bundles](docs/releases/2026-04-12-release-sula-0-11-0-formal-document-workflows-and-feedback-bundles.md)",
+      "title": "2026-05-01: added [Wire Provider Task Source And Portfolio Orchestration](doc...",
+      "summary": "2026-05-01: added [Wire Provider Task Source And Portfolio Orchestration](docs/change-records/2026-05-01-wire-provider-task-source-and-portfolio-orchestration.md)",
       "status": "decided",
       "path": "STATUS.md",
       "source_paths": [
@@ -244,13 +244,13 @@
         "recent-decision",
         "status"
       ],
-      "date": "2026-04-12"
+      "date": "2026-05-01"
     },
     {
-      "id": "decision:status:2026-04-22-added-release-record-release-sula-0-14-0-handoff-contract-and-git-release-upgrade-flow-docs-releases-2026-04-22-release-sula-0-14-0-handoff-contract-and-git-release-upgrade-flow-md",
+      "id": "decision:status:2026-05-01-added-add-automation-kernel-for-event-driven-orchestration-docs-change-records-2026-05-01-zzzzz-add-automation-kernel-for-event-driven-orchestration-md",
       "kind": "decision",
-      "title": "2026-04-22: added release record [Release Sula 0.14.0 handoff contract and Gi...",
-      "summary": "2026-04-22: added release record [Release Sula 0.14.0 handoff contract and Git release upgrade flow](docs/releases/2026-04-22-release-sula-0-14-0-handoff-contract-and-git-release-upgrade-flow.md)",
+      "title": "2026-05-01: added [Add Automation Kernel For Event Driven Orchestration](docs...",
+      "summary": "2026-05-01: added [Add Automation Kernel For Event Driven Orchestration](docs/change-records/2026-05-01-zzzzz-add-automation-kernel-for-event-driven-orchestration.md)",
       "status": "decided",
       "path": "STATUS.md",
       "source_paths": [
@@ -264,7 +264,7 @@
         "recent-decision",
         "status"
       ],
-      "date": "2026-04-22"
+      "date": "2026-05-01"
     },
     {
       "id": "person:status:sula-core-maintainers",
@@ -284,13 +284,13 @@
         "next-review-owner",
         "status"
       ],
-      "date": "2026-04-22"
+      "date": "2026-05-01"
     },
     {
-      "id": "milestone:status:next-review:2026-04-21",
+      "id": "milestone:status:next-review:2026-05-08",
       "kind": "milestone",
       "title": "Next Review",
-      "summary": "Next review checkpoint. review again before broad 0.13.0 rollout, changing the public bootstrap contract, or expanding memory beyond the current stable promotion loop",
+      "summary": "Next review checkpoint. review again before public `v0.15.0` publication, broad orchestration rollout, long-running runner streaming/cancellation, or changing agent behavior policy gates",
       "status": "planned",
       "path": "STATUS.md",
       "source_paths": [
@@ -304,13 +304,13 @@
         "next-review",
         "status"
       ],
-      "date": "2026-04-21"
+      "date": "2026-05-08"
     },
     {
-      "id": "task:handoff:review-docs-change-records-2026-04-18-document-memory-capability-implementation-plan-md-run-python3-scripts-sula-py-canary-verify-project-root-all",
+      "id": "task:handoff:review-docs-releases-2026-05-01-release-sula-0-15-0-orchestration-control-plane-and-runner-boundaries-md-run-python3-scripts-sula-py-release-readiness-project-root-json",
       "kind": "task",
-      "title": "review `docs/change-records/2026-04-18-document-memory-capability-implementat...",
-      "summary": "review `docs/change-records/2026-04-18-document-memory-capability-implementation-plan.md`; run `python3 scripts/sula.py canary verify --project-root . --all`",
+      "title": "review `docs/releases/2026-05-01-release-sula-0-15-0-orchestration-control-pl...",
+      "summary": "review `docs/releases/2026-05-01-release-sula-0-15-0-orchestration-control-plane-and-runner-boundaries.md`; run `python3 scripts/sula.py release readiness --project-root . --json`",
       "status": "open",
       "path": "STATUS.md",
       "source_paths": [
@@ -325,7 +325,254 @@
         "next-action",
         "status"
       ],
-      "date": "2026-04-22"
+      "date": "2026-05-01"
+    },
+    {
+      "id": "change:2026-05-01-zzzzz-add-automation-kernel-for-event-driven-orchestration",
+      "kind": "change",
+      "title": "Add Automation Kernel For Event Driven Orchestration",
+      "summary": "- date: 2026-05-01 - executor: Codex - branch: main - related commit(s): none - status: completed",
+      "status": "recorded",
+      "path": "docs/change-records/2026-05-01-zzzzz-add-automation-kernel-for-event-driven-orchestration.md",
+      "source_paths": [
+        "docs/change-records/2026-05-01-zzzzz-add-automation-kernel-for-event-driven-orchestration.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "change"
+      ],
+      "date": "2026-05-01"
+    },
+    {
+      "id": "change:2026-05-01-zzzz-add-remote-verification-and-codex-runners",
+      "kind": "change",
+      "title": "Add Remote Verification And Codex Runners",
+      "summary": "- date: 2026-05-01 - executor: Codex - branch: main - related commit(s): none - status: completed",
+      "status": "recorded",
+      "path": "docs/change-records/2026-05-01-zzzz-add-remote-verification-and-codex-runners.md",
+      "source_paths": [
+        "docs/change-records/2026-05-01-zzzz-add-remote-verification-and-codex-runners.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "change"
+      ],
+      "date": "2026-05-01"
+    },
+    {
+      "id": "change:2026-05-01-zzz-add-provider-api-task-source",
+      "kind": "change",
+      "title": "Add Provider API Task Source",
+      "summary": "- date: 2026-05-01 - executor: Codex - branch: main - related commit(s): none - status: completed",
+      "status": "recorded",
+      "path": "docs/change-records/2026-05-01-zzz-add-provider-api-task-source.md",
+      "source_paths": [
+        "docs/change-records/2026-05-01-zzz-add-provider-api-task-source.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "change"
+      ],
+      "date": "2026-05-01"
+    },
+    {
+      "id": "change:2026-05-01-zz-add-closeout-verification-adapters",
+      "kind": "change",
+      "title": "Add Closeout Verification Adapters",
+      "summary": "- date: 2026-05-01 - executor: Codex - branch: main - related commit(s): none - status: completed",
+      "status": "recorded",
+      "path": "docs/change-records/2026-05-01-zz-add-closeout-verification-adapters.md",
+      "source_paths": [
+        "docs/change-records/2026-05-01-zz-add-closeout-verification-adapters.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "change"
+      ],
+      "date": "2026-05-01"
+    },
+    {
+      "id": "change:2026-05-01-z-strengthen-orchestration-closeout-evaluator",
+      "kind": "change",
+      "title": "Strengthen Orchestration Closeout Evaluator",
+      "summary": "- date: 2026-05-01 - executor: Codex - branch: main - related commit(s): none - status: completed",
+      "status": "recorded",
+      "path": "docs/change-records/2026-05-01-z-strengthen-orchestration-closeout-evaluator.md",
+      "source_paths": [
+        "docs/change-records/2026-05-01-z-strengthen-orchestration-closeout-evaluator.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "change"
+      ],
+      "date": "2026-05-01"
+    },
+    {
+      "id": "change:2026-05-01-wire-provider-task-source-and-portfolio-orchestration",
+      "kind": "change",
+      "title": "Wire Provider Task Source And Portfolio Orchestration",
+      "summary": "- date: 2026-05-01 - executor: Codex - branch: main - related commit(s): none - status: completed",
+      "status": "recorded",
+      "path": "docs/change-records/2026-05-01-wire-provider-task-source-and-portfolio-orchestration.md",
+      "source_paths": [
+        "docs/change-records/2026-05-01-wire-provider-task-source-and-portfolio-orchestration.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "change"
+      ],
+      "date": "2026-05-01"
+    },
+    {
+      "id": "change:2026-05-01-unify-orchestration-trigger-runner-evaluator",
+      "kind": "change",
+      "title": "Unify Orchestration Trigger Runner Evaluator",
+      "summary": "- date: 2026-05-01 - executor: Codex - branch: main - related commit(s): none - status: completed",
+      "status": "recorded",
+      "path": "docs/change-records/2026-05-01-unify-orchestration-trigger-runner-evaluator.md",
+      "source_paths": [
+        "docs/change-records/2026-05-01-unify-orchestration-trigger-runner-evaluator.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "change"
+      ],
+      "date": "2026-05-01"
+    },
+    {
+      "id": "change:2026-05-01-sula-karpathy-inspired-agent-quality-policy",
+      "kind": "change",
+      "title": "Sula Karpathy-Inspired Agent Quality Policy",
+      "summary": "- date: 2026-05-01 - executor: Codex - branch: main - related commit(s): none - status: completed",
+      "status": "recorded",
+      "path": "docs/change-records/2026-05-01-sula-karpathy-inspired-agent-quality-policy.md",
+      "source_paths": [
+        "docs/change-records/2026-05-01-sula-karpathy-inspired-agent-quality-policy.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "change"
+      ],
+      "date": "2026-05-01"
+    },
+    {
+      "id": "change:2026-05-01-add-orchestration-cli-intake-and-closeout-gate",
+      "kind": "change",
+      "title": "Add Orchestration CLI Intake And Closeout Gate",
+      "summary": "- date: 2026-05-01 - executor: Codex - branch: unknown - related commit(s): none - status: completed",
+      "status": "recorded",
+      "path": "docs/change-records/2026-05-01-add-orchestration-cli-intake-and-closeout-gate.md",
+      "source_paths": [
+        "docs/change-records/2026-05-01-add-orchestration-cli-intake-and-closeout-gate.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "change"
+      ],
+      "date": "2026-05-01"
+    },
+    {
+      "id": "agreement:2026-05-01-add-orchestration-cli-intake-and-closeout-gate",
+      "kind": "agreement",
+      "title": "Add Orchestration CLI Intake And Closeout Gate",
+      "summary": "- date: 2026-05-01 - executor: Codex - branch: unknown - related commit(s): none - status: completed",
+      "status": "active",
+      "path": "docs/change-records/2026-05-01-add-orchestration-cli-intake-and-closeout-gate.md",
+      "source_paths": [
+        "docs/change-records/2026-05-01-add-orchestration-cli-intake-and-closeout-gate.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "agreement"
+      ],
+      "date": "2026-05-01"
+    },
+    {
+      "id": "change:2026-04-30-implement-orchestration-contract-local-dry-run",
+      "kind": "change",
+      "title": "Add Orchestration Contract Local Dry Run",
+      "summary": "- date: 2026-04-30 - executor: Codex - branch: unknown - related commit(s): none - status: completed",
+      "status": "recorded",
+      "path": "docs/change-records/2026-04-30-implement-orchestration-contract-local-dry-run.md",
+      "source_paths": [
+        "docs/change-records/2026-04-30-implement-orchestration-contract-local-dry-run.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "change"
+      ],
+      "date": "2026-04-30"
+    },
+    {
+      "id": "agreement:2026-04-30-implement-orchestration-contract-local-dry-run",
+      "kind": "agreement",
+      "title": "Add Orchestration Contract Local Dry Run",
+      "summary": "- date: 2026-04-30 - executor: Codex - branch: unknown - related commit(s): none - status: completed",
+      "status": "active",
+      "path": "docs/change-records/2026-04-30-implement-orchestration-contract-local-dry-run.md",
+      "source_paths": [
+        "docs/change-records/2026-04-30-implement-orchestration-contract-local-dry-run.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "agreement"
+      ],
+      "date": "2026-04-30"
+    },
+    {
+      "id": "change:2026-04-30-document-symphony-orchestration-plan-culture",
+      "kind": "change",
+      "title": "Document Symphony Orchestration Plan Culture",
+      "summary": "- date: 2026-04-30 - executor: Codex - branch: unknown - related commit(s): none - status: drafted",
+      "status": "recorded",
+      "path": "docs/change-records/2026-04-30-document-symphony-orchestration-plan-culture.md",
+      "source_paths": [
+        "docs/change-records/2026-04-30-document-symphony-orchestration-plan-culture.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "change"
+      ],
+      "date": "2026-04-30"
     },
     {
       "id": "change:2026-04-18-document-memory-capability-implementation-plan",
@@ -1107,10 +1354,128 @@
       "date": "2026-04-11"
     },
     {
+      "id": "release:2026-05-01-release-sula-0-15-0-orchestration-control-plane-and-runner-boundaries",
+      "kind": "release",
+      "title": "Release Sula 0.15.0 orchestration control plane and runner boundaries",
+      "summary": "- date: 2026-05-01 - executor: Codex - branch: main - status: prepared",
+      "status": "recorded",
+      "path": "docs/releases/2026-05-01-release-sula-0-15-0-orchestration-control-plane-and-runner-boundaries.md",
+      "source_paths": [
+        "docs/releases/2026-05-01-release-sula-0-15-0-orchestration-control-plane-and-runner-boundaries.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "release"
+      ],
+      "date": "2026-05-01"
+    },
+    {
+      "id": "milestone:2026-05-01-release-sula-0-15-0-orchestration-control-plane-and-runner-boundaries",
+      "kind": "milestone",
+      "title": "Release Sula 0.15.0 orchestration control plane and runner boundaries",
+      "summary": "- date: 2026-05-01 - executor: Codex - branch: main - status: prepared",
+      "status": "shipped",
+      "path": "docs/releases/2026-05-01-release-sula-0-15-0-orchestration-control-plane-and-runner-boundaries.md",
+      "source_paths": [
+        "docs/releases/2026-05-01-release-sula-0-15-0-orchestration-control-plane-and-runner-boundaries.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "release-milestone"
+      ],
+      "date": "2026-05-01"
+    },
+    {
+      "id": "risk:docs-releases-2026-05-01-release-sula-0-15-0-orchestration-control-plane-and-runner-boundaries-md:public-launch-facing-metadata-still-points-at-the-already-published-v0-14-0-source-so-this-source-release-is-not-yet-the-canonical-public-bootstrap-baseline",
+      "kind": "risk",
+      "title": "public launch-facing metadata still points at the already-published `v0.14.0`...",
+      "summary": "public launch-facing metadata still points at the already-published `v0.14.0` source, so this source release is not yet the canonical public bootstrap baseline",
+      "status": "open",
+      "path": "docs/releases/2026-05-01-release-sula-0-15-0-orchestration-control-plane-and-runner-boundaries.md",
+      "source_paths": [
+        "docs/releases/2026-05-01-release-sula-0-15-0-orchestration-control-plane-and-runner-boundaries.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "risk",
+        "section-object"
+      ],
+      "date": "2026-05-01"
+    },
+    {
+      "id": "risk:docs-releases-2026-05-01-release-sula-0-15-0-orchestration-control-plane-and-runner-boundaries-md:projects-that-enable-orchestration-without-understanding-workspace-runner-or-verification-policy-will-now-expose-more-explicit-review-and-closeout-gates-instead-of-loose-best-effort-automation",
+      "kind": "risk",
+      "title": "projects that enable orchestration without understanding workspace, runner, o...",
+      "summary": "projects that enable orchestration without understanding workspace, runner, or verification policy will now expose more explicit review and closeout gates instead of loose best-effort automation",
+      "status": "open",
+      "path": "docs/releases/2026-05-01-release-sula-0-15-0-orchestration-control-plane-and-runner-boundaries.md",
+      "source_paths": [
+        "docs/releases/2026-05-01-release-sula-0-15-0-orchestration-control-plane-and-runner-boundaries.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "risk",
+        "section-object"
+      ],
+      "date": "2026-05-01"
+    },
+    {
+      "id": "risk:docs-releases-2026-05-01-release-sula-0-15-0-orchestration-control-plane-and-runner-boundaries-md:projects-that-enable-automation-execute-mode-without-reviewing-risk-ceilings-and-approval-categories-could-dispatch-eligible-low-risk-work-sooner-than-operators-expect-so-default-assist-mode-keeps-dispatch-off",
+      "kind": "risk",
+      "title": "projects that enable automation execute mode without reviewing risk ceilings...",
+      "summary": "projects that enable automation execute mode without reviewing risk ceilings and approval categories could dispatch eligible low-risk work sooner than operators expect, so default assist mode keeps dispatch off",
+      "status": "open",
+      "path": "docs/releases/2026-05-01-release-sula-0-15-0-orchestration-control-plane-and-runner-boundaries.md",
+      "source_paths": [
+        "docs/releases/2026-05-01-release-sula-0-15-0-orchestration-control-plane-and-runner-boundaries.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "risk",
+        "section-object"
+      ],
+      "date": "2026-05-01"
+    },
+    {
+      "id": "risk:docs-releases-2026-05-01-release-sula-0-15-0-orchestration-control-plane-and-runner-boundaries-md:a-true-external-release-still-requires-a-clean-export-public-tag-publication-and-at-least-one-credentialed-canary-using-real-pr-provider-verification-and-a-real-codex-runner-endpoint",
+      "kind": "risk",
+      "title": "a true external release still requires a clean export, public tag publication...",
+      "summary": "a true external release still requires a clean export, public tag publication, and at least one credentialed canary using real PR/provider verification and a real Codex runner endpoint",
+      "status": "open",
+      "path": "docs/releases/2026-05-01-release-sula-0-15-0-orchestration-control-plane-and-runner-boundaries.md",
+      "source_paths": [
+        "docs/releases/2026-05-01-release-sula-0-15-0-orchestration-control-plane-and-runner-boundaries.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "risk",
+        "section-object"
+      ],
+      "date": "2026-05-01"
+    },
+    {
       "id": "release:2026-04-22-release-sula-0-14-0-handoff-contract-and-git-release-upgrade-flow",
       "kind": "release",
       "title": "Release Sula 0.14.0 handoff contract and Git release upgrade flow",
-      "summary": "- date: 2026-04-22 - executor: Codex - branch: main - status: draft",
+      "summary": "- date: 2026-04-22 - executor: Codex - branch: main - status: released",
       "status": "recorded",
       "path": "docs/releases/2026-04-22-release-sula-0-14-0-handoff-contract-and-git-release-upgrade-flow.md",
       "source_paths": [
@@ -1129,7 +1494,7 @@
       "id": "milestone:2026-04-22-release-sula-0-14-0-handoff-contract-and-git-release-upgrade-flow",
       "kind": "milestone",
       "title": "Release Sula 0.14.0 handoff contract and Git release upgrade flow",
-      "summary": "- date: 2026-04-22 - executor: Codex - branch: main - status: draft",
+      "summary": "- date: 2026-04-22 - executor: Codex - branch: main - status: released",
       "status": "shipped",
       "path": "docs/releases/2026-04-22-release-sula-0-14-0-handoff-contract-and-git-release-upgrade-flow.md",
       "source_paths": [
@@ -1145,10 +1510,50 @@
       "date": "2026-04-22"
     },
     {
-      "id": "risk:docs-releases-2026-04-22-release-sula-0-14-0-handoff-contract-and-git-release-upgrade-flow-md:fill-in-risks",
+      "id": "risk:docs-releases-2026-04-22-release-sula-0-14-0-handoff-contract-and-git-release-upgrade-flow-md:adopted-projects-that-still-treat-status-md-as-a-loose-narrative-will-fail-doctor-strict-and-check-until-they-add-a-valid-handoff-section-and-keep-current-state-sections-within-the-configured-limits",
       "kind": "risk",
-      "title": "_fill in risks_",
-      "summary": "_fill in risks_",
+      "title": "adopted projects that still treat `STATUS.md` as a loose narrative will fail...",
+      "summary": "adopted projects that still treat `STATUS.md` as a loose narrative will fail `doctor --strict` and `check` until they add a valid `## Handoff` section and keep current-state sections within the configured limits",
+      "status": "open",
+      "path": "docs/releases/2026-04-22-release-sula-0-14-0-handoff-contract-and-git-release-upgrade-flow.md",
+      "source_paths": [
+        "docs/releases/2026-04-22-release-sula-0-14-0-handoff-contract-and-git-release-upgrade-flow.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "risk",
+        "section-object"
+      ],
+      "date": "2026-04-22"
+    },
+    {
+      "id": "risk:docs-releases-2026-04-22-release-sula-0-14-0-handoff-contract-and-git-release-upgrade-flow-md:projects-that-have-older-managed-file-drift-may-need-one-explicit-sync-and-memory-digest-rebuild-before-the-new-git-release-upgrade-flow-reads-as-a-no-drama-routine-upgrade",
+      "kind": "risk",
+      "title": "projects that have older managed-file drift may need one explicit sync and me...",
+      "summary": "projects that have older managed-file drift may need one explicit sync and memory-digest rebuild before the new Git-release upgrade flow reads as a no-drama routine upgrade",
+      "status": "open",
+      "path": "docs/releases/2026-04-22-release-sula-0-14-0-handoff-contract-and-git-release-upgrade-flow.md",
+      "source_paths": [
+        "docs/releases/2026-04-22-release-sula-0-14-0-handoff-contract-and-git-release-upgrade-flow.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "risk",
+        "section-object"
+      ],
+      "date": "2026-04-22"
+    },
+    {
+      "id": "risk:docs-releases-2026-04-22-release-sula-0-14-0-handoff-contract-and-git-release-upgrade-flow-md:public-release-communication-should-point-at-the-published-git-release-and-tag-not-this-private-source-repository-main-or-teams-will-end-up-with-mixed-rollout-baselines",
+      "kind": "risk",
+      "title": "public release communication should point at the published Git release and ta...",
+      "summary": "public release communication should point at the published Git release and tag, not this private source repository `main`, or teams will end up with mixed rollout baselines",
       "status": "open",
       "path": "docs/releases/2026-04-22-release-sula-0-14-0-handoff-contract-and-git-release-upgrade-flow.md",
       "source_paths": [
@@ -1168,7 +1573,7 @@
       "id": "agreement:2026-04-22-release-sula-0-14-0-handoff-contract-and-git-release-upgrade-flow",
       "kind": "agreement",
       "title": "Release Sula 0.14.0 handoff contract and Git release upgrade flow",
-      "summary": "- date: 2026-04-22 - executor: Codex - branch: main - status: draft",
+      "summary": "- date: 2026-04-22 - executor: Codex - branch: main - status: released",
       "status": "active",
       "path": "docs/releases/2026-04-22-release-sula-0-14-0-handoff-contract-and-git-release-upgrade-flow.md",
       "source_paths": [
@@ -1573,6 +1978,666 @@
         "agreement"
       ],
       "date": "2026-04-12"
+    },
+    {
+      "id": "job:memory.digest:20260501-075101",
+      "kind": "job",
+      "title": "memory.digest",
+      "summary": "Regenerated memory digest at `.sula/memory-digest.md`.",
+      "status": "ok",
+      "path": ".sula/state/jobs/history.jsonl",
+      "source_paths": [
+        ".sula/state/jobs/history.jsonl"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "job",
+        "memory-job"
+      ],
+      "date": "2026-05-01"
+    },
+    {
+      "id": "job:memory.digest:20260501-073138",
+      "kind": "job",
+      "title": "memory.digest",
+      "summary": "Regenerated memory digest at `.sula/memory-digest.md`.",
+      "status": "ok",
+      "path": ".sula/state/jobs/history.jsonl",
+      "source_paths": [
+        ".sula/state/jobs/history.jsonl"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "job",
+        "memory-job"
+      ],
+      "date": "2026-05-01"
+    },
+    {
+      "id": "job:memory.digest:20260501-072922",
+      "kind": "job",
+      "title": "memory.digest",
+      "summary": "Regenerated memory digest at `.sula/memory-digest.md`.",
+      "status": "ok",
+      "path": ".sula/state/jobs/history.jsonl",
+      "source_paths": [
+        ".sula/state/jobs/history.jsonl"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "job",
+        "memory-job"
+      ],
+      "date": "2026-05-01"
+    },
+    {
+      "id": "job:memory.digest:20260501-072837",
+      "kind": "job",
+      "title": "memory.digest",
+      "summary": "Regenerated memory digest at `.sula/memory-digest.md`.",
+      "status": "ok",
+      "path": ".sula/state/jobs/history.jsonl",
+      "source_paths": [
+        ".sula/state/jobs/history.jsonl"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "job",
+        "memory-job"
+      ],
+      "date": "2026-05-01"
+    },
+    {
+      "id": "job:memory.digest:20260501-064202",
+      "kind": "job",
+      "title": "memory.digest",
+      "summary": "Regenerated memory digest at `.sula/memory-digest.md`.",
+      "status": "ok",
+      "path": ".sula/state/jobs/history.jsonl",
+      "source_paths": [
+        ".sula/state/jobs/history.jsonl"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "job",
+        "memory-job"
+      ],
+      "date": "2026-05-01"
+    },
+    {
+      "id": "job:memory.digest:20260501-062124",
+      "kind": "job",
+      "title": "memory.digest",
+      "summary": "Regenerated memory digest at `.sula/memory-digest.md`.",
+      "status": "ok",
+      "path": ".sula/state/jobs/history.jsonl",
+      "source_paths": [
+        ".sula/state/jobs/history.jsonl"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "job",
+        "memory-job"
+      ],
+      "date": "2026-05-01"
+    },
+    {
+      "id": "job:memory.digest:20260501-051411",
+      "kind": "job",
+      "title": "memory.digest",
+      "summary": "Regenerated memory digest at `.sula/memory-digest.md`.",
+      "status": "ok",
+      "path": ".sula/state/jobs/history.jsonl",
+      "source_paths": [
+        ".sula/state/jobs/history.jsonl"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "job",
+        "memory-job"
+      ],
+      "date": "2026-05-01"
+    },
+    {
+      "id": "job:memory.digest:20260501-051339",
+      "kind": "job",
+      "title": "memory.digest",
+      "summary": "Regenerated memory digest at `.sula/memory-digest.md`.",
+      "status": "ok",
+      "path": ".sula/state/jobs/history.jsonl",
+      "source_paths": [
+        ".sula/state/jobs/history.jsonl"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "job",
+        "memory-job"
+      ],
+      "date": "2026-05-01"
+    },
+    {
+      "id": "job:memory.digest:20260501-051304",
+      "kind": "job",
+      "title": "memory.digest",
+      "summary": "Regenerated memory digest at `.sula/memory-digest.md`.",
+      "status": "ok",
+      "path": ".sula/state/jobs/history.jsonl",
+      "source_paths": [
+        ".sula/state/jobs/history.jsonl"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "job",
+        "memory-job"
+      ],
+      "date": "2026-05-01"
+    },
+    {
+      "id": "job:memory.digest:20260501-043933",
+      "kind": "job",
+      "title": "memory.digest",
+      "summary": "Regenerated memory digest at `.sula/memory-digest.md`.",
+      "status": "ok",
+      "path": ".sula/state/jobs/history.jsonl",
+      "source_paths": [
+        ".sula/state/jobs/history.jsonl"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "job",
+        "memory-job"
+      ],
+      "date": "2026-05-01"
+    },
+    {
+      "id": "job:memory.digest:20260501-043836",
+      "kind": "job",
+      "title": "memory.digest",
+      "summary": "Regenerated memory digest at `.sula/memory-digest.md`.",
+      "status": "ok",
+      "path": ".sula/state/jobs/history.jsonl",
+      "source_paths": [
+        ".sula/state/jobs/history.jsonl"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "job",
+        "memory-job"
+      ],
+      "date": "2026-05-01"
+    },
+    {
+      "id": "job:memory.digest:20260501-043741",
+      "kind": "job",
+      "title": "memory.digest",
+      "summary": "Regenerated memory digest at `.sula/memory-digest.md`.",
+      "status": "ok",
+      "path": ".sula/state/jobs/history.jsonl",
+      "source_paths": [
+        ".sula/state/jobs/history.jsonl"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "job",
+        "memory-job"
+      ],
+      "date": "2026-05-01"
+    },
+    {
+      "id": "job:memory.digest:20260501-040631",
+      "kind": "job",
+      "title": "memory.digest",
+      "summary": "Regenerated memory digest at `.sula/memory-digest.md`.",
+      "status": "ok",
+      "path": ".sula/state/jobs/history.jsonl",
+      "source_paths": [
+        ".sula/state/jobs/history.jsonl"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "job",
+        "memory-job"
+      ],
+      "date": "2026-05-01"
+    },
+    {
+      "id": "job:memory.digest:20260501-040546",
+      "kind": "job",
+      "title": "memory.digest",
+      "summary": "Regenerated memory digest at `.sula/memory-digest.md`.",
+      "status": "ok",
+      "path": ".sula/state/jobs/history.jsonl",
+      "source_paths": [
+        ".sula/state/jobs/history.jsonl"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "job",
+        "memory-job"
+      ],
+      "date": "2026-05-01"
+    },
+    {
+      "id": "job:memory.digest:20260501-034010",
+      "kind": "job",
+      "title": "memory.digest",
+      "summary": "Regenerated memory digest at `.sula/memory-digest.md`.",
+      "status": "ok",
+      "path": ".sula/state/jobs/history.jsonl",
+      "source_paths": [
+        ".sula/state/jobs/history.jsonl"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "job",
+        "memory-job"
+      ],
+      "date": "2026-05-01"
+    },
+    {
+      "id": "job:memory.digest:20260501-033906",
+      "kind": "job",
+      "title": "memory.digest",
+      "summary": "Regenerated memory digest at `.sula/memory-digest.md`.",
+      "status": "ok",
+      "path": ".sula/state/jobs/history.jsonl",
+      "source_paths": [
+        ".sula/state/jobs/history.jsonl"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "job",
+        "memory-job"
+      ],
+      "date": "2026-05-01"
+    },
+    {
+      "id": "job:memory.digest:20260501-033750",
+      "kind": "job",
+      "title": "memory.digest",
+      "summary": "Regenerated memory digest at `.sula/memory-digest.md`.",
+      "status": "ok",
+      "path": ".sula/state/jobs/history.jsonl",
+      "source_paths": [
+        ".sula/state/jobs/history.jsonl"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "job",
+        "memory-job"
+      ],
+      "date": "2026-05-01"
+    },
+    {
+      "id": "job:memory.digest:20260501-031541",
+      "kind": "job",
+      "title": "memory.digest",
+      "summary": "Regenerated memory digest at `.sula/memory-digest.md`.",
+      "status": "ok",
+      "path": ".sula/state/jobs/history.jsonl",
+      "source_paths": [
+        ".sula/state/jobs/history.jsonl"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "job",
+        "memory-job"
+      ],
+      "date": "2026-05-01"
+    },
+    {
+      "id": "job:memory.digest:20260501-031503",
+      "kind": "job",
+      "title": "memory.digest",
+      "summary": "Regenerated memory digest at `.sula/memory-digest.md`.",
+      "status": "ok",
+      "path": ".sula/state/jobs/history.jsonl",
+      "source_paths": [
+        ".sula/state/jobs/history.jsonl"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "job",
+        "memory-job"
+      ],
+      "date": "2026-05-01"
+    },
+    {
+      "id": "job:memory.digest:20260501-031420",
+      "kind": "job",
+      "title": "memory.digest",
+      "summary": "Regenerated memory digest at `.sula/memory-digest.md`.",
+      "status": "ok",
+      "path": ".sula/state/jobs/history.jsonl",
+      "source_paths": [
+        ".sula/state/jobs/history.jsonl"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "job",
+        "memory-job"
+      ],
+      "date": "2026-05-01"
+    },
+    {
+      "id": "job:memory.digest:20260501-024648",
+      "kind": "job",
+      "title": "memory.digest",
+      "summary": "Regenerated memory digest at `.sula/memory-digest.md`.",
+      "status": "ok",
+      "path": ".sula/state/jobs/history.jsonl",
+      "source_paths": [
+        ".sula/state/jobs/history.jsonl"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "job",
+        "memory-job"
+      ],
+      "date": "2026-05-01"
+    },
+    {
+      "id": "job:memory.digest:20260501-024603",
+      "kind": "job",
+      "title": "memory.digest",
+      "summary": "Regenerated memory digest at `.sula/memory-digest.md`.",
+      "status": "ok",
+      "path": ".sula/state/jobs/history.jsonl",
+      "source_paths": [
+        ".sula/state/jobs/history.jsonl"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "job",
+        "memory-job"
+      ],
+      "date": "2026-05-01"
+    },
+    {
+      "id": "job:memory.digest:20260501-024505",
+      "kind": "job",
+      "title": "memory.digest",
+      "summary": "Regenerated memory digest at `.sula/memory-digest.md`.",
+      "status": "ok",
+      "path": ".sula/state/jobs/history.jsonl",
+      "source_paths": [
+        ".sula/state/jobs/history.jsonl"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "job",
+        "memory-job"
+      ],
+      "date": "2026-05-01"
+    },
+    {
+      "id": "job:memory.digest:20260501-021318",
+      "kind": "job",
+      "title": "memory.digest",
+      "summary": "Regenerated memory digest at `.sula/memory-digest.md`.",
+      "status": "ok",
+      "path": ".sula/state/jobs/history.jsonl",
+      "source_paths": [
+        ".sula/state/jobs/history.jsonl"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "job",
+        "memory-job"
+      ],
+      "date": "2026-05-01"
+    },
+    {
+      "id": "job:memory.digest:20260501-021234",
+      "kind": "job",
+      "title": "memory.digest",
+      "summary": "Regenerated memory digest at `.sula/memory-digest.md`.",
+      "status": "ok",
+      "path": ".sula/state/jobs/history.jsonl",
+      "source_paths": [
+        ".sula/state/jobs/history.jsonl"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "job",
+        "memory-job"
+      ],
+      "date": "2026-05-01"
+    },
+    {
+      "id": "job:memory.digest:20260501-021056",
+      "kind": "job",
+      "title": "memory.digest",
+      "summary": "Regenerated memory digest at `.sula/memory-digest.md`.",
+      "status": "ok",
+      "path": ".sula/state/jobs/history.jsonl",
+      "source_paths": [
+        ".sula/state/jobs/history.jsonl"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "job",
+        "memory-job"
+      ],
+      "date": "2026-05-01"
+    },
+    {
+      "id": "job:memory.digest:20260501-013158",
+      "kind": "job",
+      "title": "memory.digest",
+      "summary": "Regenerated memory digest at `.sula/memory-digest.md`.",
+      "status": "ok",
+      "path": ".sula/state/jobs/history.jsonl",
+      "source_paths": [
+        ".sula/state/jobs/history.jsonl"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "job",
+        "memory-job"
+      ],
+      "date": "2026-05-01"
+    },
+    {
+      "id": "job:memory.digest:20260501-013108",
+      "kind": "job",
+      "title": "memory.digest",
+      "summary": "Regenerated memory digest at `.sula/memory-digest.md`.",
+      "status": "ok",
+      "path": ".sula/state/jobs/history.jsonl",
+      "source_paths": [
+        ".sula/state/jobs/history.jsonl"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "job",
+        "memory-job"
+      ],
+      "date": "2026-05-01"
+    },
+    {
+      "id": "job:memory.digest:20260501-001609",
+      "kind": "job",
+      "title": "memory.digest",
+      "summary": "Regenerated memory digest at `.sula/memory-digest.md`.",
+      "status": "ok",
+      "path": ".sula/state/jobs/history.jsonl",
+      "source_paths": [
+        ".sula/state/jobs/history.jsonl"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "job",
+        "memory-job"
+      ],
+      "date": "2026-05-01"
+    },
+    {
+      "id": "job:memory.digest:20260430-233433",
+      "kind": "job",
+      "title": "memory.digest",
+      "summary": "Regenerated memory digest at `.sula/memory-digest.md`.",
+      "status": "ok",
+      "path": ".sula/state/jobs/history.jsonl",
+      "source_paths": [
+        ".sula/state/jobs/history.jsonl"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "job",
+        "memory-job"
+      ],
+      "date": "2026-04-30"
+    },
+    {
+      "id": "job:memory.digest:20260421-164808",
+      "kind": "job",
+      "title": "memory.digest",
+      "summary": "Regenerated memory digest at `.sula/memory-digest.md`.",
+      "status": "ok",
+      "path": ".sula/state/jobs/history.jsonl",
+      "source_paths": [
+        ".sula/state/jobs/history.jsonl"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "job",
+        "memory-job"
+      ],
+      "date": "2026-04-21"
+    },
+    {
+      "id": "job:memory.digest:20260421-164654",
+      "kind": "job",
+      "title": "memory.digest",
+      "summary": "Regenerated memory digest at `.sula/memory-digest.md`.",
+      "status": "ok",
+      "path": ".sula/state/jobs/history.jsonl",
+      "source_paths": [
+        ".sula/state/jobs/history.jsonl"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "job",
+        "memory-job"
+      ],
+      "date": "2026-04-21"
+    },
+    {
+      "id": "job:memory.digest:20260421-164436",
+      "kind": "job",
+      "title": "memory.digest",
+      "summary": "Regenerated memory digest at `.sula/memory-digest.md`.",
+      "status": "ok",
+      "path": ".sula/state/jobs/history.jsonl",
+      "source_paths": [
+        ".sula/state/jobs/history.jsonl"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "job",
+        "memory-job"
+      ],
+      "date": "2026-04-21"
     },
     {
       "id": "job:memory.digest:20260421-164038",
@@ -2156,7 +3221,7 @@
         "rule",
         "section-object"
       ],
-      "date": "2026-04-18"
+      "date": "2026-05-01"
     },
     {
       "id": "rule:change-records-md:put-detailed-records-in-docs-change-records",
@@ -2179,7 +3244,7 @@
         "rule",
         "section-object"
       ],
-      "date": "2026-04-18"
+      "date": "2026-05-01"
     },
     {
       "id": "rule:change-records-md:mention-sync-impact-explicitly-in-non-trivial-records",
@@ -2202,7 +3267,7 @@
         "rule",
         "section-object"
       ],
-      "date": "2026-04-18"
+      "date": "2026-05-01"
     },
     {
       "id": "rule:change-records-md:use-release-records-when-the-rollout-itself-needs-durable-history",
@@ -2225,7 +3290,7 @@
         "rule",
         "section-object"
       ],
-      "date": "2026-04-18"
+      "date": "2026-05-01"
     },
     {
       "id": "rule:change-records-md:rules:keep-this-file-short-and-index-oriented",
@@ -2249,7 +3314,7 @@
         "section-rule",
         "rules"
       ],
-      "date": "2026-04-18"
+      "date": "2026-05-01"
     },
     {
       "id": "rule:change-records-md:rules:put-detailed-records-in-docs-change-records",
@@ -2273,7 +3338,7 @@
         "section-rule",
         "rules"
       ],
-      "date": "2026-04-18"
+      "date": "2026-05-01"
     },
     {
       "id": "rule:change-records-md:rules:mention-sync-impact-explicitly-in-non-trivial-records",
@@ -2297,7 +3362,7 @@
         "section-rule",
         "rules"
       ],
-      "date": "2026-04-18"
+      "date": "2026-05-01"
     },
     {
       "id": "rule:change-records-md:rules:use-release-records-when-the-rollout-itself-needs-durable-history",
@@ -2321,7 +3386,7 @@
         "section-rule",
         "rules"
       ],
-      "date": "2026-04-18"
+      "date": "2026-05-01"
     },
     {
       "id": "object:source:changelog-md",
@@ -2344,29 +3409,6 @@
         "discovered-source"
       ],
       "date": null
-    },
-    {
-      "id": "agreement:source:changelog-md",
-      "kind": "agreement",
-      "title": "Changelog",
-      "summary": "All notable changes to Sula Core should be recorded here with explicit sync impact.",
-      "status": "active",
-      "path": "CHANGELOG.md",
-      "source_paths": [
-        "CHANGELOG.md"
-      ],
-      "adapters": [
-        "generic-project",
-        "local-fs",
-        "docs",
-        "repo",
-        "release"
-      ],
-      "tags": [
-        "agreement",
-        "source"
-      ],
-      "date": "2026-04-22"
     },
     {
       "id": "object:source:claude-md",
@@ -2519,7 +3561,7 @@
       "id": "object:source:status-md",
       "kind": "document",
       "title": "STATUS.md",
-      "summary": "- last updated: 2026-04-22",
+      "summary": "- last updated: 2026-05-01",
       "status": "indexed",
       "path": "STATUS.md",
       "source_paths": [
@@ -2535,7 +3577,7 @@
       "tags": [
         "discovered-source"
       ],
-      "date": "2026-04-22"
+      "date": "2026-05-01"
     },
     {
       "id": "object:source:docs-readme-md",
@@ -2580,7 +3622,7 @@
         "section-rule",
         "maintenance-rule"
       ],
-      "date": null
+      "date": "2026-04-30"
     },
     {
       "id": "object:source:docs-adoption-playbook-md",
@@ -3583,6 +4625,294 @@
       "date": "2026-04-18"
     },
     {
+      "id": "object:source:docs-change-records-2026-04-30-document-symphony-orchestration-plan-culture-md",
+      "kind": "document",
+      "title": "2026-04-30-document-symphony-orchestration-plan-culture.md",
+      "summary": "- date: 2026-04-30 - executor: Codex - branch: unknown - related commit(s): none - status: drafted",
+      "status": "indexed",
+      "path": "docs/change-records/2026-04-30-document-symphony-orchestration-plan-culture.md",
+      "source_paths": [
+        "docs/change-records/2026-04-30-document-symphony-orchestration-plan-culture.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "memory",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": "2026-04-30"
+    },
+    {
+      "id": "object:source:docs-change-records-2026-04-30-implement-orchestration-contract-local-dry-run-md",
+      "kind": "document",
+      "title": "2026-04-30-implement-orchestration-contract-local-dry-run.md",
+      "summary": "- date: 2026-04-30 - executor: Codex - branch: unknown - related commit(s): none - status: completed",
+      "status": "indexed",
+      "path": "docs/change-records/2026-04-30-implement-orchestration-contract-local-dry-run.md",
+      "source_paths": [
+        "docs/change-records/2026-04-30-implement-orchestration-contract-local-dry-run.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "memory",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": "2026-04-30"
+    },
+    {
+      "id": "agreement:source:docs-change-records-2026-04-30-implement-orchestration-contract-local-dry-run-md",
+      "kind": "agreement",
+      "title": "Add Orchestration Contract Local Dry Run",
+      "summary": "- date: 2026-04-30 - executor: Codex - branch: unknown - related commit(s): none - status: completed",
+      "status": "active",
+      "path": "docs/change-records/2026-04-30-implement-orchestration-contract-local-dry-run.md",
+      "source_paths": [
+        "docs/change-records/2026-04-30-implement-orchestration-contract-local-dry-run.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "memory",
+        "repo"
+      ],
+      "tags": [
+        "agreement",
+        "source"
+      ],
+      "date": "2026-04-30"
+    },
+    {
+      "id": "object:source:docs-change-records-2026-05-01-add-orchestration-cli-intake-and-closeout-gate-md",
+      "kind": "document",
+      "title": "2026-05-01-add-orchestration-cli-intake-and-closeout-gate.md",
+      "summary": "- date: 2026-05-01 - executor: Codex - branch: unknown - related commit(s): none - status: completed",
+      "status": "indexed",
+      "path": "docs/change-records/2026-05-01-add-orchestration-cli-intake-and-closeout-gate.md",
+      "source_paths": [
+        "docs/change-records/2026-05-01-add-orchestration-cli-intake-and-closeout-gate.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "memory",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": "2026-05-01"
+    },
+    {
+      "id": "agreement:source:docs-change-records-2026-05-01-add-orchestration-cli-intake-and-closeout-gate-md",
+      "kind": "agreement",
+      "title": "Add Orchestration CLI Intake And Closeout Gate",
+      "summary": "- date: 2026-05-01 - executor: Codex - branch: unknown - related commit(s): none - status: completed",
+      "status": "active",
+      "path": "docs/change-records/2026-05-01-add-orchestration-cli-intake-and-closeout-gate.md",
+      "source_paths": [
+        "docs/change-records/2026-05-01-add-orchestration-cli-intake-and-closeout-gate.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "memory",
+        "repo"
+      ],
+      "tags": [
+        "agreement",
+        "source"
+      ],
+      "date": "2026-05-01"
+    },
+    {
+      "id": "object:source:docs-change-records-2026-05-01-sula-karpathy-inspired-agent-quality-policy-md",
+      "kind": "document",
+      "title": "2026-05-01-sula-karpathy-inspired-agent-quality-policy.md",
+      "summary": "- date: 2026-05-01 - executor: Codex - branch: main - related commit(s): none - status: completed",
+      "status": "indexed",
+      "path": "docs/change-records/2026-05-01-sula-karpathy-inspired-agent-quality-policy.md",
+      "source_paths": [
+        "docs/change-records/2026-05-01-sula-karpathy-inspired-agent-quality-policy.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "memory",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": "2026-05-01"
+    },
+    {
+      "id": "object:source:docs-change-records-2026-05-01-unify-orchestration-trigger-runner-evaluator-md",
+      "kind": "document",
+      "title": "2026-05-01-unify-orchestration-trigger-runner-evaluator.md",
+      "summary": "- date: 2026-05-01 - executor: Codex - branch: main - related commit(s): none - status: completed",
+      "status": "indexed",
+      "path": "docs/change-records/2026-05-01-unify-orchestration-trigger-runner-evaluator.md",
+      "source_paths": [
+        "docs/change-records/2026-05-01-unify-orchestration-trigger-runner-evaluator.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "memory",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": "2026-05-01"
+    },
+    {
+      "id": "object:source:docs-change-records-2026-05-01-wire-provider-task-source-and-portfolio-orchestration-md",
+      "kind": "document",
+      "title": "2026-05-01-wire-provider-task-source-and-portfolio-orchestration.md",
+      "summary": "- date: 2026-05-01 - executor: Codex - branch: main - related commit(s): none - status: completed",
+      "status": "indexed",
+      "path": "docs/change-records/2026-05-01-wire-provider-task-source-and-portfolio-orchestration.md",
+      "source_paths": [
+        "docs/change-records/2026-05-01-wire-provider-task-source-and-portfolio-orchestration.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "memory",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": "2026-05-01"
+    },
+    {
+      "id": "object:source:docs-change-records-2026-05-01-z-strengthen-orchestration-closeout-evaluator-md",
+      "kind": "document",
+      "title": "2026-05-01-z-strengthen-orchestration-closeout-evaluator.md",
+      "summary": "- date: 2026-05-01 - executor: Codex - branch: main - related commit(s): none - status: completed",
+      "status": "indexed",
+      "path": "docs/change-records/2026-05-01-z-strengthen-orchestration-closeout-evaluator.md",
+      "source_paths": [
+        "docs/change-records/2026-05-01-z-strengthen-orchestration-closeout-evaluator.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "memory",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": "2026-05-01"
+    },
+    {
+      "id": "object:source:docs-change-records-2026-05-01-zz-add-closeout-verification-adapters-md",
+      "kind": "document",
+      "title": "2026-05-01-zz-add-closeout-verification-adapters.md",
+      "summary": "- date: 2026-05-01 - executor: Codex - branch: main - related commit(s): none - status: completed",
+      "status": "indexed",
+      "path": "docs/change-records/2026-05-01-zz-add-closeout-verification-adapters.md",
+      "source_paths": [
+        "docs/change-records/2026-05-01-zz-add-closeout-verification-adapters.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "memory",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": "2026-05-01"
+    },
+    {
+      "id": "object:source:docs-change-records-2026-05-01-zzz-add-provider-api-task-source-md",
+      "kind": "document",
+      "title": "2026-05-01-zzz-add-provider-api-task-source.md",
+      "summary": "- date: 2026-05-01 - executor: Codex - branch: main - related commit(s): none - status: completed",
+      "status": "indexed",
+      "path": "docs/change-records/2026-05-01-zzz-add-provider-api-task-source.md",
+      "source_paths": [
+        "docs/change-records/2026-05-01-zzz-add-provider-api-task-source.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "memory",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": "2026-05-01"
+    },
+    {
+      "id": "object:source:docs-change-records-2026-05-01-zzzz-add-remote-verification-and-codex-runners-md",
+      "kind": "document",
+      "title": "2026-05-01-zzzz-add-remote-verification-and-codex-runners.md",
+      "summary": "- date: 2026-05-01 - executor: Codex - branch: main - related commit(s): none - status: completed",
+      "status": "indexed",
+      "path": "docs/change-records/2026-05-01-zzzz-add-remote-verification-and-codex-runners.md",
+      "source_paths": [
+        "docs/change-records/2026-05-01-zzzz-add-remote-verification-and-codex-runners.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "memory",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": "2026-05-01"
+    },
+    {
+      "id": "object:source:docs-change-records-2026-05-01-zzzzz-add-automation-kernel-for-event-driven-orchestration-md",
+      "kind": "document",
+      "title": "2026-05-01-zzzzz-add-automation-kernel-for-event-driven-orchestration.md",
+      "summary": "- date: 2026-05-01 - executor: Codex - branch: main - related commit(s): none - status: completed",
+      "status": "indexed",
+      "path": "docs/change-records/2026-05-01-zzzzz-add-automation-kernel-for-event-driven-orchestration.md",
+      "source_paths": [
+        "docs/change-records/2026-05-01-zzzzz-add-automation-kernel-for-event-driven-orchestration.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "memory",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": "2026-05-01"
+    },
+    {
       "id": "object:source:docs-change-records-readme-md",
       "kind": "document",
       "title": "README.md",
@@ -3956,6 +5286,27 @@
       "path": "docs/reference/adoption-registry.md",
       "source_paths": [
         "docs/reference/adoption-registry.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
+      "id": "object:source:docs-reference-agent-execution-quality-policy-md",
+      "kind": "document",
+      "title": "agent-execution-quality-policy.md",
+      "summary": "Sula absorbs Karpathy-style coding guidance as a reusable agent behavior policy, not as a Claude/Cursor-specific plugin.",
+      "status": "indexed",
+      "path": "docs/reference/agent-execution-quality-policy.md",
+      "source_paths": [
+        "docs/reference/agent-execution-quality-policy.md"
       ],
       "adapters": [
         "generic-project",
@@ -4661,6 +6012,27 @@
       "date": null
     },
     {
+      "id": "object:source:docs-reference-symphony-orchestration-absorption-plan-md",
+      "kind": "document",
+      "title": "symphony-orchestration-absorption-plan.md",
+      "summary": "This document defines how Sula should absorb the durable value of OpenAI Symphony-style Codex orchestration without turning Sula into a single tracker, agent, or implementation template.",
+      "status": "indexed",
+      "path": "docs/reference/symphony-orchestration-absorption-plan.md",
+      "source_paths": [
+        "docs/reference/symphony-orchestration-absorption-plan.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": null
+    },
+    {
       "id": "object:source:docs-reference-sync-impact-model-md",
       "kind": "document",
       "title": "sync-impact-model.md",
@@ -4844,7 +6216,7 @@
       "id": "object:source:docs-releases-2026-04-22-release-sula-0-14-0-handoff-contract-and-git-release-upgrade-flow-md",
       "kind": "document",
       "title": "2026-04-22-release-sula-0-14-0-handoff-contract-and-git-release-upgrade-flow.md",
-      "summary": "- date: 2026-04-22 - executor: Codex - branch: main - status: draft",
+      "summary": "- date: 2026-04-22 - executor: Codex - branch: main - status: released",
       "status": "indexed",
       "path": "docs/releases/2026-04-22-release-sula-0-14-0-handoff-contract-and-git-release-upgrade-flow.md",
       "source_paths": [
@@ -4867,7 +6239,7 @@
       "id": "agreement:source:docs-releases-2026-04-22-release-sula-0-14-0-handoff-contract-and-git-release-upgrade-flow-md",
       "kind": "agreement",
       "title": "Release Sula 0.14.0 handoff contract and Git release upgrade flow",
-      "summary": "- date: 2026-04-22 - executor: Codex - branch: main - status: draft",
+      "summary": "- date: 2026-04-22 - executor: Codex - branch: main - status: released",
       "status": "active",
       "path": "docs/releases/2026-04-22-release-sula-0-14-0-handoff-contract-and-git-release-upgrade-flow.md",
       "source_paths": [
@@ -4886,6 +6258,29 @@
         "source"
       ],
       "date": "2026-04-22"
+    },
+    {
+      "id": "object:source:docs-releases-2026-05-01-release-sula-0-15-0-orchestration-control-plane-and-runner-boundaries-md",
+      "kind": "document",
+      "title": "2026-05-01-release-sula-0-15-0-orchestration-control-plane-and-runner-boundaries.md",
+      "summary": "- date: 2026-05-01 - executor: Codex - branch: main - status: prepared",
+      "status": "indexed",
+      "path": "docs/releases/2026-05-01-release-sula-0-15-0-orchestration-control-plane-and-runner-boundaries.md",
+      "source_paths": [
+        "docs/releases/2026-05-01-release-sula-0-15-0-orchestration-control-plane-and-runner-boundaries.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "memory",
+        "repo",
+        "release"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": "2026-05-01"
     },
     {
       "id": "object:source:docs-releases-readme-md",
@@ -5210,6 +6605,27 @@
         "rules"
       ],
       "date": null
+    },
+    {
+      "id": "object:source:docs-workflows-plans-2026-04-30-symphony-orchestration-absorption-plan-md",
+      "kind": "document",
+      "title": "2026-04-30-symphony-orchestration-absorption-plan.md",
+      "summary": "- date: 2026-04-30 - status: active plan, automation and orchestration source-release slice landed - owner: Sula Core maintainers - source reference: `docs/reference/symphony-orchestration-absorption-plan.md` - task: make Sula capable of co",
+      "status": "indexed",
+      "path": "docs/workflows/plans/2026-04-30-symphony-orchestration-absorption-plan.md",
+      "source_paths": [
+        "docs/workflows/plans/2026-04-30-symphony-orchestration-absorption-plan.md"
+      ],
+      "adapters": [
+        "generic-project",
+        "local-fs",
+        "docs",
+        "repo"
+      ],
+      "tags": [
+        "discovered-source"
+      ],
+      "date": "2026-04-30"
     },
     {
       "id": "object:source:examples-client-service-gdrive-agents-md",
@@ -6570,7 +7986,7 @@
         "section-rule",
         "maintenance-rule"
       ],
-      "date": null
+      "date": "2026-04-30"
     },
     {
       "id": "object:source:examples-okoktoto-docs-architecture-module-map-md",
@@ -7204,7 +8620,7 @@
       "id": "object:source:registry-adopted-projects-toml",
       "kind": "config",
       "title": "adopted-projects.toml",
-      "summary": "[[project]] slug = \"okoktoto-v5-example\" name = \"OKOKTOTO v5 Example Canary\" profile = \"react-frontend-erpnext\" repository = \"in-repo example\" primary_branch = \"main\" deployment_branch = \"okoktoto-v5\" current_sula_version = \"0.14.0\" sync_st",
+      "summary": "[[project]] slug = \"okoktoto-v5-example\" name = \"OKOKTOTO v5 Example Canary\" profile = \"react-frontend-erpnext\" repository = \"in-repo example\" primary_branch = \"main\" deployment_branch = \"okoktoto-v5\" current_sula_version = \"0.15.0\" sync_st",
       "status": "indexed",
       "path": "registry/adopted-projects.toml",
       "source_paths": [
@@ -7247,7 +8663,7 @@
       "id": "object:source:registry-feedback-catalog-json",
       "kind": "config",
       "title": "catalog.json",
-      "summary": "{ \"version\": \"0.14.0\", \"updated_at\": \"\", \"items\": [] }",
+      "summary": "{ \"version\": \"0.15.0\", \"updated_at\": \"\", \"items\": [] }",
       "status": "indexed",
       "path": "registry/feedback/catalog.json",
       "source_paths": [

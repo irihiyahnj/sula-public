@@ -259,7 +259,7 @@
     "exists": true,
     "source_of_truth": true,
     "discovered": true,
-    "size_bytes": 10872,
+    "size_bytes": 13839,
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
@@ -276,7 +276,7 @@
     "exists": true,
     "source_of_truth": true,
     "discovered": true,
-    "size_bytes": 19942,
+    "size_bytes": 22599,
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
@@ -373,7 +373,7 @@
     "exists": true,
     "source_of_truth": true,
     "discovered": true,
-    "size_bytes": 26320,
+    "size_bytes": 30615,
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
@@ -405,7 +405,7 @@
     "exists": true,
     "source_of_truth": true,
     "discovered": true,
-    "size_bytes": 8252,
+    "size_bytes": 11056,
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
@@ -422,7 +422,7 @@
     "exists": true,
     "source_of_truth": true,
     "discovered": true,
-    "size_bytes": 2864,
+    "size_bytes": 3666,
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
@@ -1027,6 +1027,193 @@
     ]
   },
   {
+    "id": "source:docs-change-records-2026-04-30-document-symphony-orchestration-plan-culture-md",
+    "kind": "document",
+    "path": "docs/change-records/2026-04-30-document-symphony-orchestration-plan-culture.md",
+    "exists": true,
+    "source_of_truth": true,
+    "discovered": true,
+    "size_bytes": 2076,
+    "anchor_strategy": "heading-or-line",
+    "adapters": [
+      "generic-project",
+      "local-fs",
+      "docs",
+      "memory",
+      "repo"
+    ]
+  },
+  {
+    "id": "source:docs-change-records-2026-04-30-implement-orchestration-contract-local-dry-run-md",
+    "kind": "document",
+    "path": "docs/change-records/2026-04-30-implement-orchestration-contract-local-dry-run.md",
+    "exists": true,
+    "source_of_truth": true,
+    "discovered": true,
+    "size_bytes": 3032,
+    "anchor_strategy": "heading-or-line",
+    "adapters": [
+      "generic-project",
+      "local-fs",
+      "docs",
+      "memory",
+      "repo"
+    ]
+  },
+  {
+    "id": "source:docs-change-records-2026-05-01-add-orchestration-cli-intake-and-closeout-gate-md",
+    "kind": "document",
+    "path": "docs/change-records/2026-05-01-add-orchestration-cli-intake-and-closeout-gate.md",
+    "exists": true,
+    "source_of_truth": true,
+    "discovered": true,
+    "size_bytes": 3298,
+    "anchor_strategy": "heading-or-line",
+    "adapters": [
+      "generic-project",
+      "local-fs",
+      "docs",
+      "memory",
+      "repo"
+    ]
+  },
+  {
+    "id": "source:docs-change-records-2026-05-01-sula-karpathy-inspired-agent-quality-policy-md",
+    "kind": "document",
+    "path": "docs/change-records/2026-05-01-sula-karpathy-inspired-agent-quality-policy.md",
+    "exists": true,
+    "source_of_truth": true,
+    "discovered": true,
+    "size_bytes": 3845,
+    "anchor_strategy": "heading-or-line",
+    "adapters": [
+      "generic-project",
+      "local-fs",
+      "docs",
+      "memory",
+      "repo"
+    ]
+  },
+  {
+    "id": "source:docs-change-records-2026-05-01-unify-orchestration-trigger-runner-evaluator-md",
+    "kind": "document",
+    "path": "docs/change-records/2026-05-01-unify-orchestration-trigger-runner-evaluator.md",
+    "exists": true,
+    "source_of_truth": true,
+    "discovered": true,
+    "size_bytes": 4506,
+    "anchor_strategy": "heading-or-line",
+    "adapters": [
+      "generic-project",
+      "local-fs",
+      "docs",
+      "memory",
+      "repo"
+    ]
+  },
+  {
+    "id": "source:docs-change-records-2026-05-01-wire-provider-task-source-and-portfolio-orchestration-md",
+    "kind": "document",
+    "path": "docs/change-records/2026-05-01-wire-provider-task-source-and-portfolio-orchestration.md",
+    "exists": true,
+    "source_of_truth": true,
+    "discovered": true,
+    "size_bytes": 3864,
+    "anchor_strategy": "heading-or-line",
+    "adapters": [
+      "generic-project",
+      "local-fs",
+      "docs",
+      "memory",
+      "repo"
+    ]
+  },
+  {
+    "id": "source:docs-change-records-2026-05-01-z-strengthen-orchestration-closeout-evaluator-md",
+    "kind": "document",
+    "path": "docs/change-records/2026-05-01-z-strengthen-orchestration-closeout-evaluator.md",
+    "exists": true,
+    "source_of_truth": true,
+    "discovered": true,
+    "size_bytes": 3578,
+    "anchor_strategy": "heading-or-line",
+    "adapters": [
+      "generic-project",
+      "local-fs",
+      "docs",
+      "memory",
+      "repo"
+    ]
+  },
+  {
+    "id": "source:docs-change-records-2026-05-01-zz-add-closeout-verification-adapters-md",
+    "kind": "document",
+    "path": "docs/change-records/2026-05-01-zz-add-closeout-verification-adapters.md",
+    "exists": true,
+    "source_of_truth": true,
+    "discovered": true,
+    "size_bytes": 4373,
+    "anchor_strategy": "heading-or-line",
+    "adapters": [
+      "generic-project",
+      "local-fs",
+      "docs",
+      "memory",
+      "repo"
+    ]
+  },
+  {
+    "id": "source:docs-change-records-2026-05-01-zzz-add-provider-api-task-source-md",
+    "kind": "document",
+    "path": "docs/change-records/2026-05-01-zzz-add-provider-api-task-source.md",
+    "exists": true,
+    "source_of_truth": true,
+    "discovered": true,
+    "size_bytes": 4082,
+    "anchor_strategy": "heading-or-line",
+    "adapters": [
+      "generic-project",
+      "local-fs",
+      "docs",
+      "memory",
+      "repo"
+    ]
+  },
+  {
+    "id": "source:docs-change-records-2026-05-01-zzzz-add-remote-verification-and-codex-runners-md",
+    "kind": "document",
+    "path": "docs/change-records/2026-05-01-zzzz-add-remote-verification-and-codex-runners.md",
+    "exists": true,
+    "source_of_truth": true,
+    "discovered": true,
+    "size_bytes": 4658,
+    "anchor_strategy": "heading-or-line",
+    "adapters": [
+      "generic-project",
+      "local-fs",
+      "docs",
+      "memory",
+      "repo"
+    ]
+  },
+  {
+    "id": "source:docs-change-records-2026-05-01-zzzzz-add-automation-kernel-for-event-driven-orchestration-md",
+    "kind": "document",
+    "path": "docs/change-records/2026-05-01-zzzzz-add-automation-kernel-for-event-driven-orchestration.md",
+    "exists": true,
+    "source_of_truth": true,
+    "discovered": true,
+    "size_bytes": 4074,
+    "anchor_strategy": "heading-or-line",
+    "adapters": [
+      "generic-project",
+      "local-fs",
+      "docs",
+      "memory",
+      "repo"
+    ]
+  },
+  {
     "id": "source:docs-change-records-readme-md",
     "kind": "document",
     "path": "docs/change-records/README.md",
@@ -1198,7 +1385,7 @@
     "exists": true,
     "source_of_truth": true,
     "discovered": true,
-    "size_bytes": 6001,
+    "size_bytes": 6487,
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
@@ -1263,6 +1450,22 @@
     "source_of_truth": true,
     "discovered": true,
     "size_bytes": 1237,
+    "anchor_strategy": "heading-or-line",
+    "adapters": [
+      "generic-project",
+      "local-fs",
+      "docs",
+      "repo"
+    ]
+  },
+  {
+    "id": "source:docs-reference-agent-execution-quality-policy-md",
+    "kind": "document",
+    "path": "docs/reference/agent-execution-quality-policy.md",
+    "exists": true,
+    "source_of_truth": true,
+    "discovered": true,
+    "size_bytes": 2449,
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
@@ -1342,7 +1545,7 @@
     "exists": true,
     "source_of_truth": true,
     "discovered": true,
-    "size_bytes": 5657,
+    "size_bytes": 12224,
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
@@ -1408,6 +1611,22 @@
     "source_of_truth": true,
     "discovered": true,
     "size_bytes": 15060,
+    "anchor_strategy": "heading-or-line",
+    "adapters": [
+      "generic-project",
+      "local-fs",
+      "docs",
+      "repo"
+    ]
+  },
+  {
+    "id": "source:docs-reference-symphony-orchestration-absorption-plan-md",
+    "kind": "document",
+    "path": "docs/reference/symphony-orchestration-absorption-plan.md",
+    "exists": true,
+    "source_of_truth": true,
+    "discovered": true,
+    "size_bytes": 15302,
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
@@ -1544,7 +1763,25 @@
     "exists": true,
     "source_of_truth": true,
     "discovered": true,
-    "size_bytes": 463,
+    "size_bytes": 2464,
+    "anchor_strategy": "heading-or-line",
+    "adapters": [
+      "generic-project",
+      "local-fs",
+      "docs",
+      "memory",
+      "repo",
+      "release"
+    ]
+  },
+  {
+    "id": "source:docs-releases-2026-05-01-release-sula-0-15-0-orchestration-control-plane-and-runner-boundaries-md",
+    "kind": "document",
+    "path": "docs/releases/2026-05-01-release-sula-0-15-0-orchestration-control-plane-and-runner-boundaries.md",
+    "exists": true,
+    "source_of_truth": true,
+    "discovered": true,
+    "size_bytes": 3024,
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
@@ -1659,6 +1896,22 @@
     ]
   },
   {
+    "id": "source:docs-workflows-plans-2026-04-30-symphony-orchestration-absorption-plan-md",
+    "kind": "document",
+    "path": "docs/workflows/plans/2026-04-30-symphony-orchestration-absorption-plan.md",
+    "exists": true,
+    "source_of_truth": true,
+    "discovered": true,
+    "size_bytes": 11764,
+    "anchor_strategy": "heading-or-line",
+    "adapters": [
+      "generic-project",
+      "local-fs",
+      "docs",
+      "repo"
+    ]
+  },
+  {
     "id": "source:examples-client-service-gdrive-agents-md",
     "kind": "document",
     "path": "examples/client-service-gdrive/AGENTS.md",
@@ -1713,7 +1966,7 @@
     "exists": true,
     "source_of_truth": true,
     "discovered": true,
-    "size_bytes": 1906,
+    "size_bytes": 1912,
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
@@ -1898,7 +2151,7 @@
     "exists": true,
     "source_of_truth": true,
     "discovered": true,
-    "size_bytes": 1893,
+    "size_bytes": 1899,
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
@@ -2162,7 +2415,7 @@
     "exists": true,
     "source_of_truth": true,
     "discovered": true,
-    "size_bytes": 1914,
+    "size_bytes": 1920,
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
@@ -2178,7 +2431,7 @@
     "exists": true,
     "source_of_truth": true,
     "discovered": true,
-    "size_bytes": 2878,
+    "size_bytes": 3680,
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
@@ -2652,7 +2905,7 @@
     "exists": true,
     "source_of_truth": true,
     "discovered": true,
-    "size_bytes": 2256,
+    "size_bytes": 3695,
     "anchor_strategy": "line",
     "adapters": [
       "generic-project",
@@ -2667,7 +2920,7 @@
     "exists": true,
     "source_of_truth": true,
     "discovered": true,
-    "size_bytes": 7095,
+    "size_bytes": 11523,
     "anchor_strategy": "line",
     "adapters": [
       "generic-project",
@@ -2682,7 +2935,7 @@
     "exists": true,
     "source_of_truth": true,
     "discovered": true,
-    "size_bytes": 616842,
+    "size_bytes": 757484,
     "anchor_strategy": "line",
     "adapters": [
       "generic-project",
@@ -2712,7 +2965,7 @@
     "exists": true,
     "source_of_truth": true,
     "discovered": true,
-    "size_bytes": 895,
+    "size_bytes": 953,
     "anchor_strategy": "line",
     "adapters": [
       "generic-project",
@@ -2727,7 +2980,7 @@
     "exists": true,
     "source_of_truth": true,
     "discovered": true,
-    "size_bytes": 786,
+    "size_bytes": 1240,
     "anchor_strategy": "line",
     "adapters": [
       "generic-project",
@@ -2742,7 +2995,7 @@
     "exists": true,
     "source_of_truth": true,
     "discovered": true,
-    "size_bytes": 13396,
+    "size_bytes": 18180,
     "anchor_strategy": "line",
     "adapters": [
       "generic-project",
@@ -2882,7 +3135,7 @@
     "exists": true,
     "source_of_truth": true,
     "discovered": true,
-    "size_bytes": 3857,
+    "size_bytes": 3860,
     "anchor_strategy": "line",
     "adapters": [
       "generic-project",
@@ -2897,7 +3150,7 @@
     "exists": true,
     "source_of_truth": true,
     "discovered": true,
-    "size_bytes": 183693,
+    "size_bytes": 227526,
     "anchor_strategy": "line",
     "adapters": [
       "generic-project",

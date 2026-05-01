@@ -1,6 +1,6 @@
 # STATUS
 
-- last updated: 2026-04-22
+- last updated: 2026-05-01
 ## Summary
 
 - Sula now manages itself as a first-class `sula-core` consumer while still acting as the source repository for reusable operating-system assets.
@@ -28,20 +28,31 @@
 - Sula now has registry-backed in-repo canary verification across `sula-core`, `software-delivery`, `generic-project`, and `client-service`-style examples, plus public-release readiness and export commands that isolate remaining publication risk to git history rather than content drift.
 - Sula now has a chosen default public-release path: keep this repository as the private pre-public lineage, publish a fresh public repository from `release export-public`, and only then point the site descriptor at the public source.
 - The fresh public source now exists at `irihiyahnj/sula-public`, so `https://sula.1stp.monster/launch/` can resolve a real canonical clone source instead of depending on a local checkout.
+- Sula now has a durable Symphony-style orchestration absorption plan and execution culture, so future AI sessions can implement the upgrade from repository truth instead of chat history.
+- Sula now has the first executable Symphony-style orchestration slice: optional disabled-by-default manifest policy, local task normalization, dry-run run records, safety gates, and JSON orchestration commands.
+- Sula now captures CLI/user intent as auditable orchestration tasks and requires closeout evidence beyond dry-run scheduling before a run can be accepted.
+- Sula now absorbs Karpathy-inspired coding guidance as a portable `[agent_behavior]` policy with run-record quality checklists and verification/success-criteria closeout gates.
+- Sula orchestration now has a generic trigger surface, a dependency-light `shell-command` real runner with isolated copy-workspace evidence, machine closeout evaluation, and review-required promotion candidates.
+- Sula orchestration now reads provider task document mirrors and exposes portfolio-level orchestration summaries across registered projects.
+- Sula orchestration closeout now validates task requirements, touched files, links, and requested `sula check` evidence before accepting a run.
+- Sula orchestration closeout now emits typed verification checks for local files, artifact catalog entries, provider metadata, PR URLs, and ordinary URLs through manifest-controlled verification adapters.
+- Sula orchestration now has a `provider-api` task source contract with provider task item identity, provider adapter task fetching, and fixture-backed Google Drive task ingestion.
+- Sula orchestration now has policy-controlled remote verification for PR/provider closeout references plus `codex-sdk` and `codex-app-server` runner adapters behind explicit project settings.
+- Sula now has a first-class automation kernel above orchestration: normal `check`, `doctor`, `status`, `query`, `sync`, and artifact freshness entrypoints can create events and intents automatically, so users do not need to remember a manual trigger command before Sula can plan follow-up work.
 
 ## Health
 
 - status: green
-- reason: Sula 0.13.0 release-grade verification now passes, and the staged-memory kernel plus product-facing memory workflow are stable for downstream sync.
+- reason: Sula 0.15.0 source-release verification now includes event-driven automation intent and dispatch coverage, while the public bootstrap contract remains pinned to the already-published `v0.14.0` tag until the clean `0.15.0` export is published.
 
 ## Current Focus
 
 
-- turn the recorded vNext architecture into stronger adapter composition and better result quality over the new SQLite-backed retrieval path
-- maintain clear approval reporting so managed/scaffold boundaries remain obvious during onboarding
 - keep the public bootstrap contract aligned with real consumer behavior and protocol failures seen in live use
-- switch `site/sula.json` and `site/launch/bootstrap.py` to the published public source after that repository exists
-- decide whether to keep the hosted site on Fly or migrate it onto the existing DigitalOcean infrastructure once server write access is available
+- run credentialed real-project canaries for GitHub PR verification, provider-backed artifact verification, and Codex runner endpoints before broad orchestration rollout
+- add authenticated provider task adapters beyond the current Google Drive document/checklist contract when a real provider task API target is selected
+- harden long-running remote runner cancellation and streamed event capture after the first real app-server canary
+- expand automation classifiers after real projects reveal recurring provider, status, and workflow failure patterns
 ## Blockers
 
 - none
@@ -49,33 +60,33 @@
 ## Recent Decisions
 
 
-- 2026-04-12: released [Sula 0.11.0 formal document workflows and feedback bundles](docs/releases/2026-04-12-release-sula-0-11-0-formal-document-workflows-and-feedback-bundles.md)
-- 2026-04-16: added release record [Release Sula 0.12.0 freshness, workflow, and Unicode source-id fixes](docs/releases/2026-04-16-release-sula-0-12-0-freshness-workflow-and-unicode-source-id-fixes.md)
-- 2026-04-18: added release record [Release Sula 0.13.0 stable memory kernel and operator workflow](docs/releases/2026-04-18-release-sula-0-13-0-stable-memory-kernel-and-operator-workflow.md)
-- 2026-04-12: added release record [Release Sula 0.11.0 formal document workflows and feedback bundles](docs/releases/2026-04-12-release-sula-0-11-0-formal-document-workflows-and-feedback-bundles.md)
-- 2026-04-22: added release record [Release Sula 0.14.0 handoff contract and Git release upgrade flow](docs/releases/2026-04-22-release-sula-0-14-0-handoff-contract-and-git-release-upgrade-flow.md)
+- 2026-05-01: added [Add Provider API Task Source](docs/change-records/2026-05-01-zzz-add-provider-api-task-source.md)
+- 2026-05-01: added [Add Closeout Verification Adapters](docs/change-records/2026-05-01-zz-add-closeout-verification-adapters.md)
+- 2026-05-01: added [Strengthen Orchestration Closeout Evaluator](docs/change-records/2026-05-01-z-strengthen-orchestration-closeout-evaluator.md)
+- 2026-05-01: added [Wire Provider Task Source And Portfolio Orchestration](docs/change-records/2026-05-01-wire-provider-task-source-and-portfolio-orchestration.md)
+- 2026-05-01: added [Add Automation Kernel For Event Driven Orchestration](docs/change-records/2026-05-01-zzzzz-add-automation-kernel-for-event-driven-orchestration.md)
 ## Next Review
 
 - owner: Sula Core maintainers
-- date: 2026-04-21
-- trigger: review again before broad 0.13.0 rollout, changing the public bootstrap contract, or expanding memory beyond the current stable promotion loop
+- date: 2026-05-08
+- trigger: review again before public `v0.15.0` publication, broad orchestration rollout, long-running runner streaming/cancellation, or changing agent behavior policy gates
 
 ## Handoff
 
 
 - ready: yes
-- start here: `docs/releases/2026-04-22-release-sula-0-14-0-handoff-contract-and-git-release-upgrade-flow.md`; `STATUS.md`
-- latest record: `docs/releases/2026-04-22-release-sula-0-14-0-handoff-contract-and-git-release-upgrade-flow.md`
-- next action: review `docs/change-records/2026-04-18-document-memory-capability-implementation-plan.md`; run `python3 scripts/sula.py canary verify --project-root . --all`
+- start here: `docs/change-records/2026-05-01-zzzzz-add-automation-kernel-for-event-driven-orchestration.md`; `docs/change-records/2026-05-01-zzzz-add-remote-verification-and-codex-runners.md`; `docs/change-records/2026-05-01-zzz-add-provider-api-task-source.md`; `docs/change-records/2026-05-01-zz-add-closeout-verification-adapters.md`; `docs/reference/agent-execution-quality-policy.md`; `docs/workflows/plans/2026-04-30-symphony-orchestration-absorption-plan.md`; `docs/reference/symphony-orchestration-absorption-plan.md`; `STATUS.md`
+- latest record: `docs/change-records/2026-05-01-zzzzz-add-automation-kernel-for-event-driven-orchestration.md`
+- next action: review `docs/releases/2026-05-01-release-sula-0-15-0-orchestration-control-plane-and-runner-boundaries.md`; run `python3 scripts/sula.py release readiness --project-root . --json`
 - next owner: Sula Core maintainers
-- next due: 2026-04-22
+- next due: 2026-05-08
 - done when: result `SULA CHECK OK`; result `doctor strict passed`; artifact `STATUS.md`
 - blockers: none
-- source of truth: `STATUS.md`; `docs/releases/2026-04-22-release-sula-0-14-0-handoff-contract-and-git-release-upgrade-flow.md`
+- source of truth: `STATUS.md`; `docs/reference/agent-execution-quality-policy.md`; `docs/workflows/plans/2026-04-30-symphony-orchestration-absorption-plan.md`; `docs/reference/symphony-orchestration-absorption-plan.md`; `docs/change-records/2026-05-01-zzzzz-add-automation-kernel-for-event-driven-orchestration.md`; `docs/change-records/2026-05-01-zzzz-add-remote-verification-and-codex-runners.md`
 - source freshness: n/a
-- verification command: `python3 scripts/sula.py canary verify --project-root . --all`
-- verification result: n/a
-- verification date: 2026-04-22
+- verification command: `python3 scripts/sula.py check --project-root . --json`; `python3 scripts/sula.py doctor --project-root . --strict --json`
+- verification result: pass
+- verification date: 2026-05-01
 - git branch: main
-- git commit: fae517499091
+- git commit: f3db8f2d9cbe
 - git working tree: dirty

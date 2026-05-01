@@ -20,6 +20,19 @@ class ProviderSnapshot:
 
 
 @dataclass
+class ProviderTaskListSnapshot:
+    provider: str
+    provider_item_id: str
+    provider_item_kind: str
+    provider_item_url: str
+    provider_title: str
+    provider_modified_at: str
+    tasks: list[dict[str, object]]
+    normalized_content: dict[str, object]
+    raw_metadata: dict[str, object]
+
+
+@dataclass
 class ProviderAdapterError(Exception):
     code: str
     message: str
@@ -31,4 +44,7 @@ class ProviderAdapterError(Exception):
 
 class ProviderAdapter(Protocol):
     def fetch_item(self, *, provider_item_id: str, provider_item_kind: str, provider_item_url: str) -> ProviderSnapshot:
+        ...
+
+    def fetch_tasks(self, *, provider_item_id: str, provider_item_kind: str, provider_item_url: str) -> ProviderTaskListSnapshot:
         ...

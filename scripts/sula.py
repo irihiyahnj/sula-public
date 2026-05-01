@@ -21,9 +21,10 @@ import subprocess
 import sys
 import tempfile
 import unicodedata
+from urllib import error, parse, request
 import zipfile
 
-from sula_providers import ProviderAdapterError, ProviderSnapshot, create_provider_adapter
+from sula_providers import ProviderAdapterError, ProviderSnapshot, ProviderTaskListSnapshot, create_provider_adapter
 
 
 SULA_ROOT = Path(__file__).resolve().parent.parent
@@ -80,6 +81,33 @@ WORKFLOW_ISOLATION_CHOICES = ["none", "branch", "worktree"]
 WORKFLOW_TESTING_POLICY_CHOICES = ["inherit", "verify-first", "tdd"]
 WORKFLOW_CLOSEOUT_POLICY_CHOICES = ["inherit", "explicit"]
 WORKFLOW_SCAFFOLD_KIND_CHOICES = ["spec", "plan", "review"]
+ORCHESTRATION_MODE_CHOICES = ["ticket-runner", "review-assistant", "status-only"]
+ORCHESTRATION_TASK_SOURCE_CHOICES = ["local", "provider-task-document", "provider-api"]
+ORCHESTRATION_RUNNER_CHOICES = ["dry-run", "codex-sdk", "codex-app-server", "shell-command"]
+ORCHESTRATION_WORKSPACE_MODE_CHOICES = ["none", "branch", "worktree", "copy", "container", "remote"]
+ORCHESTRATION_TRUST_PROFILE_CHOICES = ["local-sandboxed", "trusted-local", "remote-sandboxed"]
+ORCHESTRATION_RISK_CHOICES = ["low", "medium", "high"]
+ORCHESTRATION_STATUS_SURFACE_CHOICES = ["sula", "external"]
+ORCHESTRATION_VERIFICATION_ADAPTER_CHOICES = ["local-file", "artifact-catalog", "provider-metadata", "pull-request-url", "url"]
+ORCHESTRATION_REMOTE_VERIFICATION_POLICY_CHOICES = ["reference-only", "opportunistic", "required"]
+ORCHESTRATION_RUN_STATUSES = ["blocked", "planned", "running", "failed", "human-review", "accepted", "cancelled"]
+AUTOMATION_MODE_CHOICES = ["observe", "assist", "execute"]
+AUTOMATION_EVENT_SOURCE_CHOICES = ["sula-cli", "provider", "status", "artifact", "workflow", "external"]
+ORCHESTRATION_TRIGGER_SOURCE_KIND_CHOICES = [
+    "cli-intent",
+    "sula-command",
+    "webhook",
+    "github-issue",
+    "linear-issue",
+    "provider-task-document",
+    "external",
+]
+AGENT_BEHAVIOR_QUALITY_POLICY_CHOICES = ["sula-karpathy-inspired", "minimal"]
+AGENT_BEHAVIOR_CLARIFICATION_POLICY_CHOICES = ["non-trivial-only", "always", "never"]
+AGENT_BEHAVIOR_DIFF_SCOPE_POLICY_CHOICES = ["surgical", "task-scoped", "open"]
+AGENT_BEHAVIOR_SUCCESS_CRITERIA_POLICY_CHOICES = ["required", "recommended", "off"]
+AGENT_BEHAVIOR_ASSUMPTION_POLICY_CHOICES = ["surface-when-uncertain", "always", "off"]
+AGENT_BEHAVIOR_COMPLEXITY_POLICY_CHOICES = ["simplicity-first", "project-default"]
 MEMORY_CAPTURE_POLICY_CHOICES = ["off", "explicit", "guided"]
 MEMORY_PROMOTION_POLICY_CHOICES = ["manual", "review-required", "auto-derived"]
 MEMORY_QUERY_ROUTING_CHOICES = ["literal", "deterministic", "deterministic-plus-hints"]
@@ -257,6 +285,52 @@ OPTIONAL_MANIFEST_SPEC = {
         "workspace_isolation": "string",
         "testing_policy": "string",
         "closeout_policy": "string",
+    },
+    "orchestration": {
+        "enabled": "bool",
+        "mode": "string",
+        "task_source": "string",
+        "runner": "string",
+        "runner_command": "string_optional",
+        "runner_endpoint": "string_optional",
+        "runner_token_env": "string_optional",
+        "tasks_path": "string",
+        "provider_task_item_id": "string_optional",
+        "provider_task_item_kind": "string_optional",
+        "provider_task_item_url": "string_optional",
+        "workspace_root": "string",
+        "workspace_mode": "string",
+        "trust_profile": "string",
+        "allow_project_root_runner": "bool",
+        "max_concurrent_runs": "int",
+        "max_retry_count": "int",
+        "max_run_minutes": "int",
+        "daily_budget_minutes": "int",
+        "unattended_risk_ceiling": "string",
+        "require_human_approval_for": "string_list",
+        "status_surface": "string",
+        "verification_adapters": "string_list",
+        "remote_verification_policy": "string",
+    },
+    "automation": {
+        "enabled": "bool",
+        "mode": "string",
+        "auto_intake": "bool",
+        "auto_plan": "bool",
+        "auto_dispatch": "bool",
+        "risk_ceiling": "string",
+        "approval_required_for": "string_list",
+        "event_sources": "string_list",
+    },
+    "agent_behavior": {
+        "quality_policy": "string",
+        "clarification_policy": "string",
+        "diff_scope_policy": "string",
+        "success_criteria_policy": "string",
+        "assumption_policy": "string",
+        "complexity_policy": "string",
+        "require_verification": "bool",
+        "forbid_drive_by_refactors": "bool",
     },
     "storage": {
         "provider": "string",
@@ -560,6 +634,12 @@ class ProjectConfig:
     def workflow_setting(self, key: str, default):
         return self.data.get("workflow", {}).get(key, default)
 
+    def orchestration_setting(self, key: str, default):
+        return self.data.get("orchestration", {}).get(key, default)
+
+    def agent_behavior_setting(self, key: str, default):
+        return self.data.get("agent_behavior", {}).get(key, default)
+
     def storage_setting(self, key: str, default):
         return self.data.get("storage", {}).get(key, default)
 
@@ -664,6 +744,271 @@ class ProjectConfig:
             WORKFLOW_CLOSEOUT_POLICY_CHOICES,
             defaults["closeout_policy"],
         )
+
+    @property
+    def orchestration_enabled(self) -> bool:
+        return bool(self.orchestration_setting("enabled", False))
+
+    @property
+    def orchestration_mode(self) -> str:
+        return normalize_workflow_choice(
+            self.orchestration_setting("mode", "ticket-runner"),
+            ORCHESTRATION_MODE_CHOICES,
+            "ticket-runner",
+        )
+
+    @property
+    def orchestration_task_source(self) -> str:
+        return normalize_workflow_choice(
+            self.orchestration_setting("task_source", "local"),
+            ORCHESTRATION_TASK_SOURCE_CHOICES,
+            "local",
+        )
+
+    @property
+    def orchestration_runner(self) -> str:
+        return normalize_workflow_choice(
+            self.orchestration_setting("runner", "dry-run"),
+            ORCHESTRATION_RUNNER_CHOICES,
+            "dry-run",
+        )
+
+    @property
+    def orchestration_runner_command(self) -> str:
+        return normalize_optional_text(self.orchestration_setting("runner_command", ""))
+
+    @property
+    def orchestration_runner_endpoint(self) -> str:
+        return normalize_optional_text(self.orchestration_setting("runner_endpoint", "")).strip()
+
+    @property
+    def orchestration_runner_token_env(self) -> str:
+        return normalize_optional_text(self.orchestration_setting("runner_token_env", "SULA_CODEX_APP_SERVER_TOKEN")).strip()
+
+    @property
+    def orchestration_tasks_path(self) -> Path:
+        raw = str(self.orchestration_setting("tasks_path", "docs/workflows/tasks.json"))
+        return (self.root / raw).resolve() if not Path(raw).is_absolute() else Path(raw)
+
+    @property
+    def orchestration_provider_task_item_id(self) -> str:
+        return normalize_optional_text(self.orchestration_setting("provider_task_item_id", "")).strip()
+
+    @property
+    def orchestration_provider_task_item_kind(self) -> str:
+        return normalize_optional_text(self.orchestration_setting("provider_task_item_kind", "")).strip()
+
+    @property
+    def orchestration_provider_task_item_url(self) -> str:
+        return normalize_optional_text(self.orchestration_setting("provider_task_item_url", "")).strip()
+
+    @property
+    def orchestration_workspace_root(self) -> Path:
+        raw = str(self.orchestration_setting("workspace_root", ".sula/local/workspaces"))
+        return (self.root / raw).resolve() if not Path(raw).is_absolute() else Path(raw)
+
+    @property
+    def orchestration_workspace_mode(self) -> str:
+        return normalize_workflow_choice(
+            self.orchestration_setting("workspace_mode", "none"),
+            ORCHESTRATION_WORKSPACE_MODE_CHOICES,
+            "none",
+        )
+
+    @property
+    def orchestration_allow_project_root_runner(self) -> bool:
+        return bool(self.orchestration_setting("allow_project_root_runner", False))
+
+    @property
+    def orchestration_trust_profile(self) -> str:
+        return normalize_workflow_choice(
+            self.orchestration_setting("trust_profile", "local-sandboxed"),
+            ORCHESTRATION_TRUST_PROFILE_CHOICES,
+            "local-sandboxed",
+        )
+
+    @property
+    def orchestration_max_concurrent_runs(self) -> int:
+        return int(self.orchestration_setting("max_concurrent_runs", 1))
+
+    @property
+    def orchestration_max_retry_count(self) -> int:
+        return int(self.orchestration_setting("max_retry_count", 1))
+
+    @property
+    def orchestration_max_run_minutes(self) -> int:
+        return int(self.orchestration_setting("max_run_minutes", 30))
+
+    @property
+    def orchestration_daily_budget_minutes(self) -> int:
+        return int(self.orchestration_setting("daily_budget_minutes", 120))
+
+    @property
+    def orchestration_unattended_risk_ceiling(self) -> str:
+        return normalize_workflow_choice(
+            self.orchestration_setting("unattended_risk_ceiling", "low"),
+            ORCHESTRATION_RISK_CHOICES,
+            "low",
+        )
+
+    @property
+    def orchestration_require_human_approval_for(self) -> list[str]:
+        value = self.orchestration_setting("require_human_approval_for", ["release", "security", "provider-write", "destructive"])
+        if not isinstance(value, list):
+            return ["release", "security", "provider-write", "destructive"]
+        return [str(item).strip() for item in value if str(item).strip()]
+
+    @property
+    def orchestration_status_surface(self) -> str:
+        return normalize_workflow_choice(
+            self.orchestration_setting("status_surface", "sula"),
+            ORCHESTRATION_STATUS_SURFACE_CHOICES,
+            "sula",
+        )
+
+    @property
+    def orchestration_verification_adapters(self) -> list[str]:
+        value = self.orchestration_setting(
+            "verification_adapters",
+            ["local-file", "artifact-catalog", "provider-metadata", "pull-request-url", "url"],
+        )
+        if not isinstance(value, list):
+            return ["local-file", "artifact-catalog", "provider-metadata", "pull-request-url", "url"]
+        adapters: list[str] = []
+        for item in value:
+            normalized = normalize_optional_text(item).strip().lower()
+            if normalized in ORCHESTRATION_VERIFICATION_ADAPTER_CHOICES and normalized not in adapters:
+                adapters.append(normalized)
+        return adapters or ["local-file", "artifact-catalog", "provider-metadata", "pull-request-url", "url"]
+
+    @property
+    def orchestration_remote_verification_policy(self) -> str:
+        return normalize_workflow_choice(
+            self.orchestration_setting("remote_verification_policy", "opportunistic"),
+            ORCHESTRATION_REMOTE_VERIFICATION_POLICY_CHOICES,
+            "opportunistic",
+        )
+
+    def automation_setting(self, key: str, default):
+        section = self.data.get("automation", {})
+        if not isinstance(section, dict):
+            return default
+        return section.get(key, default)
+
+    @property
+    def automation_enabled(self) -> bool:
+        return bool(self.automation_setting("enabled", True))
+
+    @property
+    def automation_mode(self) -> str:
+        return normalize_workflow_choice(
+            self.automation_setting("mode", "assist"),
+            AUTOMATION_MODE_CHOICES,
+            "assist",
+        )
+
+    @property
+    def automation_auto_intake(self) -> bool:
+        return bool(self.automation_setting("auto_intake", True))
+
+    @property
+    def automation_auto_plan(self) -> bool:
+        return bool(self.automation_setting("auto_plan", True))
+
+    @property
+    def automation_auto_dispatch(self) -> bool:
+        return bool(self.automation_setting("auto_dispatch", False))
+
+    @property
+    def automation_risk_ceiling(self) -> str:
+        return normalize_workflow_choice(
+            self.automation_setting("risk_ceiling", "low"),
+            ORCHESTRATION_RISK_CHOICES,
+            "low",
+        )
+
+    @property
+    def automation_approval_required_for(self) -> list[str]:
+        value = self.automation_setting("approval_required_for", ["release", "security", "provider-write", "destructive"])
+        if not isinstance(value, list):
+            return ["release", "security", "provider-write", "destructive"]
+        return [str(item).strip() for item in value if str(item).strip()]
+
+    @property
+    def automation_event_sources(self) -> list[str]:
+        value = self.automation_setting("event_sources", ["sula-cli", "provider", "status", "artifact", "workflow", "external"])
+        if not isinstance(value, list):
+            return ["sula-cli", "provider", "status", "artifact", "workflow", "external"]
+        sources: list[str] = []
+        for item in value:
+            normalized = normalize_optional_text(item).strip().lower()
+            if normalized in AUTOMATION_EVENT_SOURCE_CHOICES and normalized not in sources:
+                sources.append(normalized)
+        return sources or ["sula-cli", "provider", "status", "artifact", "workflow", "external"]
+
+    @property
+    def automation_state_root(self) -> Path:
+        return self.root / ".sula" / "state" / "automation"
+
+    @property
+    def orchestration_state_root(self) -> Path:
+        return self.root / ".sula" / "state" / "orchestration"
+
+    @property
+    def agent_quality_policy(self) -> str:
+        return normalize_workflow_choice(
+            self.agent_behavior_setting("quality_policy", "sula-karpathy-inspired"),
+            AGENT_BEHAVIOR_QUALITY_POLICY_CHOICES,
+            "sula-karpathy-inspired",
+        )
+
+    @property
+    def agent_clarification_policy(self) -> str:
+        return normalize_workflow_choice(
+            self.agent_behavior_setting("clarification_policy", "non-trivial-only"),
+            AGENT_BEHAVIOR_CLARIFICATION_POLICY_CHOICES,
+            "non-trivial-only",
+        )
+
+    @property
+    def agent_diff_scope_policy(self) -> str:
+        return normalize_workflow_choice(
+            self.agent_behavior_setting("diff_scope_policy", "surgical"),
+            AGENT_BEHAVIOR_DIFF_SCOPE_POLICY_CHOICES,
+            "surgical",
+        )
+
+    @property
+    def agent_success_criteria_policy(self) -> str:
+        return normalize_workflow_choice(
+            self.agent_behavior_setting("success_criteria_policy", "required"),
+            AGENT_BEHAVIOR_SUCCESS_CRITERIA_POLICY_CHOICES,
+            "required",
+        )
+
+    @property
+    def agent_assumption_policy(self) -> str:
+        return normalize_workflow_choice(
+            self.agent_behavior_setting("assumption_policy", "surface-when-uncertain"),
+            AGENT_BEHAVIOR_ASSUMPTION_POLICY_CHOICES,
+            "surface-when-uncertain",
+        )
+
+    @property
+    def agent_complexity_policy(self) -> str:
+        return normalize_workflow_choice(
+            self.agent_behavior_setting("complexity_policy", "simplicity-first"),
+            AGENT_BEHAVIOR_COMPLEXITY_POLICY_CHOICES,
+            "simplicity-first",
+        )
+
+    @property
+    def agent_require_verification(self) -> bool:
+        return bool(self.agent_behavior_setting("require_verification", True))
+
+    @property
+    def agent_forbid_drive_by_refactors(self) -> bool:
+        return bool(self.agent_behavior_setting("forbid_drive_by_refactors", True))
 
     @property
     def provider_import_root(self) -> Path:
@@ -777,6 +1122,15 @@ class ProjectConfig:
             "WORKFLOW_ISOLATION": self.workflow_workspace_isolation,
             "WORKFLOW_TESTING_POLICY": self.workflow_testing_policy,
             "WORKFLOW_CLOSEOUT_POLICY": self.workflow_closeout_policy,
+            "ORCHESTRATION_ENABLED": str(self.orchestration_enabled).lower(),
+            "ORCHESTRATION_MODE": self.orchestration_mode,
+            "ORCHESTRATION_TASK_SOURCE": self.orchestration_task_source,
+            "ORCHESTRATION_RUNNER": self.orchestration_runner,
+            "ORCHESTRATION_RUNNER_COMMAND": self.orchestration_runner_command,
+            "ORCHESTRATION_WORKSPACE_MODE": self.orchestration_workspace_mode,
+            "AGENT_QUALITY_POLICY": self.agent_quality_policy,
+            "AGENT_DIFF_SCOPE_POLICY": self.agent_diff_scope_policy,
+            "AGENT_SUCCESS_CRITERIA_POLICY": self.agent_success_criteria_policy,
             "STORAGE_PROVIDER": self.storage_provider,
             "STORAGE_SYNC_MODE": self.storage_sync_mode,
             "PORTFOLIO_ID": self.portfolio_setting("portfolio_id", "default"),
@@ -1275,6 +1629,73 @@ def parse_args() -> argparse.Namespace:
     workflow_close_cmd.add_argument("--doctor-strict", action="store_true", help="Also require `doctor --strict` to pass")
     workflow_close_cmd.add_argument("--json", action="store_true", help="Print JSON instead of human-readable output")
 
+    orchestration_cmd = sub.add_parser("orchestration", help="Inspect and run optional task orchestration")
+    orchestration_sub = orchestration_cmd.add_subparsers(dest="orchestration_command", required=True)
+
+    orchestration_status_cmd = orchestration_sub.add_parser("status", help="Summarize orchestration config and run state")
+    add_project_root_arg(orchestration_status_cmd)
+    orchestration_status_cmd.add_argument("--json", action="store_true", help="Print JSON instead of human-readable output")
+
+    orchestration_tasks_cmd = orchestration_sub.add_parser("tasks", help="List normalized orchestration tasks")
+    add_project_root_arg(orchestration_tasks_cmd)
+    orchestration_tasks_cmd.add_argument("--json", action="store_true", help="Print JSON instead of human-readable output")
+
+    orchestration_intake_cmd = orchestration_sub.add_parser("intake", help="Capture a CLI/user intent as a normalized local orchestration task")
+    add_project_root_arg(orchestration_intake_cmd)
+    orchestration_intake_cmd.add_argument("--title", required=True)
+    orchestration_intake_cmd.add_argument("--description", default="")
+    orchestration_intake_cmd.add_argument("--acceptance", action="append", default=[], help="Acceptance criterion. Repeat for multiple criteria.")
+    orchestration_intake_cmd.add_argument("--validation", action="append", default=[], help="Validation requirement. Repeat for multiple requirements.")
+    orchestration_intake_cmd.add_argument("--label", action="append", default=[], help="Task label. Repeat for multiple labels.")
+    orchestration_intake_cmd.add_argument("--risk-hint", action="append", default=[], help="Risk hint. Repeat for multiple hints.")
+    orchestration_intake_cmd.add_argument("--priority", default="normal")
+    orchestration_intake_cmd.add_argument("--identifier")
+    orchestration_intake_cmd.add_argument("--json", action="store_true", help="Print JSON instead of human-readable output")
+
+    orchestration_trigger_cmd = orchestration_sub.add_parser("trigger", help="Capture any Sula-connected event as normalized orchestration task intent")
+    add_project_root_arg(orchestration_trigger_cmd)
+    orchestration_trigger_cmd.add_argument("--source-kind", required=True, choices=ORCHESTRATION_TRIGGER_SOURCE_KIND_CHOICES)
+    orchestration_trigger_cmd.add_argument("--source-url", default="")
+    orchestration_trigger_cmd.add_argument("--identity-key", required=True, help="Stable source identity used for dedupe across triggers")
+    orchestration_trigger_cmd.add_argument("--event-kind", default="intent")
+    orchestration_trigger_cmd.add_argument("--title", required=True)
+    orchestration_trigger_cmd.add_argument("--description", default="")
+    orchestration_trigger_cmd.add_argument("--acceptance", action="append", default=[], help="Acceptance criterion. Repeat for multiple criteria.")
+    orchestration_trigger_cmd.add_argument("--validation", action="append", default=[], help="Validation requirement. Repeat for multiple requirements.")
+    orchestration_trigger_cmd.add_argument("--label", action="append", default=[], help="Task label. Repeat for multiple labels.")
+    orchestration_trigger_cmd.add_argument("--risk-hint", action="append", default=[], help="Risk hint. Repeat for multiple hints.")
+    orchestration_trigger_cmd.add_argument("--priority", default="normal")
+    orchestration_trigger_cmd.add_argument("--run", action="store_true", help="Immediately dispatch the task when it is eligible")
+    orchestration_trigger_cmd.add_argument("--json", action="store_true", help="Print JSON instead of human-readable output")
+
+    orchestration_run_cmd = orchestration_sub.add_parser("run", help="Create a bounded orchestration run for one task")
+    add_project_root_arg(orchestration_run_cmd)
+    orchestration_run_cmd.add_argument("--task-id", required=True)
+    orchestration_run_cmd.add_argument("--json", action="store_true", help="Print JSON instead of human-readable output")
+
+    orchestration_close_cmd = orchestration_sub.add_parser("close", help="Evaluate closeout evidence and optionally accept a run")
+    add_project_root_arg(orchestration_close_cmd)
+    orchestration_close_cmd.add_argument("--run-id", required=True)
+    orchestration_close_cmd.add_argument("--evidence", action="append", default=[], help="Validation evidence summary. Repeat for multiple evidence items.")
+    orchestration_close_cmd.add_argument("--touched-file", action="append", default=[], help="Touched file path. Repeat for multiple files.")
+    orchestration_close_cmd.add_argument("--link", action="append", default=[], help="Related artifact, PR, provider item, or record link.")
+    orchestration_close_cmd.add_argument("--lesson", action="append", default=[], help="Reusable lesson proposed for later memory or feedback review.")
+    orchestration_close_cmd.add_argument("--accept", action="store_true", help="Mark the run accepted when evidence is sufficient")
+    orchestration_close_cmd.add_argument("--json", action="store_true", help="Print JSON instead of human-readable output")
+
+    orchestration_cancel_cmd = orchestration_sub.add_parser("cancel", help="Mark an orchestration run as cancelled")
+    add_project_root_arg(orchestration_cancel_cmd)
+    orchestration_cancel_cmd.add_argument("--run-id", required=True)
+    orchestration_cancel_cmd.add_argument("--json", action="store_true", help="Print JSON instead of human-readable output")
+
+    orchestration_stop_all_cmd = orchestration_sub.add_parser("stop-all", help="Cancel all active orchestration runs")
+    add_project_root_arg(orchestration_stop_all_cmd)
+    orchestration_stop_all_cmd.add_argument("--json", action="store_true", help="Print JSON instead of human-readable output")
+
+    orchestration_doctor_cmd = orchestration_sub.add_parser("doctor", help="Check orchestration policy and local state")
+    add_project_root_arg(orchestration_doctor_cmd)
+    orchestration_doctor_cmd.add_argument("--json", action="store_true", help="Print JSON instead of human-readable output")
+
     canary_cmd = sub.add_parser("canary", help="Inspect and verify rollout canaries from the adopted-project registry")
     canary_sub = canary_cmd.add_subparsers(dest="canary_command", required=True)
 
@@ -1478,6 +1899,10 @@ def parse_args() -> argparse.Namespace:
     add_portfolio_root_arg(portfolio_status_cmd)
     portfolio_status_cmd.add_argument("--json", action="store_true", help="Print JSON instead of human-readable output")
 
+    portfolio_orchestration_cmd = portfolio_sub.add_parser("orchestration", help="Summarize orchestration state across registered projects")
+    add_portfolio_root_arg(portfolio_orchestration_cmd)
+    portfolio_orchestration_cmd.add_argument("--json", action="store_true", help="Print JSON instead of human-readable output")
+
     portfolio_query_cmd = portfolio_sub.add_parser("query", help="Query across registered portfolio projects")
     add_portfolio_root_arg(portfolio_query_cmd)
     portfolio_query_cmd.add_argument("--q", required=True)
@@ -1573,6 +1998,32 @@ def json_output_requested(args: argparse.Namespace) -> bool:
     return bool(getattr(args, "json", False))
 
 
+def agent_behavior_payload(config: ProjectConfig) -> dict[str, object]:
+    return {
+        "quality_policy": config.agent_quality_policy,
+        "clarification_policy": config.agent_clarification_policy,
+        "diff_scope_policy": config.agent_diff_scope_policy,
+        "success_criteria_policy": config.agent_success_criteria_policy,
+        "assumption_policy": config.agent_assumption_policy,
+        "complexity_policy": config.agent_complexity_policy,
+        "require_verification": config.agent_require_verification,
+        "forbid_drive_by_refactors": config.agent_forbid_drive_by_refactors,
+    }
+
+
+def automation_config_payload(config: ProjectConfig) -> dict[str, object]:
+    return {
+        "enabled": config.automation_enabled,
+        "mode": config.automation_mode,
+        "auto_intake": config.automation_auto_intake,
+        "auto_plan": config.automation_auto_plan,
+        "auto_dispatch": config.automation_auto_dispatch,
+        "risk_ceiling": config.automation_risk_ceiling,
+        "approval_required_for": config.automation_approval_required_for,
+        "event_sources": config.automation_event_sources,
+    }
+
+
 def project_payload(config: ProjectConfig) -> dict[str, object]:
     return {
         "name": config.data["project"]["name"],
@@ -1587,6 +2038,9 @@ def project_payload(config: ProjectConfig) -> dict[str, object]:
         "workflow_docs_root": config.workflow_docs_root.relative_to(config.root).as_posix()
         if config.workflow_docs_root.is_relative_to(config.root)
         else str(config.workflow_docs_root),
+        "automation": automation_config_payload(config),
+        "orchestration": orchestration_config_payload(config),
+        "agent_behavior": agent_behavior_payload(config),
         "storage_provider": config.storage_provider,
         "storage_sync_mode": config.storage_sync_mode,
         "portfolio_id": config.portfolio_setting("portfolio_id", "default"),
@@ -2281,6 +2735,16 @@ def main() -> int:
     if args.command == "sync":
         actions = collect_render_actions(config, include_scaffold=True)
         if args.dry_run:
+            pending = [action.relative_path.as_posix() for action in actions if action.status != "unchanged"]
+            automation_observe_event(
+                config,
+                source_kind="sula-cli",
+                event_kind="sync.dry-run",
+                title="Sula sync dry run",
+                summary=f"Sync dry run found {len(pending)} pending managed-file action(s).",
+                identity_key="sync-dry-run:" + date.today().isoformat(),
+                payload={"pending_actions": pending[:20], "pending_count": len(pending)},
+            )
             if getattr(args, "json", False):
                 emit_json({"command": "sync", "status": "dry-run", "project": project_payload(config), "plan": sync_plan_payload(actions)})
                 return 0
@@ -2289,6 +2753,15 @@ def main() -> int:
         apply_projection_state(config, actions)
         write_lockfile(config)
         refresh_kernel_state(config, event_type="sync.applied", summary="Synchronized enabled Sula projections.")
+        automation_observe_event(
+            config,
+            source_kind="sula-cli",
+            event_kind="sync.applied",
+            title="Sula sync",
+            summary="Synchronized enabled Sula projections.",
+            identity_key="sync:" + date.today().isoformat(),
+            payload={"action_count": len(actions)},
+        )
         if getattr(args, "json", False):
             emit_json({"command": "sync", "status": "ok", "project": project_payload(config), "plan": sync_plan_payload(actions)})
             return 0
@@ -2306,6 +2779,9 @@ def main() -> int:
 
     if args.command == "workflow":
         return handle_workflow_command(config, args)
+
+    if args.command == "orchestration":
+        return handle_orchestration_command(config, args)
 
     if args.command == "artifact":
         return handle_artifact_command(config, args)
@@ -2340,6 +2816,9 @@ def build_manifest(args: argparse.Namespace) -> dict:
     profile = args.profile
     projection = manifest_projection_config(args, profile)
     workflow = manifest_workflow_config(args, profile)
+    orchestration = default_orchestration_config()
+    automation = default_automation_config()
+    agent_behavior = default_agent_behavior_config()
     storage = manifest_storage_config(args)
     portfolio = manifest_portfolio_config(args)
     language = manifest_language_config(args)
@@ -2390,6 +2869,9 @@ def build_manifest(args: argparse.Namespace) -> dict:
             },
             "memory": default_memory_config(),
             "workflow": workflow,
+            "automation": automation,
+            "orchestration": orchestration,
+            "agent_behavior": agent_behavior,
             "storage": storage,
             "portfolio": portfolio,
             "language": language,
@@ -2443,6 +2925,9 @@ def build_manifest(args: argparse.Namespace) -> dict:
             },
             "memory": default_memory_config(),
             "workflow": workflow,
+            "automation": automation,
+            "orchestration": orchestration,
+            "agent_behavior": agent_behavior,
             "storage": storage,
             "portfolio": portfolio,
             "language": language,
@@ -2495,6 +2980,9 @@ def build_manifest(args: argparse.Namespace) -> dict:
         },
         "memory": default_memory_config(),
         "workflow": workflow,
+        "automation": automation,
+        "orchestration": orchestration,
+        "agent_behavior": agent_behavior,
         "storage": storage,
         "portfolio": portfolio,
         "language": language,
@@ -2516,6 +3004,9 @@ def render_manifest(manifest: dict) -> str:
         "auth",
         "memory",
         "workflow",
+        "automation",
+        "orchestration",
+        "agent_behavior",
         "storage",
         "portfolio",
         "language",
@@ -2748,6 +3239,48 @@ def validate_manifest(data: dict) -> None:
         validate_choice_field("workflow", "workspace_isolation", workflow_section.get("workspace_isolation"), WORKFLOW_ISOLATION_CHOICES, invalid)
         validate_choice_field("workflow", "testing_policy", workflow_section.get("testing_policy"), WORKFLOW_TESTING_POLICY_CHOICES, invalid)
         validate_choice_field("workflow", "closeout_policy", workflow_section.get("closeout_policy"), WORKFLOW_CLOSEOUT_POLICY_CHOICES, invalid)
+    orchestration_section = data.get("orchestration")
+    if isinstance(orchestration_section, dict):
+        validate_choice_field("orchestration", "mode", orchestration_section.get("mode"), ORCHESTRATION_MODE_CHOICES, invalid)
+        validate_choice_field("orchestration", "task_source", orchestration_section.get("task_source"), ORCHESTRATION_TASK_SOURCE_CHOICES, invalid)
+        validate_choice_field("orchestration", "runner", orchestration_section.get("runner"), ORCHESTRATION_RUNNER_CHOICES, invalid)
+        validate_choice_field("orchestration", "workspace_mode", orchestration_section.get("workspace_mode"), ORCHESTRATION_WORKSPACE_MODE_CHOICES, invalid)
+        validate_choice_field("orchestration", "trust_profile", orchestration_section.get("trust_profile"), ORCHESTRATION_TRUST_PROFILE_CHOICES, invalid)
+        validate_choice_field("orchestration", "unattended_risk_ceiling", orchestration_section.get("unattended_risk_ceiling"), ORCHESTRATION_RISK_CHOICES, invalid)
+        validate_choice_field("orchestration", "status_surface", orchestration_section.get("status_surface"), ORCHESTRATION_STATUS_SURFACE_CHOICES, invalid)
+        validate_choice_list_field(
+            "orchestration",
+            "verification_adapters",
+            orchestration_section.get("verification_adapters"),
+            ORCHESTRATION_VERIFICATION_ADAPTER_CHOICES,
+            invalid,
+        )
+        validate_choice_field(
+            "orchestration",
+            "remote_verification_policy",
+            orchestration_section.get("remote_verification_policy"),
+            ORCHESTRATION_REMOTE_VERIFICATION_POLICY_CHOICES,
+            invalid,
+        )
+    automation_section = data.get("automation")
+    if isinstance(automation_section, dict):
+        validate_choice_field("automation", "mode", automation_section.get("mode"), AUTOMATION_MODE_CHOICES, invalid)
+        validate_choice_field("automation", "risk_ceiling", automation_section.get("risk_ceiling"), ORCHESTRATION_RISK_CHOICES, invalid)
+        validate_choice_list_field(
+            "automation",
+            "event_sources",
+            automation_section.get("event_sources"),
+            AUTOMATION_EVENT_SOURCE_CHOICES,
+            invalid,
+        )
+    agent_behavior_section = data.get("agent_behavior")
+    if isinstance(agent_behavior_section, dict):
+        validate_choice_field("agent_behavior", "quality_policy", agent_behavior_section.get("quality_policy"), AGENT_BEHAVIOR_QUALITY_POLICY_CHOICES, invalid)
+        validate_choice_field("agent_behavior", "clarification_policy", agent_behavior_section.get("clarification_policy"), AGENT_BEHAVIOR_CLARIFICATION_POLICY_CHOICES, invalid)
+        validate_choice_field("agent_behavior", "diff_scope_policy", agent_behavior_section.get("diff_scope_policy"), AGENT_BEHAVIOR_DIFF_SCOPE_POLICY_CHOICES, invalid)
+        validate_choice_field("agent_behavior", "success_criteria_policy", agent_behavior_section.get("success_criteria_policy"), AGENT_BEHAVIOR_SUCCESS_CRITERIA_POLICY_CHOICES, invalid)
+        validate_choice_field("agent_behavior", "assumption_policy", agent_behavior_section.get("assumption_policy"), AGENT_BEHAVIOR_ASSUMPTION_POLICY_CHOICES, invalid)
+        validate_choice_field("agent_behavior", "complexity_policy", agent_behavior_section.get("complexity_policy"), AGENT_BEHAVIOR_COMPLEXITY_POLICY_CHOICES, invalid)
     memory_section = data.get("memory")
     if isinstance(memory_section, dict):
         validate_choice_field("memory", "capture_policy", memory_section.get("capture_policy"), MEMORY_CAPTURE_POLICY_CHOICES, invalid)
@@ -2771,6 +3304,10 @@ def validate_field(section: str, key: str, value, expected_kind: str, invalid: l
     if expected_kind == "string":
         if not isinstance(value, str) or not value.strip():
             invalid.append(f"{label} must be a non-empty string")
+        return
+    if expected_kind == "string_optional":
+        if not isinstance(value, str):
+            invalid.append(f"{label} must be a string")
         return
     if expected_kind == "bool":
         if not isinstance(value, bool):
@@ -2801,6 +3338,17 @@ def validate_choice_field(section: str, key: str, value: object, allowed: list[s
     normalized = normalize_optional_text(value)
     if normalized and normalized not in allowed:
         invalid.append(f"{section}.{key} must be one of: {', '.join(allowed)}")
+
+
+def validate_choice_list_field(section: str, key: str, value: object, allowed: list[str], invalid: list[str]) -> None:
+    if value is None:
+        return
+    if not isinstance(value, list):
+        invalid.append(f"{section}.{key} must be an array")
+        return
+    invalid_items = [normalize_optional_text(item) for item in value if normalize_optional_text(item) not in allowed]
+    if invalid_items:
+        invalid.append(f"{section}.{key} contains unsupported values: {', '.join(invalid_items)}")
 
 
 def render_action_payload(action: RenderAction) -> dict[str, object]:
@@ -3218,6 +3766,9 @@ def build_generic_project_manifest(
         },
         "memory": default_memory_config(),
         "workflow": manifest_workflow_config(args, "generic-project"),
+        "automation": default_automation_config(),
+        "orchestration": default_orchestration_config(),
+        "agent_behavior": default_agent_behavior_config(),
         "storage": manifest_storage_config(args),
         "portfolio": manifest_portfolio_config(args),
         "language": language,
@@ -3282,6 +3833,9 @@ def build_sula_core_manifest(project_root: Path, args: argparse.Namespace, detec
         },
         "memory": default_memory_config(),
         "workflow": manifest_workflow_config(args, "sula-core"),
+        "automation": default_automation_config(),
+        "orchestration": default_orchestration_config(),
+        "agent_behavior": default_agent_behavior_config(),
         "storage": manifest_storage_config(args),
         "portfolio": manifest_portfolio_config(args),
         "language": language,
@@ -3364,6 +3918,9 @@ def build_react_erpnext_manifest(
         },
         "memory": default_memory_config(),
         "workflow": manifest_workflow_config(args, "react-frontend-erpnext"),
+        "automation": default_automation_config(),
+        "orchestration": default_orchestration_config(),
+        "agent_behavior": default_agent_behavior_config(),
         "storage": manifest_storage_config(args),
         "portfolio": manifest_portfolio_config(args),
         "language": language,
@@ -3391,6 +3948,61 @@ def default_memory_config() -> dict:
         "semantic_cache": "off",
         "session_retention_days": 7,
         "promotion_file": "docs/ops/session-promotions.md",
+    }
+
+
+def default_automation_config() -> dict:
+    return {
+        "enabled": True,
+        "mode": "assist",
+        "auto_intake": True,
+        "auto_plan": True,
+        "auto_dispatch": False,
+        "risk_ceiling": "low",
+        "approval_required_for": ["release", "security", "provider-write", "destructive"],
+        "event_sources": ["sula-cli", "provider", "status", "artifact", "workflow", "external"],
+    }
+
+
+def default_orchestration_config() -> dict:
+    return {
+        "enabled": False,
+        "mode": "ticket-runner",
+        "task_source": "local",
+        "runner": "dry-run",
+        "runner_command": "",
+        "runner_endpoint": "",
+        "runner_token_env": "SULA_CODEX_APP_SERVER_TOKEN",
+        "tasks_path": "docs/workflows/tasks.json",
+        "provider_task_item_id": "",
+        "provider_task_item_kind": "",
+        "provider_task_item_url": "",
+        "workspace_root": ".sula/local/workspaces",
+        "workspace_mode": "none",
+        "trust_profile": "local-sandboxed",
+        "allow_project_root_runner": False,
+        "max_concurrent_runs": 1,
+        "max_retry_count": 1,
+        "max_run_minutes": 30,
+        "daily_budget_minutes": 120,
+        "unattended_risk_ceiling": "low",
+        "require_human_approval_for": ["release", "security", "provider-write", "destructive"],
+        "status_surface": "sula",
+        "verification_adapters": ["local-file", "artifact-catalog", "provider-metadata", "pull-request-url", "url"],
+        "remote_verification_policy": "opportunistic",
+    }
+
+
+def default_agent_behavior_config() -> dict:
+    return {
+        "quality_policy": "sula-karpathy-inspired",
+        "clarification_policy": "non-trivial-only",
+        "diff_scope_policy": "surgical",
+        "success_criteria_policy": "required",
+        "assumption_policy": "surface-when-uncertain",
+        "complexity_policy": "simplicity-first",
+        "require_verification": True,
+        "forbid_drive_by_refactors": True,
     }
 
 
@@ -5609,6 +6221,17 @@ def doctor(config: ProjectConfig, *, strict: bool, json_mode: bool = False, emit
             print(f"  - {item}")
 
     passed = bool(report["passed"])
+    if emit_output:
+        flat_issues = flatten_daily_check_issues(report, [])
+        automation_observe_event(
+            config,
+            source_kind="sula-cli",
+            event_kind="doctor.passed" if passed else "doctor.failed",
+            title="Sula doctor strict" if strict else "Sula doctor",
+            summary="Sula doctor passed." if passed else "Sula doctor failed.",
+            identity_key=("doctor-strict:" if strict else "doctor:") + date.today().isoformat(),
+            payload={"passed": passed, "strict": strict, "issues": flat_issues},
+        )
     if json_mode and emit_output:
         emit_json(
             {
@@ -5736,6 +6359,20 @@ def daily_check(config: ProjectConfig, *, json_mode: bool = False, emit_output: 
     drift_errors = collect_daily_check_drift_errors(config)
     passed = bool(report["passed"]) and not drift_errors
     payload = daily_check_payload(config, report, drift_errors, passed=passed)
+    if emit_output:
+        automation_observe_event(
+            config,
+            source_kind="sula-cli",
+            event_kind="check.passed" if passed else "check.failed",
+            title="Sula check",
+            summary="Sula check passed." if passed else "Sula check failed.",
+            identity_key="check:" + date.today().isoformat(),
+            payload={
+                "passed": passed,
+                "issues": payload["issues"],
+                "repair_commands": payload["repair_commands"],
+            },
+        )
 
     if json_mode and emit_output:
         emit_json({"command": "check", "status": "ok" if passed else "failed", **payload})
@@ -7926,6 +8563,15 @@ def query_project_kernel(config: ProjectConfig, args: argparse.Namespace) -> int
         freshness_intent=freshness_intent,
         route=route,
     )
+    automation_observe_event(
+        config,
+        source_kind="sula-cli",
+        event_kind="query.freshness" if freshness_intent else "query.performed",
+        title="Sula query",
+        summary=f"Sula query returned {len(results)} result(s).",
+        identity_key=f"query:{date.today().isoformat()}:{sanitize_slug(effective_query or 'empty')}",
+        payload={"query": args.q, "effective_query": effective_query, "freshness_intent": freshness_intent, "refresh": refresh_report or {}},
+    )
     if args.json:
         print(
             json.dumps(
@@ -9065,8 +9711,22 @@ def project_status(config: ProjectConfig, args: argparse.Namespace) -> int:
             event_summary_prefix="Refreshed provider-native truth sources before status summary",
         )
     payload = project_status_payload(config)
+    truth_risks = [
+        f"{item.get('title', '')}: {item.get('freshness_status', '')}"
+        for item in payload["truth_sources"]["artifacts_at_risk"]
+        if isinstance(item, dict)
+    ]
+    automation_observe_event(
+        config,
+        source_kind="sula-cli",
+        event_kind="status.truth-risk" if truth_risks else "status.viewed",
+        title="Sula status",
+        summary="Sula status found truth-source risks." if truth_risks else "Sula status viewed.",
+        identity_key="status:" + date.today().isoformat(),
+        payload={"risks": truth_risks, "summary": payload.get("summary", "")},
+    )
     if json_output_requested(args):
-        emit_json({"command": "status", "status": "ok", "project": project_payload(config), "state": payload})
+        emit_json({"command": "status", "status": "ok", "project": project_payload(config), "state": payload, "automation": automation_status_payload(config)})
         return 0
     if locale_family(config.interaction_locale) == "zh":
         print(f"{config.data['project']['name']} 的 Sula 状态")
@@ -9222,6 +9882,9 @@ def project_status_payload(config: ProjectConfig) -> dict[str, object]:
             "testing_policy": config.workflow_testing_policy,
             "closeout_policy": config.workflow_closeout_policy,
         },
+        "automation": automation_status_payload(config),
+        "orchestration": orchestration_status_payload(config),
+        "agent_behavior": agent_behavior_payload(config),
         "storage": {
             "provider": config.storage_provider,
             "sync_mode": config.storage_sync_mode,
@@ -11327,6 +11990,2258 @@ def workflow_close(config: ProjectConfig, args: argparse.Namespace) -> int:
     return 0 if status != "blocked" else 1
 
 
+def handle_orchestration_command(config: ProjectConfig, args: argparse.Namespace) -> int:
+    if args.orchestration_command == "status":
+        return orchestration_status(config, args)
+    if args.orchestration_command == "tasks":
+        return orchestration_tasks(config, args)
+    if args.orchestration_command == "intake":
+        return orchestration_intake(config, args)
+    if args.orchestration_command == "trigger":
+        return orchestration_trigger(config, args)
+    if args.orchestration_command == "run":
+        return orchestration_run(config, args)
+    if args.orchestration_command == "close":
+        return orchestration_close(config, args)
+    if args.orchestration_command == "cancel":
+        return orchestration_cancel(config, args)
+    if args.orchestration_command == "stop-all":
+        return orchestration_stop_all(config, args)
+    if args.orchestration_command == "doctor":
+        return orchestration_doctor(config, args)
+    raise AssertionError("unreachable")
+
+
+def orchestration_relative_path(config: ProjectConfig, path: Path) -> str:
+    return path.relative_to(config.root).as_posix() if path.is_relative_to(config.root) else str(path)
+
+
+def orchestration_config_payload(config: ProjectConfig) -> dict[str, object]:
+    return {
+        "enabled": config.orchestration_enabled,
+        "mode": config.orchestration_mode,
+        "task_source": config.orchestration_task_source,
+        "runner": config.orchestration_runner,
+        "runner_command": config.orchestration_runner_command,
+        "runner_endpoint": config.orchestration_runner_endpoint,
+        "runner_token_env": config.orchestration_runner_token_env,
+        "tasks_path": orchestration_relative_path(config, config.orchestration_tasks_path),
+        "provider_task_item_id": config.orchestration_provider_task_item_id,
+        "provider_task_item_kind": config.orchestration_provider_task_item_kind,
+        "provider_task_item_url": config.orchestration_provider_task_item_url,
+        "workspace_root": orchestration_relative_path(config, config.orchestration_workspace_root),
+        "workspace_mode": config.orchestration_workspace_mode,
+        "trust_profile": config.orchestration_trust_profile,
+        "allow_project_root_runner": config.orchestration_allow_project_root_runner,
+        "max_concurrent_runs": config.orchestration_max_concurrent_runs,
+        "max_retry_count": config.orchestration_max_retry_count,
+        "max_run_minutes": config.orchestration_max_run_minutes,
+        "daily_budget_minutes": config.orchestration_daily_budget_minutes,
+        "unattended_risk_ceiling": config.orchestration_unattended_risk_ceiling,
+        "require_human_approval_for": config.orchestration_require_human_approval_for,
+        "status_surface": config.orchestration_status_surface,
+        "verification_adapters": config.orchestration_verification_adapters,
+        "remote_verification_policy": config.orchestration_remote_verification_policy,
+        "agent_behavior": agent_behavior_payload(config),
+    }
+
+
+def orchestration_runs_path(config: ProjectConfig) -> Path:
+    return config.orchestration_state_root / "runs.jsonl"
+
+
+def orchestration_latest_path(config: ProjectConfig) -> Path:
+    return config.orchestration_state_root / "latest.json"
+
+
+def orchestration_tasks_snapshot_path(config: ProjectConfig) -> Path:
+    return config.orchestration_state_root / "tasks.json"
+
+
+def orchestration_budgets_path(config: ProjectConfig) -> Path:
+    return config.orchestration_state_root / "budgets.json"
+
+
+def orchestration_triggers_path(config: ProjectConfig) -> Path:
+    return config.orchestration_state_root / "triggers.jsonl"
+
+
+def orchestration_promotion_candidates_path(config: ProjectConfig) -> Path:
+    return config.orchestration_state_root / "promotion-candidates.jsonl"
+
+
+def automation_events_path(config: ProjectConfig) -> Path:
+    return config.automation_state_root / "events.jsonl"
+
+
+def automation_intents_path(config: ProjectConfig) -> Path:
+    return config.automation_state_root / "intents.jsonl"
+
+
+def automation_latest_path(config: ProjectConfig) -> Path:
+    return config.automation_state_root / "latest.json"
+
+
+def read_jsonl_objects(path: Path) -> list[dict[str, object]]:
+    if not path.exists():
+        return []
+    rows: list[dict[str, object]] = []
+    for line in path.read_text(encoding="utf-8").splitlines():
+        if not line.strip():
+            continue
+        try:
+            item = json.loads(line)
+        except json.JSONDecodeError:
+            continue
+        if isinstance(item, dict):
+            rows.append(item)
+    return rows
+
+
+def append_jsonl_object(path: Path, payload: dict[str, object]) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("a", encoding="utf-8") as handle:
+        handle.write(json.dumps(payload, ensure_ascii=True) + "\n")
+
+
+def write_jsonl_objects(path: Path, payloads: list[dict[str, object]]) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(
+        "".join(json.dumps(payload, ensure_ascii=True) + "\n" for payload in payloads),
+        encoding="utf-8",
+    )
+
+
+def read_orchestration_runs(config: ProjectConfig) -> list[dict[str, object]]:
+    path = orchestration_runs_path(config)
+    return read_jsonl_objects(path)
+
+
+def append_orchestration_run(config: ProjectConfig, run: dict[str, object]) -> None:
+    append_jsonl_object(orchestration_runs_path(config), run)
+
+
+def write_orchestration_latest(config: ProjectConfig, payload: dict[str, object]) -> None:
+    config.orchestration_state_root.mkdir(parents=True, exist_ok=True)
+    orchestration_latest_path(config).write_text(json.dumps(payload, indent=2, ensure_ascii=True) + "\n", encoding="utf-8")
+
+
+def write_orchestration_task_snapshot(config: ProjectConfig, tasks: list[dict[str, object]], issues: list[str]) -> None:
+    config.orchestration_state_root.mkdir(parents=True, exist_ok=True)
+    orchestration_tasks_snapshot_path(config).write_text(
+        json.dumps(
+            {
+                "version": VERSION,
+                "updated_at": current_utc_timestamp(),
+                "task_source": config.orchestration_task_source,
+                "tasks_path": orchestration_relative_path(config, config.orchestration_tasks_path),
+                "issues": issues,
+                "tasks": tasks,
+            },
+            indent=2,
+            ensure_ascii=True,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+
+
+def append_orchestration_trigger(config: ProjectConfig, trigger: dict[str, object]) -> None:
+    append_jsonl_object(orchestration_triggers_path(config), trigger)
+
+
+def append_orchestration_promotion_candidate(config: ProjectConfig, candidate: dict[str, object]) -> None:
+    append_jsonl_object(orchestration_promotion_candidates_path(config), candidate)
+
+
+def count_jsonl_records(path: Path) -> int:
+    if not path.exists():
+        return 0
+    return sum(1 for line in path.read_text(encoding="utf-8").splitlines() if line.strip())
+
+
+def automation_intent_to_raw_task(config: ProjectConfig, intent: dict[str, object]) -> dict[str, object]:
+    return {
+        "id": normalize_optional_text(intent.get("task_id", "")) or f"automation:{sanitize_slug(normalize_optional_text(intent.get('identity_key', 'intent')))}",
+        "source_kind": "automation",
+        "source_url": normalize_optional_text(intent.get("source_url", "")),
+        "identifier": normalize_optional_text(intent.get("identity_key", "")),
+        "title": normalize_optional_text(intent.get("title", "")) or "Review Sula automation intent",
+        "description": normalize_optional_text(intent.get("description", "")),
+        "state": normalize_optional_text(intent.get("state", "open")) or "open",
+        "priority": normalize_optional_text(intent.get("priority", "normal")) or "normal",
+        "labels": normalize_task_string_list(intent.get("labels")),
+        "blocked_by": normalize_task_string_list(intent.get("blocked_by")),
+        "project_slug": config.data["project"]["slug"],
+        "acceptance_criteria": normalize_task_string_list(intent.get("acceptance_criteria")),
+        "validation_requirements": normalize_task_string_list(intent.get("validation_requirements")),
+        "risk": normalize_optional_text(intent.get("risk", "")),
+        "risk_hints": normalize_task_string_list(intent.get("risk_hints")),
+        "created_at": normalize_optional_text(intent.get("created_at", "")),
+        "updated_at": normalize_optional_text(intent.get("updated_at", "")),
+    }
+
+
+def load_automation_intents(config: ProjectConfig) -> list[dict[str, object]]:
+    return read_jsonl_objects(automation_intents_path(config))
+
+
+def load_automation_intent_tasks(config: ProjectConfig) -> tuple[list[dict[str, object]], list[str]]:
+    if not config.automation_enabled or not config.automation_auto_plan:
+        return [], []
+    raw_tasks = [
+        automation_intent_to_raw_task(config, intent)
+        for intent in load_automation_intents(config)
+        if normalize_orchestration_task_state(intent.get("state", "open")) in {"open", "running"}
+    ]
+    tasks = [normalize_orchestration_task(config, item, index) for index, item in enumerate(raw_tasks)]
+    return tasks, []
+
+
+def automation_status_payload(config: ProjectConfig) -> dict[str, object]:
+    events = read_jsonl_objects(automation_events_path(config))
+    intents = load_automation_intents(config)
+    runs = read_orchestration_runs(config)
+    automation_run_ids = {
+        normalize_optional_text(intent.get("last_run_id", ""))
+        for intent in intents
+        if normalize_optional_text(intent.get("last_run_id", ""))
+    }
+    pending_intents = [
+        intent
+        for intent in intents
+        if normalize_optional_text(intent.get("state", "open")) == "open"
+    ]
+    return {
+        "config": automation_config_payload(config),
+        "events": {
+            "total": len(events),
+            "events_path": orchestration_relative_path(config, automation_events_path(config)),
+            "latest": events[-1] if events else {},
+        },
+        "intents": {
+            "total": len(intents),
+            "pending": len(pending_intents),
+            "intents_path": orchestration_relative_path(config, automation_intents_path(config)),
+            "latest": intents[-1] if intents else {},
+        },
+        "runs": {
+            "linked": sum(1 for run in runs if normalize_optional_text(run.get("run_id", "")) in automation_run_ids),
+        },
+    }
+
+
+def automation_identity_key(source_kind: str, event_kind: str, identity_key: str, title: str) -> str:
+    raw = normalize_optional_text(identity_key) or f"{event_kind}:{title}"
+    return f"{source_kind}:{event_kind}:{raw}"
+
+
+def automation_classify_event(config: ProjectConfig, event: dict[str, object]) -> dict[str, object] | None:
+    event_kind = normalize_optional_text(event.get("event_kind", ""))
+    payload = event.get("payload", {})
+    payload = payload if isinstance(payload, dict) else {}
+    identity_key = normalize_optional_text(event.get("identity_key", ""))
+    now = current_utc_timestamp()
+    base = {
+        "version": VERSION,
+        "created_at": now,
+        "updated_at": now,
+        "event_id": normalize_optional_text(event.get("event_id", "")),
+        "source_kind": normalize_optional_text(event.get("source_kind", "")),
+        "source_url": normalize_optional_text(event.get("source_url", "")),
+        "identity_key": identity_key,
+        "task_id": f"automation:{sanitize_slug(identity_key)}",
+        "state": "open",
+        "priority": "normal",
+        "risk": "low",
+        "labels": ["automation"],
+        "blocked_by": [],
+    }
+    if event_kind == "check.failed":
+        issues = normalize_task_string_list(payload.get("issues"))
+        repair_commands = normalize_task_string_list(payload.get("repair_commands"))
+        return {
+            **base,
+            "title": "Repair failed Sula check",
+            "description": "\n".join(issues[:10]),
+            "acceptance_criteria": ["Sula check passes"],
+            "validation_requirements": repair_commands or ["python3 scripts/sula.py check --project-root . passes"],
+            "labels": ["automation", "sula-check"],
+        }
+    if event_kind == "doctor.failed":
+        issues = normalize_task_string_list(payload.get("issues"))
+        return {
+            **base,
+            "title": "Repair failed Sula doctor",
+            "description": "\n".join(issues[:10]),
+            "acceptance_criteria": ["Sula doctor strict passes"],
+            "validation_requirements": ["python3 scripts/sula.py doctor --project-root . --strict passes"],
+            "labels": ["automation", "sula-doctor"],
+        }
+    if event_kind in {"query.freshness", "artifact.locate.freshness"}:
+        refresh = payload.get("refresh", {})
+        errors = refresh.get("errors", []) if isinstance(refresh, dict) else []
+        if not errors:
+            return None
+        return {
+            **base,
+            "title": "Review provider freshness refresh errors",
+            "description": "\n".join(normalize_task_string_list(errors)[:10]),
+            "acceptance_criteria": ["Provider freshness errors are resolved or documented"],
+            "validation_requirements": ["rerun the freshness query or artifact locate command"],
+            "labels": ["automation", "provider-refresh"],
+        }
+    if event_kind == "status.truth-risk":
+        risks = normalize_task_string_list(payload.get("risks"))
+        return {
+            **base,
+            "title": "Review Sula status truth-source risks",
+            "description": "\n".join(risks[:10]),
+            "acceptance_criteria": ["Truth-source risks are resolved or documented"],
+            "validation_requirements": ["python3 scripts/sula.py status --project-root . --json shows expected truth-source state"],
+            "labels": ["automation", "status", "truth-source"],
+        }
+    if event_kind.endswith(".failed"):
+        return {
+            **base,
+            "title": f"Review failed Sula command: {normalize_optional_text(event.get('title', 'command'))}",
+            "description": normalize_optional_text(event.get("summary", "")),
+            "acceptance_criteria": ["The failed command is understood and resolved"],
+            "validation_requirements": ["rerun the failed command successfully or document the blocker"],
+            "labels": ["automation", "sula-command"],
+            "risk": "medium",
+        }
+    return None
+
+
+def automation_write_latest(config: ProjectConfig, payload: dict[str, object]) -> None:
+    config.automation_state_root.mkdir(parents=True, exist_ok=True)
+    automation_latest_path(config).write_text(json.dumps(payload, indent=2, ensure_ascii=True) + "\n", encoding="utf-8")
+
+
+def automation_append_intent(config: ProjectConfig, intent: dict[str, object]) -> tuple[dict[str, object], bool]:
+    intents = load_automation_intents(config)
+    task_id = normalize_optional_text(intent.get("task_id", ""))
+    for existing in intents:
+        if normalize_optional_text(existing.get("task_id", "")) == task_id:
+            return existing, False
+    append_jsonl_object(automation_intents_path(config), intent)
+    return intent, True
+
+
+def automation_resolve_recovered_intents(config: ProjectConfig, event: dict[str, object]) -> list[dict[str, object]]:
+    event_kind = normalize_optional_text(event.get("event_kind", ""))
+    label = ""
+    if event_kind == "check.passed":
+        label = "sula-check"
+    elif event_kind == "doctor.passed":
+        label = "sula-doctor"
+    if not label:
+        return []
+    intents = load_automation_intents(config)
+    if not intents:
+        return []
+    now = current_utc_timestamp()
+    resolved: list[dict[str, object]] = []
+    updated: list[dict[str, object]] = []
+    changed = False
+    for intent in intents:
+        item = dict(intent)
+        labels = normalize_task_string_list(item.get("labels"))
+        state = normalize_orchestration_task_state(item.get("state", "open"))
+        if label in labels and state in {"open", "running"}:
+            item["state"] = "accepted"
+            item["updated_at"] = now
+            item["resolved_at"] = now
+            item["resolution_event_id"] = normalize_optional_text(event.get("event_id", ""))
+            item["resolution_reason"] = f"{event_kind} recovered"
+            resolved.append(item)
+            changed = True
+        updated.append(item)
+    if changed:
+        write_jsonl_objects(automation_intents_path(config), updated)
+    return resolved
+
+
+def automation_dispatch_intent(config: ProjectConfig, intent: dict[str, object]) -> dict[str, object]:
+    task = normalize_orchestration_task(config, automation_intent_to_raw_task(config, intent), 0)
+    reasons: list[str] = []
+    if config.automation_mode != "execute" or not config.automation_auto_dispatch:
+        reasons.append("automation dispatch is not enabled")
+    if not config.orchestration_enabled:
+        reasons.append("orchestration is disabled")
+    if risk_rank(normalize_optional_text(task.get("risk", "high"))) > risk_rank(config.automation_risk_ceiling):
+        reasons.append(f"task risk `{task.get('risk')}` exceeds automation risk ceiling `{config.automation_risk_ceiling}`")
+    approval_categories = approval_categories_for_task(task)
+    blocked_categories = [item for item in approval_categories if item in config.automation_approval_required_for]
+    if blocked_categories:
+        reasons.append("human approval is required for: " + ", ".join(blocked_categories))
+    if task.get("blocked_reasons"):
+        reasons.extend(str(item) for item in task.get("blocked_reasons", []))
+    if reasons:
+        return {"status": "queued", "dispatch_blocked_reasons": reasons}
+    run_payload, run_code = create_orchestration_run_payload(config, normalize_optional_text(task.get("id", "")))
+    run = run_payload.get("run", {}) if isinstance(run_payload, dict) else {}
+    return {
+        "status": "dispatched" if run_code == 0 else "dispatch-failed",
+        "run_status": run_payload.get("status", "blocked") if isinstance(run_payload, dict) else "blocked",
+        "run_id": normalize_optional_text(run.get("run_id", "")) if isinstance(run, dict) else "",
+    }
+
+
+def automation_observe_event(
+    config: ProjectConfig,
+    *,
+    source_kind: str,
+    event_kind: str,
+    title: str,
+    summary: str,
+    identity_key: str = "",
+    source_url: str = "",
+    payload: dict[str, object] | None = None,
+) -> dict[str, object] | None:
+    source = normalize_optional_text(source_kind).strip().lower()
+    if not config.automation_enabled or source not in config.automation_event_sources:
+        return None
+    now = current_utc_timestamp()
+    identity = automation_identity_key(source, event_kind, identity_key, title)
+    event = {
+        "version": VERSION,
+        "event_id": f"event:{hashlib.sha256((identity + now).encode('utf-8')).hexdigest()[:16]}",
+        "created_at": now,
+        "source_kind": source,
+        "source_url": normalize_optional_text(source_url),
+        "event_kind": event_kind,
+        "identity_key": identity,
+        "title": title,
+        "summary": summary,
+        "payload": payload or {},
+    }
+    append_jsonl_object(automation_events_path(config), event)
+    result: dict[str, object] = {"event": event, "intent": {}, "dispatch": {}, "resolved_intents": []}
+    resolved_intents = automation_resolve_recovered_intents(config, event)
+    if resolved_intents:
+        result["resolved_intents"] = resolved_intents
+    if config.automation_mode != "observe" and config.automation_auto_intake:
+        intent = automation_classify_event(config, event)
+        if intent:
+            stored_intent, created = automation_append_intent(config, intent)
+            result["intent"] = {**stored_intent, "created": created}
+            if created:
+                dispatch = automation_dispatch_intent(config, stored_intent)
+                result["dispatch"] = dispatch
+                if dispatch.get("run_id"):
+                    stored_intent["last_run_id"] = normalize_optional_text(dispatch.get("run_id", ""))
+    automation_write_latest(
+        config,
+        {
+            "version": VERSION,
+            "updated_at": now,
+            "latest_event": event,
+            "latest_intent": result.get("intent", {}),
+            "latest_dispatch": result.get("dispatch", {}),
+        },
+    )
+    return result
+
+
+def risk_rank(risk: str) -> int:
+    return {"low": 1, "medium": 2, "high": 3}.get(risk, 3)
+
+
+def normalize_task_string_list(value: object) -> list[str]:
+    if value is None:
+        return []
+    if isinstance(value, list):
+        return [str(item).strip() for item in value if str(item).strip()]
+    text = str(value).strip()
+    return [text] if text else []
+
+
+def normalize_orchestration_task_state(raw: object) -> str:
+    state = normalize_optional_text(raw).strip().lower()
+    if state in {"todo", "open", "ready", "planned", "backlog"}:
+        return "open"
+    if state in {"blocked", "needs-info", "waiting"}:
+        return "blocked"
+    if state in {"running", "in-progress", "active"}:
+        return "running"
+    if state in {"done", "closed", "accepted", "complete", "completed"}:
+        return "accepted"
+    if state in {"failed", "rejected"}:
+        return "failed"
+    return state or "open"
+
+
+def approval_categories_for_task(task: dict[str, object]) -> list[str]:
+    haystack = " ".join(
+        [
+            normalize_optional_text(task.get("title", "")),
+            normalize_optional_text(task.get("description", "")),
+            " ".join(normalize_task_string_list(task.get("labels"))),
+            " ".join(normalize_task_string_list(task.get("risk_hints"))),
+        ]
+    ).lower()
+    categories: list[str] = []
+    markers = {
+        "release": ["release", "deploy", "rollout", "发布", "上线"],
+        "security": ["security", "secret", "auth", "permission", "credential", "安全", "密钥", "认证", "权限"],
+        "provider-write": ["provider-write", "google drive write", "write provider", "写入 provider", "写入 google"],
+        "destructive": ["delete", "remove", "drop", "reset", "destructive", "删除", "清空", "重置"],
+    }
+    for category, terms in markers.items():
+        if any(term in haystack for term in terms):
+            categories.append(category)
+    return categories
+
+
+def classify_orchestration_task_risk(task: dict[str, object]) -> str:
+    explicit = normalize_optional_text(task.get("risk", "")).strip().lower()
+    if explicit in ORCHESTRATION_RISK_CHOICES:
+        return explicit
+    haystack = " ".join(
+        [
+            normalize_optional_text(task.get("title", "")),
+            normalize_optional_text(task.get("description", "")),
+            " ".join(normalize_task_string_list(task.get("labels"))),
+            " ".join(normalize_task_string_list(task.get("risk_hints"))),
+        ]
+    ).lower()
+    if approval_categories_for_task(task) or any(term in haystack for term in ["migration", "schema", "data mutation", "release", "security"]):
+        return "high"
+    if any(term in haystack for term in ["code", "refactor", "integration", "adapter", "sync", "runner", "代码", "重构", "集成", "适配"]):
+        return "medium"
+    return "low"
+
+
+def normalize_orchestration_task(config: ProjectConfig, raw: dict[str, object], index: int) -> dict[str, object]:
+    identifier = normalize_optional_text(raw.get("identifier", "")) or normalize_optional_text(raw.get("id", "")) or f"local-{index + 1}"
+    task_id = normalize_optional_text(raw.get("id", "")) or f"local:{sanitize_slug(identifier)}"
+    state = normalize_orchestration_task_state(raw.get("state", "open"))
+    task = {
+        "id": task_id,
+        "source_kind": normalize_optional_text(raw.get("source_kind", "local-task")) or "local-task",
+        "source_url": normalize_optional_text(raw.get("source_url", "")),
+        "identifier": identifier,
+        "title": normalize_optional_text(raw.get("title", "")) or identifier,
+        "description": normalize_optional_text(raw.get("description", "")),
+        "state": state,
+        "priority": normalize_optional_text(raw.get("priority", "normal")) or "normal",
+        "labels": normalize_task_string_list(raw.get("labels")),
+        "blocked_by": normalize_task_string_list(raw.get("blocked_by")),
+        "project_slug": normalize_optional_text(raw.get("project_slug", config.data["project"]["slug"])),
+        "acceptance_criteria": normalize_task_string_list(raw.get("acceptance_criteria")),
+        "validation_requirements": normalize_task_string_list(raw.get("validation_requirements")),
+        "risk": normalize_optional_text(raw.get("risk", "")),
+        "risk_hints": normalize_task_string_list(raw.get("risk_hints")),
+        "created_at": normalize_optional_text(raw.get("created_at", "")),
+        "updated_at": normalize_optional_text(raw.get("updated_at", "")),
+        "provider": normalize_optional_text(raw.get("provider", "")),
+        "provider_item_id": normalize_optional_text(raw.get("provider_item_id", "")),
+        "provider_item_kind": normalize_optional_text(raw.get("provider_item_kind", "")),
+        "provider_item_url": normalize_optional_text(raw.get("provider_item_url", "")),
+        "provider_title": normalize_optional_text(raw.get("provider_title", "")),
+        "provider_modified_at": normalize_optional_text(raw.get("provider_modified_at", "")),
+    }
+    risk = classify_orchestration_task_risk(task)
+    approval_categories = approval_categories_for_task(task)
+    blocked_reasons: list[str] = []
+    if state == "blocked":
+        blocked_reasons.append("task source marks this task blocked")
+    if state not in {"open", "running"}:
+        blocked_reasons.append(f"task state is terminal or not dispatchable: {state}")
+    if task["blocked_by"]:
+        blocked_reasons.append("task has unresolved blockers")
+    if not task["acceptance_criteria"]:
+        blocked_reasons.append("missing acceptance criteria")
+    if risk_rank(risk) > risk_rank(config.orchestration_unattended_risk_ceiling):
+        blocked_reasons.append(f"risk `{risk}` exceeds unattended ceiling `{config.orchestration_unattended_risk_ceiling}`")
+    required_approvals = [item for item in approval_categories if item in config.orchestration_require_human_approval_for]
+    if required_approvals:
+        blocked_reasons.append("requires human approval for: " + ", ".join(required_approvals))
+    task["risk"] = risk
+    task["approval_categories"] = approval_categories
+    task["eligible"] = not blocked_reasons
+    task["blocked_reasons"] = blocked_reasons
+    return task
+
+
+def load_local_orchestration_tasks(config: ProjectConfig) -> tuple[list[dict[str, object]], list[str]]:
+    issues: list[str] = []
+    path = config.orchestration_tasks_path
+    if not path.exists():
+        return [], [f"local task file does not exist: {orchestration_relative_path(config, path)}"]
+    if not path.is_relative_to(config.root):
+        return [], [f"local task file must stay inside project root: {path}"]
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError as exc:
+        return [], [f"invalid local task JSON: {orchestration_relative_path(config, path)} ({exc})"]
+    raw_tasks = data.get("tasks", []) if isinstance(data, dict) else data
+    if not isinstance(raw_tasks, list):
+        return [], ["local task file must contain a JSON array or an object with a `tasks` array"]
+    tasks: list[dict[str, object]] = []
+    for index, item in enumerate(raw_tasks):
+        if not isinstance(item, dict):
+            issues.append(f"skipped non-object task at index {index}")
+            continue
+        tasks.append(normalize_orchestration_task(config, item, index))
+    return tasks, issues
+
+
+PROVIDER_TASK_LINE_PATTERN = re.compile(r"^-\s*\[(?P<mark>[ xX])\]\s*(?P<body>.+)$")
+
+
+def parse_provider_task_metadata(raw: str) -> dict[str, str]:
+    metadata: dict[str, str] = {}
+    for part in raw.split(";"):
+        if "=" not in part:
+            continue
+        key, value = part.split("=", 1)
+        normalized_key = key.strip().lower().replace("-", "_")
+        if normalized_key:
+            metadata[normalized_key] = value.strip()
+    return metadata
+
+
+def provider_task_list(value: str) -> list[str]:
+    if not value.strip():
+        return []
+    return [item.strip() for item in re.split(r"\s*[,|]\s*", value) if item.strip()]
+
+
+def provider_task_document_line_to_task(config: ProjectConfig, line: str, index: int, path: Path) -> dict[str, object] | None:
+    match = PROVIDER_TASK_LINE_PATTERN.match(line.strip())
+    if not match:
+        return None
+    body = match.group("body").strip()
+    title = body
+    metadata: dict[str, str] = {}
+    if "::" in body:
+        title, raw_metadata = body.split("::", 1)
+        metadata = parse_provider_task_metadata(raw_metadata)
+    title = title.strip()
+    identifier = metadata.get("id") or f"provider-task-{index + 1}-{sanitize_slug(title)}"
+    state = metadata.get("state") or ("accepted" if match.group("mark").lower() == "x" else "open")
+    return {
+        "id": f"provider-task-document:{sanitize_slug(identifier)}",
+        "source_kind": "provider-task-document",
+        "source_url": orchestration_relative_path(config, path),
+        "identifier": identifier,
+        "title": title,
+        "description": metadata.get("description", ""),
+        "state": state,
+        "priority": metadata.get("priority", "normal"),
+        "labels": provider_task_list(metadata.get("labels", "")),
+        "blocked_by": provider_task_list(metadata.get("blocked_by", "")),
+        "project_slug": config.data["project"]["slug"],
+        "acceptance_criteria": provider_task_list(metadata.get("acceptance", "")),
+        "validation_requirements": provider_task_list(metadata.get("validation", "")),
+        "risk_hints": provider_task_list(metadata.get("risk_hints", metadata.get("risk", ""))),
+        "created_at": metadata.get("created_at", ""),
+        "updated_at": metadata.get("updated_at", ""),
+    }
+
+
+def load_provider_task_document_tasks(config: ProjectConfig) -> tuple[list[dict[str, object]], list[str]]:
+    issues: list[str] = []
+    path = config.orchestration_tasks_path
+    if not path.exists():
+        return [], [f"provider task document does not exist: {orchestration_relative_path(config, path)}"]
+    if not path.is_relative_to(config.root):
+        return [], [f"provider task document must stay inside project root: {path}"]
+    text = path.read_text(encoding="utf-8")
+    raw_tasks: list[dict[str, object]] = []
+    if path.suffix.lower() == ".json":
+        try:
+            data = json.loads(text)
+        except json.JSONDecodeError as exc:
+            return [], [f"invalid provider task JSON: {orchestration_relative_path(config, path)} ({exc})"]
+        source_tasks = data.get("tasks", []) if isinstance(data, dict) else data
+        if not isinstance(source_tasks, list):
+            return [], ["provider task JSON must contain a JSON array or an object with a `tasks` array"]
+        for index, item in enumerate(source_tasks):
+            if not isinstance(item, dict):
+                issues.append(f"skipped non-object provider task at index {index}")
+                continue
+            raw = dict(item)
+            raw["source_kind"] = normalize_optional_text(raw.get("source_kind", "")) or "provider-task-document"
+            raw["source_url"] = normalize_optional_text(raw.get("source_url", "")) or orchestration_relative_path(config, path)
+            raw_tasks.append(raw)
+    else:
+        for index, line in enumerate(text.splitlines()):
+            task = provider_task_document_line_to_task(config, line, index, path)
+            if task is not None:
+                raw_tasks.append(task)
+    tasks = [normalize_orchestration_task(config, item, index) for index, item in enumerate(raw_tasks)]
+    if not tasks:
+        issues.append(f"provider task document contains no task checklist items: {orchestration_relative_path(config, path)}")
+    return tasks, issues
+
+
+def provider_api_task_to_raw(config: ProjectConfig, snapshot: ProviderTaskListSnapshot, item: dict[str, object], index: int) -> dict[str, object]:
+    raw = dict(item)
+    identifier = normalize_optional_text(raw.get("identifier", "")) or normalize_optional_text(raw.get("id", "")) or f"provider-api-{index + 1}"
+    raw["source_kind"] = "provider-api"
+    raw["source_url"] = normalize_optional_text(raw.get("source_url", "")) or snapshot.provider_item_url
+    raw["identifier"] = identifier
+    raw["id"] = normalize_optional_text(raw.get("id", "")) or f"provider-api:{sanitize_slug(identifier)}"
+    raw["project_slug"] = normalize_optional_text(raw.get("project_slug", "")) or config.data["project"]["slug"]
+    raw["provider"] = snapshot.provider
+    raw["provider_item_id"] = snapshot.provider_item_id
+    raw["provider_item_kind"] = snapshot.provider_item_kind
+    raw["provider_item_url"] = snapshot.provider_item_url
+    raw["provider_title"] = snapshot.provider_title
+    raw["provider_modified_at"] = snapshot.provider_modified_at
+    return raw
+
+
+def load_provider_api_tasks(config: ProjectConfig) -> tuple[list[dict[str, object]], list[str]]:
+    provider_item_id = config.orchestration_provider_task_item_id
+    provider_item_kind = config.orchestration_provider_task_item_kind
+    provider_item_url = config.orchestration_provider_task_item_url
+    missing = []
+    if not provider_item_id:
+        missing.append("orchestration.provider_task_item_id")
+    if not provider_item_kind:
+        missing.append("orchestration.provider_task_item_kind")
+    if missing:
+        return [], ["provider-api task source missing required fields: " + ", ".join(missing)]
+    try:
+        adapter = create_provider_adapter(config.storage_provider, oauth_store_path=config.project_google_oauth_file)
+        snapshot = adapter.fetch_tasks(
+            provider_item_id=provider_item_id,
+            provider_item_kind=provider_item_kind,
+            provider_item_url=provider_item_url,
+        )
+    except ProviderAdapterError as exc:
+        return [], [f"provider-api task fetch failed: {exc.code}: {exc.message}"]
+    raw_tasks = [provider_api_task_to_raw(config, snapshot, item, index) for index, item in enumerate(snapshot.tasks) if isinstance(item, dict)]
+    tasks = [normalize_orchestration_task(config, item, index) for index, item in enumerate(raw_tasks)]
+    issues: list[str] = []
+    if not tasks:
+        issues.append(f"provider-api task source returned no tasks: {provider_item_kind}:{provider_item_id}")
+    return tasks, issues
+
+
+def load_local_orchestration_task_file(config: ProjectConfig) -> dict[str, object]:
+    path = config.orchestration_tasks_path
+    if path.exists():
+        if not path.is_relative_to(config.root):
+            raise SystemExit(f"local task file must stay inside project root: {path}")
+        try:
+            data = json.loads(path.read_text(encoding="utf-8"))
+        except json.JSONDecodeError as exc:
+            raise SystemExit(f"invalid local task JSON: {orchestration_relative_path(config, path)} ({exc})")
+        if isinstance(data, list):
+            return {"version": VERSION, "tasks": data}
+        if isinstance(data, dict):
+            tasks = data.get("tasks", [])
+            if not isinstance(tasks, list):
+                raise SystemExit("local task file must contain a `tasks` array")
+            return data
+        raise SystemExit("local task file must be a JSON array or object")
+    return {"version": VERSION, "tasks": []}
+
+
+def write_local_orchestration_task_file(config: ProjectConfig, data: dict[str, object]) -> None:
+    path = config.orchestration_tasks_path
+    if not path.is_relative_to(config.root):
+        raise SystemExit(f"local task file must stay inside project root: {path}")
+    path.parent.mkdir(parents=True, exist_ok=True)
+    data["version"] = normalize_optional_text(data.get("version", VERSION)) or VERSION
+    data["updated_at"] = current_utc_timestamp()
+    path.write_text(json.dumps(data, indent=2, ensure_ascii=True) + "\n", encoding="utf-8")
+
+
+def load_orchestration_tasks(config: ProjectConfig) -> tuple[list[dict[str, object]], list[str]]:
+    automation_tasks, automation_issues = load_automation_intent_tasks(config)
+    source_tasks: list[dict[str, object]]
+    source_issues: list[str]
+    if config.orchestration_task_source == "local":
+        source_tasks, source_issues = load_local_orchestration_tasks(config)
+    elif config.orchestration_task_source == "provider-task-document":
+        source_tasks, source_issues = load_provider_task_document_tasks(config)
+    elif config.orchestration_task_source == "provider-api":
+        source_tasks, source_issues = load_provider_api_tasks(config)
+    else:
+        source_tasks, source_issues = [], [f"unsupported task source: {config.orchestration_task_source}"]
+    seen: set[str] = set()
+    combined: list[dict[str, object]] = []
+    for task in [*source_tasks, *automation_tasks]:
+        task_id = normalize_optional_text(task.get("id", ""))
+        if task_id and task_id in seen:
+            continue
+        if task_id:
+            seen.add(task_id)
+        combined.append(task)
+    return combined, [*source_issues, *automation_issues]
+
+
+def orchestration_budget_payload(config: ProjectConfig, runs: list[dict[str, object]]) -> dict[str, object]:
+    today = date.today().isoformat()
+    used_minutes = 0
+    for run in runs:
+        started_at = normalize_optional_text(run.get("started_at", ""))
+        if started_at[:10] != today:
+            continue
+        metrics = run.get("metrics", {})
+        if isinstance(metrics, dict):
+            try:
+                used_minutes += int(metrics.get("runtime_minutes", 0))
+            except (TypeError, ValueError):
+                continue
+    remaining = max(0, config.orchestration_daily_budget_minutes - used_minutes)
+    return {
+        "date": today,
+        "daily_budget_minutes": config.orchestration_daily_budget_minutes,
+        "used_minutes": used_minutes,
+        "remaining_minutes": remaining,
+        "exhausted": remaining <= 0,
+    }
+
+
+def orchestration_status_payload(config: ProjectConfig) -> dict[str, object]:
+    tasks, task_issues = load_orchestration_tasks(config)
+    write_orchestration_task_snapshot(config, tasks, task_issues)
+    runs = read_orchestration_runs(config)
+    latest = load_json_file(orchestration_latest_path(config), default={})
+    counts = {status: 0 for status in ORCHESTRATION_RUN_STATUSES}
+    for run in runs:
+        status = normalize_optional_text(run.get("status", ""))
+        if status in counts:
+            counts[status] += 1
+    task_counts = {
+        "total": len(tasks),
+        "eligible": sum(1 for task in tasks if bool(task.get("eligible"))),
+        "blocked": sum(1 for task in tasks if task.get("blocked_reasons")),
+    }
+    budget = orchestration_budget_payload(config, runs)
+    budget_path = orchestration_budgets_path(config)
+    budget_path.parent.mkdir(parents=True, exist_ok=True)
+    budget_path.write_text(json.dumps(budget, indent=2, ensure_ascii=True) + "\n", encoding="utf-8")
+    return {
+        "config": orchestration_config_payload(config),
+        "tasks": {
+            **task_counts,
+            "issues": task_issues,
+            "snapshot_path": orchestration_relative_path(config, orchestration_tasks_snapshot_path(config)),
+        },
+        "runs": {
+            "total": len(runs),
+            "counts": counts,
+            "latest": latest if isinstance(latest, dict) else {},
+            "runs_path": orchestration_relative_path(config, orchestration_runs_path(config)),
+        },
+        "triggers": {
+            "total": count_jsonl_records(orchestration_triggers_path(config)),
+            "triggers_path": orchestration_relative_path(config, orchestration_triggers_path(config)),
+        },
+        "promotion_candidates": {
+            "total": count_jsonl_records(orchestration_promotion_candidates_path(config)),
+            "promotion_candidates_path": orchestration_relative_path(config, orchestration_promotion_candidates_path(config)),
+        },
+        "budget": budget,
+    }
+
+
+def orchestration_policy_issues(config: ProjectConfig) -> tuple[list[str], list[str]]:
+    errors: list[str] = []
+    warnings: list[str] = []
+    if config.orchestration_workspace_root.exists() and not config.orchestration_workspace_root.is_dir():
+        errors.append(f"workspace_root is not a directory: {config.orchestration_workspace_root}")
+    if not config.orchestration_workspace_root.is_relative_to(config.root):
+        errors.append(f"workspace_root must stay inside project root: {config.orchestration_workspace_root}")
+    if config.orchestration_tasks_path.exists() and not config.orchestration_tasks_path.is_relative_to(config.root):
+        errors.append(f"tasks_path must stay inside project root: {config.orchestration_tasks_path}")
+    if config.orchestration_enabled and config.orchestration_runner == "shell-command" and not config.orchestration_runner_command:
+        errors.append("runner `shell-command` requires orchestration.runner_command")
+    if config.orchestration_enabled and config.orchestration_runner == "codex-sdk" and not config.orchestration_runner_command:
+        errors.append("runner `codex-sdk` requires orchestration.runner_command")
+    if config.orchestration_enabled and config.orchestration_runner == "codex-app-server" and not config.orchestration_runner_endpoint:
+        errors.append("runner `codex-app-server` requires orchestration.runner_endpoint")
+    if config.orchestration_enabled and config.orchestration_task_source == "provider-api":
+        if not config.orchestration_provider_task_item_id:
+            errors.append("task_source `provider-api` requires orchestration.provider_task_item_id")
+        if not config.orchestration_provider_task_item_kind:
+            errors.append("task_source `provider-api` requires orchestration.provider_task_item_kind")
+    if (
+        config.orchestration_enabled
+        and config.orchestration_runner in {"shell-command", "codex-sdk", "codex-app-server"}
+        and config.orchestration_workspace_mode == "none"
+        and not config.orchestration_allow_project_root_runner
+    ):
+        errors.append(f"runner `{config.orchestration_runner}` with workspace_mode `none` requires allow_project_root_runner = true")
+    if not config.orchestration_enabled:
+        warnings.append("orchestration is disabled; task listing is available, but runs will be blocked")
+    return errors, warnings
+
+
+def orchestration_doctor(config: ProjectConfig, args: argparse.Namespace) -> int:
+    errors, warnings = orchestration_policy_issues(config)
+    tasks, task_issues = load_orchestration_tasks(config)
+    warnings.extend(task_issues)
+    payload = {
+        "command": "orchestration.doctor",
+        "status": "ok" if not errors else "failed",
+        "project": project_payload(config),
+        "orchestration": orchestration_config_payload(config),
+        "task_count": len(tasks),
+        "errors": errors,
+        "warnings": warnings,
+    }
+    if json_output_requested(args):
+        emit_json(payload)
+        return 0 if not errors else 1
+    print(f"Orchestration doctor for {config.data['project']['name']}")
+    print(f"  Status: {payload['status']}")
+    for item in errors:
+        print(f"  error: {item}")
+    for item in warnings:
+        print(f"  warning: {item}")
+    return 0 if not errors else 1
+
+
+def orchestration_status(config: ProjectConfig, args: argparse.Namespace) -> int:
+    payload = {
+        "command": "orchestration.status",
+        "status": "ok",
+        "project": project_payload(config),
+        "orchestration": orchestration_status_payload(config),
+    }
+    if json_output_requested(args):
+        emit_json(payload)
+        return 0
+    state = payload["orchestration"]
+    print(f"Orchestration status for {config.data['project']['name']}")
+    print(f"  Enabled: {state['config']['enabled']}")
+    print(f"  Task source: {state['config']['task_source']} ({state['config']['tasks_path']})")
+    print(f"  Runner: {state['config']['runner']}")
+    print(f"  Tasks: {state['tasks']['total']} total / {state['tasks']['eligible']} eligible / {state['tasks']['blocked']} blocked")
+    print(f"  Runs: {state['runs']['total']}")
+    print(f"  Budget minutes: {state['budget']['used_minutes']} used / {state['budget']['daily_budget_minutes']} daily")
+    return 0
+
+
+def orchestration_tasks(config: ProjectConfig, args: argparse.Namespace) -> int:
+    tasks, issues = load_orchestration_tasks(config)
+    write_orchestration_task_snapshot(config, tasks, issues)
+    payload = {
+        "command": "orchestration.tasks",
+        "status": "ok",
+        "project": project_payload(config),
+        "task_source": config.orchestration_task_source,
+        "tasks_path": orchestration_relative_path(config, config.orchestration_tasks_path),
+        "issues": issues,
+        "tasks": tasks,
+    }
+    if json_output_requested(args):
+        emit_json(payload)
+        return 0
+    print(f"Orchestration tasks for {config.data['project']['name']}")
+    for task in tasks:
+        print(f"  - {task['id']}: {task['title']} [{task['state']}/{task['risk']}]")
+        for reason in task.get("blocked_reasons", []):
+            print(f"    blocked: {reason}")
+    if not tasks:
+        print("  No tasks.")
+    for issue in issues:
+        print(f"  warning: {issue}")
+    return 0
+
+
+def orchestration_intake(config: ProjectConfig, args: argparse.Namespace) -> int:
+    payload, code = capture_orchestration_task(
+        config,
+        source_kind="cli-intent",
+        source_url="",
+        identity_key=normalize_optional_text(args.identifier) or f"cli-{date.today().isoformat()}-{sanitize_slug(args.title)}",
+        event_kind="cli-intent",
+        title=args.title,
+        description=args.description,
+        acceptance=args.acceptance,
+        validation=args.validation,
+        labels=args.label,
+        risk_hints=args.risk_hint,
+        priority=args.priority,
+        error_on_duplicate=True,
+    )
+    if json_output_requested(args):
+        emit_json(payload)
+        return code
+    normalized = payload["task"]
+    print(f"Captured orchestration task {normalized['id']}: {normalized['title']}")
+    if normalized.get("blocked_reasons"):
+        for item in normalized["blocked_reasons"]:
+            print(f"  blocked: {item}")
+    return code
+
+
+def capture_orchestration_task(
+    config: ProjectConfig,
+    *,
+    source_kind: str,
+    source_url: str,
+    identity_key: str,
+    event_kind: str,
+    title: str,
+    description: str,
+    acceptance: list[str],
+    validation: list[str],
+    labels: list[str],
+    risk_hints: list[str],
+    priority: str,
+    error_on_duplicate: bool,
+) -> tuple[dict[str, object], int]:
+    task_file = load_local_orchestration_task_file(config)
+    raw_tasks = task_file.get("tasks", [])
+    if not isinstance(raw_tasks, list):
+        raise SystemExit("local task file must contain a `tasks` array")
+    identifier = normalize_optional_text(identity_key) or f"{source_kind}-{date.today().isoformat()}-{sanitize_slug(title)}"
+    prefix = "cli" if source_kind == "cli-intent" else f"trigger:{sanitize_slug(source_kind)}"
+    task_id = f"{prefix}:{sanitize_slug(identifier)}"
+    existing_ids = {
+        normalize_optional_text(item.get("id", ""))
+        for item in raw_tasks
+        if isinstance(item, dict)
+    }
+    if task_id in existing_ids:
+        if error_on_duplicate:
+            raise SystemExit(f"orchestration task already exists: {task_id}")
+        for index, item in enumerate(raw_tasks):
+            if isinstance(item, dict) and normalize_optional_text(item.get("id", "")) == task_id:
+                normalized = normalize_orchestration_task(config, item, index)
+                payload = {
+                    "command": "orchestration.trigger",
+                    "status": "duplicate",
+                    "project": project_payload(config),
+                    "tasks_path": orchestration_relative_path(config, config.orchestration_tasks_path),
+                    "task": normalized,
+                    "trigger": {
+                        "source_kind": source_kind,
+                        "source_url": source_url,
+                        "identity_key": identifier,
+                        "event_kind": event_kind,
+                        "deduped": True,
+                    },
+                }
+                return payload, 0
+    now = current_utc_timestamp()
+    task = {
+        "id": task_id,
+        "source_kind": source_kind,
+        "source_url": normalize_optional_text(source_url),
+        "identifier": identifier,
+        "title": title,
+        "description": normalize_optional_text(description),
+        "state": "open",
+        "priority": normalize_optional_text(priority) or "normal",
+        "labels": normalize_task_string_list(labels),
+        "blocked_by": [],
+        "project_slug": config.data["project"]["slug"],
+        "acceptance_criteria": normalize_task_string_list(acceptance),
+        "validation_requirements": normalize_task_string_list(validation),
+        "risk_hints": normalize_task_string_list(risk_hints),
+        "trigger_event_kind": event_kind,
+        "created_at": now,
+        "updated_at": now,
+    }
+    raw_tasks.append(task)
+    task_file["tasks"] = raw_tasks
+    write_local_orchestration_task_file(config, task_file)
+    normalized = normalize_orchestration_task(config, task, len(raw_tasks) - 1)
+    write_orchestration_task_snapshot(config, [normalized], [])
+    trigger = {
+        "version": VERSION,
+        "created_at": now,
+        "source_kind": source_kind,
+        "source_url": normalize_optional_text(source_url),
+        "identity_key": identifier,
+        "event_kind": event_kind,
+        "task_id": normalized["id"],
+        "title": normalized["title"],
+        "deduped": False,
+    }
+    append_orchestration_trigger(config, trigger)
+    refresh_kernel_state(config, event_type="orchestration.intake", summary=f"Captured orchestration task `{title}`.")
+    payload = {
+        "command": "orchestration.intake" if source_kind == "cli-intent" else "orchestration.trigger",
+        "status": "ok",
+        "project": project_payload(config),
+        "tasks_path": orchestration_relative_path(config, config.orchestration_tasks_path),
+        "task": normalized,
+        "trigger": trigger,
+    }
+    return payload, 0
+
+
+def orchestration_trigger(config: ProjectConfig, args: argparse.Namespace) -> int:
+    payload, code = capture_orchestration_task(
+        config,
+        source_kind=args.source_kind,
+        source_url=args.source_url,
+        identity_key=args.identity_key,
+        event_kind=args.event_kind,
+        title=args.title,
+        description=args.description,
+        acceptance=args.acceptance,
+        validation=args.validation,
+        labels=args.label,
+        risk_hints=args.risk_hint,
+        priority=args.priority,
+        error_on_duplicate=False,
+    )
+    run_payload: dict[str, object] | None = None
+    run_code = 0
+    if args.run and payload.get("task"):
+        task = payload["task"]
+        if isinstance(task, dict):
+            run_payload, run_code = create_orchestration_run_payload(config, normalize_optional_text(task.get("id", "")))
+            payload["run"] = run_payload.get("run", {}) if isinstance(run_payload, dict) else {}
+            payload["run_status"] = run_payload.get("status", "blocked") if isinstance(run_payload, dict) else "blocked"
+    if json_output_requested(args):
+        emit_json(payload)
+        return run_code if args.run else code
+    task = payload["task"]
+    if isinstance(task, dict):
+        print(f"Triggered orchestration task {task['id']}: {task['title']}")
+    if args.run:
+        print(f"  Run status: {payload.get('run_status', 'blocked')}")
+    return run_code if args.run else code
+
+
+def orchestration_workspace_for_task(config: ProjectConfig, task: dict[str, object]) -> tuple[str, list[str]]:
+    if config.orchestration_workspace_mode == "none":
+        return "", []
+    root = config.orchestration_workspace_root
+    if not root.is_relative_to(config.root):
+        return "", [f"workspace root escapes project root: {root}"]
+    key = sanitize_slug(normalize_optional_text(task.get("identifier", "")) or normalize_optional_text(task.get("id", "")))
+    path = (root / key).resolve()
+    if not path.is_relative_to(root):
+        return "", [f"workspace path escapes configured workspace root: {path}"]
+    return str(path), []
+
+
+def orchestration_find_task(config: ProjectConfig, task_id: str) -> tuple[dict[str, object] | None, list[str]]:
+    tasks, issues = load_orchestration_tasks(config)
+    for task in tasks:
+        if normalize_optional_text(task.get("id", "")) == task_id or normalize_optional_text(task.get("identifier", "")) == task_id:
+            if normalize_optional_text(task.get("source_kind", "")) == "automation":
+                return task, []
+            return task, issues
+    return None, issues
+
+
+def agent_quality_checklist_payload(config: ProjectConfig) -> dict[str, object]:
+    return {
+        "quality_policy": config.agent_quality_policy,
+        "assumptions": "surface uncertain assumptions before non-trivial implementation"
+        if config.agent_assumption_policy != "off"
+        else "no explicit assumption requirement",
+        "simplicity": "prefer the smallest durable design that satisfies the task"
+        if config.agent_complexity_policy == "simplicity-first"
+        else "follow project default complexity policy",
+        "diff_scope": "change only lines required by the task"
+        if config.agent_diff_scope_policy == "surgical"
+        else config.agent_diff_scope_policy,
+        "success_criteria": "define or preserve acceptance criteria and report them at closeout"
+        if config.agent_success_criteria_policy == "required"
+        else config.agent_success_criteria_policy,
+        "verification_required": config.agent_require_verification,
+        "drive_by_refactors_forbidden": config.agent_forbid_drive_by_refactors,
+    }
+
+
+def build_orchestration_run_record(
+    config: ProjectConfig,
+    task: dict[str, object] | None,
+    *,
+    task_id: str,
+    status: str,
+    blocked_reasons: list[str],
+    workspace_path: str = "",
+) -> dict[str, object]:
+    now = current_utc_timestamp()
+    task_identifier = normalize_optional_text(task.get("identifier", task_id)) if task else task_id
+    run_id = f"run-{now.replace(':', '').replace('-', '').replace('Z', '')}-{sanitize_slug(task_identifier)}"
+    return {
+        "run_id": run_id,
+        "task_id": normalize_optional_text(task.get("id", task_id)) if task else task_id,
+        "task_identifier": task_identifier,
+        "task_source": config.orchestration_task_source,
+        "runner": config.orchestration_runner,
+        "workspace_mode": config.orchestration_workspace_mode,
+        "workspace_path": workspace_path,
+        "agent_behavior": agent_behavior_payload(config),
+        "quality_checklist": agent_quality_checklist_payload(config),
+        "risk": normalize_optional_text(task.get("risk", "blocked")) if task else "blocked",
+        "started_at": now,
+        "ended_at": now,
+        "status": status,
+        "blocked_reasons": blocked_reasons,
+        "metrics": {
+            "runtime_minutes": 0,
+            "token_count": 0,
+            "cost_usd": 0,
+        },
+        "touched_files": [],
+        "validation_evidence": [],
+        "final_disposition": status,
+        "links": [],
+        "reusable_lessons": [],
+        "runner_events": [],
+    }
+
+
+def orchestration_file_snapshot(root: Path) -> dict[str, str]:
+    snapshot: dict[str, str] = {}
+    if not root.exists() or not root.is_dir():
+        return snapshot
+    for path in root.rglob("*"):
+        if not path.is_file():
+            continue
+        relative = path.relative_to(root)
+        if any(part in KERNEL_SKIP_DIRS for part in relative.parts):
+            continue
+        try:
+            digest = hashlib.sha256(path.read_bytes()).hexdigest()
+        except OSError:
+            continue
+        snapshot[relative.as_posix()] = digest
+    return snapshot
+
+
+def compare_orchestration_snapshots(before: dict[str, str], after: dict[str, str]) -> list[str]:
+    paths = sorted(set(before) | set(after))
+    changed: list[str] = []
+    for path in paths:
+        if before.get(path) != after.get(path):
+            changed.append(path)
+    return changed
+
+
+def redact_runner_text(text: str) -> str:
+    redacted = text
+    redacted = re.sub(r"(?i)(api[_-]?key|token|secret|password|credential)(\\s*[=:]\\s*)\\S+", r"\\1\\2[REDACTED]", redacted)
+    return redacted[:8000]
+
+
+def prepare_orchestration_runner_workspace(
+    config: ProjectConfig,
+    task: dict[str, object] | None,
+) -> tuple[Path, list[str], dict[str, object]]:
+    mode = config.orchestration_workspace_mode
+    record: dict[str, object] = {
+        "mode": mode,
+        "prepared": False,
+        "cleanup_policy": "preserve",
+        "root_mutation_allowed": config.orchestration_allow_project_root_runner,
+    }
+    if task is None:
+        return config.root, ["task is required before preparing a runner workspace"], record
+    workspace_path_text, workspace_errors = orchestration_workspace_for_task(config, task)
+    if workspace_errors:
+        return config.root, workspace_errors, record
+    if mode == "none":
+        if config.orchestration_runner in {"shell-command", "codex-sdk", "codex-app-server"} and not config.orchestration_allow_project_root_runner:
+            return config.root, [f"workspace_mode `none` cannot run {config.orchestration_runner} without allow_project_root_runner = true"], record
+        record["prepared"] = True
+        record["path"] = str(config.root)
+        return config.root, [], record
+    if mode == "copy":
+        workspace_path = Path(workspace_path_text)
+        if workspace_path.exists():
+            shutil.rmtree(workspace_path)
+        workspace_path.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copytree(config.root, workspace_path, ignore=shutil.ignore_patterns(*sorted(KERNEL_SKIP_DIRS)))
+        record["prepared"] = True
+        record["path"] = str(workspace_path)
+        return workspace_path, [], record
+    return config.root, [f"workspace_mode `{mode}` is not implemented for runner `{config.orchestration_runner}`"], record
+
+
+def run_shell_command_adapter(config: ProjectConfig, run: dict[str, object], task: dict[str, object] | None) -> dict[str, object]:
+    command = config.orchestration_runner_command
+    if not command:
+        run["status"] = "blocked"
+        run["blocked_reasons"] = [*normalize_task_string_list(run.get("blocked_reasons")), "runner_command is required for shell-command runner"]
+        return run
+    workspace, workspace_errors, workspace_record = prepare_orchestration_runner_workspace(config, task)
+    run["workspace_path"] = str(workspace)
+    run["workspace"] = workspace_record
+    if workspace_errors:
+        run["status"] = "blocked"
+        run["blocked_reasons"] = [*normalize_task_string_list(run.get("blocked_reasons")), *workspace_errors]
+        return run
+    before = orchestration_file_snapshot(workspace)
+    start = datetime.now(timezone.utc)
+    run["runner_events"] = [
+        {
+            "event": "start",
+            "created_at": current_utc_timestamp(),
+            "runner": "shell-command",
+            "cwd": str(workspace),
+        }
+    ]
+    env = os.environ.copy()
+    env.update(
+        {
+            "SULA_RUN_ID": normalize_optional_text(run.get("run_id", "")),
+            "SULA_TASK_ID": normalize_optional_text(run.get("task_id", "")),
+            "SULA_TASK_TITLE": normalize_optional_text(task.get("title", "")) if task else "",
+            "SULA_AGENT_QUALITY_POLICY": config.agent_quality_policy,
+        }
+    )
+    try:
+        completed = subprocess.run(
+            command,
+            shell=True,
+            cwd=workspace,
+            env=env,
+            capture_output=True,
+            text=True,
+            timeout=max(1, config.orchestration_max_run_minutes) * 60,
+        )
+        stdout = redact_runner_text(completed.stdout or "")
+        stderr = redact_runner_text(completed.stderr or "")
+        returncode = completed.returncode
+        timed_out = False
+    except subprocess.TimeoutExpired as exc:
+        stdout = redact_runner_text(exc.stdout if isinstance(exc.stdout, str) else "")
+        stderr = redact_runner_text(exc.stderr if isinstance(exc.stderr, str) else "")
+        returncode = 124
+        timed_out = True
+    end = datetime.now(timezone.utc)
+    runtime_minutes = max(0, int((end - start).total_seconds() // 60))
+    after = orchestration_file_snapshot(workspace)
+    touched_files = compare_orchestration_snapshots(before, after)
+    status = "failed" if timed_out or returncode != 0 else "human-review"
+    summary = (
+        f"shell-command verification passed with exit code {returncode}; acceptance criteria require review"
+        if status == "human-review"
+        else f"shell-command verification failed with exit code {returncode}"
+    )
+    run["status"] = status
+    run["ended_at"] = current_utc_timestamp()
+    run["metrics"] = {
+        "runtime_minutes": runtime_minutes,
+        "token_count": 0,
+        "cost_usd": 0,
+    }
+    run["touched_files"] = touched_files
+    run["validation_evidence"] = [
+        *[item for item in run.get("validation_evidence", []) if isinstance(item, dict)],
+        {
+            "kind": "runner-command",
+            "summary": summary,
+            "created_at": current_utc_timestamp(),
+            "returncode": returncode,
+            "timed_out": timed_out,
+            "stdout": stdout,
+            "stderr": stderr,
+        },
+    ]
+    run["runner_events"] = [
+        *[item for item in run.get("runner_events", []) if isinstance(item, dict)],
+        {
+            "event": "finish",
+            "created_at": current_utc_timestamp(),
+            "runner": "shell-command",
+            "returncode": returncode,
+            "status": status,
+            "touched_file_count": len(touched_files),
+        },
+    ]
+    run["final_disposition"] = status
+    return run
+
+
+def codex_runner_request_payload(config: ProjectConfig, run: dict[str, object], task: dict[str, object] | None, workspace: Path) -> dict[str, object]:
+    return {
+        "version": VERSION,
+        "project": project_payload(config),
+        "run": run,
+        "task": task or {},
+        "workspace_path": str(workspace),
+        "quality_checklist": agent_quality_checklist_payload(config),
+    }
+
+
+def apply_agent_runner_response(
+    config: ProjectConfig,
+    run: dict[str, object],
+    *,
+    runner_name: str,
+    workspace: Path,
+    before: dict[str, str],
+    start: datetime,
+    returncode: int,
+    timed_out: bool,
+    stdout: str,
+    stderr: str,
+    response_payload: dict[str, object] | None,
+) -> dict[str, object]:
+    end = datetime.now(timezone.utc)
+    runtime_minutes = max(0, int((end - start).total_seconds() // 60))
+    touched_files = compare_orchestration_snapshots(before, orchestration_file_snapshot(workspace))
+    explicit_status = normalize_optional_text((response_payload or {}).get("status", "")).strip()
+    status = explicit_status if explicit_status in ORCHESTRATION_RUN_STATUSES else ("failed" if timed_out or returncode != 0 else "human-review")
+    evidence_summary = normalize_optional_text((response_payload or {}).get("summary", "")).strip()
+    if not evidence_summary:
+        evidence_summary = (
+            f"{runner_name} completed with exit code {returncode}; acceptance criteria require review"
+            if status == "human-review"
+            else f"{runner_name} failed with exit code {returncode}"
+        )
+    response_touched = normalize_task_string_list((response_payload or {}).get("touched_files", []))
+    run["status"] = status
+    run["ended_at"] = current_utc_timestamp()
+    run["metrics"] = {
+        **({"runtime_minutes": runtime_minutes, "token_count": 0, "cost_usd": 0}),
+        **({k: v for k, v in (response_payload or {}).get("metrics", {}).items()} if isinstance((response_payload or {}).get("metrics", {}), dict) else {}),
+    }
+    run["touched_files"] = sorted(set([*touched_files, *response_touched]))
+    response_evidence = (response_payload or {}).get("validation_evidence", [])
+    validation_evidence = [item for item in run.get("validation_evidence", []) if isinstance(item, dict)]
+    if isinstance(response_evidence, list):
+        validation_evidence.extend(item for item in response_evidence if isinstance(item, dict))
+    validation_evidence.append(
+        {
+            "kind": runner_name,
+            "summary": evidence_summary,
+            "created_at": current_utc_timestamp(),
+            "returncode": returncode,
+            "timed_out": timed_out,
+            "stdout": stdout,
+            "stderr": stderr,
+        }
+    )
+    run["validation_evidence"] = validation_evidence
+    response_links = normalize_task_string_list((response_payload or {}).get("links", []))
+    if response_links:
+        run["links"] = sorted(set([*normalize_task_string_list(run.get("links")), *response_links]))
+    run["runner_events"] = [
+        *[item for item in run.get("runner_events", []) if isinstance(item, dict)],
+        {
+            "event": "finish",
+            "created_at": current_utc_timestamp(),
+            "runner": runner_name,
+            "returncode": returncode,
+            "status": status,
+            "touched_file_count": len(run["touched_files"]),
+        },
+    ]
+    run["final_disposition"] = status
+    return run
+
+
+def run_codex_sdk_adapter(config: ProjectConfig, run: dict[str, object], task: dict[str, object] | None) -> dict[str, object]:
+    command = config.orchestration_runner_command
+    if not command:
+        run["status"] = "blocked"
+        run["blocked_reasons"] = [*normalize_task_string_list(run.get("blocked_reasons")), "runner_command is required for codex-sdk runner"]
+        return run
+    workspace, workspace_errors, workspace_record = prepare_orchestration_runner_workspace(config, task)
+    run["workspace_path"] = str(workspace)
+    run["workspace"] = workspace_record
+    if workspace_errors:
+        run["status"] = "blocked"
+        run["blocked_reasons"] = [*normalize_task_string_list(run.get("blocked_reasons")), *workspace_errors]
+        return run
+    before = orchestration_file_snapshot(workspace)
+    start = datetime.now(timezone.utc)
+    run["runner_events"] = [
+        *[item for item in run.get("runner_events", []) if isinstance(item, dict)],
+        {"event": "start", "created_at": current_utc_timestamp(), "runner": "codex-sdk", "cwd": str(workspace)},
+    ]
+    request_payload = codex_runner_request_payload(config, run, task, workspace)
+    try:
+        completed = subprocess.run(
+            command,
+            shell=True,
+            cwd=workspace,
+            input=json.dumps(request_payload, ensure_ascii=True),
+            capture_output=True,
+            text=True,
+            timeout=max(1, config.orchestration_max_run_minutes) * 60,
+        )
+        stdout = redact_runner_text(completed.stdout or "")
+        stderr = redact_runner_text(completed.stderr or "")
+        returncode = completed.returncode
+        timed_out = False
+    except subprocess.TimeoutExpired as exc:
+        stdout = redact_runner_text(exc.stdout if isinstance(exc.stdout, str) else "")
+        stderr = redact_runner_text(exc.stderr if isinstance(exc.stderr, str) else "")
+        returncode = 124
+        timed_out = True
+    response_payload = None
+    if stdout.strip():
+        try:
+            parsed = json.loads(stdout)
+            if isinstance(parsed, dict):
+                response_payload = parsed
+        except json.JSONDecodeError:
+            response_payload = None
+    return apply_agent_runner_response(
+        config,
+        run,
+        runner_name="codex-sdk",
+        workspace=workspace,
+        before=before,
+        start=start,
+        returncode=returncode,
+        timed_out=timed_out,
+        stdout=stdout,
+        stderr=stderr,
+        response_payload=response_payload,
+    )
+
+
+def run_codex_app_server_adapter(config: ProjectConfig, run: dict[str, object], task: dict[str, object] | None) -> dict[str, object]:
+    endpoint = config.orchestration_runner_endpoint
+    if not endpoint:
+        run["status"] = "blocked"
+        run["blocked_reasons"] = [*normalize_task_string_list(run.get("blocked_reasons")), "runner_endpoint is required for codex-app-server runner"]
+        return run
+    workspace, workspace_errors, workspace_record = prepare_orchestration_runner_workspace(config, task)
+    run["workspace_path"] = str(workspace)
+    run["workspace"] = workspace_record
+    if workspace_errors:
+        run["status"] = "blocked"
+        run["blocked_reasons"] = [*normalize_task_string_list(run.get("blocked_reasons")), *workspace_errors]
+        return run
+    before = orchestration_file_snapshot(workspace)
+    start = datetime.now(timezone.utc)
+    run["runner_events"] = [
+        *[item for item in run.get("runner_events", []) if isinstance(item, dict)],
+        {"event": "start", "created_at": current_utc_timestamp(), "runner": "codex-app-server", "endpoint": endpoint},
+    ]
+    request_payload = codex_runner_request_payload(config, run, task, workspace)
+    headers = {"Content-Type": "application/json", "Accept": "application/json"}
+    token_env = config.orchestration_runner_token_env
+    if token_env and os.environ.get(token_env):
+        headers["Authorization"] = f"Bearer {os.environ[token_env]}"
+    req = request.Request(endpoint, data=json.dumps(request_payload, ensure_ascii=True).encode("utf-8"), headers=headers, method="POST")
+    response_payload: dict[str, object] | None = None
+    stdout = ""
+    stderr = ""
+    returncode = 0
+    timed_out = False
+    try:
+        with request.urlopen(req, timeout=max(1, config.orchestration_max_run_minutes) * 60) as response:
+            stdout = redact_runner_text(response.read().decode("utf-8"))
+            parsed = json.loads(stdout or "{}")
+            if isinstance(parsed, dict):
+                response_payload = parsed
+    except (error.URLError, error.HTTPError, TimeoutError, json.JSONDecodeError) as exc:
+        returncode = 1
+        stderr = redact_runner_text(str(exc))
+    return apply_agent_runner_response(
+        config,
+        run,
+        runner_name="codex-app-server",
+        workspace=workspace,
+        before=before,
+        start=start,
+        returncode=returncode,
+        timed_out=timed_out,
+        stdout=stdout,
+        stderr=stderr,
+        response_payload=response_payload,
+    )
+
+
+def create_orchestration_run_payload(config: ProjectConfig, task_id: str) -> tuple[dict[str, object], int]:
+    task, task_issues = orchestration_find_task(config, task_id)
+    blocked_reasons = list(task_issues)
+    if not config.orchestration_enabled:
+        blocked_reasons.append("orchestration is disabled in the manifest")
+    if task is None:
+        blocked_reasons.append(f"task not found: {task_id}")
+    elif task.get("blocked_reasons"):
+        blocked_reasons.extend(str(item) for item in task.get("blocked_reasons", []))
+    runs = read_orchestration_runs(config)
+    budget = orchestration_budget_payload(config, runs)
+    if budget["exhausted"]:
+        blocked_reasons.append("daily orchestration budget is exhausted")
+    workspace_path = ""
+    if task is not None:
+        workspace_path, workspace_errors = orchestration_workspace_for_task(config, task)
+        blocked_reasons.extend(workspace_errors)
+    status = "blocked" if blocked_reasons else "human-review"
+    evidence = []
+    if not blocked_reasons:
+        if config.orchestration_runner == "dry-run":
+            evidence.append(
+                {
+                    "kind": "dry-run",
+                    "summary": "Dry-run runner exercised scheduling, policy, workspace, and record persistence without mutating project files.",
+                    "created_at": current_utc_timestamp(),
+                }
+            )
+    run = build_orchestration_run_record(
+        config,
+        task,
+        task_id=task_id,
+        status=status,
+        blocked_reasons=blocked_reasons,
+        workspace_path=workspace_path,
+    )
+    run["validation_evidence"] = evidence
+    if not blocked_reasons and config.orchestration_runner == "shell-command":
+        run = run_shell_command_adapter(config, run, task)
+        status = normalize_optional_text(run.get("status", status)) or status
+    if not blocked_reasons and config.orchestration_runner == "codex-sdk":
+        run = run_codex_sdk_adapter(config, run, task)
+        status = normalize_optional_text(run.get("status", status)) or status
+    if not blocked_reasons and config.orchestration_runner == "codex-app-server":
+        run = run_codex_app_server_adapter(config, run, task)
+        status = normalize_optional_text(run.get("status", status)) or status
+    append_orchestration_run(config, run)
+    latest = {
+        "version": VERSION,
+        "updated_at": current_utc_timestamp(),
+        "latest_run": run,
+        "budget": orchestration_budget_payload(config, [*runs, run]),
+    }
+    write_orchestration_latest(config, latest)
+    payload = {
+        "command": "orchestration.run",
+        "status": status,
+        "project": project_payload(config),
+        "run": run,
+    }
+    return payload, 0 if status not in {"blocked", "failed", "cancelled"} else 1
+
+
+def orchestration_run(config: ProjectConfig, args: argparse.Namespace) -> int:
+    payload, code = create_orchestration_run_payload(config, args.task_id)
+    if json_output_requested(args):
+        emit_json(payload)
+        return code
+    run = payload["run"]
+    print(f"Orchestration run {run['run_id']}: {payload['status']}")
+    for item in run.get("blocked_reasons", []):
+        print(f"  - {item}")
+    return code
+
+
+def normalize_orchestration_evidence(values: list[str]) -> list[dict[str, object]]:
+    evidence: list[dict[str, object]] = []
+    for value in values:
+        summary = normalize_optional_text(value).strip()
+        if not summary:
+            continue
+        evidence.append(
+            {
+                "kind": "operator-evidence",
+                "summary": summary,
+                "created_at": current_utc_timestamp(),
+            }
+        )
+    return evidence
+
+
+def is_orchestration_url(value: str) -> bool:
+    return bool(re.match(r"^[a-z][a-z0-9+.-]*://", value.strip(), flags=re.IGNORECASE))
+
+
+def is_orchestration_pull_request_url(value: str) -> bool:
+    lowered = value.strip().lower()
+    return bool(
+        re.search(r"https?://[^/]*github\.com/[^/]+/[^/]+/pull/\d+", lowered)
+        or re.search(r"https?://[^/]*gitlab\.[^/]+/.+/-/merge_requests/\d+", lowered)
+        or re.search(r"https?://[^/]*bitbucket\.[^/]+/.+/pull-requests/\d+", lowered)
+    )
+
+
+def is_orchestration_provider_url(value: str) -> bool:
+    lowered = value.strip().lower()
+    return any(
+        marker in lowered
+        for marker in [
+            "docs.google.com/document/",
+            "docs.google.com/spreadsheets/",
+            "drive.google.com/",
+        ]
+    )
+
+
+def remote_verification_attempt_allowed(config: ProjectConfig) -> bool:
+    return config.orchestration_remote_verification_policy != "reference-only"
+
+
+def remote_verification_required(config: ProjectConfig) -> bool:
+    return config.orchestration_remote_verification_policy == "required"
+
+
+def pr_reference_parts(value: str) -> dict[str, str]:
+    match = re.search(r"https?://[^/]*github\.com/(?P<owner>[^/]+)/(?P<repo>[^/]+)/pull/(?P<number>\d+)", value.strip(), flags=re.IGNORECASE)
+    if match:
+        return {
+            "provider": "github",
+            "owner": match.group("owner"),
+            "repo": match.group("repo"),
+            "number": match.group("number"),
+        }
+    match = re.search(r"https?://(?P<host>[^/]*gitlab\.[^/]+)/(?P<project>.+)/-/merge_requests/(?P<number>\d+)", value.strip(), flags=re.IGNORECASE)
+    if match:
+        return {
+            "provider": "gitlab",
+            "host": match.group("host"),
+            "project": match.group("project"),
+            "number": match.group("number"),
+        }
+    match = re.search(r"https?://(?P<host>[^/]*bitbucket\.[^/]+)/(?P<project>.+)/pull-requests/(?P<number>\d+)", value.strip(), flags=re.IGNORECASE)
+    if match:
+        return {
+            "provider": "bitbucket",
+            "host": match.group("host"),
+            "project": match.group("project"),
+            "number": match.group("number"),
+        }
+    return {}
+
+
+def load_remote_verification_fixture(env_name: str, keys: list[str]) -> dict[str, object] | None:
+    fixture_dir_raw = os.environ.get(env_name, "").strip()
+    if not fixture_dir_raw:
+        return None
+    fixture_dir = Path(fixture_dir_raw)
+    candidates: list[Path] = []
+    for key in keys:
+        if not key:
+            continue
+        candidates.append(fixture_dir / f"{sanitize_slug(key)}.json")
+    for candidate in candidates:
+        if not candidate.exists():
+            continue
+        try:
+            data = json.loads(candidate.read_text(encoding="utf-8"))
+        except json.JSONDecodeError:
+            return {
+                "remote_status": "fixture-invalid-json",
+                "remote_verified": False,
+                "remote_message": f"invalid fixture JSON: {candidate}",
+            }
+        if not isinstance(data, dict):
+            return {
+                "remote_status": "fixture-invalid-payload",
+                "remote_verified": False,
+                "remote_message": f"fixture payload must be a JSON object: {candidate}",
+            }
+        return data
+    return None
+
+
+def verify_pull_request_reference(config: ProjectConfig, link: str) -> dict[str, object]:
+    del config
+    parts = pr_reference_parts(link)
+    provider = parts.get("provider", "unknown")
+    fixture_keys = [
+        link,
+        f"{provider}-{parts.get('owner', parts.get('host', ''))}-{parts.get('repo', parts.get('project', ''))}-{parts.get('number', '')}",
+        hashlib.sha256(link.encode("utf-8")).hexdigest(),
+    ]
+    fixture = load_remote_verification_fixture("SULA_PR_VERIFICATION_FIXTURE_DIR", fixture_keys)
+    if fixture is not None:
+        state = normalize_optional_text(fixture.get("state", ""))
+        merged = bool(fixture.get("merged", False))
+        review_decision = normalize_optional_text(fixture.get("review_decision", fixture.get("reviewDecision", "")))
+        verified = bool(fixture.get("remote_verified", fixture.get("verified", False))) or merged or state.lower() in {"open", "closed", "merged"}
+        return {
+            "remote_status": "ok" if verified else "fixture-unverified",
+            "remote_verified": verified,
+            "remote_provider": provider,
+            "remote_state": state,
+            "merged": merged,
+            "review_decision": review_decision,
+            "remote_source": "fixture",
+        }
+    if provider == "github":
+        token = os.environ.get("SULA_GITHUB_TOKEN", "").strip() or os.environ.get("GITHUB_TOKEN", "").strip()
+        if not token:
+            return {"remote_status": "not-configured", "remote_verified": False, "remote_provider": provider}
+        api_url = f"https://api.github.com/repos/{parse.quote(parts['owner'])}/{parse.quote(parts['repo'])}/pulls/{parse.quote(parts['number'])}"
+        req = request.Request(api_url, headers={"Accept": "application/vnd.github+json", "Authorization": f"Bearer {token}"})
+        try:
+            with request.urlopen(req, timeout=10) as response:
+                payload = json.loads(response.read().decode("utf-8"))
+        except (error.URLError, error.HTTPError, TimeoutError, json.JSONDecodeError) as exc:
+            return {"remote_status": "error", "remote_verified": False, "remote_provider": provider, "remote_message": str(exc)}
+        if not isinstance(payload, dict):
+            return {"remote_status": "invalid-response", "remote_verified": False, "remote_provider": provider}
+        return {
+            "remote_status": "ok",
+            "remote_verified": True,
+            "remote_provider": provider,
+            "remote_state": normalize_optional_text(payload.get("state", "")),
+            "merged": bool(payload.get("merged", False)),
+            "review_decision": normalize_optional_text(payload.get("review_decision", "")),
+            "remote_source": "github-api",
+        }
+    return {"remote_status": "not-configured", "remote_verified": False, "remote_provider": provider}
+
+
+def verify_provider_reference(config: ProjectConfig, artifact: dict[str, object] | None, link: str) -> dict[str, object]:
+    provider_item_id = normalize_optional_text(artifact.get("provider_item_id", "")) if artifact else ""
+    provider_item_kind = normalize_optional_text(artifact.get("provider_item_kind", "")) if artifact else ""
+    provider_item_url = normalize_optional_text(artifact.get("provider_item_url", "")) if artifact else link
+    storage_provider = normalize_optional_text(artifact.get("storage_provider", "")) if artifact else config.storage_provider
+    if not provider_item_id or not provider_item_kind:
+        return {"remote_status": "not-configured", "remote_verified": False}
+    has_fixture = bool(os.environ.get("SULA_PROVIDER_FIXTURE_DIR", "").strip())
+    has_google_token = bool(os.environ.get("SULA_GOOGLE_ACCESS_TOKEN", "").strip()) or config.project_google_oauth_file.exists()
+    if not has_fixture and not has_google_token and config.orchestration_remote_verification_policy != "required":
+        return {"remote_status": "not-configured", "remote_verified": False}
+    try:
+        adapter = create_provider_adapter(storage_provider or config.storage_provider, oauth_store_path=config.project_google_oauth_file)
+        snapshot = adapter.fetch_item(
+            provider_item_id=provider_item_id,
+            provider_item_kind=provider_item_kind,
+            provider_item_url=provider_item_url,
+        )
+    except ProviderAdapterError as exc:
+        return {
+            "remote_status": exc.code,
+            "remote_verified": False,
+            "remote_message": exc.message,
+            "retryable": exc.retryable,
+        }
+    return {
+        "remote_status": "ok",
+        "remote_verified": True,
+        "remote_provider": snapshot.provider,
+        "provider_title": snapshot.provider_title,
+        "provider_modified_at": snapshot.provider_modified_at,
+        "provider_revision_id": snapshot.provider_revision_id,
+        "remote_source": snapshot.truth_source_reason,
+    }
+
+
+def artifact_match_tokens(entry: dict[str, object]) -> set[str]:
+    tokens = {
+        normalize_optional_text(entry.get("id", "")),
+        normalize_optional_text(entry.get("identity_key", "")),
+        normalize_optional_text(entry.get("provider_item_id", "")),
+        normalize_optional_text(entry.get("provider_item_url", "")),
+        normalize_optional_text(entry.get("project_relative_path", "")),
+        normalize_optional_text(entry.get("path", "")),
+        normalize_optional_text(artifact_display_path(entry)),
+    }
+    local_access_paths = entry.get("local_access_paths", [])
+    if isinstance(local_access_paths, list):
+        tokens.update(normalize_optional_text(item) for item in local_access_paths)
+    normalized_tokens: set[str] = set()
+    for token in tokens:
+        cleaned = normalize_optional_text(token).strip()
+        if not cleaned:
+            continue
+        normalized_tokens.add(cleaned)
+        if not is_orchestration_url(cleaned):
+            try:
+                normalized_tokens.add(normalize_project_relative_path(cleaned))
+            except SystemExit:
+                pass
+    return normalized_tokens
+
+
+def resolve_orchestration_verification_link(
+    config: ProjectConfig,
+    catalog: dict[str, object],
+    raw_link: str,
+) -> dict[str, object]:
+    link = normalize_optional_text(raw_link).strip()
+    adapters = set(config.orchestration_verification_adapters)
+    is_url = is_orchestration_url(link)
+    normalized_path = ""
+    if link and not is_url:
+        try:
+            normalized_path = normalize_project_relative_path(link)
+        except SystemExit:
+            normalized_path = ""
+    check: dict[str, object] = {
+        "input": link,
+        "link": link,
+        "kind": "unknown",
+        "adapter": "none",
+        "resolved": False,
+        "exists": False,
+        "verification_state": "unresolved",
+    }
+    artifacts = [item for item in catalog.get("artifacts", []) if isinstance(item, dict)]
+    if "artifact-catalog" in adapters or "provider-metadata" in adapters:
+        for artifact in artifacts:
+            tokens = artifact_match_tokens(artifact)
+            if link not in tokens and (not normalized_path or normalized_path not in tokens):
+                continue
+            provider_item_id = normalize_optional_text(artifact.get("provider_item_id", ""))
+            provider_item_url = normalize_optional_text(artifact.get("provider_item_url", ""))
+            provider_item_kind = normalize_optional_text(artifact.get("provider_item_kind", ""))
+            has_provider_metadata = bool(provider_item_id or provider_item_url or provider_item_kind)
+            adapter = "provider-metadata" if has_provider_metadata and "provider-metadata" in adapters else "artifact-catalog"
+            check.update(
+                {
+                    "kind": "provider-artifact" if has_provider_metadata else "artifact",
+                    "adapter": adapter,
+                    "resolved": True,
+                    "exists": True,
+                    "verification_state": "catalog-matched",
+                    "artifact_id": normalize_optional_text(artifact.get("id", "")),
+                    "artifact_path": normalize_optional_text(artifact_display_path(artifact)),
+                    "provider_item_id": provider_item_id,
+                    "provider_item_kind": provider_item_kind,
+                    "provider_item_url": provider_item_url,
+                }
+            )
+            if has_provider_metadata and "provider-metadata" in adapters:
+                remote = verify_provider_reference(config, artifact, link) if remote_verification_attempt_allowed(config) else {"remote_status": "reference-only", "remote_verified": False}
+                check.update(
+                    {
+                        **remote,
+                        "remote_verification_required": remote_verification_required(config),
+                    }
+                )
+            return check
+    if normalized_path and "local-file" in adapters and (config.root / normalized_path).exists():
+        check.update(
+            {
+                "kind": "local-file",
+                "adapter": "local-file",
+                "resolved": True,
+                "exists": True,
+                "verification_state": "file-exists",
+                "path": normalized_path,
+            }
+        )
+        return check
+    if is_url and is_orchestration_pull_request_url(link) and "pull-request-url" in adapters:
+        remote = verify_pull_request_reference(config, link) if remote_verification_attempt_allowed(config) else {"remote_status": "reference-only", "remote_verified": False}
+        check.update(
+            {
+                "kind": "pull-request-url",
+                "adapter": "pull-request-url",
+                "resolved": True,
+                "exists": True,
+                "verification_state": "reference-only" if not remote.get("remote_verified") else "remote-verified",
+                **remote,
+                "remote_verification_required": remote_verification_required(config),
+            }
+        )
+        return check
+    if is_url and is_orchestration_provider_url(link) and "provider-metadata" in adapters:
+        remote = {"remote_status": "not-configured", "remote_verified": False}
+        check.update(
+            {
+                "kind": "provider-item-url",
+                "adapter": "provider-metadata",
+                "resolved": True,
+                "exists": True,
+                "verification_state": "reference-only",
+                **remote,
+                "remote_verification_required": remote_verification_required(config),
+            }
+        )
+        return check
+    if is_url and "url" in adapters:
+        check.update(
+            {
+                "kind": "url",
+                "adapter": "url",
+                "resolved": True,
+                "exists": True,
+                "verification_state": "reference-only",
+            }
+        )
+        return check
+    if normalized_path:
+        check.update({"kind": "local-file", "adapter": "local-file", "path": normalized_path})
+    elif is_url:
+        check.update({"kind": "url", "adapter": "url"})
+    return check
+
+
+def evaluate_orchestration_closeout(
+    config: ProjectConfig,
+    run: dict[str, object],
+    task: dict[str, object] | None,
+    evidence: list[object],
+    touched_files: list[str],
+    links: list[str],
+    lessons: list[str],
+) -> dict[str, object]:
+    evidence_summaries = " ".join(
+        normalize_optional_text(item.get("summary", ""))
+        for item in evidence
+        if isinstance(item, dict)
+    ).lower()
+    non_dry_run_evidence = [
+        item
+        for item in evidence
+        if isinstance(item, dict) and normalize_optional_text(item.get("kind", "")) != "dry-run"
+    ]
+    verification_markers = ["check", "test", "verify", "verification", "passed", "通过", "验证", "测试"]
+    acceptance_markers = ["acceptance", "success criteria", "done when", "验收", "完成定义"]
+    validation_requirements = normalize_task_string_list(task.get("validation_requirements")) if task else []
+    matched_validation_requirements: list[str] = []
+    missing_validation_requirements: list[str] = []
+    for requirement in validation_requirements:
+        requirement_tokens = {
+            token
+            for token in re.split(r"[^a-z0-9\u4e00-\u9fff]+", requirement.lower())
+            if len(token) >= 3 or contains_cjk(token)
+        }
+        if not requirement_tokens:
+            continue
+        matched_count = sum(1 for token in requirement_tokens if token in evidence_summaries)
+        if matched_count >= max(1, min(2, len(requirement_tokens))):
+            matched_validation_requirements.append(requirement)
+        else:
+            missing_validation_requirements.append(requirement)
+    workspace_path = Path(normalize_optional_text(run.get("workspace_path", "")) or str(config.root))
+    touched_file_checks: list[dict[str, object]] = []
+    for item in touched_files:
+        normalized = normalize_project_relative_path(item)
+        if not normalized:
+            continue
+        candidate_roots = [workspace_path, config.root] if workspace_path != config.root else [config.root]
+        exists = any((root / normalized).exists() for root in candidate_roots)
+        touched_file_checks.append({"path": normalized, "exists": exists})
+    catalog = load_artifact_catalog(config)
+    verification_checks: list[dict[str, object]] = []
+    for item in links:
+        link = normalize_optional_text(item)
+        if not link:
+            continue
+        verification_checks.append(resolve_orchestration_verification_link(config, catalog, link))
+    sula_check_requested = "sula check" in evidence_summaries or any("sula check" in item.lower() for item in validation_requirements)
+    sula_check_passed = None
+    if sula_check_requested:
+        sula_check_passed = daily_check(config, emit_output=False) == 0
+    return {
+        "has_closeout_evidence": bool(non_dry_run_evidence),
+        "has_verification_evidence": any(marker in evidence_summaries for marker in verification_markers),
+        "has_acceptance_evidence": any(marker in evidence_summaries for marker in acceptance_markers),
+        "has_touched_file_summary": bool(touched_files),
+        "has_links": bool(links),
+        "has_promotion_candidates": bool(lessons),
+        "validation_requirements": validation_requirements,
+        "matched_validation_requirements": matched_validation_requirements,
+        "missing_validation_requirements": missing_validation_requirements,
+        "touched_file_checks": touched_file_checks,
+        "missing_touched_files": [item["path"] for item in touched_file_checks if not item["exists"]],
+        "verification_adapters": config.orchestration_verification_adapters,
+        "remote_verification_policy": config.orchestration_remote_verification_policy,
+        "verification_checks": verification_checks,
+        "link_checks": verification_checks,
+        "unresolved_links": [item["link"] for item in verification_checks if not item["resolved"]],
+        "unverified_remote_links": [
+            item["link"]
+            for item in verification_checks
+            if item.get("remote_verification_required") and not item.get("remote_verified")
+        ],
+        "sula_check_requested": sula_check_requested,
+        "sula_check_passed": sula_check_passed,
+        "verification_required": config.agent_require_verification,
+        "success_criteria_policy": config.agent_success_criteria_policy,
+    }
+
+
+def orchestration_close(config: ProjectConfig, args: argparse.Namespace) -> int:
+    runs = read_orchestration_runs(config)
+    target_index = -1
+    for index, run in enumerate(runs):
+        if normalize_optional_text(run.get("run_id", "")) == args.run_id:
+            target_index = index
+    issues: list[str] = []
+    if target_index < 0:
+        issues.append(f"run not found: {args.run_id}")
+        payload = {
+            "command": "orchestration.close",
+            "status": "blocked",
+            "project": project_payload(config),
+            "run_id": args.run_id,
+            "issues": issues,
+        }
+        if json_output_requested(args):
+            emit_json(payload)
+            return 1
+        print(f"Orchestration close {args.run_id}: blocked")
+        for item in issues:
+            print(f"  - {item}")
+        return 1
+
+    run = dict(runs[target_index])
+    task, task_issues = orchestration_find_task(config, normalize_optional_text(run.get("task_id", "")))
+    existing_evidence = run.get("validation_evidence", [])
+    if not isinstance(existing_evidence, list):
+        existing_evidence = []
+    new_evidence = normalize_orchestration_evidence(args.evidence)
+    all_evidence = [*existing_evidence, *new_evidence]
+    touched_files = normalize_task_string_list(run.get("touched_files"))
+    for item in normalize_task_string_list(args.touched_file):
+        touched_files.append(normalize_project_relative_path(item))
+    links = normalize_task_string_list(run.get("links"))
+    links.extend(normalize_task_string_list(args.link))
+    lessons = normalize_task_string_list(run.get("reusable_lessons"))
+    lessons.extend(normalize_task_string_list(args.lesson))
+
+    closeout_evidence = [
+        item
+        for item in all_evidence
+        if isinstance(item, dict) and normalize_optional_text(item.get("kind", "")) != "dry-run"
+    ]
+    closeout_evaluation = evaluate_orchestration_closeout(config, run, task, all_evidence, touched_files, links, lessons)
+    if not closeout_evidence:
+        issues.append("accepted closeout requires validation evidence beyond dry-run scheduling")
+    if args.accept and config.agent_require_verification and not closeout_evaluation["has_verification_evidence"]:
+        issues.append("accepted closeout requires verification evidence under current agent behavior policy")
+    if args.accept and config.agent_success_criteria_policy == "required" and not closeout_evaluation["has_acceptance_evidence"]:
+        issues.append("accepted closeout requires acceptance or success-criteria evidence")
+    if args.accept and task_issues:
+        issues.extend(f"task source issue during closeout: {item}" for item in task_issues)
+    if args.accept and closeout_evaluation["missing_validation_requirements"]:
+        issues.append(
+            "accepted closeout requires evidence for validation requirements: "
+            + "; ".join(str(item) for item in closeout_evaluation["missing_validation_requirements"])
+        )
+    if args.accept and closeout_evaluation["missing_touched_files"]:
+        issues.append(
+            "accepted closeout references touched files that cannot be found: "
+            + ", ".join(str(item) for item in closeout_evaluation["missing_touched_files"])
+        )
+    if args.accept and closeout_evaluation["unresolved_links"]:
+        issues.append(
+            "accepted closeout references links or artifacts that cannot be resolved: "
+            + ", ".join(str(item) for item in closeout_evaluation["unresolved_links"])
+        )
+    if args.accept and closeout_evaluation["unverified_remote_links"]:
+        issues.append(
+            "accepted closeout requires remote verification for: "
+            + ", ".join(str(item) for item in closeout_evaluation["unverified_remote_links"])
+        )
+    if args.accept and closeout_evaluation["sula_check_requested"] and closeout_evaluation["sula_check_passed"] is False:
+        issues.append("accepted closeout requires `sula check` to pass because it was declared as validation evidence")
+    if args.accept and normalize_optional_text(run.get("status", "")) in {"blocked", "failed", "cancelled"}:
+        issues.append(f"cannot accept run in `{run.get('status')}` status")
+    if issues:
+        close_status = "blocked"
+    elif args.accept:
+        close_status = "accepted"
+    else:
+        close_status = "human-review"
+
+    run["validation_evidence"] = all_evidence
+    run["touched_files"] = sorted(set(touched_files))
+    run["links"] = sorted(set(links))
+    run["reusable_lessons"] = sorted(set(lessons))
+    run["status"] = close_status if close_status != "blocked" else run.get("status", "human-review")
+    run["final_disposition"] = close_status
+    run["closed_at"] = current_utc_timestamp()
+    run["closeout_issues"] = issues
+    run["closeout_evaluation"] = closeout_evaluation
+    runs[target_index] = run
+    rewrite_orchestration_runs(config, runs)
+    for lesson in lessons:
+        append_orchestration_promotion_candidate(
+            config,
+            {
+                "version": VERSION,
+                "created_at": current_utc_timestamp(),
+                "run_id": normalize_optional_text(run.get("run_id", "")),
+                "task_id": normalize_optional_text(run.get("task_id", "")),
+                "candidate_kind": "lesson",
+                "target": "memory-or-feedback-review",
+                "status": "proposed",
+                "summary": lesson,
+            },
+        )
+    latest = {
+        "version": VERSION,
+        "updated_at": current_utc_timestamp(),
+        "latest_run": run,
+        "budget": orchestration_budget_payload(config, runs),
+    }
+    write_orchestration_latest(config, latest)
+    payload = {
+        "command": "orchestration.close",
+        "status": close_status,
+        "project": project_payload(config),
+        "run": run,
+        "issues": issues,
+    }
+    if json_output_requested(args):
+        emit_json(payload)
+        return 0 if close_status != "blocked" else 1
+    print(f"Orchestration close {args.run_id}: {close_status}")
+    for item in issues:
+        print(f"  - {item}")
+    return 0 if close_status != "blocked" else 1
+
+
+def rewrite_orchestration_runs(config: ProjectConfig, runs: list[dict[str, object]]) -> None:
+    config.orchestration_state_root.mkdir(parents=True, exist_ok=True)
+    orchestration_runs_path(config).write_text(
+        "".join(json.dumps(run, ensure_ascii=True) + "\n" for run in runs),
+        encoding="utf-8",
+    )
+
+
+def orchestration_cancel(config: ProjectConfig, args: argparse.Namespace) -> int:
+    runs = read_orchestration_runs(config)
+    changed = False
+    now = current_utc_timestamp()
+    for run in runs:
+        if normalize_optional_text(run.get("run_id", "")) != args.run_id:
+            continue
+        if normalize_optional_text(run.get("status", "")) in {"accepted", "failed", "cancelled", "blocked", "human-review"}:
+            continue
+        run["status"] = "cancelled"
+        run["ended_at"] = now
+        run["final_disposition"] = "cancelled"
+        changed = True
+    if changed:
+        rewrite_orchestration_runs(config, runs)
+    payload = {
+        "command": "orchestration.cancel",
+        "status": "cancelled" if changed else "noop",
+        "project": project_payload(config),
+        "run_id": args.run_id,
+    }
+    if json_output_requested(args):
+        emit_json(payload)
+        return 0
+    print(f"Orchestration cancel {args.run_id}: {payload['status']}")
+    return 0
+
+
+def orchestration_stop_all(config: ProjectConfig, args: argparse.Namespace) -> int:
+    runs = read_orchestration_runs(config)
+    now = current_utc_timestamp()
+    cancelled: list[str] = []
+    for run in runs:
+        if normalize_optional_text(run.get("status", "")) not in {"planned", "running"}:
+            continue
+        run["status"] = "cancelled"
+        run["ended_at"] = now
+        run["final_disposition"] = "cancelled"
+        cancelled.append(normalize_optional_text(run.get("run_id", "")))
+    if cancelled:
+        rewrite_orchestration_runs(config, runs)
+    payload = {
+        "command": "orchestration.stop-all",
+        "status": "ok",
+        "project": project_payload(config),
+        "cancelled_run_ids": cancelled,
+    }
+    if json_output_requested(args):
+        emit_json(payload)
+        return 0
+    print(f"Orchestration stop-all cancelled {len(cancelled)} runs")
+    return 0
+
+
 def handle_artifact_command(config: ProjectConfig, args: argparse.Namespace) -> int:
     if args.artifact_command == "create":
         return artifact_create(config, args)
@@ -11528,6 +14443,15 @@ def artifact_locate(config: ProjectConfig, args: argparse.Namespace) -> int:
     else:
         results.sort(key=lambda item: (str(item.get("date", "")), str(item.get("kind", "")), str(item.get("display_path", ""))), reverse=True)
     results = results[: max(1, args.limit)]
+    automation_observe_event(
+        config,
+        source_kind="sula-cli",
+        event_kind="artifact.locate.freshness" if freshness_intent else "artifact.locate",
+        title="Sula artifact locate",
+        summary=f"Artifact locate returned {len(results)} result(s).",
+        identity_key=f"artifact-locate:{date.today().isoformat()}:{sanitize_slug(effective_query or 'empty')}",
+        payload={"query": args.q, "effective_query": effective_query, "freshness_intent": freshness_intent, "refresh": refresh_report or {}},
+    )
     if json_output_requested(args):
         emit_json(
             {
@@ -11574,6 +14498,15 @@ def artifact_refresh(config: ProjectConfig, args: argparse.Namespace) -> int:
         force=bool(getattr(args, "force", False)),
         event_type="artifact.refresh.command",
         event_summary_prefix="Refreshed provider-native artifact truth sources by explicit command",
+    )
+    automation_observe_event(
+        config,
+        source_kind="sula-cli",
+        event_kind="artifact.refresh",
+        title="Sula artifact refresh",
+        summary="Artifact refresh completed.",
+        identity_key=f"artifact-refresh:{date.today().isoformat()}:{sanitize_slug(query_value or getattr(args, 'artifact_id', '') or getattr(args, 'family_key', '') or 'all')}",
+        payload={"refresh": refresh_report},
     )
     payload = {
         "command": "artifact.refresh",
@@ -12537,6 +15470,19 @@ def handle_portfolio_command(args: argparse.Namespace) -> int:
         print(f"  Projects: {payload['project_count']}")
         print(f"  Providers: {', '.join(payload['providers']) if payload['providers'] else 'none'}")
         return 0
+    if args.portfolio_command == "orchestration":
+        registry = load_portfolio_registry(portfolio_root)
+        payload = portfolio_orchestration_payload(registry, portfolio_root)
+        if json_output_requested(args):
+            emit_json({"command": "portfolio.orchestration", "status": "ok", **payload})
+            return 0
+        print(f"Portfolio orchestration for {portfolio_root}")
+        print(f"  Projects: {payload['project_count']}")
+        print(f"  Tasks: {payload['totals']['tasks_total']} total / {payload['totals']['tasks_blocked']} blocked")
+        print(f"  Runs needing review: {payload['totals']['runs_human_review']}")
+        for item in payload["needs_attention"]:
+            print(f"  - {item['project_name']}: {', '.join(item['reasons'])}")
+        return 0
     if args.portfolio_command == "query":
         registry = load_portfolio_registry(portfolio_root)
         results: list[dict[str, object]] = []
@@ -12584,6 +15530,99 @@ def handle_portfolio_command(args: argparse.Namespace) -> int:
             print("  No results.")
         return 0
     raise AssertionError("unreachable")
+
+
+def portfolio_orchestration_payload(registry: dict[str, object], portfolio_root: Path) -> dict[str, object]:
+    project_rows: list[dict[str, object]] = []
+    totals = {
+        "tasks_total": 0,
+        "tasks_eligible": 0,
+        "tasks_blocked": 0,
+        "runs_total": 0,
+        "runs_running": 0,
+        "runs_human_review": 0,
+        "runs_failed": 0,
+        "runs_accepted": 0,
+        "triggers_total": 0,
+        "promotion_candidates_total": 0,
+    }
+    needs_attention: list[dict[str, object]] = []
+    for item in registry.get("projects", []):
+        if not isinstance(item, dict) or not isinstance(item.get("root"), str):
+            continue
+        project_root = Path(item["root"])
+        manifest_path = project_root / MANIFEST_PATH
+        if not manifest_path.exists():
+            project_rows.append(
+                {
+                    "project_name": normalize_optional_text(item.get("name", "")) or str(project_root),
+                    "project_root": str(project_root),
+                    "status": "missing-manifest",
+                    "issues": [f"missing manifest: {manifest_path}"],
+                }
+            )
+            needs_attention.append(
+                {
+                    "project_name": normalize_optional_text(item.get("name", "")) or str(project_root),
+                    "project_root": str(project_root),
+                    "reasons": ["missing manifest"],
+                }
+            )
+            continue
+        config = load_manifest(project_root)
+        state = orchestration_status_payload(config)
+        task_state = state["tasks"]
+        run_state = state["runs"]
+        triggers = state.get("triggers", {})
+        promotions = state.get("promotion_candidates", {})
+        run_counts = run_state.get("counts", {}) if isinstance(run_state, dict) else {}
+        row = {
+            "project_name": config.data["project"]["name"],
+            "project_slug": config.data["project"]["slug"],
+            "project_root": str(config.root),
+            "workspace": config.portfolio_setting("workspace", "personal"),
+            "enabled": config.orchestration_enabled,
+            "task_source": config.orchestration_task_source,
+            "runner": config.orchestration_runner,
+            "tasks": task_state,
+            "runs": run_state,
+            "triggers": triggers,
+            "promotion_candidates": promotions,
+        }
+        project_rows.append(row)
+        totals["tasks_total"] += int(task_state.get("total", 0))
+        totals["tasks_eligible"] += int(task_state.get("eligible", 0))
+        totals["tasks_blocked"] += int(task_state.get("blocked", 0))
+        totals["runs_total"] += int(run_state.get("total", 0))
+        totals["runs_running"] += int(run_counts.get("running", 0))
+        totals["runs_human_review"] += int(run_counts.get("human-review", 0))
+        totals["runs_failed"] += int(run_counts.get("failed", 0))
+        totals["runs_accepted"] += int(run_counts.get("accepted", 0))
+        totals["triggers_total"] += int(triggers.get("total", 0)) if isinstance(triggers, dict) else 0
+        totals["promotion_candidates_total"] += int(promotions.get("total", 0)) if isinstance(promotions, dict) else 0
+        reasons: list[str] = []
+        if int(task_state.get("blocked", 0)):
+            reasons.append(f"{task_state.get('blocked', 0)} blocked task(s)")
+        if int(run_counts.get("human-review", 0)):
+            reasons.append(f"{run_counts.get('human-review', 0)} run(s) need human review")
+        if int(run_counts.get("failed", 0)):
+            reasons.append(f"{run_counts.get('failed', 0)} failed run(s)")
+        if reasons:
+            needs_attention.append(
+                {
+                    "project_name": config.data["project"]["name"],
+                    "project_slug": config.data["project"]["slug"],
+                    "project_root": str(config.root),
+                    "reasons": reasons,
+                }
+            )
+    return {
+        "portfolio_root": str(portfolio_root),
+        "project_count": len(project_rows),
+        "totals": totals,
+        "needs_attention": needs_attention,
+        "projects": project_rows,
+    }
 
 
 def summarize_project_for_portfolio(config: ProjectConfig) -> dict[str, object]:

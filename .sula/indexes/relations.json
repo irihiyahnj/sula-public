@@ -1,5 +1,5 @@
 {
-  "version": "0.14.0",
+  "version": "0.15.0",
   "profile": "sula-core",
   "relations": [
     {
@@ -23,52 +23,52 @@
       "type": "derived-from"
     },
     {
-      "from": "task:status:turn-the-recorded-vnext-architecture-into-stronger-adapter-composition-and-better-result-quality-over-the-new-sqlite-backed-retrieval-path",
-      "to": "source:status-md",
-      "type": "derived-from"
-    },
-    {
-      "from": "task:status:maintain-clear-approval-reporting-so-managed-scaffold-boundaries-remain-obvious-during-onboarding",
-      "to": "source:status-md",
-      "type": "derived-from"
-    },
-    {
       "from": "task:status:keep-the-public-bootstrap-contract-aligned-with-real-consumer-behavior-and-protocol-failures-seen-in-live-use",
       "to": "source:status-md",
       "type": "derived-from"
     },
     {
-      "from": "task:status:switch-site-sula-json-and-site-launch-bootstrap-py-to-the-published-public-source-after-that-repository-exists",
+      "from": "task:status:run-credentialed-real-project-canaries-for-github-pr-verification-provider-backed-artifact-verification-and-codex-runner-endpoints-before-broad-orchestration-rollout",
       "to": "source:status-md",
       "type": "derived-from"
     },
     {
-      "from": "task:status:decide-whether-to-keep-the-hosted-site-on-fly-or-migrate-it-onto-the-existing-digitalocean-infrastructure-once-server-write-access-is-available",
+      "from": "task:status:add-authenticated-provider-task-adapters-beyond-the-current-google-drive-document-checklist-contract-when-a-real-provider-task-api-target-is-selected",
       "to": "source:status-md",
       "type": "derived-from"
     },
     {
-      "from": "decision:status:2026-04-12-released-sula-0-11-0-formal-document-workflows-and-feedback-bundles-docs-releases-2026-04-12-release-sula-0-11-0-formal-document-workflows-and-feedback-bundles-md",
+      "from": "task:status:harden-long-running-remote-runner-cancellation-and-streamed-event-capture-after-the-first-real-app-server-canary",
       "to": "source:status-md",
       "type": "derived-from"
     },
     {
-      "from": "decision:status:2026-04-16-added-release-record-release-sula-0-12-0-freshness-workflow-and-unicode-source-id-fixes-docs-releases-2026-04-16-release-sula-0-12-0-freshness-workflow-and-unicode-source-id-fixes-md",
+      "from": "task:status:expand-automation-classifiers-after-real-projects-reveal-recurring-provider-status-and-workflow-failure-patterns",
       "to": "source:status-md",
       "type": "derived-from"
     },
     {
-      "from": "decision:status:2026-04-18-added-release-record-release-sula-0-13-0-stable-memory-kernel-and-operator-workflow-docs-releases-2026-04-18-release-sula-0-13-0-stable-memory-kernel-and-operator-workflow-md",
+      "from": "decision:status:2026-05-01-added-add-provider-api-task-source-docs-change-records-2026-05-01-zzz-add-provider-api-task-source-md",
       "to": "source:status-md",
       "type": "derived-from"
     },
     {
-      "from": "decision:status:2026-04-12-added-release-record-release-sula-0-11-0-formal-document-workflows-and-feedback-bundles-docs-releases-2026-04-12-release-sula-0-11-0-formal-document-workflows-and-feedback-bundles-md",
+      "from": "decision:status:2026-05-01-added-add-closeout-verification-adapters-docs-change-records-2026-05-01-zz-add-closeout-verification-adapters-md",
       "to": "source:status-md",
       "type": "derived-from"
     },
     {
-      "from": "decision:status:2026-04-22-added-release-record-release-sula-0-14-0-handoff-contract-and-git-release-upgrade-flow-docs-releases-2026-04-22-release-sula-0-14-0-handoff-contract-and-git-release-upgrade-flow-md",
+      "from": "decision:status:2026-05-01-added-strengthen-orchestration-closeout-evaluator-docs-change-records-2026-05-01-z-strengthen-orchestration-closeout-evaluator-md",
+      "to": "source:status-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "decision:status:2026-05-01-added-wire-provider-task-source-and-portfolio-orchestration-docs-change-records-2026-05-01-wire-provider-task-source-and-portfolio-orchestration-md",
+      "to": "source:status-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "decision:status:2026-05-01-added-add-automation-kernel-for-event-driven-orchestration-docs-change-records-2026-05-01-zzzzz-add-automation-kernel-for-event-driven-orchestration-md",
       "to": "source:status-md",
       "type": "derived-from"
     },
@@ -78,13 +78,78 @@
       "type": "derived-from"
     },
     {
-      "from": "milestone:status:next-review:2026-04-21",
+      "from": "milestone:status:next-review:2026-05-08",
       "to": "source:status-md",
       "type": "derived-from"
     },
     {
-      "from": "task:handoff:review-docs-change-records-2026-04-18-document-memory-capability-implementation-plan-md-run-python3-scripts-sula-py-canary-verify-project-root-all",
+      "from": "task:handoff:review-docs-releases-2026-05-01-release-sula-0-15-0-orchestration-control-plane-and-runner-boundaries-md-run-python3-scripts-sula-py-release-readiness-project-root-json",
       "to": "source:status-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "change:2026-05-01-zzzzz-add-automation-kernel-for-event-driven-orchestration",
+      "to": "source:docs-change-records-2026-05-01-zzzzz-add-automation-kernel-for-event-driven-orchestration-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "change:2026-05-01-zzzz-add-remote-verification-and-codex-runners",
+      "to": "source:docs-change-records-2026-05-01-zzzz-add-remote-verification-and-codex-runners-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "change:2026-05-01-zzz-add-provider-api-task-source",
+      "to": "source:docs-change-records-2026-05-01-zzz-add-provider-api-task-source-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "change:2026-05-01-zz-add-closeout-verification-adapters",
+      "to": "source:docs-change-records-2026-05-01-zz-add-closeout-verification-adapters-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "change:2026-05-01-z-strengthen-orchestration-closeout-evaluator",
+      "to": "source:docs-change-records-2026-05-01-z-strengthen-orchestration-closeout-evaluator-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "change:2026-05-01-wire-provider-task-source-and-portfolio-orchestration",
+      "to": "source:docs-change-records-2026-05-01-wire-provider-task-source-and-portfolio-orchestration-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "change:2026-05-01-unify-orchestration-trigger-runner-evaluator",
+      "to": "source:docs-change-records-2026-05-01-unify-orchestration-trigger-runner-evaluator-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "change:2026-05-01-sula-karpathy-inspired-agent-quality-policy",
+      "to": "source:docs-change-records-2026-05-01-sula-karpathy-inspired-agent-quality-policy-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "change:2026-05-01-add-orchestration-cli-intake-and-closeout-gate",
+      "to": "source:docs-change-records-2026-05-01-add-orchestration-cli-intake-and-closeout-gate-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "agreement:2026-05-01-add-orchestration-cli-intake-and-closeout-gate",
+      "to": "source:docs-change-records-2026-05-01-add-orchestration-cli-intake-and-closeout-gate-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "change:2026-04-30-implement-orchestration-contract-local-dry-run",
+      "to": "source:docs-change-records-2026-04-30-implement-orchestration-contract-local-dry-run-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "agreement:2026-04-30-implement-orchestration-contract-local-dry-run",
+      "to": "source:docs-change-records-2026-04-30-implement-orchestration-contract-local-dry-run-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "change:2026-04-30-document-symphony-orchestration-plan-culture",
+      "to": "source:docs-change-records-2026-04-30-document-symphony-orchestration-plan-culture-md",
       "type": "derived-from"
     },
     {
@@ -293,6 +358,36 @@
       "type": "derived-from"
     },
     {
+      "from": "release:2026-05-01-release-sula-0-15-0-orchestration-control-plane-and-runner-boundaries",
+      "to": "source:docs-releases-2026-05-01-release-sula-0-15-0-orchestration-control-plane-and-runner-boundaries-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "milestone:2026-05-01-release-sula-0-15-0-orchestration-control-plane-and-runner-boundaries",
+      "to": "source:docs-releases-2026-05-01-release-sula-0-15-0-orchestration-control-plane-and-runner-boundaries-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "risk:docs-releases-2026-05-01-release-sula-0-15-0-orchestration-control-plane-and-runner-boundaries-md:public-launch-facing-metadata-still-points-at-the-already-published-v0-14-0-source-so-this-source-release-is-not-yet-the-canonical-public-bootstrap-baseline",
+      "to": "source:docs-releases-2026-05-01-release-sula-0-15-0-orchestration-control-plane-and-runner-boundaries-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "risk:docs-releases-2026-05-01-release-sula-0-15-0-orchestration-control-plane-and-runner-boundaries-md:projects-that-enable-orchestration-without-understanding-workspace-runner-or-verification-policy-will-now-expose-more-explicit-review-and-closeout-gates-instead-of-loose-best-effort-automation",
+      "to": "source:docs-releases-2026-05-01-release-sula-0-15-0-orchestration-control-plane-and-runner-boundaries-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "risk:docs-releases-2026-05-01-release-sula-0-15-0-orchestration-control-plane-and-runner-boundaries-md:projects-that-enable-automation-execute-mode-without-reviewing-risk-ceilings-and-approval-categories-could-dispatch-eligible-low-risk-work-sooner-than-operators-expect-so-default-assist-mode-keeps-dispatch-off",
+      "to": "source:docs-releases-2026-05-01-release-sula-0-15-0-orchestration-control-plane-and-runner-boundaries-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "risk:docs-releases-2026-05-01-release-sula-0-15-0-orchestration-control-plane-and-runner-boundaries-md:a-true-external-release-still-requires-a-clean-export-public-tag-publication-and-at-least-one-credentialed-canary-using-real-pr-provider-verification-and-a-real-codex-runner-endpoint",
+      "to": "source:docs-releases-2026-05-01-release-sula-0-15-0-orchestration-control-plane-and-runner-boundaries-md",
+      "type": "derived-from"
+    },
+    {
       "from": "release:2026-04-22-release-sula-0-14-0-handoff-contract-and-git-release-upgrade-flow",
       "to": "source:docs-releases-2026-04-22-release-sula-0-14-0-handoff-contract-and-git-release-upgrade-flow-md",
       "type": "derived-from"
@@ -303,7 +398,17 @@
       "type": "derived-from"
     },
     {
-      "from": "risk:docs-releases-2026-04-22-release-sula-0-14-0-handoff-contract-and-git-release-upgrade-flow-md:fill-in-risks",
+      "from": "risk:docs-releases-2026-04-22-release-sula-0-14-0-handoff-contract-and-git-release-upgrade-flow-md:adopted-projects-that-still-treat-status-md-as-a-loose-narrative-will-fail-doctor-strict-and-check-until-they-add-a-valid-handoff-section-and-keep-current-state-sections-within-the-configured-limits",
+      "to": "source:docs-releases-2026-04-22-release-sula-0-14-0-handoff-contract-and-git-release-upgrade-flow-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "risk:docs-releases-2026-04-22-release-sula-0-14-0-handoff-contract-and-git-release-upgrade-flow-md:projects-that-have-older-managed-file-drift-may-need-one-explicit-sync-and-memory-digest-rebuild-before-the-new-git-release-upgrade-flow-reads-as-a-no-drama-routine-upgrade",
+      "to": "source:docs-releases-2026-04-22-release-sula-0-14-0-handoff-contract-and-git-release-upgrade-flow-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "risk:docs-releases-2026-04-22-release-sula-0-14-0-handoff-contract-and-git-release-upgrade-flow-md:public-release-communication-should-point-at-the-published-git-release-and-tag-not-this-private-source-repository-main-or-teams-will-end-up-with-mixed-rollout-baselines",
       "to": "source:docs-releases-2026-04-22-release-sula-0-14-0-handoff-contract-and-git-release-upgrade-flow-md",
       "type": "derived-from"
     },
@@ -539,11 +644,6 @@
     },
     {
       "from": "object:source:changelog-md",
-      "to": "source:changelog-md",
-      "type": "derived-from"
-    },
-    {
-      "from": "agreement:source:changelog-md",
       "to": "source:changelog-md",
       "type": "derived-from"
     },
@@ -823,6 +923,71 @@
       "type": "derived-from"
     },
     {
+      "from": "object:source:docs-change-records-2026-04-30-document-symphony-orchestration-plan-culture-md",
+      "to": "source:docs-change-records-2026-04-30-document-symphony-orchestration-plan-culture-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "object:source:docs-change-records-2026-04-30-implement-orchestration-contract-local-dry-run-md",
+      "to": "source:docs-change-records-2026-04-30-implement-orchestration-contract-local-dry-run-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "agreement:source:docs-change-records-2026-04-30-implement-orchestration-contract-local-dry-run-md",
+      "to": "source:docs-change-records-2026-04-30-implement-orchestration-contract-local-dry-run-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "object:source:docs-change-records-2026-05-01-add-orchestration-cli-intake-and-closeout-gate-md",
+      "to": "source:docs-change-records-2026-05-01-add-orchestration-cli-intake-and-closeout-gate-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "agreement:source:docs-change-records-2026-05-01-add-orchestration-cli-intake-and-closeout-gate-md",
+      "to": "source:docs-change-records-2026-05-01-add-orchestration-cli-intake-and-closeout-gate-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "object:source:docs-change-records-2026-05-01-sula-karpathy-inspired-agent-quality-policy-md",
+      "to": "source:docs-change-records-2026-05-01-sula-karpathy-inspired-agent-quality-policy-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "object:source:docs-change-records-2026-05-01-unify-orchestration-trigger-runner-evaluator-md",
+      "to": "source:docs-change-records-2026-05-01-unify-orchestration-trigger-runner-evaluator-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "object:source:docs-change-records-2026-05-01-wire-provider-task-source-and-portfolio-orchestration-md",
+      "to": "source:docs-change-records-2026-05-01-wire-provider-task-source-and-portfolio-orchestration-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "object:source:docs-change-records-2026-05-01-z-strengthen-orchestration-closeout-evaluator-md",
+      "to": "source:docs-change-records-2026-05-01-z-strengthen-orchestration-closeout-evaluator-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "object:source:docs-change-records-2026-05-01-zz-add-closeout-verification-adapters-md",
+      "to": "source:docs-change-records-2026-05-01-zz-add-closeout-verification-adapters-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "object:source:docs-change-records-2026-05-01-zzz-add-provider-api-task-source-md",
+      "to": "source:docs-change-records-2026-05-01-zzz-add-provider-api-task-source-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "object:source:docs-change-records-2026-05-01-zzzz-add-remote-verification-and-codex-runners-md",
+      "to": "source:docs-change-records-2026-05-01-zzzz-add-remote-verification-and-codex-runners-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "object:source:docs-change-records-2026-05-01-zzzzz-add-automation-kernel-for-event-driven-orchestration-md",
+      "to": "source:docs-change-records-2026-05-01-zzzzz-add-automation-kernel-for-event-driven-orchestration-md",
+      "type": "derived-from"
+    },
+    {
       "from": "object:source:docs-change-records-readme-md",
       "to": "source:docs-change-records-readme-md",
       "type": "derived-from"
@@ -910,6 +1075,11 @@
     {
       "from": "object:source:docs-reference-adoption-registry-md",
       "to": "source:docs-reference-adoption-registry-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "object:source:docs-reference-agent-execution-quality-policy-md",
+      "to": "source:docs-reference-agent-execution-quality-policy-md",
       "type": "derived-from"
     },
     {
@@ -1063,6 +1233,11 @@
       "type": "derived-from"
     },
     {
+      "from": "object:source:docs-reference-symphony-orchestration-absorption-plan-md",
+      "to": "source:docs-reference-symphony-orchestration-absorption-plan-md",
+      "type": "derived-from"
+    },
+    {
       "from": "object:source:docs-reference-sync-impact-model-md",
       "to": "source:docs-reference-sync-impact-model-md",
       "type": "derived-from"
@@ -1110,6 +1285,11 @@
     {
       "from": "agreement:source:docs-releases-2026-04-22-release-sula-0-14-0-handoff-contract-and-git-release-upgrade-flow-md",
       "to": "source:docs-releases-2026-04-22-release-sula-0-14-0-handoff-contract-and-git-release-upgrade-flow-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "object:source:docs-releases-2026-05-01-release-sula-0-15-0-orchestration-control-plane-and-runner-boundaries-md",
+      "to": "source:docs-releases-2026-05-01-release-sula-0-15-0-orchestration-control-plane-and-runner-boundaries-md",
       "type": "derived-from"
     },
     {
@@ -1180,6 +1360,11 @@
     {
       "from": "rule:docs-versioning-md:rules:major-manifest-schema-breakage-projection-or-ownership-contract-changes-memory-contract-breakage-or-migration-required-sync-behavior",
       "to": "source:docs-versioning-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "object:source:docs-workflows-plans-2026-04-30-symphony-orchestration-absorption-plan-md",
+      "to": "source:docs-workflows-plans-2026-04-30-symphony-orchestration-absorption-plan-md",
       "type": "derived-from"
     },
     {

@@ -1,5 +1,5 @@
 {
-  "version": "0.14.0",
+  "version": "0.15.0",
   "profile": "react-frontend-erpnext",
   "objects": [
     {
@@ -361,6 +361,46 @@
         "incident-risk"
       ],
       "date": "2026-04-11"
+    },
+    {
+      "id": "job:memory.digest:20260501-062123",
+      "kind": "job",
+      "title": "memory.digest",
+      "summary": "Regenerated memory digest at `.sula/memory-digest.md`.",
+      "status": "ok",
+      "path": ".sula/state/jobs/history.jsonl",
+      "source_paths": [
+        ".sula/state/jobs/history.jsonl"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "job",
+        "memory-job"
+      ],
+      "date": "2026-05-01"
+    },
+    {
+      "id": "job:memory.digest:20260421-164716",
+      "kind": "job",
+      "title": "memory.digest",
+      "summary": "Regenerated memory digest at `.sula/memory-digest.md`.",
+      "status": "ok",
+      "path": ".sula/state/jobs/history.jsonl",
+      "source_paths": [
+        ".sula/state/jobs/history.jsonl"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "job",
+        "memory-job"
+      ],
+      "date": "2026-04-21"
     },
     {
       "id": "job:memory.digest:20260421-164038",
@@ -844,7 +884,7 @@
         "section-rule",
         "maintenance-rule"
       ],
-      "date": null
+      "date": "2026-04-30"
     },
     {
       "id": "object:source:docs-architecture-module-map-md",

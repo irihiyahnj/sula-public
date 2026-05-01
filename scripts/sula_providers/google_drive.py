@@ -3,10 +3,11 @@ from __future__ import annotations
 import json
 import os
 from pathlib import Path
+import re
 from typing import Any
 from urllib import error, parse, request
 
-from .base import ProviderAdapter, ProviderAdapterError, ProviderSnapshot
+from .base import ProviderAdapter, ProviderAdapterError, ProviderSnapshot, ProviderTaskListSnapshot
 from .google_oauth_store import google_access_token_from_env_or_store
 
 
@@ -58,6 +59,73 @@ def _doc_paragraph_text(paragraph: dict[str, Any]) -> str:
         if isinstance(text_run, dict):
             text_parts.append(str(text_run.get("content", "")))
     return "".join(text_parts).strip()
+
+
+PROVIDER_TASK_LINE_PATTERN = re.compile(r"^-\s*\[(?P<mark>[ xX])\]\s*(?P<body>.+)$")
+
+
+def _task_list(value: str) -> list[str]:
+    if not value.strip():
+        return []
+    return [item.strip() for item in re.split(r"\s*[,|]\s*", value) if item.strip()]
+
+
+def _task_metadata(raw: str) -> dict[str, str]:
+    metadata: dict[str, str] = {}
+    for part in raw.split(";"):
+        if "=" not in part:
+            continue
+        key, value = part.split("=", 1)
+        normalized_key = key.strip().lower().replace("-", "_")
+        if normalized_key:
+            metadata[normalized_key] = value.strip()
+    return metadata
+
+
+def _sanitize_task_id(value: str) -> str:
+    cleaned = re.sub(r"[^a-zA-Z0-9._:-]+", "-", value.strip().lower()).strip("-")
+    return cleaned or "task"
+
+
+def _task_from_checklist_line(line: str, index: int, *, source_url: str) -> dict[str, object] | None:
+    match = PROVIDER_TASK_LINE_PATTERN.match(line.strip())
+    if not match:
+        return None
+    body = match.group("body").strip()
+    title = body
+    metadata: dict[str, str] = {}
+    if "::" in body:
+        title, raw_metadata = body.split("::", 1)
+        metadata = _task_metadata(raw_metadata)
+    title = title.strip()
+    identifier = metadata.get("id") or f"provider-api-{index + 1}-{_sanitize_task_id(title)}"
+    state = metadata.get("state") or ("accepted" if match.group("mark").lower() == "x" else "open")
+    return {
+        "id": f"provider-api:{_sanitize_task_id(identifier)}",
+        "source_kind": "provider-api",
+        "source_url": source_url,
+        "identifier": identifier,
+        "title": title,
+        "description": metadata.get("description", ""),
+        "state": state,
+        "priority": metadata.get("priority", "normal"),
+        "labels": _task_list(metadata.get("labels", "")),
+        "blocked_by": _task_list(metadata.get("blocked_by", "")),
+        "acceptance_criteria": _task_list(metadata.get("acceptance", "")),
+        "validation_requirements": _task_list(metadata.get("validation", "")),
+        "risk_hints": _task_list(metadata.get("risk_hints", metadata.get("risk", ""))),
+        "created_at": metadata.get("created_at", ""),
+        "updated_at": metadata.get("updated_at", ""),
+    }
+
+
+def normalize_provider_tasks_from_text(text: str, *, source_url: str) -> list[dict[str, object]]:
+    tasks: list[dict[str, object]] = []
+    for index, line in enumerate(text.splitlines()):
+        task = _task_from_checklist_line(line, index, source_url=source_url)
+        if task is not None:
+            tasks.append(task)
+    return tasks
 
 
 def normalize_google_doc(document: dict[str, Any]) -> dict[str, object]:
@@ -226,6 +294,44 @@ class GoogleDriveProviderAdapter(ProviderAdapter):
             truth_source_reason=f"provider-native refresh from Google {provider_item_kind}",
             normalized_content=normalized,
             raw_metadata=metadata,
+        )
+
+    def fetch_tasks(self, *, provider_item_id: str, provider_item_kind: str, provider_item_url: str) -> ProviderTaskListSnapshot:
+        fixture = self._load_fixture(provider_item_kind=provider_item_kind, provider_item_id=provider_item_id)
+        if fixture is not None and isinstance(fixture.get("tasks"), list):
+            metadata = fixture.get("metadata", fixture)
+            if not isinstance(metadata, dict):
+                metadata = {}
+            tasks = [dict(item) for item in fixture.get("tasks", []) if isinstance(item, dict)]
+            provider_url = str(metadata.get("webViewLink", metadata.get("url", provider_item_url)))
+            return ProviderTaskListSnapshot(
+                provider="google-drive",
+                provider_item_id=provider_item_id,
+                provider_item_kind=provider_item_kind,
+                provider_item_url=provider_url,
+                provider_title=str(metadata.get("name", metadata.get("title", ""))),
+                provider_modified_at=str(metadata.get("modifiedTime", metadata.get("modified_at", ""))),
+                tasks=tasks,
+                normalized_content={"kind": "provider-task-list", "task_count": len(tasks)},
+                raw_metadata=metadata,
+            )
+        snapshot = self.fetch_item(
+            provider_item_id=provider_item_id,
+            provider_item_kind=provider_item_kind,
+            provider_item_url=provider_item_url,
+        )
+        plain_text = str(snapshot.normalized_content.get("plain_text", ""))
+        tasks = normalize_provider_tasks_from_text(plain_text, source_url=snapshot.provider_item_url)
+        return ProviderTaskListSnapshot(
+            provider=snapshot.provider,
+            provider_item_id=snapshot.provider_item_id,
+            provider_item_kind=snapshot.provider_item_kind,
+            provider_item_url=snapshot.provider_item_url,
+            provider_title=snapshot.provider_title,
+            provider_modified_at=snapshot.provider_modified_at,
+            tasks=tasks,
+            normalized_content={**snapshot.normalized_content, "task_count": len(tasks)},
+            raw_metadata=snapshot.raw_metadata,
         )
 
 

@@ -1,6 +1,6 @@
 # Current State Snapshot
 
-- generated on: 2026-04-22
+- generated on: 2026-05-01
 - project: OKOKTOTO v5
 - profile: `react-frontend-erpnext`
 - source priority: STATUS.md and project records override this generated snapshot
@@ -52,5 +52,5 @@
 - verification result: n/a
 - verification date: 2026-04-22
 - git branch: main
-- git commit: fae5174
+- git commit: f3db8f2d9cbe
 - git working tree: dirty

@@ -128,7 +128,88 @@
       "properties": {
         "pack": {"type": "string", "minLength": 1},
         "stage": {"type": "string", "minLength": 1},
-        "artifacts_root": {"type": "string", "minLength": 1}
+        "artifacts_root": {"type": "string", "minLength": 1},
+        "docs_root": {"type": "string", "minLength": 1},
+        "execution_mode": {"type": "string", "enum": ["solo-inline", "review-heavy", "subagent-parallel"]},
+        "design_gate": {"type": "string", "enum": ["never", "complex-only", "always"]},
+        "plan_gate": {"type": "string", "enum": ["never", "multi-step", "always"]},
+        "review_policy": {"type": "string", "enum": ["none", "batch", "task-checkpoints", "strict"]},
+        "workspace_isolation": {"type": "string", "enum": ["none", "branch", "worktree"]},
+        "testing_policy": {"type": "string", "enum": ["inherit", "verify-first", "tdd"]},
+        "closeout_policy": {"type": "string", "enum": ["inherit", "explicit"]}
+      },
+      "additionalProperties": false
+    },
+    "orchestration": {
+      "type": "object",
+      "required": ["enabled"],
+      "properties": {
+        "enabled": {"type": "boolean"},
+        "mode": {"type": "string", "enum": ["ticket-runner", "review-assistant", "status-only"]},
+        "task_source": {"type": "string", "enum": ["local", "provider-task-document", "provider-api"]},
+        "runner": {"type": "string", "enum": ["dry-run", "codex-sdk", "codex-app-server", "shell-command"]},
+        "runner_command": {"type": "string"},
+        "runner_endpoint": {"type": "string"},
+        "runner_token_env": {"type": "string"},
+        "tasks_path": {"type": "string", "minLength": 1},
+        "provider_task_item_id": {"type": "string"},
+        "provider_task_item_kind": {"type": "string"},
+        "provider_task_item_url": {"type": "string"},
+        "workspace_root": {"type": "string", "minLength": 1},
+        "workspace_mode": {"type": "string", "enum": ["none", "branch", "worktree", "copy", "container", "remote"]},
+        "trust_profile": {"type": "string", "enum": ["local-sandboxed", "trusted-local", "remote-sandboxed"]},
+        "allow_project_root_runner": {"type": "boolean"},
+        "max_concurrent_runs": {"type": "integer", "minimum": 1},
+        "max_retry_count": {"type": "integer", "minimum": 1},
+        "max_run_minutes": {"type": "integer", "minimum": 1},
+        "daily_budget_minutes": {"type": "integer", "minimum": 1},
+        "unattended_risk_ceiling": {"type": "string", "enum": ["low", "medium", "high"]},
+        "require_human_approval_for": {
+          "type": "array",
+          "items": {"type": "string", "minLength": 1}
+        },
+        "status_surface": {"type": "string", "enum": ["sula", "external"]},
+        "verification_adapters": {
+          "type": "array",
+          "items": {"type": "string", "enum": ["local-file", "artifact-catalog", "provider-metadata", "pull-request-url", "url"]}
+        },
+        "remote_verification_policy": {"type": "string", "enum": ["reference-only", "opportunistic", "required"]}
+      },
+      "additionalProperties": false
+    },
+    "automation": {
+      "type": "object",
+      "required": ["enabled"],
+      "properties": {
+        "enabled": {"type": "boolean"},
+        "mode": {"type": "string", "enum": ["observe", "assist", "execute"]},
+        "auto_intake": {"type": "boolean"},
+        "auto_plan": {"type": "boolean"},
+        "auto_dispatch": {"type": "boolean"},
+        "risk_ceiling": {"type": "string", "enum": ["low", "medium", "high"]},
+        "approval_required_for": {
+          "type": "array",
+          "items": {"type": "string", "minLength": 1}
+        },
+        "event_sources": {
+          "type": "array",
+          "items": {"type": "string", "enum": ["sula-cli", "provider", "status", "artifact", "workflow", "external"]}
+        }
+      },
+      "additionalProperties": false
+    },
+    "agent_behavior": {
+      "type": "object",
+      "required": ["quality_policy"],
+      "properties": {
+        "quality_policy": {"type": "string", "enum": ["sula-karpathy-inspired", "minimal"]},
+        "clarification_policy": {"type": "string", "enum": ["non-trivial-only", "always", "never"]},
+        "diff_scope_policy": {"type": "string", "enum": ["surgical", "task-scoped", "open"]},
+        "success_criteria_policy": {"type": "string", "enum": ["required", "recommended", "off"]},
+        "assumption_policy": {"type": "string", "enum": ["surface-when-uncertain", "always", "off"]},
+        "complexity_policy": {"type": "string", "enum": ["simplicity-first", "project-default"]},
+        "require_verification": {"type": "boolean"},
+        "forbid_drive_by_refactors": {"type": "boolean"}
       },
       "additionalProperties": false
     },

@@ -351,7 +351,7 @@ python3 scripts/sula.py feedback decide \
   --feedback-id <feedback-id> \
   --decision accepted \
   --note "Absorb this into the shared release path." \
-  --target-version 0.14.0 \
+  --target-version 0.15.0 \
   --json
 ```
 
@@ -421,6 +421,34 @@ Workflow policy is now also a first-class manifest surface:
 - durable source-first workflow documents now live under `workflow.docs_root`, which defaults to `docs/workflows`
 - `python3 scripts/sula.py workflow assess --project-root /path/to/project --task "Refactor auth and rollout provider sync"` reports whether the task should carry a `spec`, `plan`, or `review`
 - `python3 scripts/sula.py workflow scaffold --project-root /path/to/project --kind spec --title "Auth Sync Spec"` creates a durable workflow source document and registers it in the artifact catalog
+
+Orchestration is now an optional first-class control-plane surface:
+
+- `.sula/project.toml` can record `[orchestration]` policy, but `enabled = false` is the default
+- `.sula/project.toml` records `[automation]` policy with `mode = "assist"` by default, so Sula can observe normal commands, classify useful follow-up intent, and expose that intent to orchestration without a manual trigger
+- the safe built-in adapter pair is `task_source = "local"` and `runner = "dry-run"`
+- local tasks are read from `orchestration.tasks_path`, defaulting to `docs/workflows/tasks.json`
+- external/provider task documents can be mirrored with `task_source = "provider-task-document"` and parsed from Markdown checklist or JSON task files at `tasks_path`
+- provider-native task sources can use `task_source = "provider-api"` with `provider_task_item_id`, `provider_task_item_kind`, and `provider_task_item_url` to read tasks through the configured storage provider adapter
+- `python3 scripts/sula.py orchestration intake --project-root /path/to/project --title "Check handoff" --acceptance "handoff is structured" --validation "sula check passes" --json` captures a CLI/user intent as an auditable task
+- `python3 scripts/sula.py orchestration trigger --project-root /path/to/project --source-kind sula-command --identity-key check-2026-05-01 --title "Run daily check" --acceptance "Sula check passes" --validation "python3 scripts/sula.py check --json passes" --json` lets any Sula-connected surface create deduped task intent
+- normal Sula entrypoints such as `check`, `doctor`, `status`, `query`, `sync`, and artifact freshness operations also create automation events under `.sula/state/automation/`; failed checks or doctor runs become queued intents automatically when `[automation].auto_intake = true`
+- `python3 scripts/sula.py orchestration tasks --project-root /path/to/project --json` normalizes task intent, risk, blockers, and acceptance criteria
+- `python3 scripts/sula.py orchestration run --project-root /path/to/project --task-id local:example --json` records a dry-run scheduling result under `.sula/state/orchestration/`
+- `python3 scripts/sula.py orchestration close --project-root /path/to/project --run-id run-id --evidence "sula check passed and acceptance criteria satisfied" --accept --json` accepts a run only after closeout evidence exists beyond dry-run scheduling
+- accepted closeout validates task-specific requirements, touched-file references, links/artifacts, and requested `sula check` evidence before marking a run accepted
+- `orchestration.verification_adapters` controls dependency-light closeout reference checks for local files, artifact catalog entries, provider metadata, PR URLs, and ordinary URLs
+- `python3 scripts/sula.py orchestration doctor --project-root /path/to/project --json` checks the local orchestration policy before real adapters are introduced
+- `runner = "shell-command"` is implemented as a real adapter for controlled local execution; it requires `runner_command`, should normally use `workspace_mode = "copy"`, and records command evidence plus touched files before human review
+- `runner = "codex-sdk"` runs a configured JSON-over-stdin command, and `runner = "codex-app-server"` posts the same request to a configured HTTP endpoint
+- `remote_verification_policy = "opportunistic"` lets closeout verify PR/provider references through fixtures or credentials when present without making credentials mandatory
+
+Agent execution quality is also a first-class policy surface:
+
+- `.sula/project.toml` can record `[agent_behavior]` policy for portable agent execution behavior
+- the default `quality_policy = "sula-karpathy-inspired"` absorbs reusable guidance around assumptions, simplicity, surgical diffs, success criteria, and verification without vendoring an editor-specific plugin
+- orchestration run records include the resolved agent behavior and a quality checklist for future runner adapters
+- accepted orchestration closeout must include verification and acceptance evidence when the policy requires it
 
 Provider-backed artifacts can also be registered without a local materialized file path by supplying a stable project-relative path and provider item metadata. This lets Drive-synced and provider-native deliverables survive device-specific local path differences.
 
@@ -506,9 +534,10 @@ python3 scripts/sula.py portfolio register \
 
 python3 scripts/sula.py portfolio list --portfolio-root /path/to/portfolio --json
 python3 scripts/sula.py portfolio query --portfolio-root /path/to/portfolio --q "contract" --json
+python3 scripts/sula.py portfolio orchestration --portfolio-root /path/to/portfolio --json
 ```
 
-The portfolio registry lets one Sula workspace track many adopted projects, including non-Git client-service projects stored in Google Drive local-sync folders.
+The portfolio registry lets one Sula workspace track many adopted projects, including non-Git client-service projects stored in Google Drive local-sync folders. `portfolio orchestration` reports blocked tasks, runs awaiting review, failed runs, triggers, and promotion candidates across registered projects.
 
 ### Query the project kernel
 
@@ -523,7 +552,7 @@ This searches the local kernel object catalog, source registry, and event timeli
 
 ## Current Version
 
-Sula version: `0.14.0`
+Sula version: `0.15.0`
 
 Versioning rules are in [docs/versioning.md](docs/versioning.md).
 
