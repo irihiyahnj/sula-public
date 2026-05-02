@@ -6,6 +6,24 @@ All notable changes to Sula Core should be recorded here with explicit sync impa
 
 - no entries yet
 
+## 0.15.1 - 2026-05-02
+
+### Added
+
+- `sula report --summary "..."` command: appends a date-grouped session summary to STATUS.md Summary, auto-archives old date groups (keeps last 5), regenerates `.sula/memory-digest.md`, and updates Handoff verification date. The archive destination (`docs/ops/status-archive.md`) is automatically indexed by `sula query`, so historical entries remain searchable.
+- `sula doctor` now detects when `**/.sula/memory-digest.md` is still in `.gitignore` and advises the project owner to remove it and commit the digest for zero-friction AI handoff.
+
+### Changed
+
+- `**/.sula/memory-digest.md` removed from `.gitignore` so new clones immediately have a digest available for AI handoff.
+- `.sula/memory-digest.md` no longer includes a `generated on` timestamp, so the file content is stable unless source documents change. The digest file is now intended to be committed.
+
+### Sync Impact
+
+- Adopted projects can immediately use `sula report --project-root . --summary "..."` — no sync needed.
+- Adopted projects that want the committed-digest handoff benefit must manually remove `**/.sula/memory-digest.md` from their `.gitignore`, run `sula memory digest`, and commit the result.
+- `sula doctor --strict` will advisory-warn on any project that still has `**/.sula/memory-digest.md` in `.gitignore`, guiding the owner through the upgrade.
+
 ## 0.15.0 - 2026-05-01
 
 ### Added

@@ -1832,6 +1832,11 @@ def parse_args() -> argparse.Namespace:
     artifact_refresh_cmd.add_argument("--force", action="store_true", help="Refresh even when TTL says the cached provider check is still fresh")
     artifact_refresh_cmd.add_argument("--json", action="store_true", help="Print JSON instead of human-readable output")
 
+    report_cmd = sub.add_parser("report", help="Write a session report into STATUS.md Summary and regenerate derived state")
+    add_project_root_arg(report_cmd)
+    report_cmd.add_argument("--summary", required=True, help="Human-readable summary of what was done this session")
+    report_cmd.add_argument("--json", action="store_true", help="Print JSON instead of human-readable output")
+
     record_cmd = sub.add_parser("record", help="Create a memory record inside a project")
     record_sub = record_cmd.add_subparsers(dest="record_command", required=True)
     record_new_cmd = record_sub.add_parser("new", help="Create a new change, release, or incident record")
@@ -2792,6 +2797,9 @@ def main() -> int:
         if args.record_command == "new":
             return create_record(config, args)
         raise AssertionError("unreachable")
+
+    if args.command == "report":
+        return cmd_report(config, args)
 
     if args.command == "memory":
         return handle_memory_command(config, args)
@@ -5859,6 +5867,136 @@ def normalize_status_current_state_sections(config: ProjectConfig) -> bool:
     return changed
 
 
+def cmd_report(config: ProjectConfig, args: argparse.Namespace) -> int:
+    """Write a session report into STATUS.md Summary and regenerate derived state."""
+    status_path = config.root / config.data["paths"]["status_file"]
+    if not status_path.exists():
+        print("STATUS.md not found.")
+        return 1
+
+    today = date.today().isoformat()
+    text = status_path.read_text(encoding="utf-8")
+    summary_text = args.summary.strip()
+    if not summary_text:
+        print("Summary text is empty.")
+        return 1
+
+    group_order: list[str] = []
+    archived_items: list[str] = []
+
+    span = markdown_section_span(text, "Summary")
+    if span is None:
+        health_span = markdown_section_span(text, "Health")
+        insertion_point = health_span[2] if health_span else len(text)
+        new_section = f"\n\n## Summary\n\n### {today}\n\n- {summary_text}\n"
+        text = text[:insertion_point] + new_section + text[insertion_point:]
+        group_order = [today]
+    else:
+        _, start, end = span
+        summary_body = text[start:end]
+
+        groups: dict[str, list[str]] = {}
+        lines = summary_body.splitlines(keepends=False)
+        current_heading: str | None = None
+        current_items: list[str] = []
+
+        for raw_line in lines:
+            line = raw_line.rstrip()
+            if line.startswith("### "):
+                if current_heading is not None:
+                    groups[current_heading] = current_items
+                    group_order.append(current_heading)
+                current_heading = line[4:].strip()
+                current_items = []
+            elif line.strip().startswith("- ") and current_heading is not None:
+                current_items.append(line.strip()[2:])
+        if current_heading is not None:
+            groups[current_heading] = current_items
+            group_order.append(current_heading)
+
+        if today in groups:
+            if summary_text not in groups[today]:
+                groups[today].append(summary_text)
+        else:
+            group_order.insert(0, today)
+            groups[today] = [summary_text]
+
+        date_groups = [h for h in group_order if MEMORY_DATE_PATTERN.fullmatch(h)]
+        non_date_groups = [h for h in group_order if not MEMORY_DATE_PATTERN.fullmatch(h)]
+        max_date_groups = 5
+        if len(date_groups) > max_date_groups:
+            for heading in date_groups[: -max_date_groups]:
+                for item in groups.get(heading, []):
+                    archived_items.append(f"({heading}) {item}")
+                del groups[heading]
+            date_groups = date_groups[-max_date_groups:]
+            group_order = date_groups + non_date_groups
+
+        new_body_lines: list[str] = []
+        for heading in group_order:
+            new_body_lines.append(f"### {heading}")
+            new_body_lines.append("")
+            for item in groups.get(heading, []):
+                new_body_lines.append(f"- {item}")
+            new_body_lines.append("")
+        new_body = "\n".join(new_body_lines)
+        text = text[:start] + new_body + text[end:]
+
+    text = update_status_handoff_fields(
+        text,
+        locale=config.interaction_locale,
+        updates={
+            "verification date": today,
+            "git working tree": detect_git_worktree_state(config.root),
+        },
+    )
+
+    status_path.write_text(text.rstrip() + "\n", encoding="utf-8")
+
+    if archived_items:
+        archive_status_section_items(config, "Summary", archived_items, archived_on=today)
+
+    digest_args = argparse.Namespace(output=None, stdout=False, json=json_output_requested(args))
+    generate_memory_digest(config, digest_args, emit_output=True)
+
+    refresh_kernel_state(
+        config,
+        event_type="report.created",
+        summary=f"Session report written to STATUS.md under {today}.",
+    )
+
+    date_group_count = len(
+        [h for h in group_order if MEMORY_DATE_PATTERN.fullmatch(h)]
+    )
+    if json_output_requested(args):
+        emit_json(
+            {
+                "command": "report",
+                "status": "ok",
+                "project": project_payload(config),
+                "summary_date": today,
+                "date_group_count": date_group_count,
+                "archived": len(archived_items),
+                "digest_path": config.digest_file.relative_to(config.root).as_posix(),
+            }
+        )
+    else:
+        zh = locale_family(config.interaction_locale) == "zh"
+        parts = [
+            f"STATUS.md {'updated' if zh else 'updated'} with 1 entry under {today}."
+        ]
+        if archived_items:
+            parts.append(
+                f"Archived {len(archived_items)} old {'entries' if zh else 'entries'}."
+            )
+        parts.append(
+            f"Digest regenerated at {config.digest_file.relative_to(config.root).as_posix()}."
+        )
+        print(" ".join(parts))
+
+    return 0
+
+
 def append_bullet_to_section(text: str, section_name: str, bullet: str, *, max_items: int | None = None) -> tuple[str, list[str]]:
     span = markdown_section_span(text, section_name)
     bullet_value = bullet[2:].strip() if bullet.startswith("- ") else bullet.strip()
@@ -6008,7 +6146,6 @@ def build_memory_digest(config: ProjectConfig, output_path: Path) -> str:
     lines = [
         f"# {config.data['project']['name']} {'记忆摘要' if zh else 'Memory Digest'}",
         "",
-        f"- {localized_field_label('generated on', config.content_locale)}: {date.today().isoformat()}",
         f"- {localized_field_label('generated by', config.content_locale)}: Sula {VERSION}",
         "- 真相源是项目文档与记录，而不是这份生成摘要" if zh else "- source of truth: project docs and records, not this generated digest",
         "",
@@ -6685,6 +6822,17 @@ def collect_memory_doctor_report(config: ProjectConfig) -> tuple[list[str], list
     promotion_errors, promotion_warnings = validate_promotion_file(config)
     errors.extend(promotion_errors)
     warnings.extend(promotion_warnings)
+
+    gitignore_path = config.root / ".gitignore"
+    if gitignore_path.exists():
+        gitignore_text = gitignore_path.read_text(encoding="utf-8")
+        if "memory-digest.md" in gitignore_text:
+            zh = locale_family(config.content_locale) == "zh"
+            advisories.append(
+                "`.gitignore` 包含 `**/.sula/memory-digest.md` => 删除该行，运行 `sula memory digest`，提交 digest，使新 clone 的 AI 立即可读项目状态"
+                if zh
+                else "`.gitignore` contains `**/.sula/memory-digest.md` => remove it, run `sula memory digest`, commit the digest so new clones have immediate AI handoff"
+            )
 
     return errors, warnings, advisories
 
