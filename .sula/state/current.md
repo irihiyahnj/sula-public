@@ -89,7 +89,7 @@
 - source freshness: n/a
 - verification command: `python3 scripts/sula.py check --project-root . --json`; `python3 scripts/sula.py doctor --project-root . --strict --json`
 - verification result: pass
-- verification date: 2026-05-01
+- verification date: 2026-05-02
 - git branch: main
-- git commit: f3db8f2d9cbe
-- git working tree: dirty
+- git commit: 281c9641c9b
+- git working tree: clean

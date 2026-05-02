@@ -25,7 +25,7 @@
       "tags": [
         "sula-core"
       ],
-      "date": "2026-05-01"
+      "date": "2026-05-02"
     },
     {
       "id": "state:current",
@@ -44,7 +44,7 @@
       "tags": [
         "state"
       ],
-      "date": "2026-05-01"
+      "date": "2026-05-02"
     },
     {
       "id": "rule:manifest:highest-rule",
@@ -64,7 +64,7 @@
         "rule",
         "manifest"
       ],
-      "date": "2026-05-01"
+      "date": "2026-05-02"
     },
     {
       "id": "task:status:keep-the-public-bootstrap-contract-aligned-with-real-consumer-behavior-and-protocol-failures-seen-in-live-use",
@@ -84,7 +84,7 @@
         "current-focus",
         "status"
       ],
-      "date": "2026-05-01"
+      "date": "2026-05-02"
     },
     {
       "id": "task:status:run-credentialed-real-project-canaries-for-github-pr-verification-provider-backed-artifact-verification-and-codex-runner-endpoints-before-broad-orchestration-rollout",
@@ -104,7 +104,7 @@
         "current-focus",
         "status"
       ],
-      "date": "2026-05-01"
+      "date": "2026-05-02"
     },
     {
       "id": "task:status:add-authenticated-provider-task-adapters-beyond-the-current-google-drive-document-checklist-contract-when-a-real-provider-task-api-target-is-selected",
@@ -124,7 +124,7 @@
         "current-focus",
         "status"
       ],
-      "date": "2026-05-01"
+      "date": "2026-05-02"
     },
     {
       "id": "task:status:harden-long-running-remote-runner-cancellation-and-streamed-event-capture-after-the-first-real-app-server-canary",
@@ -144,7 +144,7 @@
         "current-focus",
         "status"
       ],
-      "date": "2026-05-01"
+      "date": "2026-05-02"
     },
     {
       "id": "task:status:expand-automation-classifiers-after-real-projects-reveal-recurring-provider-status-and-workflow-failure-patterns",
@@ -164,7 +164,7 @@
         "current-focus",
         "status"
       ],
-      "date": "2026-05-01"
+      "date": "2026-05-02"
     },
     {
       "id": "decision:status:2026-05-01-added-add-closeout-verification-adapters-docs-change-records-2026-05-01-zz-add-closeout-verification-adapters-md",
@@ -284,7 +284,7 @@
         "next-review-owner",
         "status"
       ],
-      "date": "2026-05-01"
+      "date": "2026-05-02"
     },
     {
       "id": "milestone:status:next-review:2026-05-08",
@@ -325,7 +325,7 @@
         "next-action",
         "status"
       ],
-      "date": "2026-05-01"
+      "date": "2026-05-02"
     },
     {
       "id": "change:2026-05-01-zzzzz-add-automation-kernel-for-event-driven-orchestration",
@@ -2018,6 +2018,26 @@
       "date": "2026-04-12"
     },
     {
+      "id": "job:memory.digest:20260502-011450",
+      "kind": "job",
+      "title": "memory.digest",
+      "summary": "Regenerated memory digest at `.sula/memory-digest.md`.",
+      "status": "ok",
+      "path": ".sula/state/jobs/history.jsonl",
+      "source_paths": [
+        ".sula/state/jobs/history.jsonl"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "job",
+        "memory-job"
+      ],
+      "date": "2026-05-02"
+    },
+    {
       "id": "job:memory.digest:20260502-001131",
       "kind": "job",
       "title": "memory.digest",
@@ -3699,7 +3719,7 @@
       "id": "object:source:status-md",
       "kind": "document",
       "title": "STATUS.md",
-      "summary": "- last updated: 2026-05-01",
+      "summary": "- last updated: 2026-05-02",
       "status": "indexed",
       "path": "STATUS.md",
       "source_paths": [
@@ -3715,7 +3735,7 @@
       "tags": [
         "discovered-source"
       ],
-      "date": "2026-05-01"
+      "date": "2026-05-02"
     },
     {
       "id": "object:source:docs-readme-md",
