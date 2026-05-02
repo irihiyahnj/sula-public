@@ -307,10 +307,10 @@
       "date": "2026-05-08"
     },
     {
-      "id": "task:handoff:run-credentialed-canary-for-pr-provider-verification-and-one-codex-app-server-canary-before-broad-external-rollout",
+      "id": "task:handoff:review-docs-change-records-2026-05-02-commit-0-15-0-and-fix-self-referencing-validation-md-run-python3-scripts-sula-py-canary-verify-project-root-all",
       "kind": "task",
-      "title": "run credentialed canary for PR/provider verification and one `codex-app-serve...",
-      "summary": "run credentialed canary for PR/provider verification and one `codex-app-server` canary before broad external rollout",
+      "title": "review `docs/change-records/2026-05-02-commit-0-15-0-and-fix-self-referencing...",
+      "summary": "review `docs/change-records/2026-05-02-commit-0-15-0-and-fix-self-referencing-validation.md`; run `python3 scripts/sula.py canary verify --project-root . --all`",
       "status": "open",
       "path": "STATUS.md",
       "source_paths": [
@@ -331,7 +331,7 @@
       "id": "change:2026-05-02-commit-0-15-0-and-fix-self-referencing-validation",
       "kind": "change",
       "title": "Commit 0.15.0 and Fix Self-referencing Validation",
-      "summary": "- date: 2026-05-02 - executor: Claude Code (deepseek-v4-pro) - branch: main - status: done",
+      "summary": "- date: 2026-05-02 - executor: Claude Code (deepseek-v4-pro) - branch: main - related commit(s): 281c964..7872d97 (12 commits) - status: completed",
       "status": "recorded",
       "path": "docs/change-records/2026-05-02-commit-0-15-0-and-fix-self-referencing-validation.md",
       "source_paths": [
@@ -2035,6 +2035,26 @@
         "agreement"
       ],
       "date": "2026-04-12"
+    },
+    {
+      "id": "job:memory.digest:20260502-015421",
+      "kind": "job",
+      "title": "memory.digest",
+      "summary": "Regenerated memory digest at `.sula/memory-digest.md`.",
+      "status": "ok",
+      "path": ".sula/state/jobs/history.jsonl",
+      "source_paths": [
+        ".sula/state/jobs/history.jsonl"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "job",
+        "memory-job"
+      ],
+      "date": "2026-05-02"
     },
     {
       "id": "job:memory.digest:20260502-015221",
@@ -5317,7 +5337,7 @@
       "id": "object:source:docs-change-records-2026-05-02-commit-0-15-0-and-fix-self-referencing-validation-md",
       "kind": "document",
       "title": "2026-05-02-commit-0-15-0-and-fix-self-referencing-validation.md",
-      "summary": "- date: 2026-05-02 - executor: Claude Code (deepseek-v4-pro) - branch: main - status: done",
+      "summary": "- date: 2026-05-02 - executor: Claude Code (deepseek-v4-pro) - branch: main - related commit(s): 281c964..7872d97 (12 commits) - status: completed",
       "status": "indexed",
       "path": "docs/change-records/2026-05-02-commit-0-15-0-and-fix-self-referencing-validation.md",
       "source_paths": [

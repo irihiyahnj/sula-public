@@ -91,7 +91,7 @@
 - ready: yes
 - start here: `docs/change-records/2026-05-02-commit-0-15-0-and-fix-self-referencing-validation.md`; `STATUS.md`
 - latest record: `docs/change-records/2026-05-02-commit-0-15-0-and-fix-self-referencing-validation.md`
-- next action: run credentialed canary for PR/provider verification and one `codex-app-server` canary before broad external rollout
+- next action: review `docs/change-records/2026-05-02-commit-0-15-0-and-fix-self-referencing-validation.md`; run `python3 scripts/sula.py canary verify --project-root . --all`
 - next owner: Sula Core maintainers
 - next due: 2026-05-08
 - done when: result `SULA CHECK OK`; result `doctor strict passed`; artifact `STATUS.md`

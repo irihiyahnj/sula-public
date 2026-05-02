@@ -6,7 +6,7 @@
     "discovered_sources": 186,
     "adapters": 7,
     "artifacts": 0,
-    "objects": 445,
+    "objects": 446,
     "source_adapter_links": 868
   },
   "adapter_catalog": ".sula/adapters/catalog.json",

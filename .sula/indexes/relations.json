@@ -83,7 +83,7 @@
       "type": "derived-from"
     },
     {
-      "from": "task:handoff:run-credentialed-canary-for-pr-provider-verification-and-one-codex-app-server-canary-before-broad-external-rollout",
+      "from": "task:handoff:review-docs-change-records-2026-05-02-commit-0-15-0-and-fix-self-referencing-validation-md-run-python3-scripts-sula-py-canary-verify-project-root-all",
       "to": "source:status-md",
       "type": "derived-from"
     },
