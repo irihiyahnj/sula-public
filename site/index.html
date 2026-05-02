@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Sula | URL Launch For Projects</title>
+    <meta
+      name="description"
+      content="Sula is a project operating system for AI-native teams. Start from a URL, resolve the canonical launcher, and route onboarding or review safely."
+    />
+    <link rel="stylesheet" href="./styles.css" />
+    <script defer src="./app.js"></script>
+  </head>
+  <body>
+    <div class="page-shell">
+      <header class="hero">
+        <p class="eyebrow">Sula launch is usable now. Public packaging is still in progress.</p>
+        <h1>Sula should start from a URL, not from a guessed local command.</h1>
+        <p class="lede">
+          This page is the canonical starting point for launching Sula against a project. The contract is:
+          read the launch page, resolve the canonical launcher, decide whether the project is new or already adopted,
+          then run onboarding or consumer review without guessing npm packages or global commands.
+        </p>
+
+        <div class="copy-grid">
+          <section class="copy-card">
+              <div class="card-header">
+                <h2>Chinese Launch Line</h2>
+                <button class="copy-button" data-copy-target="prompt-zh">Copy</button>
+              </div>
+            <pre id="prompt-zh" class="prompt-block"><code>请按 https://sula.1stp.monster/launch/ 的启动协议接管当前项目。</code></pre>
+          </section>
+
+          <section class="copy-card">
+            <div class="card-header">
+              <h2>English Launch Line</h2>
+              <button class="copy-button" data-copy-target="prompt-en">Copy</button>
+            </div>
+            <pre id="prompt-en" class="prompt-block"><code>Please take over the current project using the launch contract at https://sula.1stp.monster/launch/.</code></pre>
+          </section>
+        </div>
+
+        <div class="hero-actions">
+          <a class="primary-link" href="./launch/">Read The Launch Contract</a>
+          <a class="secondary-link" href="./sula.json">Open `sula.json`</a>
+          <a class="secondary-link" href="./launch/bootstrap.py">Download `bootstrap.py`</a>
+          <a class="secondary-link" href="#what-you-get">Review The Benefits</a>
+        </div>
+      </header>
+
+      <main>
+        <section id="what-you-get" class="panel">
+          <div class="section-heading">
+            <p class="section-label">How It Works</p>
+            <h2>The actual launch flow should feel like this.</h2>
+          </div>
+
+          <div class="steps">
+            <article class="step-card">
+              <span class="step-index">01</span>
+              <h3>Read The URL</h3>
+              <p>Open the launch page and `sula.json`, then resolve the canonical launcher source instead of guessing a package or global binary.</p>
+              <pre><code>read /launch/
+read /sula.json
+resolve canonical launcher</code></pre>
+            </article>
+
+            <article class="step-card">
+              <span class="step-index">02</span>
+              <h3>Classify The Project</h3>
+              <p>Decide whether the project is a new onboarding target or an existing Sula consumer.</p>
+              <pre><code>if .sula/project.toml exists
+  review consumer
+else
+  run onboard</code></pre>
+            </article>
+
+            <article class="step-card">
+              <span class="step-index">03</span>
+              <h3>Route Safely</h3>
+              <p>New projects go through guided onboarding. Existing consumers go through `doctor --strict` and `sync --dry-run` review.</p>
+              <pre><code>onboard
+or
+doctor --strict
+sync --dry-run</code></pre>
+            </article>
+
+            <article class="step-card">
+              <span class="step-index">04</span>
+              <h3>Explain The Promise</h3>
+              <p>Tell the user what Sula will manage, where files will go, what source was used, and what to run next.</p>
+              <pre><code>report source used
+report managed scope
+report file routing
+report next commands</code></pre>
+            </article>
+          </div>
+        </section>
+
+        <section class="panel dual-panel">
+          <article>
+            <div class="section-heading">
+              <p class="section-label">Canonical Launcher</p>
+              <h2>The site should be able to launch Sula without local guessing.</h2>
+            </div>
+            <ul class="check-list">
+              <li>The canonical machine descriptor lives at <code>/sula.json</code>.</li>
+              <li>The canonical human-readable launch contract lives at <code>/launch/</code>.</li>
+              <li>The canonical bootstrap shim lives at <code>/launch/bootstrap.py</code>.</li>
+              <li>When local tooling is missing, agents should resolve source from the site contract instead of searching npm.</li>
+            </ul>
+          </article>
+
+          <article class="status-card">
+            <div class="section-heading">
+              <p class="section-label">Immediate Manual Fallback</p>
+              <h2>The launcher can still be called directly.</h2>
+            </div>
+            <pre class="report-block"><code>python3 bootstrap.py --project-root /path/to/project
+python3 bootstrap.py --project-root /path/to/project --accept-suggested --approve
+
+If the project is already adopted, the launcher should review it instead of trying to adopt again.</code></pre>
+          </article>
+        </section>
+
+        <section class="panel dual-panel">
+          <article>
+            <div class="section-heading">
+              <p class="section-label">Managed Boundary</p>
+              <h2>Sula should manage the operating system, not absorb project truth.</h2>
+            </div>
+            <ul class="check-list">
+              <li>Managed files can be synced later from Sula Core.</li>
+              <li>Scaffold files are starters and stay owned by the project after first generation.</li>
+              <li>Status, change history, release notes, and incident notes remain durable project memory.</li>
+              <li>Approval is always required before adoption writes into a repository.</li>
+            </ul>
+          </article>
+
+          <article class="status-card">
+            <div class="section-heading">
+              <p class="section-label">Current State</p>
+              <h2>The site is in development, but the bootstrap contract is already usable.</h2>
+            </div>
+            <ul class="check-list">
+              <li>The public domain can host this exact static page set.</li>
+              <li>The canonical bootstrap flow already exists in the Sula CLI.</li>
+              <li>The source repository is not ready for direct public release from current history yet.</li>
+              <li>The future public source should come from a clean Sula-only history.</li>
+            </ul>
+          </article>
+        </section>
+
+        <section class="panel">
+          <div class="section-heading">
+            <p class="section-label">What You Get</p>
+            <h2>Normal usage already delivers concrete operational benefits.</h2>
+          </div>
+          <div class="benefit-grid">
+            <article>
+              <h3>Faster session startup</h3>
+              <p>New agents stop behaving like empty-context contractors and start from explicit project rules.</p>
+            </article>
+            <article>
+              <h3>Durable project memory</h3>
+              <p>Rules, current status, decisions, releases, and incidents have fixed locations instead of chat-only history.</p>
+            </article>
+            <article>
+              <h3>Safer shared upgrades</h3>
+              <p>`sync --dry-run`, version locks, canaries, and strict doctor checks reduce blind rollout risk.</p>
+            </article>
+          </div>
+        </section>
+      </main>
+    </div>
+  </body>
+</html>

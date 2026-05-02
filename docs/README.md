@@ -1,0 +1,69 @@
+# Sula Documentation Map
+
+This directory organizes the reusable project operating system for `Sula`.
+
+Sula manages the cross-project operational layer so this repository can benefit from future improvements without rewriting its local business truth.
+
+## Recommended Reading Order
+
+### 1. Hard Rules
+
+- [AGENTS.md](../AGENTS.md): repository-specific hard rules
+- `CODEX.md`, `CLAUDE.md`, `GEMINI.md`, `.github/copilot-instructions.md`, and `.cursor/rules/project.mdc`: AI adapters when the `ai-tooling` projection pack is enabled
+- [README.md](../README.md): product and architecture overview
+
+### 2. Team Operation
+
+- [ops/team-operating-model.md](ops/team-operating-model.md): default request-to-delivery flow
+- `ops/document-design-principles.md`: formal document structure rules when the `document-design` projection pack is enabled
+- [ops/request-template.md](ops/request-template.md): efficient request format
+- [ops/project-memory.md](ops/project-memory.md): how durable project memory is stored and updated
+- [ops/release-checklist.md](ops/release-checklist.md): pre-push and pre-release checks
+- [ops/smoke-test-checklist.md](ops/smoke-test-checklist.md): change validation checklist
+- [ops/architecture-exception-register.md](ops/architecture-exception-register.md): approved architecture exceptions
+
+### 3. System And Module Structure
+
+- `architecture/`: profile-specific architecture docs when the `profile-architecture` projection pack is enabled
+
+### 4. Reference
+
+- `reference/`: durable contracts, capability models, and design references for Sula Core
+- `reference/memory-capability-implementation-plan.md`: phased implementation plan for stronger staged memory, rule indexing, promotion, and routing
+- `reference/model-upgrade-prompts.md`: standard prompts for asking large models to upgrade adopted projects from a published Sula Git release
+- `reference/symphony-orchestration-absorption-plan.md`: completed-state contract for absorbing Symphony-style automation and agent orchestration without binding Sula Core to one tracker, runner, or daemon implementation
+- `reference/agent-execution-quality-policy.md`: Sula-native contract for portable agent behavior quality inspired by reusable coding-guidance skills
+
+### 5. Workflow Plans
+
+- `workflows/plans/`: source-first execution plans for larger Sula changes that future AI sessions should execute from repository truth instead of chat history
+- `workflows/plans/2026-04-30-symphony-orchestration-absorption-plan.md`: execution culture and workstreams for the Symphony-style automation and orchestration upgrade
+
+### 6. Runbooks
+
+- `runbooks/`: operational runbooks when the `profile-runbooks` projection pack is enabled
+- `runbooks/git-release-upgrade.md`: canonical Git-tagged rollout flow for upgrading scattered adopted projects from a published Sula release
+
+### 7. Traceability
+
+- [STATUS.md](../STATUS.md)
+- [CHANGE-RECORDS.md](../CHANGE-RECORDS.md)
+- [change-records/](change-records)
+- [releases/](releases)
+- [incidents/](incidents)
+- [.sula/memory-digest.md](../.sula/memory-digest.md): generated summary if present
+
+## Document Layers
+
+| Layer | Role |
+| --- | --- |
+| Rules | Hard constraints and AI alignment |
+| Ops | Intake, execution, verification, release, exceptions, and formal document design |
+| Architecture | Durable structure and module boundaries |
+| Workflow Plans | Source-first implementation plans for future AI execution |
+| Runbooks | High-risk operational knowledge |
+| Traceability | Status, decisions, release reasoning, incident context |
+
+## Maintenance Rule
+
+When adding durable ops, architecture, or runbook documents, update this map in the same change.

@@ -1,0 +1,8 @@
+__pycache__/
+*.pyc
+.DS_Store
+**/.sula/cache/*
+!**/.sula/cache/README.md
+**/.sula/local/*
+**/.sula/state/automation/*
+**/.sula/state/orchestration/*

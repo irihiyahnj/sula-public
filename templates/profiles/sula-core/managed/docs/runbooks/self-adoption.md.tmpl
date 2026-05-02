@@ -1,0 +1,24 @@
+# {{PROJECT_NAME}} Self-adoption Runbook
+
+This runbook covers how Sula manages itself as a first-class consumer.
+
+## Required Files
+
+- `.sula/project.toml`
+- `.sula/version.lock`
+- `STATUS.md`
+- `CHANGE-RECORDS.md`
+- `docs/change-records/`
+- `docs/releases/`
+- `docs/incidents/`
+
+## Workflow
+
+1. treat Sula root as a project with durable memory
+2. keep the root manifest aligned with the `sula-core` profile
+3. regenerate the root memory digest after non-trivial work
+4. keep the canary and root self-adoption both passing `doctor --strict`
+
+## Guardrail
+
+Do not twist Sula Core into a one-project template just to satisfy self-adoption. The profile must still remain reusable for similar operating-system repositories.

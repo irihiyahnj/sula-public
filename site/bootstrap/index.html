@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Sula Bootstrap Contract</title>
+    <meta
+      name="description"
+      content="Canonical bootstrap contract for adopting Sula into a repository through inspect, report, approve, adopt, validate, and final reporting."
+    />
+    <link rel="stylesheet" href="../styles.css" />
+    <script defer src="../app.js"></script>
+  </head>
+  <body>
+    <div class="page-shell">
+      <header class="hero compact-hero">
+        <p class="eyebrow">Canonical bootstrap contract</p>
+        <h1>What an agent should do after a user pastes the Sula bootstrap line.</h1>
+        <p class="lede">
+          This page is intentionally explicit. It turns the copyable prompt on the homepage into a stable behavioral
+          contract for repository adoption.
+        </p>
+        <div class="hero-actions">
+          <a class="primary-link" href="../">Back To Home</a>
+          <a class="secondary-link" href="../launch/">Open Launch Contract</a>
+          <a class="secondary-link" href="../sula.json">Open `sula.json`</a>
+        </div>
+      </header>
+
+      <main>
+        <section class="panel">
+          <div class="section-heading">
+            <p class="section-label">Canonical Prompts</p>
+            <h2>Long-form lines to paste into a live agent session.</h2>
+          </div>
+          <div class="copy-grid">
+            <section class="copy-card">
+              <div class="card-header">
+                <h3>Chinese</h3>
+                <button class="copy-button" data-copy-target="bootstrap-zh">Copy</button>
+              </div>
+              <pre id="bootstrap-zh" class="prompt-block"><code>请按 https://sula.1stp.monster/launch/ 的启动协议接管当前项目；如需详细审批报告，请继续读取 https://sula.1stp.monster/bootstrap/ 。</code></pre>
+            </section>
+            <section class="copy-card">
+              <div class="card-header">
+                <h3>English</h3>
+                <button class="copy-button" data-copy-target="bootstrap-en">Copy</button>
+              </div>
+              <pre id="bootstrap-en" class="prompt-block"><code>Please take over the current project using the launch contract at https://sula.1stp.monster/launch/; if detailed approval rules are needed, continue reading https://sula.1stp.monster/bootstrap/.</code></pre>
+            </section>
+          </div>
+        </section>
+
+        <section class="panel">
+          <div class="section-heading">
+            <p class="section-label">Behavior Contract</p>
+            <h2>The default execution sequence is fixed.</h2>
+          </div>
+
+          <ol class="contract-list">
+            <li>Read this bootstrap page and the machine-readable descriptor at <code>/sula.json</code>.</li>
+            <li>Inspect the current repository before proposing changes.</li>
+            <li>Infer the likely Sula profile and propose a manifest.</li>
+            <li>Produce an adoption report with creates, overwrites, preserves, blockers, and warnings.</li>
+            <li>Pause for explicit user approval.</li>
+            <li>Apply the adoption only after approval.</li>
+            <li>Validate with strict checks.</li>
+            <li>Report what changed, what risks remain, and how the user should operate Sula afterward.</li>
+          </ol>
+        </section>
+
+        <section class="panel dual-panel">
+          <article>
+            <div class="section-heading">
+              <p class="section-label">Existing Consumers</p>
+              <h2>Already-adopted repositories use a review path.</h2>
+            </div>
+            <ol class="contract-list compact-list">
+              <li>If <code>.sula/project.toml</code> already exists, treat the repository as an existing Sula consumer.</li>
+              <li>Say so explicitly in the report instead of narrating the repository as a fresh adoption target.</li>
+              <li>Prefer manifest review, <code>doctor --strict</code>, and <code>sync --dry-run</code> before proposing any new adoption writes.</li>
+              <li>Only propose a first-time adopt flow when the repository is clearly not yet under Sula management.</li>
+            </ol>
+          </article>
+
+          <article>
+            <div class="section-heading">
+              <p class="section-label">Tool Resolution</p>
+              <h2>Missing local tooling is not the end of the protocol.</h2>
+            </div>
+            <ol class="contract-list compact-list">
+              <li>If local <code>scripts/sula.py</code> is missing, read <code>/sula.json</code> and resolve the canonical Sula launcher or source from the declared URLs.</li>
+              <li>Prefer the launch shim at <code>/launch/bootstrap.py</code> over npm or global-command guessing.</li>
+              <li>If the canonical source or launcher is unreachable, report that precisely as a blocker after completing repository inspection, rather than failing before analysis.</li>
+            </ol>
+          </article>
+        </section>
+
+        <section class="panel dual-panel">
+          <article>
+            <div class="section-heading">
+              <p class="section-label">Expected Pre-approval Output</p>
+              <h2>Adoption report</h2>
+            </div>
+            <pre class="report-block"><code>Sula adoption report for /path/to/repo
+Recommended profile: ...
+Detected name: ...
+Detected slug: ...
+Primary branch: ...
+Deployment branch: ...
+
+Blocking issues:
+- ...
+
+Warnings:
+- ...
+
+Planned changes after approval:
+- managed create: N
+- managed update: N
+- scaffold create: N
+- scaffold preserve: N</code></pre>
+          </article>
+
+          <article>
+            <div class="section-heading">
+              <p class="section-label">Expected Post-approval Output</p>
+              <h2>Result report</h2>
+            </div>
+            <pre class="report-block"><code>Post-adoption validation:
+Sula doctor passed for ...
+
+How to use Sula after adoption:
+- inspect current rules: AGENTS.md
+- validate the repository: sula doctor --strict
+- preview future upgrades: sula sync --dry-run
+- add non-trivial history: sula record new
+- regenerate recall summary: sula memory digest</code></pre>
+          </article>
+        </section>
+
+        <section class="panel">
+          <div class="section-heading">
+            <p class="section-label">Approval Gate</p>
+            <h2>No silent adoption.</h2>
+          </div>
+          <p class="panel-copy">
+            A valid agent must stop after the adoption report and wait for a human answer such as <code>批准接入</code> or
+            <code>Approve adoption.</code> Without approval, the repository should not be modified.
+          </p>
+        </section>
+
+        <section class="panel">
+          <div class="section-heading">
+            <p class="section-label">CLI Mapping</p>
+            <h2>This protocol already maps to real Sula commands.</h2>
+          </div>
+          <pre class="report-block"><code>python3 bootstrap.py --project-root /path/to/project
+python3 bootstrap.py --project-root /path/to/project --accept-suggested --approve
+python3 scripts/sula.py onboard --project-root /path/to/project
+python3 scripts/sula.py doctor --project-root /path/to/project --strict</code></pre>
+        </section>
+      </main>
+    </div>
+  </body>
+</html>
