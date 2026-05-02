@@ -6074,13 +6074,17 @@ def sync_status_handoff_runtime_fields(config: ProjectConfig, *, bump_last_updat
     if bump_last_updated:
         updated_label = localized_field_label("last updated", config.content_locale)
         text = STATUS_UPDATED_PATTERN.sub(f"- {updated_label}: {date.today().isoformat()}", text, count=1)
+    current_commit = ""
+    if "Handoff" in markdown_sections(text):
+        handoff_fields = markdown_key_values(markdown_sections(text)["Handoff"])
+        current_commit = handoff_fields.get("git commit", "")
     text = update_status_handoff_fields(
         text,
         locale=config.content_locale,
         updates={
             "source freshness": current_truth_source_freshness_status(config),
             "git branch": detect_git_branch(config.root) if is_git_repository(config.root) else "n/a",
-            "git commit": detect_git_commit(config.root),
+            "git commit": current_commit if current_commit == "any" else detect_git_commit(config.root),
             "git working tree": detect_git_worktree_state(config.root),
         },
     )
