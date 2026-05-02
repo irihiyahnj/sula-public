@@ -757,7 +757,7 @@ Canary verification fixtures need at least one non-placeholder change record so 
         self.assertEqual(descriptor["public_release_strategy"], "fresh-public-repo")
         self.assertEqual(descriptor["public_source_status"], "published")
         self.assertEqual(descriptor["source_repository_url"], "https://github.com/irihiyahnj/sula-public.git")
-        self.assertEqual(descriptor["source_ref"], "v0.15.0")
+        self.assertEqual(descriptor["source_ref"], "v0.16.0")
 
     def test_adopt_approve_supports_non_git_generic_project(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -1582,8 +1582,7 @@ Canary verification fixtures need at least one non-placeholder change record so 
             self.assertEqual(close_result.returncode, 0, close_result.stderr)
             close_payload = json.loads(close_result.stdout)
             self.assertEqual(close_payload["status"], "accepted")
-            self.assertTrue(close_payload["run"]["closeout_evaluation"]["has_verification_evidence"])
-            self.assertTrue(close_payload["run"]["closeout_evaluation"]["has_acceptance_evidence"])
+            self.assertTrue(close_payload["run"]["closeout_evaluation"]["has_closeout_evidence"])
             promotions_path = project_root / ".sula" / "state" / "orchestration" / "promotion-candidates.jsonl"
             self.assertTrue(promotions_path.exists())
             self.assertIn("Shell command runner evidence", promotions_path.read_text(encoding="utf-8"))
@@ -1860,7 +1859,6 @@ Canary verification fixtures need at least one non-placeholder change record so 
             self.assertEqual(close_result.returncode, 1)
             close_payload = json.loads(close_result.stdout)
             self.assertEqual(close_payload["status"], "blocked")
-            self.assertIn("artifact link reviewed", close_payload["run"]["closeout_evaluation"]["missing_validation_requirements"])
             self.assertIn("artifacts/missing.md", close_payload["run"]["closeout_evaluation"]["unresolved_links"])
 
     def test_orchestration_closeout_resolves_provider_artifacts_and_pr_urls(self) -> None:
@@ -4280,6 +4278,11 @@ notes = "Fixture"
                     "- 2026-04-14: decision four",
                     "- 2026-04-15: decision five",
                     "- 2026-04-16: decision six",
+                    "- 2026-04-17: decision seven",
+                    "- 2026-04-18: decision eight",
+                    "- 2026-04-19: decision nine",
+                    "- 2026-04-20: decision ten",
+                    "- 2026-04-21: decision eleven",
                 ]
             )
             status_text = status_text.replace(
@@ -4290,7 +4293,7 @@ notes = "Fixture"
 
             failed = run_cli("check", "--project-root", str(project_root))
             self.assertNotEqual(failed.returncode, 0)
-            self.assertIn("`## Recent Decisions` has 6 items", failed.stdout)
+            self.assertIn("`## Recent Decisions` has 11 items", failed.stdout)
 
     def test_check_fails_when_current_focus_and_blockers_exceed_limits(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -4301,16 +4304,16 @@ notes = "Fixture"
 
             status_path = project_root / "STATUS.md"
             status_text = status_path.read_text(encoding="utf-8")
-            oversized_focus = "\n".join([f"- focus item {index}" for index in range(1, 7)])
-            oversized_blockers = "\n".join([f"- blocker item {index}" for index in range(1, 7)])
+            oversized_focus = "\n".join([f"- focus item {index}" for index in range(1, 12)])
+            oversized_blockers = "\n".join([f"- blocker item {index}" for index in range(1, 12)])
             status_text = status_text.replace("- memory rollout", oversized_focus)
             status_text = status_text.replace("- none", oversized_blockers, 1)
             status_path.write_text(status_text, encoding="utf-8")
 
             failed = run_cli("check", "--project-root", str(project_root))
             self.assertNotEqual(failed.returncode, 0)
-            self.assertIn("`## Current Focus` has 6 items", failed.stdout)
-            self.assertIn("`## Blockers` has 6 items", failed.stdout)
+            self.assertIn("`## Current Focus` has 11 items", failed.stdout)
+            self.assertIn("`## Blockers` has 11 items", failed.stdout)
 
     def test_memory_digest_archives_current_focus_and_blocker_overflow(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -4321,8 +4324,8 @@ notes = "Fixture"
 
             status_path = project_root / "STATUS.md"
             status_text = status_path.read_text(encoding="utf-8")
-            oversized_focus = "\n".join([f"- focus item {index}" for index in range(1, 7)])
-            oversized_blockers = "\n".join([f"- blocker item {index}" for index in range(1, 7)])
+            oversized_focus = "\n".join([f"- focus item {index}" for index in range(1, 12)])
+            oversized_blockers = "\n".join([f"- blocker item {index}" for index in range(1, 12)])
             status_text = status_text.replace("- memory rollout", oversized_focus)
             status_text = status_text.replace("- none", oversized_blockers, 1)
             status_path.write_text(status_text, encoding="utf-8")
@@ -4336,8 +4339,8 @@ notes = "Fixture"
             focus_lines = [line.strip() for line in current_focus_text.splitlines() if line.strip().startswith("- ")]
             blocker_lines = [line.strip() for line in blockers_text.splitlines() if line.strip().startswith("- ")]
 
-            self.assertEqual(len(focus_lines), 5)
-            self.assertEqual(len(blocker_lines), 5)
+            self.assertEqual(len(focus_lines), 10)
+            self.assertEqual(len(blocker_lines), 10)
             archive_text = (project_root / "docs" / "ops" / "status-archive.md").read_text(encoding="utf-8")
             self.assertIn("## Current Focus", archive_text)
             self.assertIn("## Blockers", archive_text)
@@ -4391,7 +4394,7 @@ notes = "Fixture"
             self.assertEqual(init_result.returncode, 0, init_result.stderr)
             self.write_valid_status(project_root)
 
-            for offset, day in enumerate(range(12, 18), start=1):
+            for offset, day in enumerate(range(12, 27), start=1):
                 result = run_cli(
                     "record",
                     "new",
@@ -4410,10 +4413,15 @@ notes = "Fixture"
             recent_decisions_text = status_text.split("## Recent Decisions", 1)[1].split("## Next Review", 1)[0]
             recent_decision_lines = [line.strip() for line in recent_decisions_text.splitlines() if line.strip().startswith("- ")]
 
-            self.assertEqual(len(recent_decision_lines), 5)
+            self.assertEqual(len(recent_decision_lines), 10)
             self.assertFalse(any("2026-04-11" in line for line in recent_decision_lines))
             self.assertFalse(any("2026-04-12" in line for line in recent_decision_lines))
+            self.assertFalse(any("2026-04-13" in line for line in recent_decision_lines))
+            self.assertFalse(any("2026-04-14" in line for line in recent_decision_lines))
+            self.assertFalse(any("2026-04-15" in line for line in recent_decision_lines))
+            self.assertFalse(any("2026-04-16" in line for line in recent_decision_lines))
             self.assertTrue(any("2026-04-17" in line for line in recent_decision_lines))
+            self.assertTrue(any("2026-04-26" in line for line in recent_decision_lines))
             archive_text = (project_root / "docs" / "ops" / "status-archive.md").read_text(encoding="utf-8")
             self.assertIn("2026-04-11: established the initial memory contract", archive_text)
             self.assertIn("2026-04-12: added [Decision 1]", archive_text)

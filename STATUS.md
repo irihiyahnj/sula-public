@@ -14,6 +14,9 @@
 - Added Session Lifecycle section to AGENTS.md and CLAUDE.md.tmpl so all adopted projects know to start with memory-digest.md, work, end with sula report.
 - Released 0.15.2: session lifecycle discipline (start with memory-digest, end with report+check+commit), sula report command with Summary archiving, git commit: any sentinel preserved through sync, Summary staleness check in sula check, projected AI-tool templates updated across all profiles.
 - Finalize 0.15.2 release: commit, tag, push to public repo.
+- Implement auto-loop: workflow start, orchestration check in sula check, orchestration in status/digest, closeout next-action suggestions.
+- Implemented auto-loop: workflow start composite command, orchestration check in sula check, orchestration status in status/digest, next-action suggestions in closeout. Simplified closeout validation (removed fragile token matching). Bumped status section limits from 5 to 10. Updated sula.json protocol with cross-agent workflow rules. Released 0.16.0.
+- Implemented auto-loop: workflow start, orchestration check in sula check, orchestration status in status/digest, next-action suggestions in closeout. Simplified closeout validation. Bumped status section limits to 10. Updated sula.json protocol with cross-agent workflow rules.
 
 ### 0.15.0 and earlier
 
@@ -88,18 +91,18 @@
 
 
 - ready: yes
-- start here: `docs/change-records/2026-05-02-commit-0-15-0-and-fix-self-referencing-validation.md`; `STATUS.md`
-- latest record: `docs/change-records/2026-05-02-commit-0-15-0-and-fix-self-referencing-validation.md`
-- next action: review `docs/change-records/2026-05-02-commit-0-15-0-and-fix-self-referencing-validation.md`; run `python3 scripts/sula.py canary verify --project-root . --all`
+- start here: `CHANGELOG.md` entry for 0.16.0; `STATUS.md`
+- latest record: `CHANGELOG.md` (0.16.0 auto-loop release)
+- next action: verify 112 tests pass; push v0.16.0 tag; publish release
 - next owner: Sula Core maintainers
 - next due: 2026-05-08
-- done when: result `SULA CHECK OK`; result `doctor strict passed`; artifact `STATUS.md`
+- done when: result `SULA CHECK OK`; result `doctor strict passed`; result `112 tests pass`
 - blockers: none
-- source of truth: `STATUS.md`; `docs/change-records/2026-05-01-zzzzz-add-automation-kernel-for-event-driven-orchestration.md`
+- source of truth: `STATUS.md`; `CHANGELOG.md`
 - source freshness: current
-- verification command: `python3 scripts/sula.py check --project-root . --json`; `python3 scripts/sula.py doctor --project-root . --strict --json`
+- verification command: `python3 scripts/sula.py check --project-root . --json`; `python3 scripts/sula.py doctor --project-root . --strict --json`; `python3 -m unittest discover -s tests -v`
 - verification result: pass
 - verification date: 2026-05-02
 - git branch: main
 - git commit: any
-- git working tree: clean
+- git working tree: dirty

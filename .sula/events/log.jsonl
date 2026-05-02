@@ -136,3 +136,19 @@
 {"timestamp": "2026-05-02T05:54:56Z", "event_type": "report.created", "summary": "Session report written to STATUS.md under 2026-05-02.", "profile": "sula-core", "project": "sula"}
 {"timestamp": "2026-05-02T05:57:47Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "sula-core", "project": "sula"}
 {"timestamp": "2026-05-02T05:58:07Z", "event_type": "report.created", "summary": "Session report written to STATUS.md under 2026-05-02.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-05-02T06:13:40Z", "event_type": "workflow.scaffold", "summary": "Created workflow spec `Test the workflow start command`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-05-02T06:14:02Z", "event_type": "workflow.scaffold", "summary": "Created workflow plan `Test the workflow start command`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-05-02T06:14:23Z", "event_type": "workflow.scaffold", "summary": "Created workflow review `Test the workflow start command`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-05-02T06:14:44Z", "event_type": "workflow.branch", "summary": "Created workflow branch `codex/test-the-workflow-start-command`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-05-02T06:15:08Z", "event_type": "orchestration.intake", "summary": "Captured orchestration task `Test the workflow start command`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-05-02T06:17:10Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-05-02T06:17:42Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-05-02T06:18:08Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-05-02T06:18:25Z", "event_type": "report.created", "summary": "Session report written to STATUS.md under 2026-05-02.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-05-02T06:18:58Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-05-02T07:43:37Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-05-02T08:29:13Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-05-02T08:30:01Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-05-02T08:30:44Z", "event_type": "report.created", "summary": "Session report written to STATUS.md under 2026-05-02.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-05-02T08:31:02Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-05-02T08:31:46Z", "event_type": "report.created", "summary": "Session report written to STATUS.md under 2026-05-02.", "profile": "sula-core", "project": "sula"}

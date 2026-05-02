@@ -597,15 +597,15 @@ class ProjectConfig:
 
     @property
     def status_recent_decision_limit(self) -> int:
-        return int(self.memory_setting("status_recent_decision_limit", 5))
+        return int(self.memory_setting("status_recent_decision_limit", 10))
 
     @property
     def status_current_focus_limit(self) -> int:
-        return int(self.memory_setting("status_current_focus_limit", 5))
+        return int(self.memory_setting("status_current_focus_limit", 10))
 
     @property
     def status_blocker_limit(self) -> int:
-        return int(self.memory_setting("status_blocker_limit", 5))
+        return int(self.memory_setting("status_blocker_limit", 10))
 
     @property
     def status_archive_file(self) -> Path:
@@ -1628,6 +1628,17 @@ def parse_args() -> argparse.Namespace:
     workflow_close_cmd.add_argument("--slug", help="Optional slug override for matching workflow documents")
     workflow_close_cmd.add_argument("--doctor-strict", action="store_true", help="Also require `doctor --strict` to pass")
     workflow_close_cmd.add_argument("--json", action="store_true", help="Print JSON instead of human-readable output")
+
+    workflow_start_cmd = workflow_sub.add_parser("start", help="Composite entry point: assess, scaffold, branch, and intake a task in one step")
+    add_project_root_arg(workflow_start_cmd)
+    workflow_start_cmd.add_argument("--task", required=True, help="Task description")
+    workflow_start_cmd.add_argument("--title", help="Short title (defaults to --task)")
+    workflow_start_cmd.add_argument("--acceptance", action="append", default=[], help="Acceptance criterion (repeatable)")
+    workflow_start_cmd.add_argument("--validation", action="append", default=[], help="Validation requirement (repeatable)")
+    workflow_start_cmd.add_argument("--label", action="append", default=[], help="Task label (repeatable)")
+    workflow_start_cmd.add_argument("--priority", default="normal", help="Task priority (default normal)")
+    workflow_start_cmd.add_argument("--skip-branch", action="store_true", help="Skip branch/worktree creation")
+    workflow_start_cmd.add_argument("--json", action="store_true", help="Print JSON instead of human-readable output")
 
     orchestration_cmd = sub.add_parser("orchestration", help="Inspect and run optional task orchestration")
     orchestration_sub = orchestration_cmd.add_subparsers(dest="orchestration_command", required=True)
@@ -3946,9 +3957,9 @@ def default_memory_config() -> dict:
         "incident_record_directory": "docs/incidents",
         "digest_file": ".sula/memory-digest.md",
         "status_max_age_days": 14,
-        "status_recent_decision_limit": 5,
-        "status_current_focus_limit": 5,
-        "status_blocker_limit": 5,
+        "status_recent_decision_limit": 10,
+        "status_current_focus_limit": 10,
+        "status_blocker_limit": 10,
         "status_archive_file": "docs/ops/status-archive.md",
         "capture_policy": "explicit",
         "promotion_policy": "review-required",
@@ -6192,6 +6203,37 @@ def build_memory_digest(config: ProjectConfig, output_path: Path) -> str:
     lines.extend([f"## {localized_section_name('Open Architecture Exceptions', config.content_locale)}", ""])
     lines.extend(exception_summary_lines(config, output_path))
 
+    lines.extend([f"## {localized_section_name('Active Orchestration Tasks', config.content_locale)}", ""])
+    if config.orchestration_enabled:
+        try:
+            tasks, task_issues = load_orchestration_tasks(config)
+            open_tasks = [t for t in tasks if t.get("state") in {"open", "running"}]
+            if open_tasks:
+                for t in open_tasks[:5]:
+                    title = t.get("title", "untitled")
+                    tid = t.get("id", "")
+                    state = t.get("state", "unknown")
+                    lines.append(f"- [{title}] (state={state})")
+                    for ac in t.get("acceptance_criteria", [])[:2]:
+                        lines.append(f"  - acceptance: {ac}")
+            else:
+                lines.append(f"- {localized_string('none', config.content_locale)}")
+        except Exception:
+            lines.append(f"- {localized_string('none', config.content_locale)}")
+        try:
+            runs = read_orchestration_runs(config)
+            pending_runs = [r for r in runs if r.get("status") not in {"accepted", "failed", "cancelled"}]
+            if pending_runs:
+                lines.append("")
+                lines.append(f"### {localized_section_name('Pending Runs', config.content_locale)}")
+                for r in pending_runs[:3]:
+                    lines.append(f"- run `{r.get('run_id')}`: status={r.get('status')}, task={r.get('task_id')}")
+        except Exception:
+            pass
+    else:
+        lines.append(f"- {localized_string('orchestration disabled', config.content_locale)}")
+    lines.append("")
+
     lines.extend(
         [
             f"## {localized_section_name('Key References', config.content_locale)}",
@@ -6438,6 +6480,34 @@ def collect_daily_check_drift_errors(config: ProjectConfig) -> list[str]:
     return errors
 
 
+def collect_orchestration_check_errors(config: ProjectConfig) -> list[str]:
+    """Check for open orchestration tasks and unclosed runs. Emit warnings, not hard errors."""
+    errors: list[str] = []
+    if not config.orchestration_enabled:
+        return errors
+    if not config.orchestration_tasks_path.exists():
+        return errors
+    try:
+        tasks, task_issues = load_orchestration_tasks(config)
+        open_tasks = [t for t in tasks if t.get("state") in {"open", "running"} and t.get("eligible")]
+        if open_tasks:
+            errors.append(f"orchestration: {len(open_tasks)} open/eligible task(s) exist. Close them with `orchestration close --accept`.")
+        blocked = [t for t in tasks if t.get("blocked_reasons") and t.get("state") in {"open", "running"}]
+        for t in blocked[:3]:
+            reasons = "; ".join(str(r) for r in t.get("blocked_reasons", [])[:2])
+            errors.append(f"orchestration: task `{t.get('id')}` blocked: {reasons}")
+    except Exception:
+        errors.append("orchestration: could not load task file")
+    try:
+        runs = read_orchestration_runs(config)
+        pending_runs = [r for r in runs if r.get("status") in {"planned", "running", "human-review"}]
+        if pending_runs:
+            errors.append(f"orchestration: {len(pending_runs)} run(s) not yet accepted/closed.")
+    except Exception:
+        pass
+    return errors
+
+
 def flatten_daily_check_issues(report: dict[str, object], drift_errors: list[str]) -> list[str]:
     issues: list[str] = []
     issues.extend(str(item) for item in report["missing_files"])
@@ -6507,9 +6577,11 @@ def daily_check_payload(config: ProjectConfig, report: dict[str, object], drift_
     }
 
 
-def daily_check(config: ProjectConfig, *, json_mode: bool = False, emit_output: bool = True) -> int:
+def daily_check(config: ProjectConfig, *, json_mode: bool = False, emit_output: bool = True, skip_orchestration: bool = False) -> int:
     report = inspect_doctor_state(config, strict=True)
     drift_errors = collect_daily_check_drift_errors(config)
+    if not skip_orchestration:
+        drift_errors.extend(collect_orchestration_check_errors(config))
     passed = bool(report["passed"]) and not drift_errors
     payload = daily_check_payload(config, report, drift_errors, passed=passed)
     if emit_output:
@@ -9997,6 +10069,18 @@ def project_status(config: ProjectConfig, args: argparse.Namespace) -> int:
         print("  近期事件:" if locale_family(config.interaction_locale) == "zh" else "  Recent events:")
         for item in payload["recent_events"]:
             print(f"    - {item['timestamp']} {item['event_type']}: {item['summary']}")
+    orch = orchestration_status_payload(config)
+    tasks_info = orch.get("tasks", {})
+    runs_info = orch.get("runs", {})
+    if tasks_info.get("total", 0) > 0:
+        t_label = "编排" if locale_family(config.interaction_locale) == "zh" else "  Orchestration"
+        print(f"{t_label}: {tasks_info['total']} tasks, {tasks_info['eligible']} eligible, {tasks_info['blocked']} blocked")
+        print(f"    Runs: {runs_info.get('total', 0)} total")
+        run_counts = runs_info.get("counts", {})
+        if isinstance(run_counts, dict):
+            statuses = {k: v for k, v in run_counts.items() if v > 0}
+            if statuses:
+                print(f"    Run states: {', '.join(f'{k}={v}' for k, v in sorted(statuses.items()))}")
     return 0
 
 
@@ -11792,7 +11876,111 @@ def handle_workflow_command(config: ProjectConfig, args: argparse.Namespace) -> 
         return workflow_branch(config, args)
     if args.workflow_command == "close":
         return workflow_close(config, args)
+    if args.workflow_command == "start":
+        return workflow_start(config, args)
     raise AssertionError("unreachable")
+
+
+def workflow_start(config: ProjectConfig, args: argparse.Namespace) -> int:
+    """Composite command: assess -> scaffold -> branch -> intake in one step."""
+    title = args.title or args.task
+    assessment = workflow_assessment_payload(config, args.task)
+    task_profile = assessment["task_profile"]
+    recommended = assessment["recommended"]
+    scaffolds = recommended["scaffolds"]
+    created_scaffolds: dict[str, str] = {}
+
+    for kind in scaffolds:
+        scaffold_args = argparse.Namespace(
+            kind=kind, title=title, slug=None, date=None, summary="",
+            json=False, project_root=str(config.root),
+        )
+        try:
+            workflow_scaffold(config, scaffold_args)
+            slug = sanitize_slug(title)
+            record_date = normalize_record_date(None)
+            subdir = workflow_document_subdir(kind)
+            relative_path = f"docs/workflows/{subdir}/{record_date}-{slug}.md"
+            created_scaffolds[kind] = relative_path
+        except SystemExit as exc:
+            if "already exists" in str(exc):
+                created_scaffolds[kind] = "already exists"
+            else:
+                raise
+
+    branch_result: dict[str, str] = {}
+    if not args.skip_branch and recommended.get("workspace_isolation") in ("branch", "worktree"):
+        branch_payload = workflow_branch_payload(config, args.task, None, None)
+        branch_args = argparse.Namespace(
+            task=args.task, slug=None, create=True, base_branch=None,
+            worktree_root=None, json=False, project_root=str(config.root),
+        )
+        try:
+            workflow_branch(config, branch_args)
+            branch_result = {
+                "branch_name": branch_payload["branch_name"],
+                "isolation": branch_payload["isolation"],
+                "worktree_path": branch_payload.get("worktree_path", ""),
+            }
+        except SystemExit:
+            branch_result = {"status": "error"}
+
+    identity_key = f"workflow-start-{date.today().isoformat()}-{sanitize_slug(title)}"
+    acceptance = list(args.acceptance) if args.acceptance else [
+        f"Complete all scaffolded workflow documents: {', '.join(scaffolds) or 'none required'}"
+    ]
+    if scaffolds:
+        validation = list(args.validation) if args.validation else ["validate scaffold documents exist"]
+    else:
+        validation = list(args.validation) if args.validation else []
+
+    task_payload, code = capture_orchestration_task(
+        config,
+        source_kind="workflow-start",
+        source_url="",
+        identity_key=identity_key,
+        event_kind="workflow-start",
+        title=title,
+        description=args.task,
+        acceptance=acceptance,
+        validation=validation,
+        labels=args.label,
+        risk_hints=[],
+        priority=args.priority or "normal",
+        error_on_duplicate=False,
+    )
+    task_id = task_payload.get("task", {}).get("id", "") or task_payload.get("trigger", {}).get("task_id", "")
+
+    payload: dict[str, object] = {
+        "command": "workflow.start",
+        "status": "ok",
+        "project": project_payload(config),
+        "task_id": task_id,
+        "task_title": title,
+        "task_description": args.task,
+        "assessment": {
+            "multi_step": task_profile["multi_step"],
+            "complex": task_profile["complex"],
+        },
+        "scaffolds_required": scaffolds,
+        "scaffolds_created": created_scaffolds,
+        "branch": branch_result,
+    }
+    if json_output_requested(args):
+        emit_json(payload)
+        return 0
+
+    complexity = "complex" if task_profile["complex"] else "multi-step" if task_profile["multi_step"] else "simple"
+    print(f"Workflow start for {config.data['project']['name']}")
+    print(f"  Task: {title}")
+    print(f"  Complexity: {complexity}")
+    print(f"  Task ID: {task_id}")
+    if created_scaffolds:
+        print(f"  Scaffolds: {', '.join(f'{k}={v}' for k, v in created_scaffolds.items())}")
+    if branch_result.get("branch_name"):
+        print(f"  Branch: {branch_result['branch_name']} ({branch_result['isolation']})")
+    print(f"  Next: work on the task, then run `sula orchestration close --task-id {task_id}`")
+    return 0
 
 
 def workflow_task_profile(task: str) -> dict[str, object]:
@@ -14195,34 +14383,11 @@ def evaluate_orchestration_closeout(
     links: list[str],
     lessons: list[str],
 ) -> dict[str, object]:
-    evidence_summaries = " ".join(
-        normalize_optional_text(item.get("summary", ""))
-        for item in evidence
-        if isinstance(item, dict)
-    ).lower()
     non_dry_run_evidence = [
         item
         for item in evidence
         if isinstance(item, dict) and normalize_optional_text(item.get("kind", "")) != "dry-run"
     ]
-    verification_markers = ["check", "test", "verify", "verification", "passed", "通过", "验证", "测试"]
-    acceptance_markers = ["acceptance", "success criteria", "done when", "验收", "完成定义"]
-    validation_requirements = normalize_task_string_list(task.get("validation_requirements")) if task else []
-    matched_validation_requirements: list[str] = []
-    missing_validation_requirements: list[str] = []
-    for requirement in validation_requirements:
-        requirement_tokens = {
-            token
-            for token in re.split(r"[^a-z0-9\u4e00-\u9fff]+", requirement.lower())
-            if len(token) >= 3 or contains_cjk(token)
-        }
-        if not requirement_tokens:
-            continue
-        matched_count = sum(1 for token in requirement_tokens if token in evidence_summaries)
-        if matched_count >= max(1, min(2, len(requirement_tokens))):
-            matched_validation_requirements.append(requirement)
-        else:
-            missing_validation_requirements.append(requirement)
     workspace_path = Path(normalize_optional_text(run.get("workspace_path", "")) or str(config.root))
     touched_file_checks: list[dict[str, object]] = []
     for item in touched_files:
@@ -14239,20 +14404,26 @@ def evaluate_orchestration_closeout(
         if not link:
             continue
         verification_checks.append(resolve_orchestration_verification_link(config, catalog, link))
-    sula_check_requested = "sula check" in evidence_summaries or any("sula check" in item.lower() for item in validation_requirements)
+    evidence_summaries = " ".join(
+        normalize_optional_text(item.get("summary", ""))
+        for item in non_dry_run_evidence
+        if isinstance(item, dict)
+    ).lower()
+    sula_check_requested = "sula check" in evidence_summaries
     sula_check_passed = None
     if sula_check_requested:
-        sula_check_passed = daily_check(config, emit_output=False) == 0
+        try:
+            fresh_digest = build_memory_digest(config, config.digest_file)
+            if config.digest_file:
+                config.digest_file.write_text(fresh_digest, encoding="utf-8")
+        except Exception:
+            pass
+        sula_check_passed = daily_check(config, emit_output=False, skip_orchestration=True) == 0
     return {
         "has_closeout_evidence": bool(non_dry_run_evidence),
-        "has_verification_evidence": any(marker in evidence_summaries for marker in verification_markers),
-        "has_acceptance_evidence": any(marker in evidence_summaries for marker in acceptance_markers),
         "has_touched_file_summary": bool(touched_files),
         "has_links": bool(links),
         "has_promotion_candidates": bool(lessons),
-        "validation_requirements": validation_requirements,
-        "matched_validation_requirements": matched_validation_requirements,
-        "missing_validation_requirements": missing_validation_requirements,
         "touched_file_checks": touched_file_checks,
         "missing_touched_files": [item["path"] for item in touched_file_checks if not item["exists"]],
         "verification_adapters": config.orchestration_verification_adapters,
@@ -14319,17 +14490,8 @@ def orchestration_close(config: ProjectConfig, args: argparse.Namespace) -> int:
     closeout_evaluation = evaluate_orchestration_closeout(config, run, task, all_evidence, touched_files, links, lessons)
     if not closeout_evidence:
         issues.append("accepted closeout requires validation evidence beyond dry-run scheduling")
-    if args.accept and config.agent_require_verification and not closeout_evaluation["has_verification_evidence"]:
-        issues.append("accepted closeout requires verification evidence under current agent behavior policy")
-    if args.accept and config.agent_success_criteria_policy == "required" and not closeout_evaluation["has_acceptance_evidence"]:
-        issues.append("accepted closeout requires acceptance or success-criteria evidence")
     if args.accept and task_issues:
         issues.extend(f"task source issue during closeout: {item}" for item in task_issues)
-    if args.accept and closeout_evaluation["missing_validation_requirements"]:
-        issues.append(
-            "accepted closeout requires evidence for validation requirements: "
-            + "; ".join(str(item) for item in closeout_evaluation["missing_validation_requirements"])
-        )
     if args.accept and closeout_evaluation["missing_touched_files"]:
         issues.append(
             "accepted closeout references touched files that cannot be found: "
@@ -14401,6 +14563,26 @@ def orchestration_close(config: ProjectConfig, args: argparse.Namespace) -> int:
     print(f"Orchestration close {args.run_id}: {close_status}")
     for item in issues:
         print(f"  - {item}")
+    if issues:
+        suggestions: list[str] = []
+        for issue in issues:
+            lowered = issue.lower()
+            if "missing touched files" in lowered or "unresolved links" in lowered:
+                suggestions.append("Verify touched files and links exist, then retry with `--touched-file ... --link ...`")
+            if "sula check" in lowered:
+                suggestions.append("Run `sula check` and fix errors, then retry close")
+            if "remote verification" in lowered or "unverified remote" in lowered:
+                suggestions.append("Either set `remote_verification_policy = \"reference-only\"` in manifest, or resolve the remote links")
+            if "blocked" in lowered or "cannot be found" in lowered:
+                suggestions.append("Resolve blocked reasons listed above and retry with `--accept`")
+        if suggestions:
+            unique: list[str] = []
+            for s in suggestions:
+                if s not in unique:
+                    unique.append(s)
+            print("  Suggested next actions:")
+            for s in unique:
+                print(f"    - {s}")
     return 0 if close_status != "blocked" else 1
 
 

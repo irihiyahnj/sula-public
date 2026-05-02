@@ -1,7 +1,7 @@
 {
   "name": "Sula",
   "kind": "project-operating-system",
-  "version": "0.15.2",
+  "version": "0.16.0",
   "status": "public-source-published",
   "homepage_url": "https://sula.1stp.monster/",
   "launch_url": "https://sula.1stp.monster/launch/",
@@ -10,7 +10,7 @@
   "public_release_strategy": "fresh-public-repo",
   "public_source_status": "published",
   "source_repository_url": "https://github.com/irihiyahnj/sula-public.git",
-  "source_ref": "v0.15.2",
+  "source_ref": "v0.16.0",
   "source_script_path": "scripts/sula.py",
   "default_flow": [
     "read-launch-contract",
@@ -50,6 +50,15 @@
       "changes applied",
       "remaining risks",
       "usage instructions"
+    ],
+    "workflow_auto_loop": [
+      "When the user gives a task, assess it: if trivial, execute directly; if non-trivial, formalize it through Sula before executing.",
+      "Formalize (optional): `workflow start --task \"...\" --acceptance \"...\"` scaffolds docs, creates a branch, and registers an orchestration task in one step.",
+      "Execute: do the work. Track touched files (`--touched-file`) and reusable lessons (`--lesson`).",
+      "Close: run `orchestration close --run-id <id> --evidence \"summary of what was done\" --touched-file <paths> --link <refs> --accept`. Sula validates touched files exist, links resolve, and sula check passes.",
+      "Verify: if closeout is blocked, read the issues and suggested next actions, fix them, and retry close. Loop until the task passes closeout.",
+      "Report: run `sula report --summary \"session summary\"` at session end to persist what was done.",
+      "The user should never need to know about tasks, runs, or closeout — the agent handles the cycle transparently."
     ]
   },
   "launcher": {

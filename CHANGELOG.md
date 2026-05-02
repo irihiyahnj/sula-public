@@ -6,6 +6,33 @@ All notable changes to Sula Core should be recorded here with explicit sync impa
 
 - no entries yet
 
+## 0.16.0 - 2026-05-02
+
+### Added
+
+- `workflow start` composite command: chains assess → scaffold → branch → intake into one step for non-trivial tasks
+- `sula check` now detects open orchestration tasks and unclosed runs, reporting them as current-state warnings
+- `sula status` text output and `.sula/memory-digest.md` now include an Active Orchestration Tasks section with task/run counts and acceptance criteria
+- Closeout blocked output now emits actionable next-action suggestions based on the specific issues found
+- Cross-agent workflow auto-loop rules in `site/sula.json` protocol — any AI agent (Claude, GPT, Gemini) can follow the same formalize → execute → close → verify → report cycle
+
+### Changed
+
+- Closeout validation simplified: removed fragile token-matching of verification/acceptance markers and validation requirements. Closeout now only checks: touched files exist, links resolve, remote verification policy, and sula check passes when explicitly requested. Semantic judgment of intent is left to the operator's evidence text.
+- Status section limits (Current Focus, Blockers, Recent Decisions) raised from 5 to 10 to reduce churn in active projects
+- `collect_orchestration_check_errors()` silently returns empty when the orchestration tasks file doesn't exist (fixes false positives in fresh adopt projects)
+
+### Fixed
+
+- `orchestration close --accept --evidence "sula check passed..."` no longer fails because of stale memory digest — the closeout evaluation now rebuilds the digest before running the internal sula check
+- Site descriptor test version updated to match published source_ref
+
+### Sync Impact
+
+- Projects that consume this release get the simplified closeout immediately — no config changes needed
+- The raised status limits take effect automatically (overridable via kernel.toml `[memory]` section)
+- Any agent reading `site/sula.json` protocol will see the workflow auto-loop rules
+
 ## 0.15.2 - 2026-05-02
 
 ### Added
