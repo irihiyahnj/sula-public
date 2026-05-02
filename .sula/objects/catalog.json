@@ -2018,6 +2018,26 @@
       "date": "2026-04-12"
     },
     {
+      "id": "job:memory.digest:20260502-013602",
+      "kind": "job",
+      "title": "memory.digest",
+      "summary": "Regenerated memory digest at `.sula/memory-digest.md`.",
+      "status": "ok",
+      "path": ".sula/state/jobs/history.jsonl",
+      "source_paths": [
+        ".sula/state/jobs/history.jsonl"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "job",
+        "memory-job"
+      ],
+      "date": "2026-05-02"
+    },
+    {
       "id": "job:memory.digest:20260502-013410",
       "kind": "job",
       "title": "memory.digest",

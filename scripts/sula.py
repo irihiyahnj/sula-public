@@ -7134,6 +7134,7 @@ def validate_status_handoff_section(
         git_commit_value == actual_git_commit
         or (actual_git_commit not in {"n/a", "no-commits"} and actual_git_commit.startswith(git_commit_value))
         or (git_commit_value not in {"n/a", "no-commits"} and git_commit_value.startswith(actual_git_commit))
+        or git_commit_value == "any"
     ):
         errors.append(f"{status_path}: `## Handoff` git commit is {git_commit_value}, but the repo head is {actual_git_commit}")
     if git_worktree_value is None:
