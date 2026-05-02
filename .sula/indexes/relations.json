@@ -83,7 +83,7 @@
       "type": "derived-from"
     },
     {
-      "from": "task:handoff:review-docs-releases-2026-05-01-release-sula-0-15-0-orchestration-control-plane-and-runner-boundaries-md-run-python3-scripts-sula-py-release-readiness-project-root-json",
+      "from": "task:handoff:run-credentialed-canary-for-pr-provider-verification-and-one-codex-app-server-canary-before-broad-external-rollout",
       "to": "source:status-md",
       "type": "derived-from"
     },

@@ -405,7 +405,7 @@
     "exists": true,
     "source_of_truth": true,
     "discovered": true,
-    "size_bytes": 10362,
+    "size_bytes": 10299,
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",

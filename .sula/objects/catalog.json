@@ -307,10 +307,10 @@
       "date": "2026-05-08"
     },
     {
-      "id": "task:handoff:review-docs-releases-2026-05-01-release-sula-0-15-0-orchestration-control-plane-and-runner-boundaries-md-run-python3-scripts-sula-py-release-readiness-project-root-json",
+      "id": "task:handoff:run-credentialed-canary-for-pr-provider-verification-and-one-codex-app-server-canary-before-broad-external-rollout",
       "kind": "task",
-      "title": "review `docs/releases/2026-05-01-release-sula-0-15-0-orchestration-control-pl...",
-      "summary": "review `docs/releases/2026-05-01-release-sula-0-15-0-orchestration-control-plane-and-runner-boundaries.md`; run `python3 scripts/sula.py release readiness --project-root . --json`",
+      "title": "run credentialed canary for PR/provider verification and one `codex-app-serve...",
+      "summary": "run credentialed canary for PR/provider verification and one `codex-app-server` canary before broad external rollout",
       "status": "open",
       "path": "STATUS.md",
       "source_paths": [
@@ -2016,6 +2016,26 @@
         "agreement"
       ],
       "date": "2026-04-12"
+    },
+    {
+      "id": "job:memory.digest:20260502-013839",
+      "kind": "job",
+      "title": "memory.digest",
+      "summary": "Regenerated memory digest at `.sula/memory-digest.md`.",
+      "status": "ok",
+      "path": ".sula/state/jobs/history.jsonl",
+      "source_paths": [
+        ".sula/state/jobs/history.jsonl"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "job",
+        "memory-job"
+      ],
+      "date": "2026-05-02"
     },
     {
       "id": "job:memory.digest:20260502-013602",

@@ -80,7 +80,7 @@
 - ready: yes
 - start here: `docs/change-records/2026-05-01-zzzzz-add-automation-kernel-for-event-driven-orchestration.md`; `STATUS.md`
 - latest record: `docs/change-records/2026-05-01-zzzzz-add-automation-kernel-for-event-driven-orchestration.md`
-- next action: review `docs/releases/2026-05-01-release-sula-0-15-0-orchestration-control-plane-and-runner-boundaries.md`; run `python3 scripts/sula.py release readiness --project-root . --json`
+- next action: run credentialed canary for PR/provider verification and one `codex-app-server` canary before broad external rollout
 - next owner: Sula Core maintainers
 - next due: 2026-05-08
 - done when: result `SULA CHECK OK`; result `doctor strict passed`; artifact `STATUS.md`
