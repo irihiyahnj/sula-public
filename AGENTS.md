@@ -29,13 +29,18 @@ Every AI session in a Sula-adopted project follows this flow:
 
 1. **Start**: Read `.sula/memory-digest.md` first — it contains the current project state, recent activity, and handoff instructions. This is always committed and available after `git clone`.
 2. **Work**: Perform the tasks described in STATUS.md Handoff section or as directed by the user.
-3. **Report**: Before the session ends, write a session summary back into STATUS.md:
+3. **Report before each commit**: Before every `git commit`, record what changed:
    ```bash
    python3 scripts/sula.py report --project-root . \
-     --summary "Clear sentence describing what was done this session."
+     --summary "What was done in this work unit."
    ```
-   The `report` command automatically date-groups the entry, archives old Summary entries to `docs/ops/status-archive.md`, regenerates `.sula/memory-digest.md`, and updates Handoff verification date.
-4. **Commit**: Commit STATUS.md, `.sula/memory-digest.md`, and any change records so the next AI window has the full truth.
+   The `report` command appends to today's Date group in Summary, archives old groups, regenerates `.sula/memory-digest.md`, and updates Handoff verification date.
+4. **Check before each commit**: After reporting, verify consistency:
+   ```bash
+   python3 scripts/sula.py check --project-root .
+   ```
+   If check fails (e.g. Summary still stale), fix the issue before committing.
+5. **Commit**: Commit STATUS.md, `.sula/memory-digest.md`, and any change records. The next window then has the full truth immediately.
 
 ## Current Scope
 
