@@ -2018,6 +2018,26 @@
       "date": "2026-04-12"
     },
     {
+      "id": "job:memory.digest:20260502-013410",
+      "kind": "job",
+      "title": "memory.digest",
+      "summary": "Regenerated memory digest at `.sula/memory-digest.md`.",
+      "status": "ok",
+      "path": ".sula/state/jobs/history.jsonl",
+      "source_paths": [
+        ".sula/state/jobs/history.jsonl"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "job",
+        "memory-job"
+      ],
+      "date": "2026-05-02"
+    },
+    {
       "id": "job:memory.digest:20260502-012147",
       "kind": "job",
       "title": "memory.digest",
@@ -7204,7 +7224,7 @@
       "id": "object:source:examples-client-service-gdrive-status-md",
       "kind": "document",
       "title": "STATUS.md",
-      "summary": "- last updated: 2026-04-22",
+      "summary": "- last updated: 2026-05-02",
       "status": "indexed",
       "path": "examples/client-service-gdrive/STATUS.md",
       "source_paths": [
@@ -7219,7 +7239,7 @@
       "tags": [
         "discovered-source"
       ],
-      "date": "2026-04-22"
+      "date": "2026-05-02"
     },
     {
       "id": "object:source:examples-client-service-gdrive-docs-change-records-2026-04-16-promote-client-service-drive-example-into-canary-md",
@@ -7676,7 +7696,7 @@
       "id": "object:source:examples-field-ops-generic-status-md",
       "kind": "document",
       "title": "STATUS.md",
-      "summary": "- last updated: 2026-04-22",
+      "summary": "- last updated: 2026-05-02",
       "status": "indexed",
       "path": "examples/field-ops-generic/STATUS.md",
       "source_paths": [
@@ -7691,7 +7711,7 @@
       "tags": [
         "discovered-source"
       ],
-      "date": "2026-04-22"
+      "date": "2026-05-02"
     },
     {
       "id": "object:source:examples-field-ops-generic-docs-change-records-2026-04-16-promote-field-ops-example-into-generic-project-canary-md",
@@ -8228,7 +8248,7 @@
       "id": "object:source:examples-okoktoto-status-md",
       "kind": "document",
       "title": "STATUS.md",
-      "summary": "- last updated: 2026-04-22",
+      "summary": "- last updated: 2026-05-02",
       "status": "indexed",
       "path": "examples/okoktoto/STATUS.md",
       "source_paths": [
@@ -8243,7 +8263,7 @@
       "tags": [
         "discovered-source"
       ],
-      "date": "2026-04-22"
+      "date": "2026-05-02"
     },
     {
       "id": "object:source:examples-okoktoto-docs-readme-md",
