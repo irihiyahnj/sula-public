@@ -243,7 +243,7 @@
     "exists": true,
     "source_of_truth": true,
     "discovered": true,
-    "size_bytes": 4661,
+    "size_bytes": 5600,
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
@@ -276,7 +276,7 @@
     "exists": true,
     "source_of_truth": true,
     "discovered": true,
-    "size_bytes": 22599,
+    "size_bytes": 23971,
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
@@ -293,7 +293,7 @@
     "exists": true,
     "source_of_truth": true,
     "discovered": true,
-    "size_bytes": 1070,
+    "size_bytes": 1222,
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
@@ -309,7 +309,7 @@
     "exists": true,
     "source_of_truth": true,
     "discovered": true,
-    "size_bytes": 1858,
+    "size_bytes": 2089,
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
@@ -357,7 +357,7 @@
     "exists": true,
     "source_of_truth": true,
     "discovered": true,
-    "size_bytes": 1019,
+    "size_bytes": 1250,
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
@@ -405,7 +405,7 @@
     "exists": true,
     "source_of_truth": true,
     "discovered": true,
-    "size_bytes": 11695,
+    "size_bytes": 12012,
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
@@ -1963,6 +1963,22 @@
     ]
   },
   {
+    "id": "source:docs-workflows-plans-2026-05-02-sula-0-15-1-session-report-and-status-overflow-mechanism-md",
+    "kind": "document",
+    "path": "docs/workflows/plans/2026-05-02-sula-0-15-1-session-report-and-status-overflow-mechanism.md",
+    "exists": true,
+    "source_of_truth": true,
+    "discovered": true,
+    "size_bytes": 16510,
+    "anchor_strategy": "heading-or-line",
+    "adapters": [
+      "generic-project",
+      "local-fs",
+      "docs",
+      "repo"
+    ]
+  },
+  {
     "id": "source:examples-client-service-gdrive-agents-md",
     "kind": "document",
     "path": "examples/client-service-gdrive/AGENTS.md",
@@ -2986,7 +3002,7 @@
     "exists": true,
     "source_of_truth": true,
     "discovered": true,
-    "size_bytes": 760045,
+    "size_bytes": 767154,
     "anchor_strategy": "line",
     "adapters": [
       "generic-project",
@@ -3186,7 +3202,7 @@
     "exists": true,
     "source_of_truth": true,
     "discovered": true,
-    "size_bytes": 3860,
+    "size_bytes": 4090,
     "anchor_strategy": "line",
     "adapters": [
       "generic-project",

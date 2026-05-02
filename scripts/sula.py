@@ -4190,6 +4190,15 @@ def detect_git_commit(project_root: Path) -> str:
     return result.stdout.strip() or "no-commits"
 
 
+def latest_git_commit_date(project_root: Path) -> str | None:
+    if not is_git_repository(project_root):
+        return None
+    result = run_git(project_root, ["log", "-1", "--format=%cs"])
+    if result is None or result.returncode != 0:
+        return None
+    return result.stdout.strip() or None
+
+
 def detect_git_worktree_state(project_root: Path) -> str:
     if not is_git_repository(project_root):
         return "n/a"
@@ -7352,6 +7361,22 @@ def validate_status_file(
         if placeholder in text:
             warnings.append(f"{status_path}: placeholder content still present ({placeholder})")
             break
+
+    if "Summary" in sections and is_git_repository(config.root):
+        summary_body = sections["Summary"]
+        most_recent_summary_date = ""
+        for raw_line in summary_body.splitlines():
+            line = raw_line.strip()
+            if line.startswith("### "):
+                candidate = line[4:].strip()
+                if MEMORY_DATE_PATTERN.fullmatch(candidate) and candidate > most_recent_summary_date:
+                    most_recent_summary_date = candidate
+        last_commit_date = latest_git_commit_date(config.root)
+        if most_recent_summary_date and last_commit_date and last_commit_date > most_recent_summary_date:
+            errors.append(
+                f"{status_path}: most recent Summary date group ({most_recent_summary_date}) is older than last git commit ({last_commit_date}). Run `sula report --summary \"...\"` to update."
+            )
+
     if "Handoff" in sections:
         handoff_errors, handoff_advisories = validate_status_handoff_section(
             config,
