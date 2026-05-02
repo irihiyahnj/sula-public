@@ -1,6 +1,6 @@
 # STATUS
 
-- last updated: 2026-04-22
+- last updated: 2026-05-02
 
 ## Summary
 
@@ -48,7 +48,7 @@
 - source freshness: n/a
 - verification command: `python3 scripts/sula.py check --project-root .`
 - verification result: n/a
-- verification date: 2026-04-22
+- verification date: 2026-05-02
 - git branch: main
-- git commit: f3db8f2d9cbe
-- git working tree: dirty
+- git commit: a8baa9a9ffb4
+- git working tree: clean
