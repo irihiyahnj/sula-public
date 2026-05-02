@@ -32,6 +32,7 @@
 
 ## Handoff
 
+
 - ready: yes
 - start here: `docs/change-records/2026-04-16-promote-client-service-drive-example-into-canary.md`; `STATUS.md`
 - latest record: `docs/change-records/2026-04-16-promote-client-service-drive-example-into-canary.md`
@@ -46,5 +47,5 @@
 - verification result: n/a
 - verification date: 2026-04-22
 - git branch: main
-- git commit: fae5174
+- git commit: f3db8f2d9cbe
 - git working tree: dirty

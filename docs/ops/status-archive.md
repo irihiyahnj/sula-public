@@ -16,6 +16,13 @@ This file stores overflow items moved out of `STATUS.md` so the current-state pa
 - validate the released feedback-bundle lifecycle through the first external adopted project and the first real Sula Core feedback item that flows through the queue end to end
 - validate the now-complete workflow policy, scaffold, branch, and close loop against the first external software-delivery canary
 
+### 2026-05-01
+
+- roll out Sula 0.14.0 to external adopted projects from the published Git tag and confirm the new handoff contract reads naturally outside Sula Core
+
+### 2026-05-01
+
+- publish the clean `0.15.0` export to the public repository, create the real `v0.15.0` tag, and then advance the public bootstrap contract
 ## Recent Decisions
 
 ### 2026-04-22
@@ -52,3 +59,11 @@ This file stores overflow items moved out of `STATUS.md` so the current-state pa
 ### 2026-04-22
 
 - 2026-04-12: added [Add feedback bundles and Sula Core review workflow](docs/change-records/2026-04-12-add-feedback-bundles-and-core-review-workflow.md)
+
+### 2026-05-01
+
+- 2026-05-01: added [Add Remote Verification And Codex Runners](docs/change-records/2026-05-01-zzzz-add-remote-verification-and-codex-runners.md)
+
+### 2026-05-01
+
+- 2026-05-01: added [Add Provider API Task Source](docs/change-records/2026-05-01-zzz-add-provider-api-task-source.md)

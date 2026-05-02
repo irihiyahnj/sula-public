@@ -9,25 +9,25 @@ This is the preferred rollout path for scattered project fleets because it remov
 Current canonical public source:
 
 - repository: `https://github.com/irihiyahnj/sula-public.git`
-- stable tag: `v0.14.0`
+- stable tag: `v0.15.0`
 
 ## Standard Release Checkout
 
 Clone the exact release you want to use into a local operator path:
 
 ```bash
-git clone --branch v0.14.0 --depth 1 https://github.com/irihiyahnj/sula-public.git /opt/sula/v0.14.0
-export SULA_ROOT=/opt/sula/v0.14.0
+git clone --branch v0.15.0 --depth 1 https://github.com/irihiyahnj/sula-public.git /opt/sula/v0.15.0
+export SULA_ROOT=/opt/sula/v0.15.0
 python3 "$SULA_ROOT/scripts/sula.py" --help
 ```
 
 If you already keep a local Sula release checkout, refresh it explicitly instead of drifting on `main`:
 
 ```bash
-git -C /opt/sula/v0.14.0 fetch --tags origin
-git -C /opt/sula/v0.14.0 checkout v0.14.0
-git -C /opt/sula/v0.14.0 reset --hard v0.14.0
-export SULA_ROOT=/opt/sula/v0.14.0
+git -C /opt/sula/v0.15.0 fetch --tags origin
+git -C /opt/sula/v0.15.0 checkout v0.15.0
+git -C /opt/sula/v0.15.0 reset --hard v0.15.0
+export SULA_ROOT=/opt/sula/v0.15.0
 ```
 
 The operator rule is simple: use a versioned checkout path and point all project upgrades at that exact tagged release.
@@ -60,7 +60,7 @@ python3 "$SULA_ROOT/scripts/sula.py" check --project-root "$PROJECT_ROOT"
 When repositories are scattered, keep the project list outside Sula and drive the rollout with a plain shell loop:
 
 ```bash
-export SULA_ROOT=/opt/sula/v0.14.0
+export SULA_ROOT=/opt/sula/v0.15.0
 
 while IFS= read -r PROJECT_ROOT; do
   [ -z "$PROJECT_ROOT" ] && continue
@@ -79,7 +79,7 @@ done < /path/to/adopted-projects.txt
 
 Treat a project as upgraded only when all of the following are true:
 
-- `.sula/version.lock` records `0.14.0`
+- `.sula/version.lock` records `0.15.0`
 - `.sula/state/session/` exists
 - `.sula/state/jobs/` exists
 - `docs/ops/session-promotions.md` exists when the project uses durable promotion
@@ -89,7 +89,7 @@ Treat a project as upgraded only when all of the following are true:
 ## Operational Notes
 
 - Do not upgrade projects from an arbitrary mutable local checkout when a tagged public release exists.
-- Do not point one project at `main` and another at `v0.14.0` unless you intentionally want mixed rollout state.
+- Do not point one project at `main` and another at `v0.15.0` unless you intentionally want mixed rollout state.
 - Keep `SULA_ROOT` versioned so rollback is just switching the checkout path or tag.
 - If a project fails because of stale captures, review or clear that memory before treating the rollout as complete.
 - If a project has reusable managed-file drift, capture it as feedback instead of carrying silent divergence forever.

@@ -6,6 +6,30 @@ All notable changes to Sula Core should be recorded here with explicit sync impa
 
 - no entries yet
 
+## 0.15.0 - 2026-05-01
+
+### Added
+
+- a complete optional orchestration control-plane slice for external and local task intake, including provider task-document mirrors, `provider-api` task loading, portfolio orchestration summaries, and trigger/run/close/doctor/status commands
+- a first-class `[automation]` kernel above orchestration: normal Sula entrypoints can record events, classify failed/freshness-related work into intents, expose those intents as orchestration tasks, and dispatch eligible low-risk work when execute policy is explicitly enabled
+- portable closeout verification adapters for local files, artifact catalog entries, provider metadata, PR URLs, and ordinary URLs, plus policy-controlled remote verification for PR/provider references
+- real runner adapter boundaries beyond dry-run: `shell-command`, `codex-sdk`, and `codex-app-server`, all behind explicit workspace and approval policy
+- a first-class `[agent_behavior]` policy surface so orchestration quality gates, verification requirements, and success-criteria discipline live in Sula instead of one editor plugin
+
+### Changed
+
+- accepted orchestration closeout now checks task validation requirements, touched files, link resolution, optional `sula check`, and required remote verification before a run can be accepted
+- failed `check` and `doctor` workflows no longer depend on a user remembering `orchestration trigger`; default assist mode records the event and queues durable automation intent automatically
+- provider-backed orchestration paths now preserve provider-owned task truth through adapter boundaries instead of forcing local mirrored files for every external task source
+- Sula Core can now express a release-ready orchestration operating model in source form without making remote credentials, Codex SDK installation, or provider task APIs mandatory for every adopted project
+
+### Sync Impact
+
+- adopted projects that do not enable `[orchestration]` remain backward-compatible and can sync to `0.15.0` without changing their normal workflow
+- adopted projects gain `[automation]` in assist mode by default; this records Sula-managed runtime state under `.sula/state/automation/` without running external agents unless execute mode and orchestration dispatch are explicitly enabled
+- projects that opt into orchestration gain a much higher execution bar: typed task intake, explicit runner boundaries, evidence-gated closeout, and optional remote PR/provider verification before accepted completion
+- teams can integrate local Codex commands or remote app-server style executors through project settings instead of forking Sula Core for runner-specific glue
+
 ## 0.14.0 - 2026-04-22
 
 ### Added
@@ -25,6 +49,7 @@ All notable changes to Sula Core should be recorded here with explicit sync impa
 - adopted projects syncing to `0.14.0` must refresh `STATUS.md` so it contains a valid `## Handoff` section and stays within the configured current-state limits before `doctor --strict` and `check` will pass
 - teams can now upgrade from the published Git release source and reuse one-line model prompts instead of depending on one mutable local Sula checkout
 - projects that already manage their own status narrative remain compatible, but closeout now requires a machine-checkable handoff contract before downstream operators should treat the project as ready to continue
+
 ## 0.13.0 - 2026-04-18
 
 ### Added

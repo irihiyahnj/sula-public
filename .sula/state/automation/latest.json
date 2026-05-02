@@ -1,0 +1,22 @@
+{
+  "version": "0.15.0",
+  "updated_at": "2026-05-02T00:07:48Z",
+  "latest_event": {
+    "version": "0.15.0",
+    "event_id": "event:53f301f9ce197f61",
+    "created_at": "2026-05-02T00:07:48Z",
+    "source_kind": "sula-cli",
+    "source_url": "",
+    "event_kind": "doctor.passed",
+    "identity_key": "sula-cli:doctor.passed:doctor-strict:2026-05-02",
+    "title": "Sula doctor strict",
+    "summary": "Sula doctor passed.",
+    "payload": {
+      "passed": true,
+      "strict": true,
+      "issues": []
+    }
+  },
+  "latest_intent": {},
+  "latest_dispatch": {}
+}

@@ -61,7 +61,7 @@ If an adoption flow requires the user to remember internal paths, slot names, or
    - kernel files that will be created under `.sula/`
    - blockers and warnings
 3. Re-run with `--approve`.
-4. Review the default detached surface:
+4. Review the default governed surface:
    - `AGENTS.md`
    - `README.md`
    - `CHANGE-RECORDS.md`
@@ -69,7 +69,7 @@ If an adoption flow requires the user to remember internal paths, slot names, or
    - `docs/change-records/_template.md`
    - `docs/releases/_template.md`
    - `docs/incidents/_template.md`
-5. If the project needs a deeper visible operating surface, promote it intentionally with `projection mode` or `projection enable`.
+5. If the project needs a smaller visible operating surface, reduce it intentionally with `projection mode` or `projection disable`.
 6. Review collaborative or governed projection packs when they are enabled:
    - `CODEX.md`
    - `CLAUDE.md`

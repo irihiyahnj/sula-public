@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from .base import ProviderAdapterError, ProviderSnapshot
+from .base import ProviderAdapterError, ProviderSnapshot, ProviderTaskListSnapshot
 from .google_drive import GoogleDriveProviderAdapter, create_google_drive_adapter
 
 
@@ -25,6 +25,7 @@ __all__ = [
     "GoogleDriveProviderAdapter",
     "ProviderAdapterError",
     "ProviderSnapshot",
+    "ProviderTaskListSnapshot",
     "create_google_drive_adapter",
     "create_provider_adapter",
 ]

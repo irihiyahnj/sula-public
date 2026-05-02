@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from datetime import date, timedelta
+import hashlib
 import subprocess
 import tempfile
 from pathlib import Path
@@ -428,19 +429,15 @@ Canary verification fixtures need at least one non-placeholder change record so 
             self.assertTrue((project_root / "docs" / "releases" / "_template.md").exists())
             self.assertTrue((project_root / "docs" / "incidents" / "_template.md").exists())
             self.assertIn("python3 scripts/sula.py check --project-root .", (project_root / "AGENTS.md").read_text(encoding="utf-8"))
-            self.assertIn(
-                "Additional Sula projection docs appear only when their packs are enabled.",
-                (project_root / "README.md").read_text(encoding="utf-8"),
-            )
-            self.assertFalse((project_root / "CODEX.md").exists())
-            self.assertFalse((project_root / "docs" / "ops").exists())
-            self.assertFalse((project_root / "docs" / "runbooks").exists())
+            self.assertTrue((project_root / "CODEX.md").exists())
+            self.assertTrue((project_root / "docs" / "ops").exists())
+            self.assertTrue((project_root / "docs" / "runbooks").exists())
 
             manifest = (project_root / ".sula" / "project.toml").read_text(encoding="utf-8")
             self.assertIn("[document_design]", manifest)
             self.assertIn("[projection]", manifest)
-            self.assertIn('mode = "detached"', manifest)
-            self.assertIn('principles_path = "n/a"', manifest)
+            self.assertIn('mode = "governed"', manifest)
+            self.assertIn('principles_path = "docs/ops/document-design-principles.md"', manifest)
 
     def test_adopt_reports_plan_before_approval(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -467,7 +464,7 @@ Canary verification fixtures need at least one non-placeholder change record so 
             self.assertTrue((project_root / ".sula" / "project.toml").exists())
             self.assertTrue((project_root / ".sula" / "version.lock").exists())
             self.assertTrue((project_root / "AGENTS.md").exists())
-            self.assertFalse((project_root / "CODEX.md").exists())
+            self.assertTrue((project_root / "CODEX.md").exists())
             self.assertTrue((project_root / "docs" / "change-records").exists())
 
     def test_adopt_falls_back_to_generic_project_profile(self) -> None:
@@ -630,7 +627,7 @@ Canary verification fixtures need at least one non-placeholder change record so 
             project_root = Path(tmpdir)
             self.create_chinese_source_collision_project(project_root)
 
-            adopt_result = run_cli("adopt", "--project-root", str(project_root), "--approve")
+            adopt_result = run_cli("adopt", "--project-root", str(project_root), "--projection-mode", "detached", "--approve")
 
             self.assertEqual(adopt_result.returncode, 0, adopt_result.stderr)
             registry = json.loads((project_root / ".sula" / "sources" / "registry.json").read_text(encoding="utf-8"))
@@ -683,7 +680,7 @@ Canary verification fixtures need at least one non-placeholder change record so 
         with tempfile.TemporaryDirectory() as tmpdir:
             project_root = Path(tmpdir)
             self.create_generic_project(project_root)
-            adopt_result = run_cli("adopt", "--project-root", str(project_root), "--approve")
+            adopt_result = run_cli("adopt", "--project-root", str(project_root), "--projection-mode", "detached", "--approve")
             self.assertEqual(adopt_result.returncode, 0, adopt_result.stderr)
 
             manifest_path = project_root / ".sula" / "project.toml"
@@ -737,7 +734,7 @@ Canary verification fixtures need at least one non-placeholder change record so 
         with tempfile.TemporaryDirectory() as tmpdir:
             project_root = Path(tmpdir)
             self.create_generic_project(project_root)
-            adopt_result = run_cli("adopt", "--project-root", str(project_root), "--approve")
+            adopt_result = run_cli("adopt", "--project-root", str(project_root), "--projection-mode", "detached", "--approve")
             self.assertEqual(adopt_result.returncode, 0, adopt_result.stderr)
 
             result = run_site_bootstrap(
@@ -760,7 +757,7 @@ Canary verification fixtures need at least one non-placeholder change record so 
         self.assertEqual(descriptor["public_release_strategy"], "fresh-public-repo")
         self.assertEqual(descriptor["public_source_status"], "published")
         self.assertEqual(descriptor["source_repository_url"], "https://github.com/irihiyahnj/sula-public.git")
-        self.assertEqual(descriptor["source_ref"], "main")
+        self.assertEqual(descriptor["source_ref"], "v0.15.0")
 
     def test_adopt_approve_supports_non_git_generic_project(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -780,9 +777,9 @@ Canary verification fixtures need at least one non-placeholder change record so 
             manifest = (project_root / ".sula" / "project.toml").read_text(encoding="utf-8")
             self.assertIn('profile = "generic-project"', manifest)
             self.assertIn('primary_branch = "n/a"', manifest)
-            self.assertIn('mode = "detached"', manifest)
+            self.assertIn('mode = "governed"', manifest)
             self.assertTrue((project_root / "AGENTS.md").exists())
-            self.assertFalse((project_root / "docs" / "runbooks" / "project-operations.md").exists())
+            self.assertTrue((project_root / "docs" / "runbooks" / "project-operations.md").exists())
 
     def test_adopt_approve_json_emits_single_payload(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -853,7 +850,7 @@ Canary verification fixtures need at least one non-placeholder change record so 
         with tempfile.TemporaryDirectory() as tmpdir:
             project_root = Path(tmpdir)
             self.create_generic_project(project_root)
-            adopt_result = run_cli("adopt", "--project-root", str(project_root), "--approve")
+            adopt_result = run_cli("adopt", "--project-root", str(project_root), "--projection-mode", "detached", "--approve")
             self.assertEqual(adopt_result.returncode, 0, adopt_result.stderr)
 
             result = run_cli("query", "--project-root", str(project_root), "--q", "contract", "--kind", "document")
@@ -1272,6 +1269,915 @@ Canary verification fixtures need at least one non-placeholder change record so 
             self.assertTrue(payload["assessment"]["recommended"]["requires_plan"])
             self.assertTrue(payload["assessment"]["recommended"]["requires_review"])
             self.assertEqual(payload["assessment"]["recommended"]["scaffolds"], ["spec", "plan", "review"])
+
+    def test_orchestration_defaults_to_enabled_dry_run_records(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            project_root = Path(tmpdir)
+            self.create_generic_project(project_root)
+
+            adopt_result = run_cli(
+                "adopt",
+                "--project-root",
+                str(project_root),
+                "--approve",
+            )
+            self.assertEqual(adopt_result.returncode, 0, adopt_result.stderr)
+
+            manifest_path = project_root / ".sula" / "project.toml"
+            manifest_text = manifest_path.read_text(encoding="utf-8")
+            self.assertIn("[orchestration]", manifest_text)
+            self.assertIn("enabled = true", manifest_text)
+
+            tasks_path = project_root / "docs" / "workflows" / "tasks.json"
+            tasks_path.parent.mkdir(parents=True, exist_ok=True)
+            tasks_path.write_text(
+                json.dumps(
+                    {
+                        "tasks": [
+                            {
+                                "id": "local:docs-plan",
+                                "title": "Document orchestration plan",
+                                "description": "Add docs for orchestration contracts.",
+                                "state": "open",
+                                "acceptance_criteria": ["status and tasks commands expose normalized JSON"],
+                                "validation_requirements": ["orchestration doctor passes"],
+                                "labels": ["docs"],
+                            }
+                        ]
+                    }
+                ),
+                encoding="utf-8",
+            )
+
+            tasks_result = run_cli(
+                "orchestration",
+                "tasks",
+                "--project-root",
+                str(project_root),
+                "--json",
+            )
+            self.assertEqual(tasks_result.returncode, 0, tasks_result.stderr)
+            tasks_payload = json.loads(tasks_result.stdout)
+            self.assertEqual(tasks_payload["tasks"][0]["id"], "local:docs-plan")
+            self.assertTrue(tasks_payload["tasks"][0]["eligible"])
+
+            dry_run = run_cli(
+                "orchestration",
+                "run",
+                "--project-root",
+                str(project_root),
+                "--task-id",
+                "local:docs-plan",
+                "--json",
+            )
+            self.assertEqual(dry_run.returncode, 0, dry_run.stderr)
+            dry_payload = json.loads(dry_run.stdout)
+            self.assertEqual(dry_payload["status"], "human-review")
+            self.assertEqual(dry_payload["run"]["runner"], "dry-run")
+            self.assertTrue((project_root / ".sula" / "state" / "orchestration" / "runs.jsonl").exists())
+
+    def test_orchestration_intake_and_closeout_require_evidence(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            project_root = Path(tmpdir)
+            self.create_generic_project(project_root)
+
+            adopt_result = run_cli(
+                "adopt",
+                "--project-root",
+                str(project_root),
+                "--approve",
+            )
+            self.assertEqual(adopt_result.returncode, 0, adopt_result.stderr)
+
+            intake_result = run_cli(
+                "orchestration",
+                "intake",
+                "--project-root",
+                str(project_root),
+                "--title",
+                "Check project handoff",
+                "--description",
+                "User asked through CLI to verify handoff state.",
+                "--acceptance",
+                "handoff fields are structured",
+                "--validation",
+                "sula check passes",
+                "--label",
+                "cli",
+                "--json",
+            )
+            self.assertEqual(intake_result.returncode, 0, intake_result.stderr)
+            intake_payload = json.loads(intake_result.stdout)
+            self.assertEqual(intake_payload["task"]["source_kind"], "cli-intent")
+            self.assertTrue(intake_payload["task"]["eligible"])
+            task_id = intake_payload["task"]["id"]
+
+            run_result = run_cli(
+                "orchestration",
+                "run",
+                "--project-root",
+                str(project_root),
+                "--task-id",
+                task_id,
+                "--json",
+            )
+            self.assertEqual(run_result.returncode, 0, run_result.stderr)
+            run_payload = json.loads(run_result.stdout)
+            run_id = run_payload["run"]["run_id"]
+
+            blocked_close = run_cli(
+                "orchestration",
+                "close",
+                "--project-root",
+                str(project_root),
+                "--run-id",
+                run_id,
+                "--accept",
+                "--json",
+            )
+            self.assertEqual(blocked_close.returncode, 1)
+            blocked_payload = json.loads(blocked_close.stdout)
+            self.assertEqual(blocked_payload["status"], "blocked")
+            self.assertIn("accepted closeout requires validation evidence beyond dry-run scheduling", blocked_payload["issues"])
+
+            close_result = run_cli(
+                "orchestration",
+                "close",
+                "--project-root",
+                str(project_root),
+                "--run-id",
+                run_id,
+                "--evidence",
+                "sula check passed and acceptance criteria satisfied",
+                "--touched-file",
+                "STATUS.md",
+                "--link",
+                "STATUS.md",
+                "--lesson",
+                "CLI intents should become auditable orchestration tasks",
+                "--accept",
+                "--json",
+            )
+            self.assertEqual(close_result.returncode, 0, close_result.stderr)
+            close_payload = json.loads(close_result.stdout)
+            self.assertEqual(close_payload["status"], "accepted")
+            self.assertEqual(close_payload["run"]["final_disposition"], "accepted")
+            self.assertEqual(close_payload["run"]["touched_files"], ["STATUS.md"])
+            self.assertTrue(close_payload["run"]["validation_evidence"])
+
+    def test_agent_behavior_policy_surfaces_in_status_and_orchestration_runs(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            project_root = Path(tmpdir)
+            self.create_generic_project(project_root)
+
+            adopt_result = run_cli(
+                "adopt",
+                "--project-root",
+                str(project_root),
+                "--approve",
+            )
+            self.assertEqual(adopt_result.returncode, 0, adopt_result.stderr)
+
+            manifest_path = project_root / ".sula" / "project.toml"
+            manifest_text = manifest_path.read_text(encoding="utf-8")
+            self.assertIn("[agent_behavior]", manifest_text)
+            self.assertIn('quality_policy = "sula-karpathy-inspired"', manifest_text)
+            status_result = run_cli("status", "--project-root", str(project_root), "--json")
+            self.assertEqual(status_result.returncode, 0, status_result.stderr)
+            status_payload = json.loads(status_result.stdout)
+            self.assertEqual(status_payload["state"]["agent_behavior"]["diff_scope_policy"], "surgical")
+            self.assertTrue(status_payload["state"]["agent_behavior"]["require_verification"])
+
+            intake_result = run_cli(
+                "orchestration",
+                "intake",
+                "--project-root",
+                str(project_root),
+                "--title",
+                "Implement status quality policy",
+                "--acceptance",
+                "acceptance criteria are visible",
+                "--validation",
+                "sula check passes",
+                "--json",
+            )
+            self.assertEqual(intake_result.returncode, 0, intake_result.stderr)
+            task_id = json.loads(intake_result.stdout)["task"]["id"]
+
+            run_result = run_cli(
+                "orchestration",
+                "run",
+                "--project-root",
+                str(project_root),
+                "--task-id",
+                task_id,
+                "--json",
+            )
+            self.assertEqual(run_result.returncode, 0, run_result.stderr)
+            run_payload = json.loads(run_result.stdout)
+            self.assertEqual(run_payload["run"]["agent_behavior"]["quality_policy"], "sula-karpathy-inspired")
+            self.assertEqual(
+                run_payload["run"]["quality_checklist"]["diff_scope"],
+                "change only lines required by the task",
+            )
+
+    def test_orchestration_trigger_and_shell_command_runner_collect_evidence(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            project_root = Path(tmpdir)
+            self.create_generic_project(project_root)
+
+            adopt_result = run_cli(
+                "adopt",
+                "--project-root",
+                str(project_root),
+                "--approve",
+            )
+            self.assertEqual(adopt_result.returncode, 0, adopt_result.stderr)
+
+            command = (
+                "python3 -c \\\"from pathlib import Path; "
+                "Path('runner-output.txt').write_text('ok', encoding='utf-8'); "
+                "print('verification passed and acceptance criteria satisfied')\\\""
+            )
+            manifest_path = project_root / ".sula" / "project.toml"
+            manifest_text = manifest_path.read_text(encoding="utf-8")
+            manifest_text = manifest_text.replace('runner = "dry-run"', 'runner = "shell-command"')
+            manifest_text = manifest_text.replace('runner_command = ""', f'runner_command = "{command}"')
+            manifest_text = manifest_text.replace('workspace_mode = "none"', 'workspace_mode = "copy"')
+            manifest_path.write_text(manifest_text, encoding="utf-8")
+
+            trigger_result = run_cli(
+                "orchestration",
+                "trigger",
+                "--project-root",
+                str(project_root),
+                "--source-kind",
+                "sula-command",
+                "--identity-key",
+                "daily-check-2026-05-01",
+                "--event-kind",
+                "check",
+                "--title",
+                "Run daily check",
+                "--acceptance",
+                "acceptance criteria are satisfied",
+                "--validation",
+                "verification command passes",
+                "--json",
+            )
+            self.assertEqual(trigger_result.returncode, 0, trigger_result.stderr)
+            trigger_payload = json.loads(trigger_result.stdout)
+            self.assertEqual(trigger_payload["status"], "ok")
+            self.assertEqual(trigger_payload["task"]["source_kind"], "sula-command")
+            task_id = trigger_payload["task"]["id"]
+
+            duplicate_result = run_cli(
+                "orchestration",
+                "trigger",
+                "--project-root",
+                str(project_root),
+                "--source-kind",
+                "sula-command",
+                "--identity-key",
+                "daily-check-2026-05-01",
+                "--title",
+                "Run daily check",
+                "--acceptance",
+                "acceptance criteria are satisfied",
+                "--json",
+            )
+            self.assertEqual(duplicate_result.returncode, 0, duplicate_result.stderr)
+            duplicate_payload = json.loads(duplicate_result.stdout)
+            self.assertEqual(duplicate_payload["status"], "duplicate")
+
+            run_result = run_cli(
+                "orchestration",
+                "run",
+                "--project-root",
+                str(project_root),
+                "--task-id",
+                task_id,
+                "--json",
+            )
+            self.assertEqual(run_result.returncode, 0, run_result.stderr)
+            run_payload = json.loads(run_result.stdout)
+            self.assertEqual(run_payload["status"], "human-review")
+            self.assertEqual(run_payload["run"]["runner"], "shell-command")
+            self.assertIn("runner-output.txt", run_payload["run"]["touched_files"])
+            self.assertTrue(any(item["kind"] == "runner-command" for item in run_payload["run"]["validation_evidence"]))
+            run_id = run_payload["run"]["run_id"]
+
+            close_result = run_cli(
+                "orchestration",
+                "close",
+                "--project-root",
+                str(project_root),
+                "--run-id",
+                run_id,
+                "--lesson",
+                "Shell command runner evidence should remain review-gated",
+                "--accept",
+                "--json",
+            )
+            self.assertEqual(close_result.returncode, 0, close_result.stderr)
+            close_payload = json.loads(close_result.stdout)
+            self.assertEqual(close_payload["status"], "accepted")
+            self.assertTrue(close_payload["run"]["closeout_evaluation"]["has_verification_evidence"])
+            self.assertTrue(close_payload["run"]["closeout_evaluation"]["has_acceptance_evidence"])
+            promotions_path = project_root / ".sula" / "state" / "orchestration" / "promotion-candidates.jsonl"
+            self.assertTrue(promotions_path.exists())
+            self.assertIn("Shell command runner evidence", promotions_path.read_text(encoding="utf-8"))
+
+    def test_automation_check_failure_creates_intent_without_manual_trigger(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            project_root = Path(tmpdir)
+            self.create_generic_project(project_root)
+
+            adopt_result = run_cli("adopt", "--project-root", str(project_root), "--approve")
+            self.assertEqual(adopt_result.returncode, 0, adopt_result.stderr)
+
+            status_path = project_root / "STATUS.md"
+            status_path.write_text(status_path.read_text(encoding="utf-8") + "\n- unsynchronized status edit\n", encoding="utf-8")
+
+            check_result = run_cli("check", "--project-root", str(project_root), "--json")
+            self.assertEqual(check_result.returncode, 1)
+
+            events_path = project_root / ".sula" / "state" / "automation" / "events.jsonl"
+            intents_path = project_root / ".sula" / "state" / "automation" / "intents.jsonl"
+            self.assertTrue(events_path.exists())
+            self.assertTrue(intents_path.exists())
+            intents = [json.loads(line) for line in intents_path.read_text(encoding="utf-8").splitlines() if line.strip()]
+            self.assertTrue(any(item["title"] == "Repair failed Sula check" for item in intents))
+            runs_path = project_root / ".sula" / "state" / "orchestration" / "runs.jsonl"
+            self.assertTrue(runs_path.exists())
+            runs = [json.loads(line) for line in runs_path.read_text(encoding="utf-8").splitlines() if line.strip()]
+            self.assertTrue(any(item["task_id"].startswith("automation:") for item in runs))
+            self.assertTrue(any(item["runner"] == "dry-run" for item in runs))
+
+            tasks_result = run_cli("orchestration", "tasks", "--project-root", str(project_root), "--json")
+            self.assertEqual(tasks_result.returncode, 0, tasks_result.stderr)
+            tasks_payload = json.loads(tasks_result.stdout)
+            self.assertTrue(any(item["source_kind"] == "automation" for item in tasks_payload["tasks"]))
+
+            digest_result = run_cli("memory", "digest", "--project-root", str(project_root))
+            self.assertEqual(digest_result.returncode, 0, digest_result.stderr)
+            recovered_check = run_cli("check", "--project-root", str(project_root), "--json")
+            self.assertEqual(recovered_check.returncode, 0, recovered_check.stderr)
+            resolved_intents = [json.loads(line) for line in intents_path.read_text(encoding="utf-8").splitlines() if line.strip()]
+            self.assertTrue(any(item["title"] == "Repair failed Sula check" and item["state"] == "accepted" for item in resolved_intents))
+
+            recovered_tasks_result = run_cli("orchestration", "tasks", "--project-root", str(project_root), "--json")
+            self.assertEqual(recovered_tasks_result.returncode, 0, recovered_tasks_result.stderr)
+            recovered_tasks_payload = json.loads(recovered_tasks_result.stdout)
+            self.assertFalse(any(item["source_kind"] == "automation" for item in recovered_tasks_payload["tasks"]))
+
+    def test_automation_default_dispatches_low_risk_intent_to_dry_run(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            project_root = Path(tmpdir)
+            self.create_generic_project(project_root)
+
+            adopt_result = run_cli("adopt", "--project-root", str(project_root), "--approve")
+            self.assertEqual(adopt_result.returncode, 0, adopt_result.stderr)
+
+            status_path = project_root / "STATUS.md"
+            status_path.write_text(status_path.read_text(encoding="utf-8") + "\n- unsynchronized status edit\n", encoding="utf-8")
+
+            check_result = run_cli("check", "--project-root", str(project_root), "--json")
+            self.assertEqual(check_result.returncode, 1)
+
+            runs_path = project_root / ".sula" / "state" / "orchestration" / "runs.jsonl"
+            self.assertTrue(runs_path.exists())
+            runs = [json.loads(line) for line in runs_path.read_text(encoding="utf-8").splitlines() if line.strip()]
+            self.assertTrue(any(item["task_id"].startswith("automation:") for item in runs))
+            self.assertTrue(any(item["status"] == "human-review" for item in runs))
+            self.assertTrue(any(item["runner"] == "dry-run" for item in runs))
+
+    def test_automation_assist_mode_keeps_intent_queued(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            project_root = Path(tmpdir)
+            self.create_generic_project(project_root)
+
+            adopt_result = run_cli("adopt", "--project-root", str(project_root), "--approve")
+            self.assertEqual(adopt_result.returncode, 0, adopt_result.stderr)
+
+            manifest_path = project_root / ".sula" / "project.toml"
+            manifest_text = manifest_path.read_text(encoding="utf-8")
+            manifest_text = manifest_text.replace('mode = "execute"', 'mode = "assist"')
+            manifest_path.write_text(manifest_text, encoding="utf-8")
+
+            status_path = project_root / "STATUS.md"
+            status_path.write_text(status_path.read_text(encoding="utf-8") + "\n- unsynchronized status edit\n", encoding="utf-8")
+
+            check_result = run_cli("check", "--project-root", str(project_root), "--json")
+            self.assertEqual(check_result.returncode, 1)
+            runs_path = project_root / ".sula" / "state" / "orchestration" / "runs.jsonl"
+            self.assertFalse(runs_path.exists())
+
+    def test_orchestration_codex_sdk_runner_collects_json_evidence(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            project_root = Path(tmpdir)
+            self.create_generic_project(project_root)
+            runner_script = project_root / "codex_runner.py"
+            runner_script.write_text(
+                "\n".join(
+                    [
+                        "import json, sys",
+                        "from pathlib import Path",
+                        "payload = json.loads(sys.stdin.read())",
+                        "Path('codex-output.txt').write_text(payload['task']['title'], encoding='utf-8')",
+                        "print(json.dumps({",
+                        "  'status': 'human-review',",
+                        "  'summary': 'verification passed and acceptance criteria satisfied by codex sdk adapter',",
+                        "  'touched_files': ['codex-output.txt'],",
+                        "  'validation_evidence': [{'kind': 'codex-sdk-check', 'summary': 'verification passed and acceptance criteria satisfied'}]",
+                        "}))",
+                    ]
+                ),
+                encoding="utf-8",
+            )
+
+            adopt_result = run_cli("adopt", "--project-root", str(project_root), "--approve")
+            self.assertEqual(adopt_result.returncode, 0, adopt_result.stderr)
+
+            manifest_path = project_root / ".sula" / "project.toml"
+            manifest_text = manifest_path.read_text(encoding="utf-8")
+            manifest_text = manifest_text.replace('runner = "dry-run"', 'runner = "codex-sdk"')
+            manifest_text = manifest_text.replace('runner_command = ""', f'runner_command = "python3 {runner_script.as_posix()}"')
+            manifest_text = manifest_text.replace('workspace_mode = "none"', 'workspace_mode = "copy"')
+            manifest_text = manifest_text.replace('unattended_risk_ceiling = "low"', 'unattended_risk_ceiling = "medium"')
+            manifest_path.write_text(manifest_text, encoding="utf-8")
+
+            intake_result = run_cli(
+                "orchestration",
+                "intake",
+                "--project-root",
+                str(project_root),
+                "--title",
+                "Run Codex SDK adapter",
+                "--acceptance",
+                "acceptance criteria satisfied",
+                "--validation",
+                "verification passed",
+                "--json",
+            )
+            self.assertEqual(intake_result.returncode, 0, intake_result.stderr)
+            task_id = json.loads(intake_result.stdout)["task"]["id"]
+
+            run_result = run_cli("orchestration", "run", "--project-root", str(project_root), "--task-id", task_id, "--json")
+            self.assertEqual(run_result.returncode, 0, run_result.stderr)
+            run_payload = json.loads(run_result.stdout)
+            self.assertEqual(run_payload["status"], "human-review")
+            self.assertEqual(run_payload["run"]["runner"], "codex-sdk")
+            self.assertIn("codex-output.txt", run_payload["run"]["touched_files"])
+            self.assertTrue(any(item["kind"] == "codex-sdk-check" for item in run_payload["run"]["validation_evidence"]))
+
+    def test_orchestration_codex_app_server_runner_collects_json_evidence(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            project_root = Path(tmpdir)
+            self.create_generic_project(project_root)
+
+            class RunnerHandler(BaseHTTPRequestHandler):
+                def do_POST(self) -> None:
+                    length = int(self.headers.get("Content-Length", "0"))
+                    payload = json.loads(self.rfile.read(length).decode("utf-8"))
+                    Path(payload["workspace_path"], "app-server-output.txt").write_text(payload["task"]["title"], encoding="utf-8")
+                    body = json.dumps(
+                        {
+                            "status": "human-review",
+                            "summary": "verification passed and acceptance criteria satisfied by app server",
+                            "touched_files": ["app-server-output.txt"],
+                            "validation_evidence": [
+                                {"kind": "codex-app-server-check", "summary": "verification passed and acceptance criteria satisfied"}
+                            ],
+                        }
+                    ).encode("utf-8")
+                    self.send_response(200)
+                    self.send_header("Content-Type", "application/json")
+                    self.end_headers()
+                    self.wfile.write(body)
+
+                def log_message(self, format: str, *args) -> None:  # noqa: A003
+                    return
+
+            server = HTTPServer(("127.0.0.1", 0), RunnerHandler)
+            thread = threading.Thread(target=server.serve_forever, daemon=True)
+            thread.start()
+            endpoint = f"http://127.0.0.1:{server.server_port}/run"
+            try:
+                adopt_result = run_cli("adopt", "--project-root", str(project_root), "--approve")
+                self.assertEqual(adopt_result.returncode, 0, adopt_result.stderr)
+
+                manifest_path = project_root / ".sula" / "project.toml"
+                manifest_text = manifest_path.read_text(encoding="utf-8")
+                manifest_text = manifest_text.replace('runner = "dry-run"', 'runner = "codex-app-server"')
+                manifest_text = manifest_text.replace('runner_endpoint = ""', f'runner_endpoint = "{endpoint}"')
+                manifest_text = manifest_text.replace('workspace_mode = "none"', 'workspace_mode = "copy"')
+                manifest_text = manifest_text.replace('unattended_risk_ceiling = "low"', 'unattended_risk_ceiling = "medium"')
+                manifest_path.write_text(manifest_text, encoding="utf-8")
+
+                intake_result = run_cli(
+                    "orchestration",
+                    "intake",
+                    "--project-root",
+                    str(project_root),
+                    "--title",
+                    "Run Codex app server adapter",
+                    "--acceptance",
+                    "acceptance criteria satisfied",
+                    "--validation",
+                    "verification passed",
+                    "--json",
+                )
+                self.assertEqual(intake_result.returncode, 0, intake_result.stderr)
+                task_id = json.loads(intake_result.stdout)["task"]["id"]
+
+                run_result = run_cli("orchestration", "run", "--project-root", str(project_root), "--task-id", task_id, "--json")
+                self.assertEqual(run_result.returncode, 0, run_result.stderr)
+                run_payload = json.loads(run_result.stdout)
+                self.assertEqual(run_payload["status"], "human-review")
+                self.assertEqual(run_payload["run"]["runner"], "codex-app-server")
+                self.assertIn("app-server-output.txt", run_payload["run"]["touched_files"])
+                self.assertTrue(any(item["kind"] == "codex-app-server-check" for item in run_payload["run"]["validation_evidence"]))
+            finally:
+                server.shutdown()
+                server.server_close()
+
+    def test_orchestration_closeout_evaluator_blocks_unresolved_required_evidence(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            project_root = Path(tmpdir)
+            self.create_generic_project(project_root)
+
+            adopt_result = run_cli(
+                "adopt",
+                "--project-root",
+                str(project_root),
+                "--approve",
+            )
+            self.assertEqual(adopt_result.returncode, 0, adopt_result.stderr)
+
+            intake_result = run_cli(
+                "orchestration",
+                "intake",
+                "--project-root",
+                str(project_root),
+                "--title",
+                "Verify linked artifact",
+                "--acceptance",
+                "acceptance criteria satisfied",
+                "--validation",
+                "artifact link reviewed",
+                "--json",
+            )
+            self.assertEqual(intake_result.returncode, 0, intake_result.stderr)
+            task_id = json.loads(intake_result.stdout)["task"]["id"]
+
+            run_result = run_cli(
+                "orchestration",
+                "run",
+                "--project-root",
+                str(project_root),
+                "--task-id",
+                task_id,
+                "--json",
+            )
+            self.assertEqual(run_result.returncode, 0, run_result.stderr)
+            run_id = json.loads(run_result.stdout)["run"]["run_id"]
+
+            close_result = run_cli(
+                "orchestration",
+                "close",
+                "--project-root",
+                str(project_root),
+                "--run-id",
+                run_id,
+                "--evidence",
+                "verification passed and acceptance criteria satisfied",
+                "--link",
+                "artifacts/missing.md",
+                "--accept",
+                "--json",
+            )
+            self.assertEqual(close_result.returncode, 1)
+            close_payload = json.loads(close_result.stdout)
+            self.assertEqual(close_payload["status"], "blocked")
+            self.assertIn("artifact link reviewed", close_payload["run"]["closeout_evaluation"]["missing_validation_requirements"])
+            self.assertIn("artifacts/missing.md", close_payload["run"]["closeout_evaluation"]["unresolved_links"])
+
+    def test_orchestration_closeout_resolves_provider_artifacts_and_pr_urls(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            project_root = Path(tmpdir)
+            self.create_generic_project(project_root)
+
+            adopt_result = run_cli(
+                "adopt",
+                "--project-root",
+                str(project_root),
+                "--approve",
+            )
+            self.assertEqual(adopt_result.returncode, 0, adopt_result.stderr)
+
+            register_result = run_cli(
+                "artifact",
+                "register",
+                "--project-root",
+                str(project_root),
+                "--kind",
+                "report",
+                "--title",
+                "Provider Review",
+                "--project-relative-path",
+                "docs/provider/review",
+                "--provider-item-id",
+                "doc-123",
+                "--provider-item-kind",
+                "google-doc",
+                "--provider-item-url",
+                "https://docs.google.com/document/d/doc-123/edit",
+                "--json",
+            )
+            self.assertEqual(register_result.returncode, 0, register_result.stderr)
+
+            intake_result = run_cli(
+                "orchestration",
+                "intake",
+                "--project-root",
+                str(project_root),
+                "--title",
+                "Verify provider artifact and PR",
+                "--acceptance",
+                "acceptance criteria satisfied",
+                "--validation",
+                "provider item reviewed",
+                "--validation",
+                "pull request reviewed",
+                "--json",
+            )
+            self.assertEqual(intake_result.returncode, 0, intake_result.stderr)
+            task_id = json.loads(intake_result.stdout)["task"]["id"]
+
+            run_result = run_cli(
+                "orchestration",
+                "run",
+                "--project-root",
+                str(project_root),
+                "--task-id",
+                task_id,
+                "--json",
+            )
+            self.assertEqual(run_result.returncode, 0, run_result.stderr)
+            run_id = json.loads(run_result.stdout)["run"]["run_id"]
+
+            close_result = run_cli(
+                "orchestration",
+                "close",
+                "--project-root",
+                str(project_root),
+                "--run-id",
+                run_id,
+                "--evidence",
+                "verification passed; provider item reviewed; pull request reviewed; acceptance criteria satisfied",
+                "--link",
+                "doc-123",
+                "--link",
+                "https://github.com/example/repo/pull/42",
+                "--accept",
+                "--json",
+            )
+            self.assertEqual(close_result.returncode, 0, close_result.stderr)
+            close_payload = json.loads(close_result.stdout)
+            self.assertEqual(close_payload["status"], "accepted")
+            evaluation = close_payload["run"]["closeout_evaluation"]
+            self.assertEqual(evaluation["unresolved_links"], [])
+            checks = evaluation["verification_checks"]
+            self.assertTrue(any(item["kind"] == "provider-artifact" and item["provider_item_id"] == "doc-123" for item in checks))
+            self.assertTrue(any(item["kind"] == "pull-request-url" for item in checks))
+
+    def test_orchestration_closeout_requires_remote_pr_verification_when_configured(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir, tempfile.TemporaryDirectory() as fixture_tmpdir:
+            project_root = Path(tmpdir)
+            fixture_root = Path(fixture_tmpdir)
+            self.create_generic_project(project_root)
+
+            adopt_result = run_cli("adopt", "--project-root", str(project_root), "--approve")
+            self.assertEqual(adopt_result.returncode, 0, adopt_result.stderr)
+
+            manifest_path = project_root / ".sula" / "project.toml"
+            manifest_text = manifest_path.read_text(encoding="utf-8")
+            manifest_text = manifest_text.replace('remote_verification_policy = "opportunistic"', 'remote_verification_policy = "required"')
+            manifest_path.write_text(manifest_text, encoding="utf-8")
+
+            intake_result = run_cli(
+                "orchestration",
+                "intake",
+                "--project-root",
+                str(project_root),
+                "--title",
+                "Verify remote PR",
+                "--acceptance",
+                "acceptance criteria satisfied",
+                "--validation",
+                "pull request reviewed",
+                "--json",
+            )
+            self.assertEqual(intake_result.returncode, 0, intake_result.stderr)
+            task_id = json.loads(intake_result.stdout)["task"]["id"]
+
+            run_result = run_cli("orchestration", "run", "--project-root", str(project_root), "--task-id", task_id, "--json")
+            self.assertEqual(run_result.returncode, 0, run_result.stderr)
+            run_id = json.loads(run_result.stdout)["run"]["run_id"]
+            pr_url = "https://github.com/example/repo/pull/42"
+
+            blocked_result = run_cli(
+                "orchestration",
+                "close",
+                "--project-root",
+                str(project_root),
+                "--run-id",
+                run_id,
+                "--evidence",
+                "verification passed; pull request reviewed; acceptance criteria satisfied",
+                "--link",
+                pr_url,
+                "--accept",
+                "--json",
+            )
+            self.assertEqual(blocked_result.returncode, 1)
+            blocked_payload = json.loads(blocked_result.stdout)
+            self.assertIn(pr_url, blocked_payload["run"]["closeout_evaluation"]["unverified_remote_links"])
+
+            fixture_path = fixture_root / f"{hashlib.sha256(pr_url.encode('utf-8')).hexdigest()}.json"
+            fixture_path.write_text(
+                json.dumps({"state": "closed", "merged": True, "review_decision": "APPROVED"}, indent=2) + "\n",
+                encoding="utf-8",
+            )
+            accepted_result = run_cli(
+                "orchestration",
+                "close",
+                "--project-root",
+                str(project_root),
+                "--run-id",
+                run_id,
+                "--evidence",
+                "verification passed; pull request reviewed; acceptance criteria satisfied",
+                "--link",
+                pr_url,
+                "--accept",
+                "--json",
+                env={"SULA_PR_VERIFICATION_FIXTURE_DIR": str(fixture_root)},
+            )
+            self.assertEqual(accepted_result.returncode, 0, accepted_result.stderr)
+            accepted_payload = json.loads(accepted_result.stdout)
+            checks = accepted_payload["run"]["closeout_evaluation"]["verification_checks"]
+            self.assertTrue(any(item.get("remote_verified") and item.get("merged") for item in checks))
+
+    def test_provider_api_task_source_reads_fixture_backed_provider_tasks(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir, tempfile.TemporaryDirectory() as fixture_tmpdir:
+            project_root = Path(tmpdir)
+            fixture_root = Path(fixture_tmpdir)
+            self.create_generic_project(project_root)
+
+            adopt_result = run_cli(
+                "adopt",
+                "--project-root",
+                str(project_root),
+                "--approve",
+            )
+            self.assertEqual(adopt_result.returncode, 0, adopt_result.stderr)
+
+            self.write_provider_fixture(
+                fixture_root,
+                provider_item_kind="google-doc",
+                provider_item_id="task-doc-1",
+                payload={
+                    "metadata": {
+                        "name": "Provider Task Source",
+                        "modifiedTime": "2026-05-01T00:00:00Z",
+                        "webViewLink": "https://docs.google.com/document/d/task-doc-1/edit",
+                    },
+                    "tasks": [
+                        {
+                            "identifier": "provider-task-1",
+                            "title": "Refresh provider handoff",
+                            "description": "Read from provider task API fixture.",
+                            "state": "open",
+                            "acceptance_criteria": ["handoff accepted"],
+                            "validation_requirements": ["sula check passes"],
+                            "labels": ["provider"],
+                        },
+                        {
+                            "identifier": "provider-task-2",
+                            "title": "Ambiguous provider request",
+                            "state": "open",
+                            "labels": ["provider"],
+                        },
+                    ],
+                },
+            )
+
+            manifest_path = project_root / ".sula" / "project.toml"
+            manifest_text = manifest_path.read_text(encoding="utf-8")
+            manifest_text = manifest_text.replace('provider = "local-fs"', 'provider = "google-drive"')
+            manifest_text = manifest_text.replace('task_source = "local"', 'task_source = "provider-api"')
+            manifest_text = manifest_text.replace('provider_task_item_id = ""', 'provider_task_item_id = "task-doc-1"')
+            manifest_text = manifest_text.replace('provider_task_item_kind = ""', 'provider_task_item_kind = "google-doc"')
+            manifest_text = manifest_text.replace(
+                'provider_task_item_url = ""',
+                'provider_task_item_url = "https://docs.google.com/document/d/task-doc-1/edit"',
+            )
+            manifest_path.write_text(manifest_text, encoding="utf-8")
+
+            tasks_result = run_cli(
+                "orchestration",
+                "tasks",
+                "--project-root",
+                str(project_root),
+                "--json",
+                env={"SULA_PROVIDER_FIXTURE_DIR": str(fixture_root)},
+            )
+            self.assertEqual(tasks_result.returncode, 0, tasks_result.stderr)
+            tasks_payload = json.loads(tasks_result.stdout)
+            self.assertEqual(tasks_payload["task_source"], "provider-api")
+            self.assertEqual(tasks_payload["issues"], [])
+            self.assertEqual(len(tasks_payload["tasks"]), 2)
+            self.assertEqual(tasks_payload["tasks"][0]["source_kind"], "provider-api")
+            self.assertEqual(tasks_payload["tasks"][0]["provider_item_id"], "task-doc-1")
+            self.assertTrue(tasks_payload["tasks"][0]["eligible"])
+            self.assertFalse(tasks_payload["tasks"][1]["eligible"])
+
+    def test_provider_task_document_source_and_portfolio_orchestration_summary(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir, tempfile.TemporaryDirectory() as portfolio_tmpdir:
+            project_root = Path(tmpdir)
+            portfolio_root = Path(portfolio_tmpdir)
+            self.create_generic_project(project_root)
+
+            adopt_result = run_cli(
+                "adopt",
+                "--project-root",
+                str(project_root),
+                "--approve",
+            )
+            self.assertEqual(adopt_result.returncode, 0, adopt_result.stderr)
+
+            provider_tasks = project_root / "docs" / "workflows" / "provider-tasks.md"
+            provider_tasks.parent.mkdir(parents=True, exist_ok=True)
+            provider_tasks.write_text(
+                "\n".join(
+                    [
+                        "# Provider Task Mirror",
+                        "",
+                        "- [ ] Refresh provider handoff :: id=drive-task-1; acceptance=handoff accepted; validation=sula check passes; labels=provider,check",
+                        "- [ ] Ambiguous provider request :: id=drive-task-2; labels=provider",
+                        "",
+                    ]
+                ),
+                encoding="utf-8",
+            )
+
+            manifest_path = project_root / ".sula" / "project.toml"
+            manifest_text = manifest_path.read_text(encoding="utf-8")
+            manifest_text = manifest_text.replace('task_source = "local"', 'task_source = "provider-task-document"')
+            manifest_text = manifest_text.replace('tasks_path = "docs/workflows/tasks.json"', 'tasks_path = "docs/workflows/provider-tasks.md"')
+            manifest_path.write_text(manifest_text, encoding="utf-8")
+
+            tasks_result = run_cli(
+                "orchestration",
+                "tasks",
+                "--project-root",
+                str(project_root),
+                "--json",
+            )
+            self.assertEqual(tasks_result.returncode, 0, tasks_result.stderr)
+            tasks_payload = json.loads(tasks_result.stdout)
+            self.assertEqual(tasks_payload["task_source"], "provider-task-document")
+            self.assertEqual(len(tasks_payload["tasks"]), 2)
+            self.assertEqual(tasks_payload["tasks"][0]["source_kind"], "provider-task-document")
+            self.assertTrue(tasks_payload["tasks"][0]["eligible"])
+            self.assertFalse(tasks_payload["tasks"][1]["eligible"])
+
+            register_result = run_cli(
+                "portfolio",
+                "register",
+                "--project-root",
+                str(project_root),
+                "--portfolio-root",
+                str(portfolio_root),
+                "--json",
+            )
+            self.assertEqual(register_result.returncode, 0, register_result.stderr)
+
+            portfolio_result = run_cli(
+                "portfolio",
+                "orchestration",
+                "--portfolio-root",
+                str(portfolio_root),
+                "--json",
+            )
+            self.assertEqual(portfolio_result.returncode, 0, portfolio_result.stderr)
+            portfolio_payload = json.loads(portfolio_result.stdout)
+            self.assertEqual(portfolio_payload["totals"]["tasks_total"], 2)
+            self.assertEqual(portfolio_payload["totals"]["tasks_blocked"], 1)
+            self.assertTrue(portfolio_payload["needs_attention"])
+            self.assertEqual(portfolio_payload["projects"][0]["task_source"], "provider-task-document")
 
     def test_workflow_scaffold_creates_durable_source_documents(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -2846,7 +3752,7 @@ notes = "Fixture"
             project_root = Path(tmpdir)
             self.create_generic_project(project_root)
 
-            adopt_result = run_cli("adopt", "--project-root", str(project_root), "--approve")
+            adopt_result = run_cli("adopt", "--project-root", str(project_root), "--projection-mode", "detached", "--approve")
             self.assertEqual(adopt_result.returncode, 0, adopt_result.stderr)
             self.assertFalse((project_root / "CODEX.md").exists())
 
@@ -2872,7 +3778,7 @@ notes = "Fixture"
             project_root = Path(tmpdir)
             self.create_generic_project(project_root)
 
-            adopt_result = run_cli("adopt", "--project-root", str(project_root), "--approve")
+            adopt_result = run_cli("adopt", "--project-root", str(project_root), "--projection-mode", "detached", "--approve")
             self.assertEqual(adopt_result.returncode, 0, adopt_result.stderr)
             self.assertFalse((project_root / "CODEX.md").exists())
             self.assertFalse((project_root / "docs" / "README.md").exists())
@@ -3153,8 +4059,8 @@ notes = "Fixture"
             status_text = status_path.read_text(encoding="utf-8")
             status_path.write_text(
                 status_text.replace(
-                    f"- Initial Sula adoption is complete for this repository under the `generic-project` profile in `detached` projection mode.",
-                    "- Initial Sula adoption is complete for this repository in detached projection mode, and the daily Sula check gate is now required for state-sync work.",
+                    f"- Initial Sula adoption is complete for this repository under the `generic-project` profile in `governed` projection mode.",
+                    "- Initial Sula adoption is complete for this repository in governed projection mode, and the daily Sula check gate is now required for state-sync work.",
                 ),
                 encoding="utf-8",
             )
