@@ -1,6 +1,6 @@
 # Current State Snapshot
 
-- generated on: 2026-05-01
+- generated on: 2026-05-02
 - project: Field Ops Generic Canary
 - profile: `generic-project`
 - source priority: STATUS.md and project records override this generated snapshot
@@ -49,7 +49,7 @@
 - source freshness: n/a
 - verification command: `python3 scripts/sula.py check --project-root .`
 - verification result: n/a
-- verification date: 2026-04-22
+- verification date: 2026-05-02
 - git branch: main
-- git commit: f3db8f2d9cbe
-- git working tree: dirty
+- git commit: any
+- git working tree: clean

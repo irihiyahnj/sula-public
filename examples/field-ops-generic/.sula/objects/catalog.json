@@ -23,7 +23,7 @@
       "tags": [
         "generic-project"
       ],
-      "date": "2026-04-22"
+      "date": "2026-05-02"
     },
     {
       "id": "state:current",
@@ -42,7 +42,7 @@
       "tags": [
         "state"
       ],
-      "date": "2026-04-22"
+      "date": "2026-05-02"
     },
     {
       "id": "rule:manifest:highest-rule",
@@ -62,7 +62,7 @@
         "rule",
         "manifest"
       ],
-      "date": "2026-04-22"
+      "date": "2026-05-02"
     },
     {
       "id": "task:status:keep-the-generic-project-canary-aligned-with-current-managed-templates",
@@ -82,7 +82,7 @@
         "current-focus",
         "status"
       ],
-      "date": "2026-04-22"
+      "date": "2026-05-02"
     },
     {
       "id": "task:status:use-it-as-a-local-rollout-target-before-broader-generic-project-sync-changes",
@@ -102,7 +102,7 @@
         "current-focus",
         "status"
       ],
-      "date": "2026-04-22"
+      "date": "2026-05-02"
     },
     {
       "id": "decision:status:2026-04-16-promoted-this-example-into-a-generic-project-rollout-canary-for-local-sula-verification",
@@ -162,7 +162,7 @@
         "next-review-owner",
         "status"
       ],
-      "date": "2026-04-22"
+      "date": "2026-05-02"
     },
     {
       "id": "milestone:status:next-review:2026-04-23",
@@ -203,7 +203,7 @@
         "next-action",
         "status"
       ],
-      "date": "2026-04-22"
+      "date": "2026-05-02"
     },
     {
       "id": "change:2026-04-16-promote-field-ops-example-into-generic-project-canary",
@@ -223,6 +223,26 @@
         "change"
       ],
       "date": "2026-04-16"
+    },
+    {
+      "id": "job:memory.digest:20260502-013714",
+      "kind": "job",
+      "title": "memory.digest",
+      "summary": "Regenerated memory digest at `.sula/memory-digest.md`.",
+      "status": "ok",
+      "path": ".sula/state/jobs/history.jsonl",
+      "source_paths": [
+        ".sula/state/jobs/history.jsonl"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "job",
+        "memory-job"
+      ],
+      "date": "2026-05-02"
     },
     {
       "id": "job:memory.digest:20260501-062124",
@@ -604,7 +624,7 @@
       "id": "object:source:status-md",
       "kind": "document",
       "title": "STATUS.md",
-      "summary": "- last updated: 2026-04-22",
+      "summary": "- last updated: 2026-05-02",
       "status": "indexed",
       "path": "STATUS.md",
       "source_paths": [
@@ -620,7 +640,7 @@
       "tags": [
         "discovered-source"
       ],
-      "date": "2026-04-22"
+      "date": "2026-05-02"
     },
     {
       "id": "object:source:docs-change-records-2026-04-16-promote-field-ops-example-into-generic-project-canary-md",
