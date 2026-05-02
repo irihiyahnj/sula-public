@@ -5,3 +5,5 @@ __pycache__/
 **/.sula/cache/*
 !**/.sula/cache/README.md
 **/.sula/local/*
+**/.sula/state/automation/*
+**/.sula/state/orchestration/*
