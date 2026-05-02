@@ -114,3 +114,11 @@
 {"timestamp": "2026-05-02T01:38:39Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "sula-core", "project": "sula"}
 {"timestamp": "2026-05-02T01:52:21Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "sula-core", "project": "sula"}
 {"timestamp": "2026-05-02T01:54:21Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-05-02T01:58:03Z", "event_type": "workflow.scaffold", "summary": "Created workflow plan `Sula 0.15.1 session report and STATUS overflow mechanism`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-05-02T02:10:38Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-05-02T02:11:56Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-05-02T02:12:46Z", "event_type": "report.created", "summary": "Session report written to STATUS.md under 2026-05-02.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-05-02T04:24:55Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-05-02T04:44:17Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-05-02T04:49:28Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-05-02T04:49:52Z", "event_type": "report.created", "summary": "Session report written to STATUS.md under 2026-05-02.", "profile": "sula-core", "project": "sula"}

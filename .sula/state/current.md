@@ -15,6 +15,8 @@
 - Verified all 4 in-repo canaries (`sula-root`, `okoktoto-v5-example`, `field-ops-generic-canary`, `client-service-drive-canary`) pass `release readiness` with 0 issues; `sync --dry-run`, `doctor --strict`, and `check` all pass for every canary.
 - Regenerated `.sula/state/current.md` and `.sula/memory-digest.md` for root and all 3 example projects so generated state matches committed source documents.
 - Identified a design gap: Sula lacks a `report` command to write session summaries back into STATUS.md after work completes. Planned for 0.15.1.
+- Implemented the sula report command: adds date-grouped session summaries to STATUS.md, auto-archives old groups, regenerates memory-digest without timestamp.
+- Added Session Lifecycle section to AGENTS.md and CLAUDE.md.tmpl so all adopted projects know to start with memory-digest.md, work, end with sula report.
 
 ### 0.15.0 and earlier
 
@@ -97,10 +99,10 @@
 - done when: result `SULA CHECK OK`; result `doctor strict passed`; artifact `STATUS.md`
 - blockers: none
 - source of truth: `STATUS.md`; `docs/change-records/2026-05-01-zzzzz-add-automation-kernel-for-event-driven-orchestration.md`
-- source freshness: n/a
+- source freshness: current
 - verification command: `python3 scripts/sula.py check --project-root . --json`; `python3 scripts/sula.py doctor --project-root . --strict --json`
 - verification result: pass
 - verification date: 2026-05-02
 - git branch: main
-- git commit: any
-- git working tree: clean
+- git commit: cb49311cc238
+- git working tree: dirty

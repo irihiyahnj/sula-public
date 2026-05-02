@@ -11,6 +11,7 @@
 - Regenerated `.sula/state/current.md` and `.sula/memory-digest.md` for root and all 3 example projects so generated state matches committed source documents.
 - Identified a design gap: Sula lacks a `report` command to write session summaries back into STATUS.md after work completes. Planned for 0.15.1.
 - Implemented the sula report command: adds date-grouped session summaries to STATUS.md, auto-archives old groups, regenerates memory-digest without timestamp.
+- Added Session Lifecycle section to AGENTS.md and CLAUDE.md.tmpl so all adopted projects know to start with memory-digest.md, work, end with sula report.
 
 ### 0.15.0 and earlier
 
