@@ -1,7 +1,7 @@
 {
   "name": "Sula",
   "kind": "project-operating-system",
-  "version": "0.15.0",
+  "version": "0.15.1",
   "status": "public-source-published",
   "homepage_url": "https://sula.1stp.monster/",
   "launch_url": "https://sula.1stp.monster/launch/",
@@ -10,7 +10,7 @@
   "public_release_strategy": "fresh-public-repo",
   "public_source_status": "published",
   "source_repository_url": "https://github.com/irihiyahnj/sula-public.git",
-  "source_ref": "v0.15.0",
+  "source_ref": "v0.15.1",
   "source_script_path": "scripts/sula.py",
   "default_flow": [
     "read-launch-contract",
@@ -77,6 +77,8 @@
     "cli_existing_consumer_review": [
       "python3 scripts/sula.py doctor --project-root <project> --strict",
       "python3 scripts/sula.py sync --project-root <project> --dry-run"
-    ]
+    ],
+    "cli_report": "python3 scripts/sula.py report --project-root <project> --summary \"<session-summary>\"",
+    "cli_report_json": "python3 scripts/sula.py report --project-root <project> --summary \"<session-summary>\" --json"
   }
 }
