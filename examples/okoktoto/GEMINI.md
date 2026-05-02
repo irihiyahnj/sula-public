@@ -16,3 +16,4 @@ If this file conflicts with `AGENTS.md`, `AGENTS.md` wins.
 - Working branches use `codex/*`.
 - Deployment branch = `okoktoto-v5`.
 - Validate substantial changes with `npm run build`.
+- Session lifecycle: start by reading `.sula/memory-digest.md`, end by running `python3 scripts/sula.py report --project-root . --summary "..."` and committing the result. See AGENTS.md Session Lifecycle section for the full flow.

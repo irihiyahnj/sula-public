@@ -17,3 +17,5 @@
 {"timestamp": "2026-05-01T06:21:24Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "generic-project", "project": "field-ops-generic-canary"}
 {"timestamp": "2026-05-02T01:37:14Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "generic-project", "project": "field-ops-generic-canary"}
 {"timestamp": "2026-05-02T02:11:38Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "generic-project", "project": "field-ops-generic-canary"}
+{"timestamp": "2026-05-02T05:38:19Z", "event_type": "sync.applied", "summary": "Synchronized enabled Sula projections.", "profile": "generic-project", "project": "field-ops-generic-canary"}
+{"timestamp": "2026-05-02T05:38:21Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "generic-project", "project": "field-ops-generic-canary"}

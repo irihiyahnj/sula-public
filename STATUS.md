@@ -12,6 +12,7 @@
 - Identified a design gap: Sula lacks a `report` command to write session summaries back into STATUS.md after work completes. Planned for 0.15.1.
 - Implemented the sula report command: adds date-grouped session summaries to STATUS.md, auto-archives old groups, regenerates memory-digest without timestamp.
 - Added Session Lifecycle section to AGENTS.md and CLAUDE.md.tmpl so all adopted projects know to start with memory-digest.md, work, end with sula report.
+- Released 0.15.2: session lifecycle discipline (start with memory-digest, end with report+check+commit), sula report command with Summary archiving, git commit: any sentinel preserved through sync, Summary staleness check in sula check, projected AI-tool templates updated across all profiles.
 
 ### 0.15.0 and earlier
 
@@ -100,4 +101,4 @@
 - verification date: 2026-05-02
 - git branch: main
 - git commit: any
-- git working tree: clean
+- git working tree: dirty

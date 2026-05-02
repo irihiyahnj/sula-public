@@ -6,23 +6,29 @@ All notable changes to Sula Core should be recorded here with explicit sync impa
 
 - no entries yet
 
-## 0.15.1 - 2026-05-02
+## 0.15.2 - 2026-05-02
 
 ### Added
 
 - `sula report --summary "..."` command: appends a date-grouped session summary to STATUS.md Summary, auto-archives old date groups (keeps last 5), regenerates `.sula/memory-digest.md`, and updates Handoff verification date. The archive destination (`docs/ops/status-archive.md`) is automatically indexed by `sula query`, so historical entries remain searchable.
 - `sula doctor` now detects when `**/.sula/memory-digest.md` is still in `.gitignore` and advises the project owner to remove it and commit the digest for zero-friction AI handoff.
+- Session Lifecycle section in `AGENTS.md` — every AI session now follows: Start (read memory-digest) → Work → Report → Check → Commit.
+- Session lifecycle reminders projected to `CLAUDE.md.tmpl`, `CODEX.md.tmpl`, and `GEMINI.md.tmpl` so all adopted projects carry per-commit discipline.
+- `sula check` now validates that the most recent `### YYYY-MM-DD` date group in STATUS.md Summary is not older than the last git commit, catching stale status before commit.
 
 ### Changed
 
 - `**/.sula/memory-digest.md` removed from `.gitignore` so new clones immediately have a digest available for AI handoff.
 - `.sula/memory-digest.md` no longer includes a `generated on` timestamp, so the file content is stable unless source documents change. The digest file is now intended to be committed.
+- `sula sync` now preserves `git commit: any` sentinel in STATUS.md Handoff, preventing the self-reference cycle where STATUS.md must be committed to know its own commit hash.
 
 ### Sync Impact
 
 - Adopted projects can immediately use `sula report --project-root . --summary "..."` — no sync needed.
+- `sula check` immediately validates Summary freshness on all projects — no sync needed.
 - Adopted projects that want the committed-digest handoff benefit must manually remove `**/.sula/memory-digest.md` from their `.gitignore`, run `sula memory digest`, and commit the result.
 - `sula doctor --strict` will advisory-warn on any project that still has `**/.sula/memory-digest.md` in `.gitignore`, guiding the owner through the upgrade.
+- After `sula sync`, projected AI-tool instruction files (CLAUDE.md, CODEX.md, GEMINI.md) will carry the new Session Lifecycle reminders.
 
 ## 0.15.0 - 2026-05-01
 
