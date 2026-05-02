@@ -15,6 +15,7 @@ Track why Sula changed, how sync impact was evaluated, what was verified, and ho
 
 ## Index
 
+- 2026-05-02 - [Commit 0.15.0 and fix self-referencing validation](docs/change-records/2026-05-02-commit-0-15-0-and-fix-self-referencing-validation.md) - Committed the full 0.15.0 release from the working tree, gitignored runtime automation/orchestration state, added `git commit: any` sentinel to doctor validation, and verified all 4 canaries pass release readiness with 0 issues.
 - 2026-05-01 - [Default auto dispatch to dry-run](docs/change-records/2026-05-01-default-auto-dispatch-to-dry-run.md) - Changed automation defaults to execute mode with auto-dispatch enabled while keeping default dispatch inside the non-mutating dry-run runner.
 - 2026-05-01 - [Add remote verification and Codex runners](docs/change-records/2026-05-01-zzzz-add-remote-verification-and-codex-runners.md) - Added policy-controlled PR/provider remote verification plus `codex-sdk` and `codex-app-server` runner adapters behind explicit orchestration settings.
 - 2026-05-01 - [Add provider API task source](docs/change-records/2026-05-01-zzz-add-provider-api-task-source.md) - Added `task_source = "provider-api"` with provider task item identity, adapter-level task fetching, and fixture-backed Google Drive task ingestion.

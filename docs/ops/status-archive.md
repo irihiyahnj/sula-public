@@ -67,3 +67,7 @@ This file stores overflow items moved out of `STATUS.md` so the current-state pa
 ### 2026-05-01
 
 - 2026-05-01: added [Add Provider API Task Source](docs/change-records/2026-05-01-zzz-add-provider-api-task-source.md)
+
+### 2026-05-02
+
+- 2026-05-02: added [Commit 0.15.0 and Fix Self-referencing Validation](docs/change-records/2026-05-02-commit-0-15-0-and-fix-self-referencing-validation.md)

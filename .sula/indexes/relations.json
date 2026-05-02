@@ -88,6 +88,11 @@
       "type": "derived-from"
     },
     {
+      "from": "change:2026-05-02-commit-0-15-0-and-fix-self-referencing-validation",
+      "to": "source:docs-change-records-2026-05-02-commit-0-15-0-and-fix-self-referencing-validation-md",
+      "type": "derived-from"
+    },
+    {
       "from": "change:2026-05-01-zzzzz-add-automation-kernel-for-event-driven-orchestration",
       "to": "source:docs-change-records-2026-05-01-zzzzz-add-automation-kernel-for-event-driven-orchestration-md",
       "type": "derived-from"
@@ -1005,6 +1010,11 @@
     {
       "from": "object:source:docs-change-records-2026-05-01-zzzzz-add-automation-kernel-for-event-driven-orchestration-md",
       "to": "source:docs-change-records-2026-05-01-zzzzz-add-automation-kernel-for-event-driven-orchestration-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "object:source:docs-change-records-2026-05-02-commit-0-15-0-and-fix-self-referencing-validation-md",
+      "to": "source:docs-change-records-2026-05-02-commit-0-15-0-and-fix-self-referencing-validation-md",
       "type": "derived-from"
     },
     {

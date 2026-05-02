@@ -7,6 +7,17 @@
 
 ## Summary
 
+### 2026-05-02
+
+- Committed the full 0.15.0 release that previously existed only in the working tree (118 files, +9742/-1038 lines): orchestration control plane, automation kernel, closeout verification adapters, shell-command/codex-sdk/codex-app-server runner boundaries, and `[agent_behavior]` policy surface are now in git history.
+- Added `**/.sula/state/automation/*` and `**/.sula/state/orchestration/*` to `.gitignore` so that runtime events, intents, tasks, budgets, and run records — generated on every command execution — no longer dirty the working tree or get committed.
+- Added `git commit: any` sentinel to doctor handoff validation in `scripts/sula.py`, permanently breaking the self-reference cycle where updating STATUS.md's commit field requires a commit that moves HEAD.
+- Verified all 4 in-repo canaries (`sula-root`, `okoktoto-v5-example`, `field-ops-generic-canary`, `client-service-drive-canary`) pass `release readiness` with 0 issues; `sync --dry-run`, `doctor --strict`, and `check` all pass for every canary.
+- Regenerated `.sula/state/current.md` and `.sula/memory-digest.md` for root and all 3 example projects so generated state matches committed source documents.
+- Identified a design gap: Sula lacks a `report` command to write session summaries back into STATUS.md after work completes. Planned for 0.15.1.
+
+### 0.15.0 and earlier
+
 - Sula now manages itself as a first-class `sula-core` consumer while still acting as the source repository for reusable operating-system assets.
 - The repository has memory-aware governance, an in-repo canary, a root self-adoption path, and an approval-based adoption agent for bringing new repositories under Sula.
 - Public-release governance is now in place, and the remaining blocker is historical lineage cleanup rather than working-tree quality.
@@ -78,8 +89,8 @@
 ## Handoff
 
 - ready: yes
-- start here: `docs/change-records/2026-05-01-zzzzz-add-automation-kernel-for-event-driven-orchestration.md`; `STATUS.md`
-- latest record: `docs/change-records/2026-05-01-zzzzz-add-automation-kernel-for-event-driven-orchestration.md`
+- start here: `docs/change-records/2026-05-02-commit-0-15-0-and-fix-self-referencing-validation.md`; `STATUS.md`
+- latest record: `docs/change-records/2026-05-02-commit-0-15-0-and-fix-self-referencing-validation.md`
 - next action: run credentialed canary for PR/provider verification and one `codex-app-server` canary before broad external rollout
 - next owner: Sula Core maintainers
 - next due: 2026-05-08
