@@ -23,6 +23,20 @@ This file is the primary instruction source for AI coding agents working in the 
 - When changing scaffold templates, keep them as starters, not as centrally enforced truth.
 - Update Sula docs when introducing new profiles, manifest fields, or sync behavior.
 
+## Session Lifecycle
+
+Every AI session in a Sula-adopted project follows this flow:
+
+1. **Start**: Read `.sula/memory-digest.md` first — it contains the current project state, recent activity, and handoff instructions. This is always committed and available after `git clone`.
+2. **Work**: Perform the tasks described in STATUS.md Handoff section or as directed by the user.
+3. **Report**: Before the session ends, write a session summary back into STATUS.md:
+   ```bash
+   python3 scripts/sula.py report --project-root . \
+     --summary "Clear sentence describing what was done this session."
+   ```
+   The `report` command automatically date-groups the entry, archives old Summary entries to `docs/ops/status-archive.md`, regenerates `.sula/memory-digest.md`, and updates Handoff verification date.
+4. **Commit**: Commit STATUS.md, `.sula/memory-digest.md`, and any change records so the next AI window has the full truth.
+
 ## Current Scope
 
 - Core managed files
@@ -31,7 +45,7 @@ This file is the primary instruction source for AI coding agents working in the 
 - `sula-core` profile
 - project manifest schema and example
 - machine-readable CLI outputs for local software integration
-- `onboard`, `adopt`, `init`, `sync`, `doctor`, `check`, `remove`, `query`, `status`, `artifact`, `portfolio`, `feedback`, `record`, and `memory digest` commands
+- `onboard`, `adopt`, `init`, `sync`, `doctor`, `check`, `remove`, `query`, `status`, `artifact`, `portfolio`, `feedback`, `record`, `memory digest`, and `report` commands
 - static launch-site assets under `site/`, including the canonical launch contract and bootstrap shim
 
 ## Current Capabilities

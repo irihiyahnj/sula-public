@@ -16,3 +16,4 @@ If this file conflicts with `AGENTS.md`, `AGENTS.md` wins.
 - Working branches use `codex/*`.
 - Deployment branch = `main`.
 - Validate substantial changes with `python3 -m unittest discover -s tests -v`.
+- Session lifecycle: start by reading `.sula/memory-digest.md`, end by running `sula report --summary "..."` (see AGENTS.md Session Lifecycle section).
