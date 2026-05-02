@@ -134,3 +134,5 @@
 {"timestamp": "2026-05-02T05:41:46Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "sula-core", "project": "sula"}
 {"timestamp": "2026-05-02T05:54:20Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "sula-core", "project": "sula"}
 {"timestamp": "2026-05-02T05:54:56Z", "event_type": "report.created", "summary": "Session report written to STATUS.md under 2026-05-02.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-05-02T05:57:47Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-05-02T05:58:07Z", "event_type": "report.created", "summary": "Session report written to STATUS.md under 2026-05-02.", "profile": "sula-core", "project": "sula"}
