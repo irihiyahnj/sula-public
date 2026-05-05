@@ -1,0 +1,39 @@
+{
+  "version": "0.17.0",
+  "tasks": [
+    {
+      "id": "trigger:workflow-start:workflow-start-2026-05-05-execute-sula-0-17-0-agent-native-project-os-upgrade",
+      "source_kind": "workflow-start",
+      "source_url": "",
+      "identifier": "workflow-start-2026-05-05-execute-sula-0-17-0-agent-native-project-os-upgrade",
+      "title": "Define Sula 0.17.0 agent-native project OS upgrade execution package",
+      "description": "Create the whitepaper, overview, workflow records, and phased task package for implementing the Sula 0.17.0 agent-native project operating system upgrade.",
+      "state": "completed",
+      "priority": "high",
+      "labels": [
+        "0.17.0",
+        "agent-native",
+        "mcp",
+        "portfolio"
+      ],
+      "blocked_by": [],
+      "project_slug": "sula",
+      "acceptance_criteria": [
+        "The 0.17.0 whitepaper defines product boundary, MCP-compatible surface, safety model, phased implementation order, and definition of done.",
+        "The execution package breaks the upgrade into independently verifiable task packages.",
+        "README and overview docs link to the 0.17.0 whitepaper.",
+        "A change record, workflow spec, workflow plan, and workflow review record exist for the planning package."
+      ],
+      "validation_requirements": [
+        "python3 scripts/sula.py check --project-root .",
+        "python3 scripts/sula.py doctor --project-root . --strict",
+        "python3 -m unittest discover -s tests -v"
+      ],
+      "risk_hints": [],
+      "trigger_event_kind": "workflow-start",
+      "created_at": "2026-05-05T01:40:28Z",
+      "updated_at": "2026-05-05T03:45:10Z"
+    }
+  ],
+  "updated_at": "2026-05-05T03:45:10Z"
+}
