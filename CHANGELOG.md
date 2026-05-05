@@ -6,6 +6,17 @@ All notable changes to Sula Core should be recorded here with explicit sync impa
 
 - no entries yet
 
+## 0.17.1 - 2026-05-05
+
+### Added
+
+- `docs/reference/mcp-usage-guidance.md`: MCP usage strategy — `mcp call` as default, `mcp serve` for heavy-use projects only, prohibition on global MCP config.
+- AGENTS.md now includes MCP usage guidance and points to the new reference doc.
+
+### Sync Impact
+
+- No managed-file changes. Only documentation and AGENTS.md reference additions.
+
 ## 0.17.0 - 2026-05-05
 
 ### Added

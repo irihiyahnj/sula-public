@@ -73,7 +73,9 @@ Every AI session in a Sula-adopted project follows this flow:
   - `.md` / `.txt` / `.html` -> `.docx` on macOS through `textutil`
   - `.csv` / `.tsv` / `.json` -> `.xlsx`
 - Treat these features as the preferred bridge when a project needs Google Docs or Google Sheets outputs before direct provider-side document creation is available.
+- **MCP usage**: `mcp call` is the default for most scenarios (zero config, zero overhead). Use `mcp serve` only in projects with heavy Sula usage (10+ calls/session). Never put Sula in global MCP config — see `docs/reference/mcp-usage-guidance.md`.
 - When a new session needs details, read:
+  - `docs/reference/mcp-usage-guidance.md`
   - `docs/reference/feedback-bundle-lifecycle.md`
   - `README.md` artifact section
   - `docs/reference/provider-backed-artifact-identity.md`
