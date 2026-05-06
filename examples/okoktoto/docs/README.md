@@ -37,6 +37,7 @@ Sula manages the cross-project operational layer so this repository can benefit 
 ### 5. Workflow Plans
 
 - `workflows/plans/`: source-first execution plans for larger Sula changes that future AI sessions should execute from repository truth instead of chat history
+- `workflows/specs/2026-05-05-agent-routing-visible-execution-spec.md`: design contract for cross-CLI visible execution status and role-based agent routing
 - `workflows/plans/2026-04-30-symphony-orchestration-absorption-plan.md`: execution culture and workstreams for the Symphony-style automation and orchestration upgrade
 
 ### 6. Runbooks

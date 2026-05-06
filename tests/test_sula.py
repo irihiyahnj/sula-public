@@ -761,7 +761,7 @@ Canary verification fixtures need at least one non-placeholder change record so 
         self.assertEqual(descriptor["public_release_strategy"], "single-public-repo")
         self.assertEqual(descriptor["public_source_status"], "published")
         self.assertEqual(descriptor["source_repository_url"], "https://github.com/irihiyahnj/sula-public.git")
-        self.assertEqual(descriptor["source_ref"], "v0.18.4")
+        self.assertEqual(descriptor["source_ref"], "v0.18.5")
 
     def test_mcp_readonly_bootstrap_and_rules_do_not_write_project_files(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:

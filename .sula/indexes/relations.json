@@ -1,5 +1,5 @@
 {
-  "version": "0.18.4",
+  "version": "0.18.5",
   "profile": "sula-core",
   "relations": [
     {
@@ -108,6 +108,11 @@
       "type": "derived-from"
     },
     {
+      "from": "decision:status:2026-05-06-added-release-record-release-sula-0-18-5-compact-orchestration-status-docs-releases-2026-05-06-release-sula-0-18-5-compact-orchestration-status-md",
+      "to": "source:status-md",
+      "type": "derived-from"
+    },
+    {
       "from": "person:status:sula-core-maintainers",
       "to": "source:status-md",
       "type": "derived-from"
@@ -118,8 +123,13 @@
       "type": "derived-from"
     },
     {
-      "from": "task:handoff:review-docs-change-records-2026-05-06-add-compact-orchestration-status-and-effort-routing-md-run-python3-scripts-sula-py-check-project-root-run-python3-m-unittest-tests-test-sula-v",
+      "from": "task:handoff:review-docs-change-records-2026-05-06-release-sula-0-18-5-compact-orchestration-status-md-run-python3-scripts-sula-py-check-project-root-run-python3-m-unittest-tests-test-sula-v",
       "to": "source:status-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "change:2026-05-06-release-sula-0-18-5-compact-orchestration-status",
+      "to": "source:docs-change-records-2026-05-06-release-sula-0-18-5-compact-orchestration-status-md",
       "type": "derived-from"
     },
     {
@@ -415,6 +425,31 @@
     {
       "from": "change:2026-04-11-add-adoption-agent-flow-for-one-sentence-onboarding",
       "to": "source:docs-change-records-2026-04-11-add-adoption-agent-flow-for-one-sentence-onboarding-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "release:2026-05-06-release-sula-0-18-5-compact-orchestration-status",
+      "to": "source:docs-releases-2026-05-06-release-sula-0-18-5-compact-orchestration-status-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "milestone:2026-05-06-release-sula-0-18-5-compact-orchestration-status",
+      "to": "source:docs-releases-2026-05-06-release-sula-0-18-5-compact-orchestration-status-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "risk:docs-releases-2026-05-06-release-sula-0-18-5-compact-orchestration-status-md:compact-context-display-currently-reports-a-placeholder-when-the-host-environment-does-not-expose-context-window-usage",
+      "to": "source:docs-releases-2026-05-06-release-sula-0-18-5-compact-orchestration-status-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "risk:docs-releases-2026-05-06-release-sula-0-18-5-compact-orchestration-status-md:runner-effort-mapping-is-intentionally-conservative-claude-style-routes-map-xhigh-to-max-other-routes-receive-the-sula-effort-label-directly",
+      "to": "source:docs-releases-2026-05-06-release-sula-0-18-5-compact-orchestration-status-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "risk:docs-releases-2026-05-06-release-sula-0-18-5-compact-orchestration-status-md:existing-local-project-wrappers-may-still-exist-until-each-adopted-project-syncs-and-removes-them-deliberately",
+      "to": "source:docs-releases-2026-05-06-release-sula-0-18-5-compact-orchestration-status-md",
       "type": "derived-from"
     },
     {
@@ -893,6 +928,11 @@
       "type": "derived-from"
     },
     {
+      "from": "object:source:public-export-md",
+      "to": "source:public-export-md",
+      "type": "derived-from"
+    },
+    {
       "from": "object:source:readme-md",
       "to": "source:readme-md",
       "type": "derived-from"
@@ -1230,6 +1270,11 @@
     {
       "from": "object:source:docs-change-records-2026-05-06-add-compact-orchestration-status-and-effort-routing-md",
       "to": "source:docs-change-records-2026-05-06-add-compact-orchestration-status-and-effort-routing-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "object:source:docs-change-records-2026-05-06-release-sula-0-18-5-compact-orchestration-status-md",
+      "to": "source:docs-change-records-2026-05-06-release-sula-0-18-5-compact-orchestration-status-md",
       "type": "derived-from"
     },
     {
@@ -1575,6 +1620,11 @@
     {
       "from": "object:source:docs-releases-2026-05-06-release-sula-0-18-4-git-cloned-upgrade-descriptor-md",
       "to": "source:docs-releases-2026-05-06-release-sula-0-18-4-git-cloned-upgrade-descriptor-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "object:source:docs-releases-2026-05-06-release-sula-0-18-5-compact-orchestration-status-md",
+      "to": "source:docs-releases-2026-05-06-release-sula-0-18-5-compact-orchestration-status-md",
       "type": "derived-from"
     },
     {

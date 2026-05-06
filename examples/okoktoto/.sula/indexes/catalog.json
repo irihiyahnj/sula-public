@@ -1,12 +1,12 @@
 {
-  "version": "0.17.0",
+  "version": "0.18.5",
   "profile": "react-frontend-erpnext",
   "counts": {
     "registered_sources": 47,
     "discovered_sources": 34,
     "adapters": 7,
     "artifacts": 0,
-    "objects": 75,
+    "objects": 81,
     "source_adapter_links": 186
   },
   "adapter_catalog": ".sula/adapters/catalog.json",

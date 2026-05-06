@@ -6,6 +6,21 @@ All notable changes to Sula Core should be recorded here with explicit sync impa
 
 - no entries yet
 
+## 0.18.5 - 2026-05-06
+
+### Added
+
+- `orchestration status --compact` now emits a single English operator-facing status line with Sula state, run id, completed task count, risk, main model/depth, context budget placeholder, executor model/depth/runner effort, workspace mode, elapsed time, cost, last event, and next action.
+- `agent-routing configure` now records executor reasoning effort, and shell/Codex runner requests expose both Sula reasoning effort and runner-native effort hints.
+- Claude-style runner routes map Sula `xhigh` to runner effort `max`, preserving the user's requested depth while matching the executor's native vocabulary.
+- Shell-command runner responses can return structured JSON with evidence and metrics so compact status can display execution cost and validation state.
+
+### Sync Impact
+
+- Existing adopted projects remain compatible.
+- Projects that sync this release can configure executor depth with `agent-routing configure --reasoning-effort xhigh` and inspect concise execution state with `orchestration status --compact`.
+- Projects with local temporary compact-status wrappers can retire them after syncing this release.
+
 ## 0.18.4 - 2026-05-06
 
 ### Changed

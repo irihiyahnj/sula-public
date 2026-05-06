@@ -2,6 +2,10 @@
 
 - last updated: 2026-05-02
 ## Summary
+### 2026-05-06
+
+- Sync canary to Sula 0.18.5 compact orchestration status release.
+
 ### 2026-05-05
 
 - Aligned the field-ops generic canary with Sula 0.17.0 release verification.
@@ -45,7 +49,7 @@
 - source freshness: n/a
 - verification command: `python3 scripts/sula.py check --project-root .`
 - verification result: n/a
-- verification date: 2026-05-05
+- verification date: 2026-05-06
 - git branch: main
 - git commit: any
 - git working tree: dirty

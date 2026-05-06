@@ -259,7 +259,7 @@
     "exists": true,
     "source_of_truth": true,
     "discovered": true,
-    "size_bytes": 15692,
+    "size_bytes": 15978,
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
@@ -276,7 +276,7 @@
     "exists": true,
     "source_of_truth": true,
     "discovered": true,
-    "size_bytes": 32221,
+    "size_bytes": 33381,
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
@@ -367,6 +367,22 @@
     ]
   },
   {
+    "id": "source:public-export-md",
+    "kind": "document",
+    "path": "PUBLIC-EXPORT.md",
+    "exists": true,
+    "source_of_truth": true,
+    "discovered": true,
+    "size_bytes": 697,
+    "anchor_strategy": "heading-or-line",
+    "adapters": [
+      "generic-project",
+      "local-fs",
+      "docs",
+      "repo"
+    ]
+  },
+  {
     "id": "source:readme-md",
     "kind": "document",
     "path": "README.md",
@@ -405,7 +421,7 @@
     "exists": true,
     "source_of_truth": true,
     "discovered": true,
-    "size_bytes": 17477,
+    "size_bytes": 17862,
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
@@ -1299,6 +1315,24 @@
     ]
   },
   {
+    "id": "source:docs-change-records-2026-05-06-release-sula-0-18-5-compact-orchestration-status-md",
+    "kind": "document",
+    "path": "docs/change-records/2026-05-06-release-sula-0-18-5-compact-orchestration-status.md",
+    "exists": true,
+    "source_of_truth": true,
+    "discovered": true,
+    "size_bytes": 3355,
+    "anchor_strategy": "heading-or-line",
+    "adapters": [
+      "generic-project",
+      "local-fs",
+      "docs",
+      "memory",
+      "repo",
+      "release"
+    ]
+  },
+  {
     "id": "source:docs-change-records-readme-md",
     "kind": "document",
     "path": "docs/change-records/README.md",
@@ -2002,6 +2036,24 @@
     ]
   },
   {
+    "id": "source:docs-releases-2026-05-06-release-sula-0-18-5-compact-orchestration-status-md",
+    "kind": "document",
+    "path": "docs/releases/2026-05-06-release-sula-0-18-5-compact-orchestration-status.md",
+    "exists": true,
+    "source_of_truth": true,
+    "discovered": true,
+    "size_bytes": 2028,
+    "anchor_strategy": "heading-or-line",
+    "adapters": [
+      "generic-project",
+      "local-fs",
+      "docs",
+      "memory",
+      "repo",
+      "release"
+    ]
+  },
+  {
     "id": "source:docs-releases-readme-md",
     "kind": "document",
     "path": "docs/releases/README.md",
@@ -2286,7 +2338,7 @@
     "exists": true,
     "source_of_truth": true,
     "discovered": true,
-    "size_bytes": 1842,
+    "size_bytes": 1926,
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
@@ -2471,7 +2523,7 @@
     "exists": true,
     "source_of_truth": true,
     "discovered": true,
-    "size_bytes": 1811,
+    "size_bytes": 1895,
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
@@ -2671,7 +2723,7 @@
     "exists": true,
     "source_of_truth": true,
     "discovered": true,
-    "size_bytes": 1174,
+    "size_bytes": 1243,
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
@@ -2687,7 +2739,7 @@
     "exists": true,
     "source_of_truth": true,
     "discovered": true,
-    "size_bytes": 2045,
+    "size_bytes": 2114,
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
@@ -2703,7 +2755,7 @@
     "exists": true,
     "source_of_truth": true,
     "discovered": true,
-    "size_bytes": 1202,
+    "size_bytes": 1271,
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
@@ -2735,7 +2787,7 @@
     "exists": true,
     "source_of_truth": true,
     "discovered": true,
-    "size_bytes": 1791,
+    "size_bytes": 1875,
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
@@ -2751,7 +2803,7 @@
     "exists": true,
     "source_of_truth": true,
     "discovered": true,
-    "size_bytes": 3680,
+    "size_bytes": 3836,
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",

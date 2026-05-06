@@ -21,6 +21,8 @@
 - Prepared Sula 0.18.4 so upgrade automation reads the live descriptor through a shallow Git clone instead of HTTP raw endpoints.
 - Prepared Sula 0.18.4 so Git upgrade automation discovers source_ref from a shallow public repo clone.
 - Added compact orchestration status and executor effort routing to Sula Core.
+- Prepared Sula 0.18.5 so compact orchestration status and executor effort routing can roll out through the normal versioned upgrade path.
+- Finalize Sula 0.18.5 compact orchestration status release metadata and canary verification.
 
 ### 2026-05-05
 
@@ -123,6 +125,7 @@
 - 2026-05-06: added release record [Release Sula 0.18.2 GitHub upgrade descriptor](docs/releases/2026-05-06-release-sula-0-18-2-github-upgrade-descriptor.md)
 - 2026-05-06: added release record [Release Sula 0.18.3 noncached GitHub upgrade descriptor](docs/releases/2026-05-06-release-sula-0-18-3-noncached-github-upgrade-descriptor.md)
 - 2026-05-06: added release record [Release Sula 0.18.4 Git-cloned upgrade descriptor](docs/releases/2026-05-06-release-sula-0-18-4-git-cloned-upgrade-descriptor.md)
+- 2026-05-06: added release record [Release Sula 0.18.5 compact orchestration status](docs/releases/2026-05-06-release-sula-0-18-5-compact-orchestration-status.md)
 
 ## Next Review
 
@@ -133,18 +136,18 @@
 ## Handoff
 
 - ready: yes
-- start here: `docs/change-records/2026-05-06-add-compact-orchestration-status-and-effort-routing.md`; `STATUS.md`
-- latest record: `docs/change-records/2026-05-06-add-compact-orchestration-status-and-effort-routing.md`
-- next action: review `docs/change-records/2026-05-06-add-compact-orchestration-status-and-effort-routing.md`; run `python3 scripts/sula.py check --project-root .`; run `python3 -m unittest tests.test_sula -v`
+- start here: `docs/change-records/2026-05-06-release-sula-0-18-5-compact-orchestration-status.md`; `STATUS.md`
+- latest record: `docs/change-records/2026-05-06-release-sula-0-18-5-compact-orchestration-status.md`
+- next action: review `docs/change-records/2026-05-06-release-sula-0-18-5-compact-orchestration-status.md`; run `python3 scripts/sula.py check --project-root .`; run `python3 -m unittest tests.test_sula -v`
 - next owner: Sula Core maintainers
 - next due: 2026-05-08
 - done when: result `SULA CHECK OK`; result `doctor strict passed`
 - blockers: none
-- source of truth: `STATUS.md`; `docs/change-records/2026-05-06-add-compact-orchestration-status-and-effort-routing.md`
+- source of truth: `STATUS.md`; `docs/change-records/2026-05-06-release-sula-0-18-5-compact-orchestration-status.md`
 - source freshness: current
 - verification command: `python3 scripts/sula.py check --project-root . --json`; `python3 scripts/sula.py doctor --project-root . --strict --json`; `python3 -m unittest discover -s tests -v`
 - verification result: pass
 - verification date: 2026-05-06
 - git branch: main
 - git commit: any
-- git working tree: dirty
+- git working tree: clean

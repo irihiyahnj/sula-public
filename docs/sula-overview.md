@@ -183,7 +183,7 @@ Sula 用三个确定性回答：
 
 ## 版本
 
-- **当前版本**: v0.18.4
+- **当前版本**: v0.18.5
 - **仓库**: `https://github.com/irihiyahnj/sula-public.git`
 - **许可证**: MIT
 - **依赖**: Python 3 + Git

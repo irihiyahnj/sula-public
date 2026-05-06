@@ -1,5 +1,5 @@
 {
-  "version": "0.17.0",
+  "version": "0.18.5",
   "profile": "react-frontend-erpnext",
   "objects": [
     {
@@ -31,7 +31,7 @@
       "id": "state:current",
       "kind": "state",
       "title": "Current Project State",
-      "summary": "### 2026-05-05\n\n- Aligned the OKOKTOTO canary with Sula 0.17.0 release verification.",
+      "summary": "### 2026-05-06\n\n- Sync canary to Sula 0.18.5 compact orchestration status release.\n\n### 2026-05-05\n\n- Aligned the OKOKTOTO canary with Sula 0.17.0 release verification.",
       "status": "current",
       "path": "STATUS.md",
       "source_paths": [
@@ -361,6 +361,126 @@
         "incident-risk"
       ],
       "date": "2026-04-11"
+    },
+    {
+      "id": "job:memory.digest:20260506-125525",
+      "kind": "job",
+      "title": "memory.digest",
+      "summary": "Regenerated memory digest at `.sula/memory-digest.md`.",
+      "status": "ok",
+      "path": ".sula/state/jobs/history.jsonl",
+      "source_paths": [
+        ".sula/state/jobs/history.jsonl"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "job",
+        "memory-job"
+      ],
+      "date": "2026-05-06"
+    },
+    {
+      "id": "job:memory.digest:20260506-125420",
+      "kind": "job",
+      "title": "memory.digest",
+      "summary": "Regenerated memory digest at `.sula/memory-digest.md`.",
+      "status": "ok",
+      "path": ".sula/state/jobs/history.jsonl",
+      "source_paths": [
+        ".sula/state/jobs/history.jsonl"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "job",
+        "memory-job"
+      ],
+      "date": "2026-05-06"
+    },
+    {
+      "id": "job:memory.digest:20260506-125333",
+      "kind": "job",
+      "title": "memory.digest",
+      "summary": "Regenerated memory digest at `.sula/memory-digest.md`.",
+      "status": "ok",
+      "path": ".sula/state/jobs/history.jsonl",
+      "source_paths": [
+        ".sula/state/jobs/history.jsonl"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "job",
+        "memory-job"
+      ],
+      "date": "2026-05-06"
+    },
+    {
+      "id": "job:memory.digest:20260506-125303",
+      "kind": "job",
+      "title": "memory.digest",
+      "summary": "Regenerated memory digest at `.sula/memory-digest.md`.",
+      "status": "ok",
+      "path": ".sula/state/jobs/history.jsonl",
+      "source_paths": [
+        ".sula/state/jobs/history.jsonl"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "job",
+        "memory-job"
+      ],
+      "date": "2026-05-06"
+    },
+    {
+      "id": "job:memory.digest:20260506-125100",
+      "kind": "job",
+      "title": "memory.digest",
+      "summary": "Regenerated memory digest at `.sula/memory-digest.md`.",
+      "status": "ok",
+      "path": ".sula/state/jobs/history.jsonl",
+      "source_paths": [
+        ".sula/state/jobs/history.jsonl"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "job",
+        "memory-job"
+      ],
+      "date": "2026-05-06"
+    },
+    {
+      "id": "job:memory.digest:20260506-125009",
+      "kind": "job",
+      "title": "memory.digest",
+      "summary": "Regenerated memory digest at `.sula/memory-digest.md`.",
+      "status": "ok",
+      "path": ".sula/state/jobs/history.jsonl",
+      "source_paths": [
+        ".sula/state/jobs/history.jsonl"
+      ],
+      "adapters": [
+        "generic-project",
+        "memory"
+      ],
+      "tags": [
+        "job",
+        "memory-job"
+      ],
+      "date": "2026-05-06"
     },
     {
       "id": "job:memory.digest:20260505-042151",
@@ -1024,7 +1144,7 @@
         "section-rule",
         "maintenance-rule"
       ],
-      "date": "2026-04-30"
+      "date": "2026-05-05"
     },
     {
       "id": "object:source:docs-architecture-module-map-md",
