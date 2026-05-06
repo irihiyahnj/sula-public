@@ -212,6 +212,7 @@ Sula should add these human and machine surfaces:
 | --- | --- |
 | `sula session start` | Standard CLI entry banner: memory digest pointer, active tasks, active model roles, required next command. |
 | `sula orchestration status` | Existing status should include active role/model/stage. |
+| `sula orchestration status --compact` | Render one compact English execution line with run state, task completion count, main model/depth, executor model/depth/runner effort, workspace, elapsed time, cost, last event, and next action. |
 | `sula orchestration status --watch` | Poll and render active execution state until the run finishes or is cancelled. |
 | `sula orchestration timeline` | Render recent run events from `events.jsonl`. |
 | `sula agent-routing status --json` | Emit resolved routing policy, local provider readiness, active role, and model visibility. |
@@ -298,6 +299,7 @@ Default should be `ask`.
 - Add `session start` command.
 - Add `active.json` and `events.jsonl` writer helpers.
 - Make `orchestration status` display active task, active stage, and resolved runner.
+- Add `orchestration status --compact` for a single-line tool view suitable for long-running chat updates.
 - Add `orchestration status --watch`.
 - Update `AGENTS.md`, `CODEX.md`, `CLAUDE.md`, `GEMINI.md`, and templates to tell every CLI to show Sula session status at startup.
 

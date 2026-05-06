@@ -118,8 +118,13 @@
       "type": "derived-from"
     },
     {
-      "from": "task:handoff:review-docs-releases-2026-05-06-release-sula-0-18-4-git-cloned-upgrade-descriptor-md-run-python3-scripts-sula-py-check-project-root-run-python3-m-unittest-tests-test-sula-sulaclitests-test-site-descriptor-points-to-published-public-repo-v",
+      "from": "task:handoff:review-docs-change-records-2026-05-06-add-compact-orchestration-status-and-effort-routing-md-run-python3-scripts-sula-py-check-project-root-run-python3-m-unittest-tests-test-sula-v",
       "to": "source:status-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "change:2026-05-06-add-compact-orchestration-status-and-effort-routing",
+      "to": "source:docs-change-records-2026-05-06-add-compact-orchestration-status-and-effort-routing-md",
       "type": "derived-from"
     },
     {
@@ -1220,6 +1225,11 @@
     {
       "from": "object:source:docs-change-records-2026-05-05-implement-sula-0-17-0-agent-native-control-surface-md",
       "to": "source:docs-change-records-2026-05-05-implement-sula-0-17-0-agent-native-control-surface-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "object:source:docs-change-records-2026-05-06-add-compact-orchestration-status-and-effort-routing-md",
+      "to": "source:docs-change-records-2026-05-06-add-compact-orchestration-status-and-effort-routing-md",
       "type": "derived-from"
     },
     {

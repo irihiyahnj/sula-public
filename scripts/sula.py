@@ -1720,6 +1720,7 @@ def parse_args() -> argparse.Namespace:
     agent_routing_configure_cmd.add_argument("--runner-endpoint", help="HTTP endpoint used by codex-app-server runners")
     agent_routing_configure_cmd.add_argument("--provider", help="Executor provider label, such as claudecode, hermes, or deepseek")
     agent_routing_configure_cmd.add_argument("--model", help="Executor model label to display and pass to runners")
+    agent_routing_configure_cmd.add_argument("--reasoning-effort", help="Executor reasoning effort label, such as high or xhigh")
     agent_routing_configure_cmd.add_argument("--provider-kind", default="cli", help="Local provider kind recorded in .sula/local/agent-providers.json")
     agent_routing_configure_cmd.add_argument("--endpoint-env", default="", help="Optional env var name for provider endpoint")
     agent_routing_configure_cmd.add_argument("--api-key-env", default="", help="Optional env var name for provider API key")
@@ -1780,6 +1781,7 @@ def parse_args() -> argparse.Namespace:
 
     orchestration_status_cmd = orchestration_sub.add_parser("status", help="Summarize orchestration config and run state")
     add_project_root_arg(orchestration_status_cmd)
+    orchestration_status_cmd.add_argument("--compact", action="store_true", help="Print one compact execution status line")
     orchestration_status_cmd.add_argument("--watch", action="store_true", help="Refresh status until the active run reaches a terminal state")
     orchestration_status_cmd.add_argument("--json", action="store_true", help="Print JSON instead of human-readable output")
 
@@ -12979,6 +12981,156 @@ def role_status_line(role: str, role_payload: dict[str, object], state: str = "p
     return " / ".join(parts)
 
 
+def runner_effort_for_role(config: ProjectConfig, role_payload: dict[str, object]) -> str:
+    """Return the runner-native effort label for a routed role."""
+    effort = normalize_optional_text(role_payload.get("reasoning_effort", ""))
+    if not effort:
+        return "unknown"
+    command = config.orchestration_runner_command
+    if command:
+        try:
+            parts = shlex.split(command)
+        except ValueError:
+            parts = command.split()
+        for index, part in enumerate(parts):
+            if part == "--effort" and index + 1 < len(parts):
+                return parts[index + 1]
+            if part.startswith("--effort="):
+                return part.split("=", 1)[1]
+    provider = normalize_optional_text(role_payload.get("provider", ""))
+    if effort == "xhigh" and ("claude" in command or provider in {"claudecode", "deepseek"}):
+        return "max"
+    return effort
+
+
+def role_compact_label(
+    config: ProjectConfig,
+    role_payload: dict[str, object],
+    *,
+    provider_default: str = "unknown",
+    include_runner_effort: bool = False,
+) -> str:
+    provider = normalize_optional_text(role_payload.get("provider", "")) or provider_default
+    if provider == "host":
+        provider = "codex"
+    model = normalize_optional_text(role_payload.get("model", "")) or "unknown"
+    effort = normalize_optional_text(role_payload.get("reasoning_effort", "")) or "unknown"
+    if include_runner_effort:
+        return f"{provider}/{model}/{effort}/{runner_effort_for_role(config, role_payload)}"
+    return f"{provider}/{model}/{effort}"
+
+
+def short_orchestration_run_id(run_id: str) -> str:
+    match = re.search(r"T(\d{4})", run_id)
+    if match:
+        return match.group(1)
+    return run_id[-6:] if run_id else "none"
+
+
+def parse_sula_timestamp(value: str) -> datetime | None:
+    if not value:
+        return None
+    try:
+        return datetime.fromisoformat(value.replace("Z", "+00:00"))
+    except ValueError:
+        return None
+
+
+def latest_orchestration_execution_run(config: ProjectConfig) -> dict[str, object]:
+    runs = read_orchestration_runs(config)
+    if runs:
+        def run_key(run: dict[str, object]) -> datetime:
+            return parse_sula_timestamp(normalize_optional_text(run.get("started_at", ""))) or datetime.min.replace(tzinfo=timezone.utc)
+
+        return max(runs, key=run_key)
+    latest = load_json_file(orchestration_latest_path(config), default={})
+    if isinstance(latest, dict) and isinstance(latest.get("latest_run"), dict):
+        return latest["latest_run"]
+    return {}
+
+
+def orchestration_tasks_done_label(tasks: list[dict[str, object]], run: dict[str, object]) -> str:
+    status = normalize_optional_text(run.get("status", "")).lower()
+    latest_task_id = normalize_optional_text(run.get("task_id", ""))
+    terminal = {"accepted", "completed", "complete", "closed", "human-review", "succeeded", "success"}
+    if tasks:
+        done = 0
+        for task in tasks:
+            task_state = normalize_optional_text(task.get("state", task.get("status", ""))).lower()
+            task_id = normalize_optional_text(task.get("id", task.get("task_id", "")))
+            if task_state in terminal or (latest_task_id and task_id == latest_task_id and status in terminal):
+                done += 1
+        return f"{done}/{len(tasks)} done"
+    return f"{1 if status in terminal else 0}/1 done"
+
+
+def orchestration_elapsed_label(run: dict[str, object]) -> str:
+    metrics = run.get("metrics", {})
+    if isinstance(metrics, dict) and isinstance(metrics.get("runtime_minutes"), (int, float)) and metrics.get("runtime_minutes", 0) > 0:
+        return f"{int(metrics.get('runtime_minutes', 0))}m"
+    started = parse_sula_timestamp(normalize_optional_text(run.get("started_at", "")))
+    ended = parse_sula_timestamp(normalize_optional_text(run.get("ended_at", "")))
+    if started and ended:
+        seconds = max(0, int((ended - started).total_seconds()))
+        return f"{seconds}s" if seconds < 60 else f"{seconds // 60}m"
+    return "0s"
+
+
+def orchestration_cost_label(run: dict[str, object]) -> str:
+    metrics = run.get("metrics", {})
+    cost = metrics.get("cost_usd") if isinstance(metrics, dict) else 0
+    return f"${float(cost or 0):.3f}"
+
+
+def orchestration_last_event_label(run: dict[str, object]) -> str:
+    blocked = run.get("blocked_reasons")
+    if isinstance(blocked, list) and blocked:
+        return normalize_optional_text(blocked[-1])
+    evidence = run.get("validation_evidence")
+    if isinstance(evidence, list) and evidence:
+        latest = evidence[-1]
+        if isinstance(latest, dict):
+            return normalize_optional_text(latest.get("summary", latest.get("kind", ""))) or "evidence recorded"
+    events = run.get("runner_events")
+    if isinstance(events, list) and events:
+        latest = events[-1]
+        if isinstance(latest, dict):
+            return normalize_optional_text(latest.get("event", "")) or "runner event"
+    return normalize_optional_text(run.get("status", "")) or "idle"
+
+
+def orchestration_next_label(status: str) -> str:
+    normalized = status.lower()
+    if normalized == "accepted":
+        return "done"
+    if normalized in {"running", "active"}:
+        return "wait"
+    if normalized in {"blocked", "failed", "error"}:
+        return "repair"
+    if normalized in {"queued", "pending", "planned"}:
+        return "run"
+    return "review"
+
+
+def orchestration_compact_status_line(config: ProjectConfig, *, ctx: str = "unknown") -> str:
+    tasks, _issues = load_orchestration_tasks(config)
+    run = latest_orchestration_execution_run(config)
+    status = normalize_optional_text(run.get("status", "")) or "idle"
+    reviewer = agent_routing_role_payload(config, "reviewer")
+    planner = agent_routing_role_payload(config, "planner")
+    main_role = reviewer or planner
+    executor = agent_routing_role_payload(config, "executor")
+    workspace = normalize_optional_text(run.get("workspace_mode", "")) or config.orchestration_workspace_mode
+    return (
+        f"Sula: {status} | Run: {short_orchestration_run_id(normalize_optional_text(run.get('run_id', '')))} | "
+        f"Tasks: {orchestration_tasks_done_label(tasks, run)} | Risk: {normalize_optional_text(run.get('risk', 'unknown')) or 'unknown'} | "
+        f"Main: {role_compact_label(config, main_role, provider_default='codex')} | Ctx: {ctx} | "
+        f"Executor: {role_compact_label(config, executor, include_runner_effort=True)} | Workspace: {workspace or 'unknown'} | "
+        f"Elapsed: {orchestration_elapsed_label(run)} | Cost: {orchestration_cost_label(run)} | "
+        f"Last: {orchestration_last_event_label(run)} | Next: {orchestration_next_label(status)}"
+    )
+
+
 def build_orchestration_stage_event(
     config: ProjectConfig,
     *,
@@ -13921,7 +14073,7 @@ def orchestration_status(config: ProjectConfig, args: argparse.Namespace) -> int
     if bool(getattr(args, "watch", False)):
         try:
             while True:
-                code = orchestration_status(config, argparse.Namespace(json=False, watch=False))
+                code = orchestration_status(config, argparse.Namespace(json=False, watch=False, compact=bool(getattr(args, "compact", False))))
                 if load_orchestration_active(config).get("active", {}).get("state") in {"accepted", "failed", "blocked", "cancelled"}:
                     return code
                 print("")
@@ -13939,6 +14091,9 @@ def orchestration_status(config: ProjectConfig, args: argparse.Namespace) -> int
     }
     if json_output_requested(args):
         emit_json(payload)
+        return 0
+    if bool(getattr(args, "compact", False)):
+        print(orchestration_compact_status_line(config))
         return 0
     state = payload["orchestration"]
     print(f"Orchestration status for {config.data['project']['name']}")
@@ -14190,7 +14345,7 @@ def upsert_local_agent_provider(
 def agent_routing_configure_payload(project_root: Path, config: ProjectConfig, args: argparse.Namespace) -> tuple[dict[str, object], int]:
     has_cli_values = any(
         normalize_optional_text(getattr(args, name, ""))
-        for name in ["runner", "runner_command", "runner_endpoint", "provider", "model", "workspace_mode", "endpoint_env", "api_key_env"]
+        for name in ["runner", "runner_command", "runner_endpoint", "provider", "model", "reasoning_effort", "workspace_mode", "endpoint_env", "api_key_env"]
     ) or getattr(args, "write_access", None) is not None
     remembered = agent_routing_executor_is_remembered(config)
     if remembered and not bool(getattr(args, "replace", False)) and not has_cli_values:
@@ -14220,6 +14375,7 @@ def agent_routing_configure_payload(project_root: Path, config: ProjectConfig, a
     runner_endpoint = normalize_optional_text(getattr(args, "runner_endpoint", "")) or config.orchestration_runner_endpoint
     provider = normalize_optional_text(getattr(args, "provider", "")) or normalize_optional_text(current_executor.get("provider", "")) or "local"
     model = normalize_optional_text(getattr(args, "model", "")) or normalize_optional_text(current_executor.get("model", "")) or "configured-runner"
+    reasoning_effort = normalize_optional_text(getattr(args, "reasoning_effort", "")) or normalize_optional_text(current_executor.get("reasoning_effort", ""))
     workspace_mode = normalize_optional_text(getattr(args, "workspace_mode", "")) or config.orchestration_workspace_mode
     write_access = getattr(args, "write_access", None)
     if write_access is None:
@@ -14233,6 +14389,7 @@ def agent_routing_configure_payload(project_root: Path, config: ProjectConfig, a
             runner_endpoint = prompt_agent_routing_value("Runner endpoint", runner_endpoint, required=True)
         provider = prompt_agent_routing_value("Executor provider", provider if provider != "local" else "claudecode", required=True)
         model = prompt_agent_routing_value("Executor model", model if model != "configured-runner" else "deepseek", required=True)
+        reasoning_effort = prompt_agent_routing_value("Executor reasoning effort", reasoning_effort, required=False)
         workspace_mode = prompt_agent_routing_value("Workspace mode", workspace_mode if workspace_mode != "none" else "copy", required=True)
         write_access = prompt_agent_routing_bool("Allow executor write access", True)
     if runner not in ORCHESTRATION_RUNNER_CHOICES:
@@ -14279,6 +14436,7 @@ def agent_routing_configure_payload(project_root: Path, config: ProjectConfig, a
     executor = roles.setdefault("executor", default_agent_routing_roles()["executor"])
     executor["provider"] = provider
     executor["model"] = model
+    executor["reasoning_effort"] = reasoning_effort
     executor["write_access"] = bool(write_access)
     executor["workspace_mode"] = workspace_mode
     updated_config = write_manifest_data(project_root, data)
@@ -14812,6 +14970,8 @@ def run_shell_command_adapter(config: ProjectConfig, run: dict[str, object], tas
             "SULA_AGENT_ROLE": "executor",
             "SULA_MODEL_PROVIDER": normalize_optional_text(role_payload.get("provider", "")),
             "SULA_MODEL_NAME": normalize_optional_text(role_payload.get("model", "")),
+            "SULA_MODEL_REASONING_EFFORT": normalize_optional_text(role_payload.get("reasoning_effort", "")),
+            "SULA_RUNNER_EFFORT": runner_effort_for_role(config, role_payload),
             "SULA_ROUTING_CYCLE": str(run.get("routing_cycle", 1)),
         }
     )
@@ -14834,49 +14994,27 @@ def run_shell_command_adapter(config: ProjectConfig, run: dict[str, object], tas
         stderr = redact_runner_text(exc.stderr if isinstance(exc.stderr, str) else "")
         returncode = 124
         timed_out = True
-    end = datetime.now(timezone.utc)
-    runtime_minutes = max(0, int((end - start).total_seconds() // 60))
-    after = orchestration_file_snapshot(workspace)
-    touched_files = compare_orchestration_snapshots(before, after)
-    status = "failed" if timed_out or returncode != 0 else "human-review"
-    summary = (
-        f"shell-command verification passed with exit code {returncode}; acceptance criteria require review"
-        if status == "human-review"
-        else f"shell-command verification failed with exit code {returncode}"
+    response_payload = None
+    if stdout.strip():
+        try:
+            parsed = json.loads(stdout)
+            if isinstance(parsed, dict):
+                response_payload = parsed
+        except json.JSONDecodeError:
+            response_payload = None
+    return apply_agent_runner_response(
+        config,
+        run,
+        runner_name="shell-command",
+        workspace=workspace,
+        before=before,
+        start=start,
+        returncode=returncode,
+        timed_out=timed_out,
+        stdout=stdout,
+        stderr=stderr,
+        response_payload=response_payload,
     )
-    run["status"] = status
-    run["ended_at"] = current_utc_timestamp()
-    run["metrics"] = {
-        "runtime_minutes": runtime_minutes,
-        "token_count": 0,
-        "cost_usd": 0,
-    }
-    run["touched_files"] = touched_files
-    run["validation_evidence"] = [
-        *[item for item in run.get("validation_evidence", []) if isinstance(item, dict)],
-        {
-            "kind": "runner-command",
-            "summary": summary,
-            "created_at": current_utc_timestamp(),
-            "returncode": returncode,
-            "timed_out": timed_out,
-            "stdout": stdout,
-            "stderr": stderr,
-        },
-    ]
-    run["runner_events"] = [
-        *[item for item in run.get("runner_events", []) if isinstance(item, dict)],
-        {
-            "event": "finish",
-            "created_at": current_utc_timestamp(),
-            "runner": "shell-command",
-            "returncode": returncode,
-            "status": status,
-            "touched_file_count": len(touched_files),
-        },
-    ]
-    run["final_disposition"] = status
-    return run
 
 
 def codex_runner_request_payload(config: ProjectConfig, run: dict[str, object], task: dict[str, object] | None, workspace: Path) -> dict[str, object]:
@@ -14896,6 +15034,7 @@ def codex_runner_request_payload(config: ProjectConfig, run: dict[str, object], 
             "provider": normalize_optional_text(role_payload.get("provider", "")),
             "model": normalize_optional_text(role_payload.get("model", "")),
             "reasoning_effort": normalize_optional_text(role_payload.get("reasoning_effort", "")),
+            "runner_effort": runner_effort_for_role(config, role_payload),
         },
         "write_access": bool(role_payload.get("write_access", False)),
         "routing_cycle": int(run.get("routing_cycle", 1) or 1),

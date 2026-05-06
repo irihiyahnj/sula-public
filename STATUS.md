@@ -4,6 +4,7 @@
 ## Summary
 ### 2026-05-06
 
+- Added Sula Core compact execution visibility: `orchestration status --compact` now prints one English tool line with run state, task count, risk, main model/depth, context placeholder, executor model/depth/runner effort, workspace, elapsed, cost, last event, and next action. `agent-routing configure` now accepts executor `--reasoning-effort`; shell and Codex runners receive runner effort hints, mapping Sula `xhigh` to Claude-style `max`.
 - Prepared Sula 0.18.0 remembered agent routing release with agent-routing configure, release metadata, launch descriptor version bump, and verification docs.
 - Verified and finalized the Sula 0.18.0 remembered agent routing release for downstream project sync.
 - Prepared Sula 0.18.1 with descriptor-based Git release upgrade prompts for downstream project upgrades.
@@ -14,6 +15,7 @@
 - Prepared Sula 0.18.3 to use the noncached GitHub raw refs descriptor for model-driven Git upgrades.
 - Prepared Sula 0.18.4 so upgrade automation reads the live descriptor through a shallow Git clone instead of HTTP raw endpoints.
 - Prepared Sula 0.18.4 so Git upgrade automation discovers source_ref from a shallow public repo clone.
+- Added compact orchestration status and executor effort routing to Sula Core.
 
 ### 2026-05-05
 
@@ -126,14 +128,14 @@
 
 
 - ready: yes
-- start here: `docs/releases/2026-05-06-release-sula-0-18-4-git-cloned-upgrade-descriptor.md`; `STATUS.md`
-- latest record: `docs/releases/2026-05-06-release-sula-0-18-4-git-cloned-upgrade-descriptor.md`
-- next action: review `docs/releases/2026-05-06-release-sula-0-18-4-git-cloned-upgrade-descriptor.md`; run `python3 scripts/sula.py check --project-root .`; run `python3 -m unittest tests.test_sula.SulaCliTests.test_site_descriptor_points_to_published_public_repo -v`
+- start here: `docs/change-records/2026-05-06-add-compact-orchestration-status-and-effort-routing.md`; `STATUS.md`
+- latest record: `docs/change-records/2026-05-06-add-compact-orchestration-status-and-effort-routing.md`
+- next action: review `docs/change-records/2026-05-06-add-compact-orchestration-status-and-effort-routing.md`; run `python3 scripts/sula.py check --project-root .`; run `python3 -m unittest tests.test_sula -v`
 - next owner: Sula Core maintainers
 - next due: 2026-05-08
 - done when: result `SULA CHECK OK`; result `doctor strict passed`
 - blockers: none
-- source of truth: `STATUS.md`; `docs/releases/2026-05-06-release-sula-0-18-4-git-cloned-upgrade-descriptor.md`
+- source of truth: `STATUS.md`; `docs/change-records/2026-05-06-add-compact-orchestration-status-and-effort-routing.md`
 - source freshness: current
 - verification command: `python3 scripts/sula.py check --project-root . --json`; `python3 scripts/sula.py doctor --project-root . --strict --json`; `python3 -m unittest discover -s tests -v`
 - verification result: pass

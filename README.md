@@ -442,8 +442,9 @@ Orchestration is now a first-class control-plane surface:
 - `python3 scripts/sula.py session start --project-root /path/to/project` prints a Sula-owned startup banner with the memory digest, active tasks, current stage, host model metadata when known, and planner/executor/verifier/reviewer routing assignments
 - `python3 scripts/sula.py agent-routing status --project-root /path/to/project --json` reports `[agent_routing]` policy plus local provider readiness without printing secrets
 - `python3 scripts/sula.py agent-routing doctor --project-root /path/to/project --json` validates local model-provider routing configuration from `.sula/local/agent-providers.json`
-- `python3 scripts/sula.py agent-routing configure --project-root /path/to/project` asks for the executor CLI/model once and remembers it; later runs reuse the saved route unless the operator passes `--replace` or explicit new values
+- `python3 scripts/sula.py agent-routing configure --project-root /path/to/project` asks for the executor CLI/model/reasoning effort once and remembers it; later runs reuse the saved route unless the operator passes `--replace` or explicit new values
 - `python3 scripts/sula.py orchestration run --project-root /path/to/project --task-id local:example --json` records a dry-run scheduling result under `.sula/state/orchestration/`
+- `python3 scripts/sula.py orchestration status --project-root /path/to/project --compact` prints a single English tool line with run state, task completion count, risk, main model/depth, context placeholder, executor model/depth/runner effort, workspace, elapsed time, cost, last event, and next action
 - `python3 scripts/sula.py orchestration timeline --project-root /path/to/project` shows recent role/stage events from `.sula/state/orchestration/events.jsonl`
 - `python3 scripts/sula.py orchestration close --project-root /path/to/project --run-id run-id --evidence "sula check passed and acceptance criteria satisfied" --accept --json` accepts a run only after closeout evidence exists beyond dry-run scheduling
 - accepted closeout validates task-specific requirements, touched-file references, links/artifacts, and requested `sula check` evidence before marking a run accepted
@@ -492,7 +493,8 @@ Agent routing is now a first-class visibility and runner-contract surface:
 - the current host/chat model is reported as `unknown` unless the CLI, environment, or MCP metadata provides it
 - `.sula/local/agent-providers.json` is machine-local and may name `endpoint_env`, `api_key_env`, and `allowed_roles`, but must not contain raw provider keys
 - runner requests for `codex-sdk` and `codex-app-server` now include `role`, `model_hint`, `write_access`, `routing_cycle`, and the resolved routing policy while keeping provider API mechanics outside Sula Core
-- `agent-routing configure` can remember a local executor command such as a Claude Code or Hermes wrapper backed by DeepSeek; Sula dispatches that command and records status, while the wrapper remains responsible for its own model/API configuration
+- runner requests for `codex-sdk` and `codex-app-server`, plus shell-command runner environment variables, now expose both the Sula reasoning effort and the runner-native effort; Claude-style `xhigh` routes map to runner effort `max`
+- `agent-routing configure` can remember a local executor command such as a Claude Code or Hermes wrapper backed by DeepSeek, including the desired executor reasoning effort; Sula dispatches that command and records status, while the wrapper remains responsible for its own model/API configuration
 
 Provider-backed artifacts can also be registered without a local materialized file path by supplying a stable project-relative path and provider item metadata. This lets Drive-synced and provider-native deliverables survive device-specific local path differences.
 

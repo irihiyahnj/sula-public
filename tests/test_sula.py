@@ -1713,11 +1713,13 @@ Canary verification fixtures need at least one non-placeholder change record so 
                 "--runner",
                 "shell-command",
                 "--runner-command",
-                "claude-code-deepseek-runner",
+                "claude --bare --print --model deepseek-v4-flash",
                 "--provider",
-                "claudecode",
-                "--model",
                 "deepseek",
+                "--model",
+                "deepseek-v4-flash",
+                "--reasoning-effort",
+                "xhigh",
                 "--workspace-mode",
                 "copy",
                 "--write-access",
@@ -1727,19 +1729,20 @@ Canary verification fixtures need at least one non-placeholder change record so 
             payload = json.loads(configure_result.stdout)
             self.assertEqual(payload["status"], "ok")
             self.assertEqual(payload["routing"]["runner"]["kind"], "shell-command")
-            self.assertEqual(payload["routing"]["runner"]["command"], "claude-code-deepseek-runner")
-            self.assertEqual(payload["routing"]["executor"]["provider"], "claudecode")
-            self.assertEqual(payload["routing"]["executor"]["model"], "deepseek")
+            self.assertEqual(payload["routing"]["runner"]["command"], "claude --bare --print --model deepseek-v4-flash")
+            self.assertEqual(payload["routing"]["executor"]["provider"], "deepseek")
+            self.assertEqual(payload["routing"]["executor"]["model"], "deepseek-v4-flash")
+            self.assertEqual(payload["routing"]["executor"]["reasoning_effort"], "xhigh")
             self.assertTrue(payload["routing"]["executor"]["write_access"])
             local_provider = json.loads((project_root / ".sula" / "local" / "agent-providers.json").read_text(encoding="utf-8"))
-            self.assertEqual(local_provider["providers"]["claudecode"]["kind"], "cli")
-            self.assertEqual(local_provider["providers"]["claudecode"]["allowed_roles"], ["executor"])
+            self.assertEqual(local_provider["providers"]["deepseek"]["kind"], "cli")
+            self.assertEqual(local_provider["providers"]["deepseek"]["allowed_roles"], ["executor"])
 
             remembered_result = run_cli("agent-routing", "configure", "--project-root", str(project_root), "--json")
             self.assertEqual(remembered_result.returncode, 0, remembered_result.stderr)
             remembered_payload = json.loads(remembered_result.stdout)
             self.assertEqual(remembered_payload["status"], "remembered")
-            self.assertEqual(remembered_payload["routing"]["executor"]["model"], "deepseek")
+            self.assertEqual(remembered_payload["routing"]["executor"]["model"], "deepseek-v4-flash")
 
             replace_result = run_cli(
                 "agent-routing",
@@ -1928,7 +1931,7 @@ Canary verification fixtures need at least one non-placeholder change record so 
             self.assertEqual(run_payload["status"], "human-review")
             self.assertEqual(run_payload["run"]["runner"], "shell-command")
             self.assertIn("runner-output.txt", run_payload["run"]["touched_files"])
-            self.assertTrue(any(item["kind"] == "runner-command" for item in run_payload["run"]["validation_evidence"]))
+            self.assertTrue(any(item["kind"] == "shell-command" for item in run_payload["run"]["validation_evidence"]))
             run_id = run_payload["run"]["run_id"]
 
             close_result = run_cli(
@@ -1950,6 +1953,86 @@ Canary verification fixtures need at least one non-placeholder change record so 
             promotions_path = project_root / ".sula" / "state" / "orchestration" / "promotion-candidates.jsonl"
             self.assertTrue(promotions_path.exists())
             self.assertIn("Shell command runner evidence", promotions_path.read_text(encoding="utf-8"))
+
+    def test_shell_runner_receives_reasoning_effort_and_compact_status_line(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            project_root = Path(tmpdir)
+            self.create_generic_project(project_root)
+
+            runner_script = project_root / "env_runner.py"
+            runner_script.write_text(
+                "\n".join(
+                    [
+                        "import json, os",
+                        "print(json.dumps({",
+                        "  'status': 'human-review',",
+                        "  'summary': 'env runner completed',",
+                        "  'metrics': {'cost_usd': 0.034},",
+                        "  'validation_evidence': [{'kind': 'env-check', 'summary': os.environ.get('SULA_MODEL_REASONING_EFFORT', '') + '/' + os.environ.get('SULA_RUNNER_EFFORT', '')}]",
+                        "}))",
+                    ]
+                ),
+                encoding="utf-8",
+            )
+            adopt_result = run_cli("adopt", "--project-root", str(project_root), "--approve")
+            self.assertEqual(adopt_result.returncode, 0, adopt_result.stderr)
+            manifest_path = project_root / ".sula" / "project.toml"
+            manifest_text = manifest_path.read_text(encoding="utf-8")
+            manifest_text = manifest_text.replace('runner = "dry-run"', 'runner = "shell-command"')
+            manifest_text = manifest_text.replace('runner_command = ""', f'runner_command = "python3 {runner_script.as_posix()}"')
+            manifest_text = manifest_text.replace('workspace_mode = "none"', 'workspace_mode = "copy"')
+            manifest_text = manifest_text.replace('[agent_routing.roles.executor]\nprovider = "local"', '[agent_routing.roles.executor]\nprovider = "deepseek"')
+            manifest_text = manifest_text.replace('model = "configured-runner"', 'model = "deepseek-v4-flash"', 1)
+            manifest_text = manifest_text.replace(
+                '[agent_routing.roles.executor]\nprovider = "deepseek"\nmodel = "deepseek-v4-flash"\nreasoning_effort = ""',
+                '[agent_routing.roles.executor]\nprovider = "deepseek"\nmodel = "deepseek-v4-flash"\nreasoning_effort = "xhigh"',
+            )
+            manifest_path.write_text(manifest_text, encoding="utf-8")
+
+            intake_result = run_cli(
+                "orchestration",
+                "intake",
+                "--project-root",
+                str(project_root),
+                "--title",
+                "Compact status smoke",
+                "--acceptance",
+                "env runner receives effort",
+                "--json",
+            )
+            self.assertEqual(intake_result.returncode, 0, intake_result.stderr)
+            task_id = json.loads(intake_result.stdout)["task"]["id"]
+
+            run_result = run_cli("orchestration", "run", "--project-root", str(project_root), "--task-id", task_id, "--json")
+            self.assertEqual(run_result.returncode, 0, run_result.stderr)
+            run_payload = json.loads(run_result.stdout)
+            self.assertEqual(run_payload["run"]["validation_evidence"][-2]["summary"], "xhigh/max")
+
+            close_result = run_cli(
+                "orchestration",
+                "close",
+                "--project-root",
+                str(project_root),
+                "--run-id",
+                run_payload["run"]["run_id"],
+                "--evidence",
+                "accepted compact status smoke",
+                "--accept",
+                "--json",
+            )
+            self.assertEqual(close_result.returncode, 0, close_result.stderr)
+
+            compact_result = run_cli("orchestration", "status", "--project-root", str(project_root), "--compact")
+            self.assertEqual(compact_result.returncode, 0, compact_result.stderr)
+            line = compact_result.stdout.strip()
+            self.assertIn("Sula: accepted", line)
+            self.assertIn("Tasks: 1/1 done", line)
+            self.assertIn("Main: codex/current-session/high", line)
+            self.assertIn("Ctx: unknown", line)
+            self.assertIn("Executor: deepseek/deepseek-v4-flash/xhigh/max", line)
+            self.assertIn("Workspace: copy", line)
+            self.assertIn("Cost: $0.034", line)
+            self.assertIn("Next: done", line)
 
     def test_automation_check_failure_creates_intent_without_manual_trigger(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
