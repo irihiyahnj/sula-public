@@ -93,6 +93,7 @@ ORCHESTRATION_STATUS_SURFACE_CHOICES = ["sula", "external"]
 ORCHESTRATION_VERIFICATION_ADAPTER_CHOICES = ["local-file", "artifact-catalog", "provider-metadata", "pull-request-url", "url"]
 ORCHESTRATION_REMOTE_VERIFICATION_POLICY_CHOICES = ["reference-only", "opportunistic", "required"]
 ORCHESTRATION_RUN_STATUSES = ["blocked", "planned", "running", "failed", "human-review", "accepted", "cancelled"]
+ORCHESTRATION_VISIBLE_ACTIVE_STATES = {"planned", "running", "human-review"}
 AGENT_ROUTING_MODE_CHOICES = ["off", "assist", "plan-execute-review", "review-only", "executor-only"]
 AGENT_ROUTING_VISIBILITY_CHOICES = ["off", "on-demand", "always"]
 AGENT_ROUTING_BUDGET_POLICY_CHOICES = ["cost-aware", "speed-first", "quality-first"]
@@ -12960,6 +12961,16 @@ def load_orchestration_active(config: ProjectConfig) -> dict[str, object]:
     return payload if isinstance(payload, dict) else {}
 
 
+def visible_orchestration_active(payload: dict[str, object]) -> dict[str, object]:
+    active_event = payload.get("active", {}) if isinstance(payload, dict) else {}
+    if not isinstance(active_event, dict):
+        return {}
+    state = normalize_optional_text(active_event.get("state", "")).lower()
+    if state not in ORCHESTRATION_VISIBLE_ACTIVE_STATES:
+        return {}
+    return payload
+
+
 def write_orchestration_active(config: ProjectConfig, payload: dict[str, object]) -> None:
     config.orchestration_state_root.mkdir(parents=True, exist_ok=True)
     orchestration_active_path(config).write_text(json.dumps(payload, indent=2, ensure_ascii=True) + "\n", encoding="utf-8")
@@ -13101,6 +13112,8 @@ def orchestration_last_event_label(run: dict[str, object]) -> str:
 
 def orchestration_next_label(status: str) -> str:
     normalized = status.lower()
+    if normalized == "idle":
+        return "none"
     if normalized == "accepted":
         return "done"
     if normalized in {"running", "active"}:
@@ -13115,14 +13128,17 @@ def orchestration_next_label(status: str) -> str:
 def orchestration_compact_status_line(config: ProjectConfig, *, ctx: str = "unknown") -> str:
     tasks, _issues = load_orchestration_tasks(config)
     run = latest_orchestration_execution_run(config)
-    status = normalize_optional_text(run.get("status", "")) or "idle"
+    run_status = normalize_optional_text(run.get("status", "")) or "idle"
+    status = run_status if run_status.lower() in ORCHESTRATION_VISIBLE_ACTIVE_STATES else "idle"
     reviewer = agent_routing_role_payload(config, "reviewer")
     planner = agent_routing_role_payload(config, "planner")
     main_role = reviewer or planner
     executor = agent_routing_role_payload(config, "executor")
     workspace = normalize_optional_text(run.get("workspace_mode", "")) or config.orchestration_workspace_mode
+    last_prefix = "Last run" if status == "idle" and normalize_optional_text(run.get("run_id", "")) else "Run"
     return (
-        f"Sula: {status} | Run: {short_orchestration_run_id(normalize_optional_text(run.get('run_id', '')))} | "
+        f"Sula: {status} | {last_prefix}: {short_orchestration_run_id(normalize_optional_text(run.get('run_id', '')))}"
+        f"{'/' + run_status if last_prefix == 'Last run' else ''} | "
         f"Tasks: {orchestration_tasks_done_label(tasks, run)} | Risk: {normalize_optional_text(run.get('risk', 'unknown')) or 'unknown'} | "
         f"Main: {role_compact_label(config, main_role, provider_default='codex')} | Ctx: {ctx} | "
         f"Executor: {role_compact_label(config, executor, include_runner_effort=True)} | Workspace: {workspace or 'unknown'} | "
@@ -13967,7 +13983,8 @@ def orchestration_status_payload(config: ProjectConfig) -> dict[str, object]:
     write_orchestration_task_snapshot(config, tasks, task_issues)
     runs = read_orchestration_runs(config)
     latest = load_json_file(orchestration_latest_path(config), default={})
-    active = load_orchestration_active(config)
+    raw_active = load_orchestration_active(config)
+    active = visible_orchestration_active(raw_active)
     counts = {status: 0 for status in ORCHESTRATION_RUN_STATUSES}
     for run in runs:
         status = normalize_optional_text(run.get("status", ""))
@@ -13996,6 +14013,7 @@ def orchestration_status_payload(config: ProjectConfig) -> dict[str, object]:
             "runs_path": orchestration_relative_path(config, orchestration_runs_path(config)),
         },
         "active": active,
+        "last_active": raw_active,
         "events": {
             "total": count_jsonl_records(orchestration_events_path(config)),
             "events_path": orchestration_relative_path(config, orchestration_events_path(config)),
@@ -14572,7 +14590,8 @@ def session_host_metadata(args: argparse.Namespace | None = None) -> dict[str, s
 
 def session_start(config: ProjectConfig, args: argparse.Namespace) -> int:
     tasks, issues = load_orchestration_tasks(config)
-    active = load_orchestration_active(config)
+    raw_active = load_orchestration_active(config)
+    active = visible_orchestration_active(raw_active)
     host = session_host_metadata(args)
     routing = agent_routing_status_payload(config, host_metadata=host)
     open_tasks = [task for task in tasks if task.get("state") in {"open", "running"}]
@@ -14590,6 +14609,7 @@ def session_start(config: ProjectConfig, args: argparse.Namespace) -> int:
             "blocked_task_count": len(blocked_tasks),
             "issues": issues,
             "active": active,
+            "last_active": raw_active,
         },
         "next_action": "Review active execution, then follow STATUS.md Handoff or the user's current request.",
     }

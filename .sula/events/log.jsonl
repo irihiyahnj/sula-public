@@ -222,3 +222,7 @@
 {"timestamp": "2026-05-06T12:56:54Z", "event_type": "report.created", "summary": "Session report written to STATUS.md under 2026-05-06.", "profile": "sula-core", "project": "sula"}
 {"timestamp": "2026-05-06T12:58:07Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "sula-core", "project": "sula"}
 {"timestamp": "2026-05-06T14:14:25Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-05-06T15:02:29Z", "event_type": "orchestration.intake", "summary": "Captured orchestration task `Smoke test DeepSeek Flash executor route`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-05-06T15:44:04Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-05-06T15:44:25Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-05-06T15:44:28Z", "event_type": "report.created", "summary": "Session report written to STATUS.md under 2026-05-06.", "profile": "sula-core", "project": "sula"}

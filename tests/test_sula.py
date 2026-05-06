@@ -1641,6 +1641,53 @@ Canary verification fixtures need at least one non-placeholder change record so 
             self.assertEqual(explicit_payload["host"]["provider"], "openai")
             self.assertEqual(explicit_payload["host"]["model"], "gpt-5.5")
 
+    def test_session_start_does_not_show_terminal_run_as_active(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            project_root = Path(tmpdir)
+            self.create_generic_project(project_root)
+
+            adopt_result = run_cli("adopt", "--project-root", str(project_root), "--approve")
+            self.assertEqual(adopt_result.returncode, 0, adopt_result.stderr)
+
+            active_path = project_root / ".sula" / "state" / "orchestration" / "active.json"
+            active_path.parent.mkdir(parents=True, exist_ok=True)
+            active_path.write_text(
+                json.dumps(
+                    {
+                        "version": "test",
+                        "updated_at": "2026-05-06T00:00:00Z",
+                        "active": {
+                            "run_id": "run-20260506T000000-smoke",
+                            "task_id": "cli:smoke",
+                            "task_title": "Smoke test",
+                            "stage": "closeout",
+                            "role": "acceptor",
+                            "provider": "human",
+                            "model": "operator",
+                            "state": "accepted",
+                        },
+                    }
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+
+            session_result = run_cli("session", "start", "--project-root", str(project_root), "--json")
+            self.assertEqual(session_result.returncode, 0, session_result.stderr)
+            payload = json.loads(session_result.stdout)
+            self.assertEqual(payload["orchestration"]["active"], {})
+            self.assertEqual(payload["orchestration"]["last_active"]["active"]["state"], "accepted")
+
+            human_result = run_cli("session", "start", "--project-root", str(project_root))
+            self.assertEqual(human_result.returncode, 0, human_result.stderr)
+            self.assertIn("Active execution: none", human_result.stdout)
+            self.assertNotIn("Task: Smoke test", human_result.stdout)
+
+            compact_result = run_cli("orchestration", "status", "--project-root", str(project_root), "--compact")
+            self.assertEqual(compact_result.returncode, 0, compact_result.stderr)
+            self.assertIn("Sula: idle", compact_result.stdout)
+            self.assertIn("Next: none", compact_result.stdout)
+
     def test_agent_routing_provider_doctor_is_local_and_secret_safe(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
             project_root = Path(tmpdir)

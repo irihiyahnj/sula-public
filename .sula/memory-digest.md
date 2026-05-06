@@ -30,6 +30,7 @@
 - Added compact orchestration status and executor effort routing to Sula Core.
 - Prepared Sula 0.18.5 so compact orchestration status and executor effort routing can roll out through the normal versioned upgrade path.
 - Finalize Sula 0.18.5 compact orchestration status release metadata and canary verification.
+- Adjusted orchestration visible-active semantics so terminal runs stay in history and no longer appear as active execution; added regression coverage and a change record.
 
 ### 2026-05-05
 
@@ -157,15 +158,15 @@
 - verification date: 2026-05-06
 - git branch: main
 - git commit: any
-- git working tree: clean
+- git working tree: dirty
 
 ## Recent Change Records
 
 - [Release Sula 0.18.5 compact orchestration status](../docs/change-records/2026-05-06-release-sula-0-18-5-compact-orchestration-status.md)
+- [2026-05-06 - Fix Orchestration Status Terminal Active Display](../docs/change-records/2026-05-06-fix-orchestration-status-terminal-active-display.md)
 - [2026-05-06 - Add Compact Orchestration Status And Effort Routing](../docs/change-records/2026-05-06-add-compact-orchestration-status-and-effort-routing.md)
 - [Implement Sula 0.17.0 agent-native control surface](../docs/change-records/2026-05-05-implement-sula-0-17-0-agent-native-control-surface.md)
 - [Define Sula 0.17.0 agent-native project OS upgrade](../docs/change-records/2026-05-05-define-sula-0-17-0-agent-native-project-os-upgrade.md)
-- [Commit 0.15.0 and Fix Self-referencing Validation](../docs/change-records/2026-05-02-commit-0-15-0-and-fix-self-referencing-validation.md)
 
 ## Release History
 
@@ -184,6 +185,9 @@
 ## Active Orchestration Tasks
 
 - none
+
+### Pending Runs
+- run `run-20260506T150315-smoke-test-deepseek-flash-executor-route`: status=blocked, task=cli:smoke-test-deepseek-flash-executor-route
 
 ## Key References
 

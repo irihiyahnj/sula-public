@@ -111,7 +111,34 @@
       ],
       "created_at": "2026-05-05T22:12:51Z",
       "updated_at": "2026-05-05T22:12:51Z"
+    },
+    {
+      "id": "cli:smoke-test-deepseek-flash-executor-route",
+      "source_kind": "cli-intent",
+      "source_url": "",
+      "identifier": "smoke-test-deepseek-flash-executor-route",
+      "title": "Smoke test DeepSeek Flash executor route",
+      "description": "Verify that Sula can dispatch a low-risk no-op task to the configured DeepSeek Flash executor through Claude Code.",
+      "state": "completed",
+      "priority": "low",
+      "labels": [
+        "smoke-test",
+        "agent-routing"
+      ],
+      "blocked_by": [],
+      "project_slug": "sula",
+      "acceptance_criteria": [
+        "Executor returns successfully through the configured Sula runner route."
+      ],
+      "validation_requirements": [
+        "python3 scripts/sula.py agent-routing doctor --project-root . --json"
+      ],
+      "risk_hints": [],
+      "risk": "low",
+      "trigger_event_kind": "cli-intent",
+      "created_at": "2026-05-06T15:02:29Z",
+      "updated_at": "2026-05-06T15:08:45Z"
     }
   ],
-  "updated_at": "2026-05-05T22:12:51Z"
+  "updated_at": "2026-05-06T15:08:45Z"
 }
