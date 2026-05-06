@@ -1,0 +1,210 @@
+{"timestamp": "2026-04-12T00:00:40Z", "event_type": "sync.applied", "summary": "Synchronized managed Sula files.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-04-12T00:04:48Z", "event_type": "sync.applied", "summary": "Synchronized managed Sula files.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-04-12T00:08:18Z", "event_type": "sync.applied", "summary": "Synchronized managed Sula files.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-04-12T00:13:53Z", "event_type": "query.rebuild", "summary": "Rebuilt kernel state before query.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-04-12T00:13:53Z", "event_type": "sync.applied", "summary": "Synchronized managed Sula files.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-04-12T00:16:10Z", "event_type": "sync.applied", "summary": "Synchronized managed Sula files.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-04-12T00:18:07Z", "event_type": "sync.applied", "summary": "Synchronized managed Sula files.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-04-12T00:18:45Z", "event_type": "record.change", "summary": "Added change record `Add kernel object, query, and bundle contracts`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-04-12T00:35:20Z", "event_type": "sync.applied", "summary": "Synchronized managed Sula files.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-04-12T00:36:13Z", "event_type": "sync.applied", "summary": "Synchronized managed Sula files.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-04-12T03:42:03Z", "event_type": "sync.applied", "summary": "Synchronized managed Sula files.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-04-12T07:05:37Z", "event_type": "sync.applied", "summary": "Synchronized managed Sula files.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-04-12T07:46:20Z", "event_type": "sync.applied", "summary": "Synchronized managed Sula files.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-04-12T08:30:22Z", "event_type": "sync.applied", "summary": "Synchronized managed Sula files.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-04-12T10:18:02Z", "event_type": "sync.applied", "summary": "Synchronized managed Sula files.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-04-12T10:46:47Z", "event_type": "sync.applied", "summary": "Synchronized managed Sula files.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-04-12T10:53:29Z", "event_type": "sync.applied", "summary": "Synchronized managed Sula files.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-04-12T10:56:55Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-04-12T11:48:05Z", "event_type": "record.release", "summary": "Added release record `Launch feedback bundles and Core review workflow in Sula 0.11.0`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-04-12T11:49:10Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-04-12T11:50:54Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-04-12T11:52:25Z", "event_type": "sync.applied", "summary": "Synchronized managed Sula files.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-04-12T11:55:02Z", "event_type": "record.release", "summary": "Added release record `Release Sula 0.11.0 formal document workflows and feedback bundles`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-04-12T11:55:55Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-04-15T00:50:39Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-04-15T00:50:39Z", "event_type": "sync.applied", "summary": "Synchronized managed Sula files.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-04-15T01:19:45Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-04-15T01:19:45Z", "event_type": "sync.applied", "summary": "Synchronized managed Sula files.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-04-15T01:22:23Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-04-15T01:22:23Z", "event_type": "sync.applied", "summary": "Synchronized managed Sula files.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-04-15T04:15:37Z", "event_type": "sync.applied", "summary": "Synchronized enabled Sula projections.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-04-15T04:16:04Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-04-16T01:27:48Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-04-16T01:28:31Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-04-16T01:28:31Z", "event_type": "sync.applied", "summary": "Synchronized enabled Sula projections.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-04-16T03:10:37Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-04-16T03:36:24Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-04-16T03:36:24Z", "event_type": "sync.applied", "summary": "Synchronized enabled Sula projections.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-04-16T03:38:11Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-04-16T04:05:20Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-04-16T04:05:20Z", "event_type": "sync.applied", "summary": "Synchronized enabled Sula projections.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-04-16T04:17:21Z", "event_type": "sync.applied", "summary": "Synchronized enabled Sula projections.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-04-16T04:17:47Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-04-16T04:24:48Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-04-16T04:24:48Z", "event_type": "sync.applied", "summary": "Synchronized enabled Sula projections.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-04-16T08:58:58Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-04-16T15:52:00Z", "event_type": "sync.applied", "summary": "Synchronized enabled Sula projections.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-04-16T15:52:31Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-04-18T01:57:16Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-04-18T02:16:58Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-04-18T02:51:02Z", "event_type": "sync.applied", "summary": "Synchronized enabled Sula projections.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-04-18T02:51:42Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-04-18T02:58:49Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-04-18T02:58:49Z", "event_type": "sync.applied", "summary": "Synchronized enabled Sula projections.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-04-18T02:59:02Z", "event_type": "sync.applied", "summary": "Synchronized enabled Sula projections.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-04-18T02:59:09Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-04-18T03:45:39Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-04-18T03:52:14Z", "event_type": "sync.applied", "summary": "Synchronized enabled Sula projections.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-04-18T03:52:14Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-04-18T04:00:48Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-04-18T04:00:49Z", "event_type": "sync.applied", "summary": "Synchronized enabled Sula projections.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-04-21T16:35:46Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-04-21T16:39:22Z", "event_type": "record.release", "summary": "Added release record `Release Sula 0.14.0 handoff contract and Git release upgrade flow`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-04-21T16:40:03Z", "event_type": "sync.applied", "summary": "Synchronized enabled Sula projections.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-04-21T16:40:38Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-04-21T16:44:36Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-04-21T16:46:54Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-04-21T16:48:08Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-04-30T23:34:33Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-05-01T00:16:09Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-05-01T01:31:08Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-05-01T01:31:58Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-05-01T02:10:56Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-05-01T02:12:34Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-05-01T02:13:18Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-05-01T02:45:05Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-05-01T02:46:03Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-05-01T02:46:48Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-05-01T03:14:20Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-05-01T03:15:03Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-05-01T03:15:41Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-05-01T03:37:50Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-05-01T03:39:06Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-05-01T03:40:10Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-05-01T04:05:46Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-05-01T04:06:31Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-05-01T04:37:41Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-05-01T04:38:36Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-05-01T04:39:33Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-05-01T05:13:04Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-05-01T05:13:39Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-05-01T05:14:11Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-05-01T06:19:28Z", "event_type": "sync.applied", "summary": "Synchronized enabled Sula projections.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-05-01T06:21:24Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-05-01T06:42:02Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-05-01T07:28:37Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-05-01T07:29:22Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-05-01T07:31:38Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-05-01T07:51:01Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-05-01T08:21:22Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-05-01T09:59:07Z", "event_type": "record.change", "summary": "Added change record `Default full Sula surface and activity feedback`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-05-01T09:59:32Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-05-01T10:01:42Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-05-01T11:02:42Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-05-02T00:11:31Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-05-02T01:14:50Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-05-02T01:16:40Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-05-02T01:18:05Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-05-02T01:19:22Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-05-02T01:20:44Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-05-02T01:21:47Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-05-02T01:34:10Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-05-02T01:36:02Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-05-02T01:38:39Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-05-02T01:52:21Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-05-02T01:54:21Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-05-02T01:58:03Z", "event_type": "workflow.scaffold", "summary": "Created workflow plan `Sula 0.15.1 session report and STATUS overflow mechanism`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-05-02T02:10:38Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-05-02T02:11:56Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-05-02T02:12:46Z", "event_type": "report.created", "summary": "Session report written to STATUS.md under 2026-05-02.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-05-02T04:24:55Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-05-02T04:44:17Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-05-02T04:49:28Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-05-02T04:49:52Z", "event_type": "report.created", "summary": "Session report written to STATUS.md under 2026-05-02.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-05-02T05:08:02Z", "event_type": "sync.applied", "summary": "Synchronized enabled Sula projections.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-05-02T05:08:32Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-05-02T05:09:54Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-05-02T05:27:39Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-05-02T05:28:58Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-05-02T05:36:13Z", "event_type": "sync.applied", "summary": "Synchronized enabled Sula projections.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-05-02T05:36:38Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-05-02T05:40:24Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-05-02T05:40:40Z", "event_type": "report.created", "summary": "Session report written to STATUS.md under 2026-05-02.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-05-02T05:41:46Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-05-02T05:54:20Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-05-02T05:54:56Z", "event_type": "report.created", "summary": "Session report written to STATUS.md under 2026-05-02.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-05-02T05:57:47Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-05-02T05:58:07Z", "event_type": "report.created", "summary": "Session report written to STATUS.md under 2026-05-02.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-05-02T06:13:40Z", "event_type": "workflow.scaffold", "summary": "Created workflow spec `Test the workflow start command`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-05-02T06:14:02Z", "event_type": "workflow.scaffold", "summary": "Created workflow plan `Test the workflow start command`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-05-02T06:14:23Z", "event_type": "workflow.scaffold", "summary": "Created workflow review `Test the workflow start command`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-05-02T06:14:44Z", "event_type": "workflow.branch", "summary": "Created workflow branch `codex/test-the-workflow-start-command`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-05-02T06:15:08Z", "event_type": "orchestration.intake", "summary": "Captured orchestration task `Test the workflow start command`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-05-02T06:17:10Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-05-02T06:17:42Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-05-02T06:18:08Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-05-02T06:18:25Z", "event_type": "report.created", "summary": "Session report written to STATUS.md under 2026-05-02.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-05-02T06:18:58Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-05-02T07:43:37Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-05-02T08:29:13Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-05-02T08:30:01Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-05-02T08:30:44Z", "event_type": "report.created", "summary": "Session report written to STATUS.md under 2026-05-02.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-05-02T08:31:02Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-05-02T08:31:46Z", "event_type": "report.created", "summary": "Session report written to STATUS.md under 2026-05-02.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-05-02T11:25:28Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-05-02T11:25:44Z", "event_type": "report.created", "summary": "Session report written to STATUS.md under 2026-05-02.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-05-02T12:09:03Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-05-02T12:09:20Z", "event_type": "report.created", "summary": "Session report written to STATUS.md under 2026-05-02.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-05-02T12:10:48Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-05-02T12:11:21Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-05-02T12:12:01Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-05-02T12:53:09Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-05-02T12:53:37Z", "event_type": "report.created", "summary": "Session report written to STATUS.md under 2026-05-02.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-05-04T00:57:05Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-05-04T00:57:35Z", "event_type": "report.created", "summary": "Session report written to STATUS.md under 2026-05-04.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-05-04T00:58:41Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-05-04T01:00:25Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-05-05T01:39:13Z", "event_type": "workflow.scaffold", "summary": "Created workflow spec `Execute Sula 0.17.0 agent-native project OS upgrade`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-05-05T01:39:38Z", "event_type": "workflow.scaffold", "summary": "Created workflow plan `Execute Sula 0.17.0 agent-native project OS upgrade`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-05-05T01:40:02Z", "event_type": "workflow.scaffold", "summary": "Created workflow review `Execute Sula 0.17.0 agent-native project OS upgrade`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-05-05T01:40:28Z", "event_type": "orchestration.intake", "summary": "Captured orchestration task `Execute Sula 0.17.0 agent-native project OS upgrade`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-05-05T01:42:12Z", "event_type": "record.change", "summary": "Added change record `Define Sula 0.17.0 agent-native project OS upgrade`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-05-05T01:45:13Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-05-05T01:46:31Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-05-05T02:13:41Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-05-05T02:14:04Z", "event_type": "report.created", "summary": "Session report written to STATUS.md under 2026-05-05.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-05-05T02:32:03Z", "event_type": "record.change", "summary": "Added change record `Implement Sula 0.17.0 agent-native control surface`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-05-05T02:39:20Z", "event_type": "sync.applied", "summary": "Synchronized enabled Sula projections.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-05-05T02:39:49Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-05-05T03:12:42Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-05-05T03:42:47Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-05-05T03:43:15Z", "event_type": "report.created", "summary": "Session report written to STATUS.md under 2026-05-05.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-05-05T03:45:24Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-05-05T03:45:50Z", "event_type": "report.created", "summary": "Session report written to STATUS.md under 2026-05-05.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-05-05T04:19:21Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-05-05T04:21:59Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-05-05T04:23:14Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-05-05T04:23:40Z", "event_type": "report.created", "summary": "Session report written to STATUS.md under 2026-05-05.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-05-05T04:27:35Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-05-05T04:28:00Z", "event_type": "report.created", "summary": "Session report written to STATUS.md under 2026-05-05.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-05-05T04:28:43Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-05-05T22:13:47Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-05-05T23:00:17Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-05-05T23:01:00Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-05-06T00:41:37Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-05-06T00:41:53Z", "event_type": "report.created", "summary": "Session report written to STATUS.md under 2026-05-06.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-05-06T00:44:11Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-05-06T01:06:56Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-05-06T01:07:34Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-05-06T01:07:50Z", "event_type": "report.created", "summary": "Session report written to STATUS.md under 2026-05-06.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-05-06T01:17:52Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-05-06T01:18:11Z", "event_type": "report.created", "summary": "Session report written to STATUS.md under 2026-05-06.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-05-06T01:19:16Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-05-06T01:19:46Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-05-06T01:20:26Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-05-06T01:20:46Z", "event_type": "report.created", "summary": "Session report written to STATUS.md under 2026-05-06.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-05-06T01:24:30Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-05-06T01:24:48Z", "event_type": "report.created", "summary": "Session report written to STATUS.md under 2026-05-06.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-05-06T01:27:39Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-05-06T01:27:55Z", "event_type": "report.created", "summary": "Session report written to STATUS.md under 2026-05-06.", "profile": "sula-core", "project": "sula"}

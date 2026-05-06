@@ -1,0 +1,29 @@
+# {{PROJECT_NAME}} Deploy And Rollback Runbook
+
+This runbook covers the standard release path for this profile.
+
+## Branch Model
+
+- primary branch: `{{PRIMARY_BRANCH}}`
+- working branch prefix: `{{WORKING_BRANCH_PREFIX}}`
+- deployment branch: `{{DEPLOYMENT_BRANCH}}`
+
+## Standard Flow
+
+1. implement in a working branch
+2. run project checks
+3. update traceability
+4. push working branch
+5. promote only when release risk is acceptable
+
+## Minimum Checks
+
+- `{{TYPECHECK_COMMAND}}`
+- `{{BUILD_COMMAND}}`
+- release checklist
+- smoke checklist for impacted flows
+
+## Rollback Notes
+
+- code rollback is not always data rollback
+- if rollout depends on ERPNext setup, rollback instructions must cover that dependency explicitly
