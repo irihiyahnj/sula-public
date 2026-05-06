@@ -1,5 +1,5 @@
 {
-  "version": "0.18.10",
+  "version": "0.18.11",
   "profile": "sula-core",
   "relations": [
     {
@@ -155,6 +155,16 @@
     {
       "from": "change:2026-05-06-adjust-executor-default-to-xhigh-open-cost",
       "to": "source:docs-change-records-2026-05-06-adjust-executor-default-to-xhigh-open-cost-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "change:2026-05-06-add-supervised-executor-retry-loop",
+      "to": "source:docs-change-records-2026-05-06-add-supervised-executor-retry-loop-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "agreement:2026-05-06-add-supervised-executor-retry-loop",
+      "to": "source:docs-change-records-2026-05-06-add-supervised-executor-retry-loop-md",
       "type": "derived-from"
     },
     {
@@ -633,6 +643,31 @@
       "type": "derived-from"
     },
     {
+      "from": "release:2026-05-06-release-sula-0-18-11-supervised-executor-retry",
+      "to": "source:docs-releases-2026-05-06-release-sula-0-18-11-supervised-executor-retry-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "milestone:2026-05-06-release-sula-0-18-11-supervised-executor-retry",
+      "to": "source:docs-releases-2026-05-06-release-sula-0-18-11-supervised-executor-retry-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "risk:docs-releases-2026-05-06-release-sula-0-18-11-supervised-executor-retry-md:failure-classification-is-intentionally-heuristic-and-should-be-tuned-from",
+      "to": "source:docs-releases-2026-05-06-release-sula-0-18-11-supervised-executor-retry-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "risk:docs-releases-2026-05-06-release-sula-0-18-11-supervised-executor-retry-md:sula-passes-reviewer-feedback-to-runners-but-project-local-wrappers-still",
+      "to": "source:docs-releases-2026-05-06-release-sula-0-18-11-supervised-executor-retry-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "risk:docs-releases-2026-05-06-release-sula-0-18-11-supervised-executor-retry-md:the-runner-health-score-is-descriptive-not-a-hard-quality-gate",
+      "to": "source:docs-releases-2026-05-06-release-sula-0-18-11-supervised-executor-retry-md",
+      "type": "derived-from"
+    },
+    {
       "from": "release:2026-05-06-release-sula-0-18-10-local-executor-wrapper-contract",
       "to": "source:docs-releases-2026-05-06-release-sula-0-18-10-local-executor-wrapper-contract-md",
       "type": "derived-from"
@@ -1019,11 +1054,6 @@
     },
     {
       "from": "rule:change-records-md:use-release-records-when-the-rollout-itself-needs-durable-history",
-      "to": "source:change-records-md",
-      "type": "derived-from"
-    },
-    {
-      "from": "agreement:source:change-records-md",
       "to": "source:change-records-md",
       "type": "derived-from"
     },
@@ -1438,6 +1468,16 @@
       "type": "derived-from"
     },
     {
+      "from": "object:source:docs-change-records-2026-05-06-add-supervised-executor-retry-loop-md",
+      "to": "source:docs-change-records-2026-05-06-add-supervised-executor-retry-loop-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "agreement:source:docs-change-records-2026-05-06-add-supervised-executor-retry-loop-md",
+      "to": "source:docs-change-records-2026-05-06-add-supervised-executor-retry-loop-md",
+      "type": "derived-from"
+    },
+    {
       "from": "object:source:docs-change-records-2026-05-06-adjust-executor-default-to-xhigh-open-cost-md",
       "to": "source:docs-change-records-2026-05-06-adjust-executor-default-to-xhigh-open-cost-md",
       "type": "derived-from"
@@ -1815,6 +1855,11 @@
     {
       "from": "agreement:source:docs-releases-2026-05-06-release-sula-0-18-10-local-executor-wrapper-contract-md",
       "to": "source:docs-releases-2026-05-06-release-sula-0-18-10-local-executor-wrapper-contract-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "object:source:docs-releases-2026-05-06-release-sula-0-18-11-supervised-executor-retry-md",
+      "to": "source:docs-releases-2026-05-06-release-sula-0-18-11-supervised-executor-retry-md",
       "type": "derived-from"
     },
     {
@@ -2435,16 +2480,6 @@
     {
       "from": "object:source:registry-feedback-catalog-json",
       "to": "source:registry-feedback-catalog-json",
-      "type": "derived-from"
-    },
-    {
-      "from": "object:source:schema-project-example-toml",
-      "to": "source:schema-project-example-toml",
-      "type": "derived-from"
-    },
-    {
-      "from": "object:source:schema-project-schema-json",
-      "to": "source:schema-project-schema-json",
       "type": "derived-from"
     }
   ]

@@ -94,6 +94,18 @@ ORCHESTRATION_VERIFICATION_ADAPTER_CHOICES = ["local-file", "artifact-catalog", 
 ORCHESTRATION_REMOTE_VERIFICATION_POLICY_CHOICES = ["reference-only", "opportunistic", "required"]
 ORCHESTRATION_RUN_STATUSES = ["blocked", "planned", "running", "failed", "human-review", "accepted", "cancelled"]
 ORCHESTRATION_VISIBLE_ACTIVE_STATES = {"planned", "running", "human-review"}
+ORCHESTRATION_FAILURE_TYPE_CHOICES = [
+    "test_failed",
+    "check_failed",
+    "permission_blocked",
+    "dependency_missing",
+    "scope_unclear",
+    "bad_diff",
+    "hallucinated_file",
+    "timeout",
+    "runner_failed",
+    "unknown",
+]
 AGENT_ROUTING_MODE_CHOICES = ["off", "assist", "plan-execute-review", "review-only", "executor-only"]
 AGENT_ROUTING_VISIBILITY_CHOICES = ["off", "on-demand", "always"]
 AGENT_ROUTING_BUDGET_POLICY_CHOICES = ["cost-aware", "speed-first", "quality-first"]
@@ -1885,7 +1897,21 @@ def parse_args() -> argparse.Namespace:
     orchestration_run_cmd = orchestration_sub.add_parser("run", help="Create a bounded orchestration run for one task")
     add_project_root_arg(orchestration_run_cmd)
     orchestration_run_cmd.add_argument("--task-id", required=True)
+    orchestration_run_cmd.add_argument(
+        "--from-run-id",
+        help="Retry from a previous run after reviewer feedback has been recorded.",
+    )
     orchestration_run_cmd.add_argument("--json", action="store_true", help="Print JSON instead of human-readable output")
+
+    orchestration_review_cmd = orchestration_sub.add_parser("review", help="Record reviewer diagnosis for a failed or incomplete run")
+    add_project_root_arg(orchestration_review_cmd)
+    orchestration_review_cmd.add_argument("--run-id", required=True)
+    orchestration_review_cmd.add_argument("--failure-type", choices=ORCHESTRATION_FAILURE_TYPE_CHOICES)
+    orchestration_review_cmd.add_argument("--problem", required=True, help="What the reviewer found wrong or incomplete.")
+    orchestration_review_cmd.add_argument("--required-fix", required=True, help="Specific instruction the executor should apply next.")
+    orchestration_review_cmd.add_argument("--validation", action="append", default=[], help="Validation to run or preserve on retry. Repeatable.")
+    orchestration_review_cmd.add_argument("--do-not", dest="do_not", action="append", default=[], help="Scope guard for the retry. Repeatable.")
+    orchestration_review_cmd.add_argument("--json", action="store_true", help="Print JSON instead of human-readable output")
 
     orchestration_close_cmd = orchestration_sub.add_parser("close", help="Evaluate closeout evidence and optionally accept a run")
     add_project_root_arg(orchestration_close_cmd)
@@ -12956,6 +12982,8 @@ def handle_orchestration_command(config: ProjectConfig, args: argparse.Namespace
         return orchestration_trigger(config, args)
     if args.orchestration_command == "run":
         return orchestration_run(config, args)
+    if args.orchestration_command == "review":
+        return orchestration_review(config, args)
     if args.orchestration_command == "close":
         return orchestration_close(config, args)
     if args.orchestration_command == "cancel":
@@ -13082,6 +13110,14 @@ def read_orchestration_runs(config: ProjectConfig) -> list[dict[str, object]]:
 
 def append_orchestration_run(config: ProjectConfig, run: dict[str, object]) -> None:
     append_jsonl_object(orchestration_runs_path(config), run)
+
+
+def find_orchestration_run(config: ProjectConfig, run_id: str) -> tuple[int, dict[str, object] | None, list[dict[str, object]]]:
+    runs = read_orchestration_runs(config)
+    for index, run in enumerate(runs):
+        if normalize_optional_text(run.get("run_id", "")) == run_id:
+            return index, run, runs
+    return -1, None, runs
 
 
 def write_orchestration_latest(config: ProjectConfig, payload: dict[str, object]) -> None:
@@ -14133,6 +14169,85 @@ def orchestration_budget_payload(config: ProjectConfig, runs: list[dict[str, obj
     }
 
 
+def orchestration_runner_health_payload(config: ProjectConfig, runs: list[dict[str, object]]) -> dict[str, object]:
+    groups: dict[str, dict[str, object]] = {}
+    for run in runs:
+        runner = normalize_optional_text(run.get("runner", "")) or config.orchestration_runner
+        agent_routing = run.get("agent_routing", {})
+        roles = agent_routing.get("roles", {}) if isinstance(agent_routing, dict) else {}
+        executor = roles.get("executor", {}) if isinstance(roles, dict) else {}
+        provider = normalize_optional_text(executor.get("provider", "")) if isinstance(executor, dict) else ""
+        model = normalize_optional_text(executor.get("model", "")) if isinstance(executor, dict) else ""
+        key = "|".join([runner, provider or "unknown", model or "unknown"])
+        group = groups.setdefault(
+            key,
+            {
+                "runner": runner,
+                "provider": provider or "unknown",
+                "model": model or "unknown",
+                "runs": 0,
+                "accepted": 0,
+                "human_review": 0,
+                "failed_or_blocked": 0,
+                "total_runtime_minutes": 0,
+                "total_cost_usd": 0.0,
+                "total_tokens": 0,
+                "max_routing_cycle": 1,
+                "last_failure_type": "unknown",
+            },
+        )
+        group["runs"] = int(group["runs"]) + 1
+        status = normalize_optional_text(run.get("status", ""))
+        if status == "accepted":
+            group["accepted"] = int(group["accepted"]) + 1
+        elif status == "human-review":
+            group["human_review"] = int(group["human_review"]) + 1
+        elif status in {"failed", "blocked", "cancelled"}:
+            group["failed_or_blocked"] = int(group["failed_or_blocked"]) + 1
+        metrics = run.get("metrics", {})
+        if isinstance(metrics, dict):
+            try:
+                group["total_runtime_minutes"] = int(group["total_runtime_minutes"]) + int(metrics.get("runtime_minutes", 0) or 0)
+            except (TypeError, ValueError):
+                pass
+            try:
+                group["total_cost_usd"] = float(group["total_cost_usd"]) + float(metrics.get("cost_usd", 0) or 0)
+            except (TypeError, ValueError):
+                pass
+            try:
+                group["total_tokens"] = int(group["total_tokens"]) + int(metrics.get("token_count", 0) or 0)
+            except (TypeError, ValueError):
+                pass
+        try:
+            group["max_routing_cycle"] = max(int(group["max_routing_cycle"]), int(run.get("routing_cycle", 1) or 1))
+        except (TypeError, ValueError):
+            pass
+        classification = run.get("failure_classification", {})
+        if isinstance(classification, dict):
+            failure_type = normalize_optional_text(classification.get("failure_type", ""))
+            if failure_type and failure_type != "unknown":
+                group["last_failure_type"] = failure_type
+    entries: list[dict[str, object]] = []
+    for group in groups.values():
+        runs_count = max(1, int(group["runs"]))
+        failed = int(group["failed_or_blocked"])
+        accepted = int(group["accepted"])
+        score = max(0, min(100, int(round(((accepted + int(group["human_review"]) * 0.5) / runs_count) * 100)) - failed * 10))
+        entries.append(
+            {
+                **group,
+                "score": score,
+                "average_runtime_minutes": round(float(group["total_runtime_minutes"]) / runs_count, 2),
+                "average_cost_usd": round(float(group["total_cost_usd"]) / runs_count, 6),
+            }
+        )
+    entries.sort(key=lambda item: (str(item["runner"]), str(item["provider"]), str(item["model"])))
+    return {
+        "summary": "Health is descriptive: accepted runs score highest, human-review counts as partial, failed/blocked runs reduce score.",
+        "entries": entries,
+    }
+
+
 def orchestration_status_payload(config: ProjectConfig) -> dict[str, object]:
     tasks, task_issues = load_orchestration_tasks(config)
     write_orchestration_task_snapshot(config, tasks, task_issues)
@@ -14182,6 +14297,7 @@ def orchestration_status_payload(config: ProjectConfig) -> dict[str, object]:
             "promotion_candidates_path": orchestration_relative_path(config, orchestration_promotion_candidates_path(config)),
         },
         "budget": budget,
+        "runner_health": orchestration_runner_health_payload(config, runs),
     }
 
 
@@ -15145,9 +15261,113 @@ def redact_runner_text(text: str) -> str:
     return redacted[:8000]
 
 
-def executor_execution_packet(config: ProjectConfig, task: dict[str, object] | None) -> dict[str, object]:
-    task_payload = task or {}
+def latest_review_feedback(run: dict[str, object] | None) -> dict[str, object]:
+    if not isinstance(run, dict):
+        return {}
+    feedback = run.get("review_feedback", [])
+    if isinstance(feedback, list) and feedback:
+        latest = feedback[-1]
+        return latest if isinstance(latest, dict) else {}
+    if isinstance(feedback, dict):
+        return feedback
+    return {}
+
+
+def review_feedback_packet(run: dict[str, object] | None) -> dict[str, object]:
+    feedback = latest_review_feedback(run)
+    if not feedback:
+        return {}
     return {
+        "cycle": feedback.get("cycle", 1),
+        "failure_type": normalize_optional_text(feedback.get("failure_type", "unknown")) or "unknown",
+        "problem": normalize_optional_text(feedback.get("problem", "")),
+        "required_fix": normalize_optional_text(feedback.get("required_fix", "")),
+        "validation": normalize_task_string_list(feedback.get("validation")),
+        "do_not": normalize_task_string_list(feedback.get("do_not")),
+        "created_at": normalize_optional_text(feedback.get("created_at", "")),
+    }
+
+
+def classify_runner_failure(
+    *,
+    status: str,
+    returncode: int,
+    timed_out: bool,
+    stdout: str,
+    stderr: str,
+    evidence_summary: str,
+    blocked_reasons: list[str],
+    touched_files: list[str],
+    task: dict[str, object] | None = None,
+) -> dict[str, object]:
+    if status not in {"failed", "blocked", "cancelled"} and not timed_out and returncode == 0:
+        return {
+            "failure_type": "unknown",
+            "status": status,
+            "returncode": returncode,
+            "timed_out": timed_out,
+            "signals": {
+                "blocked_reasons": blocked_reasons,
+                "hallucinated_files": [],
+                "summary": evidence_summary,
+            },
+        }
+    text = " ".join(
+        [
+            status,
+            str(returncode),
+            stdout,
+            stderr,
+            evidence_summary,
+            " ".join(blocked_reasons),
+        ]
+    ).lower()
+    failure_type = "unknown"
+    if timed_out or returncode == 124 or "timed out" in text or "timeout" in text:
+        failure_type = "timeout"
+    elif "permission" in text or "denied" in text or "not allowed" in text or "write access" in text:
+        failure_type = "permission_blocked"
+    elif "module not found" in text or "no module named" in text or "command not found" in text or "dependency" in text:
+        failure_type = "dependency_missing"
+    elif "pytest" in text or "test failed" in text or "tests failed" in text or "assertionerror" in text:
+        failure_type = "test_failed"
+    elif "sula check" in text or "check failed" in text or "sula check failed" in text:
+        failure_type = "check_failed"
+    elif "scope" in text or "unclear" in text or "ambiguous" in text:
+        failure_type = "scope_unclear"
+    elif "diff" in text or "unrelated" in text or "drive-by" in text or "format churn" in text:
+        failure_type = "bad_diff"
+
+    hallucinated_files: list[str] = []
+    root = task.get("_project_root") if isinstance(task, dict) else None
+    if isinstance(root, Path):
+        for item in touched_files:
+            if item and not (root / item).exists():
+                hallucinated_files.append(item)
+        if hallucinated_files:
+            failure_type = "hallucinated_file"
+    if failure_type == "unknown" and status in {"failed", "blocked"}:
+        failure_type = "runner_failed"
+    return {
+        "failure_type": failure_type,
+        "status": status,
+        "returncode": returncode,
+        "timed_out": timed_out,
+        "signals": {
+            "blocked_reasons": blocked_reasons,
+            "hallucinated_files": hallucinated_files,
+            "summary": evidence_summary,
+        },
+    }
+
+
+def executor_execution_packet(
+    config: ProjectConfig,
+    task: dict[str, object] | None,
+    run: dict[str, object] | None = None,
+) -> dict[str, object]:
+    task_payload = task or {}
+    packet = {
         "task_id": normalize_optional_text(task_payload.get("id", "")),
         "title": normalize_optional_text(task_payload.get("title", "")),
         "description": normalize_optional_text(task_payload.get("description", "")),
@@ -15171,6 +15391,12 @@ def executor_execution_packet(config: ProjectConfig, task: dict[str, object] | N
             "required_fields": ["status", "summary", "touched_files", "validation_evidence", "metrics"],
         },
     }
+    feedback = review_feedback_packet(run)
+    if feedback:
+        packet["review_feedback"] = feedback
+        packet["routing_cycle"] = int(run.get("routing_cycle", feedback.get("cycle", 1)) if isinstance(run, dict) else feedback.get("cycle", 1) or 1)
+        packet["retry_instruction"] = "Apply the reviewer feedback exactly, keep the diff scoped, and report validation evidence."
+    return packet
 
 
 def executor_timeout_seconds(config: ProjectConfig) -> int:
@@ -15237,7 +15463,8 @@ def run_shell_command_adapter(config: ProjectConfig, run: dict[str, object], tas
     env = os.environ.copy()
     role_payload = agent_routing_role_payload(config, "executor")
     executor_contract = executor_contract_payload(config)
-    execution_packet = executor_execution_packet(config, task)
+    execution_packet = executor_execution_packet(config, task, run)
+    review_feedback = review_feedback_packet(run)
     env.update(
         {
             "SULA_RUN_ID": normalize_optional_text(run.get("run_id", "")),
@@ -15257,6 +15484,7 @@ def run_shell_command_adapter(config: ProjectConfig, run: dict[str, object], tas
             "SULA_EXECUTOR_MAX_COST_CENTS": str(executor_contract.get("max_cost_cents", "")),
             "SULA_EXECUTOR_CONTRACT_JSON": json.dumps(executor_contract, ensure_ascii=True),
             "SULA_EXECUTION_PACKET_JSON": json.dumps(execution_packet, ensure_ascii=True),
+            "SULA_REVIEW_FEEDBACK_JSON": json.dumps(review_feedback, ensure_ascii=True),
         }
     )
     try:
@@ -15313,7 +15541,8 @@ def codex_runner_request_payload(config: ProjectConfig, run: dict[str, object], 
         "quality_checklist": agent_quality_checklist_payload(config),
         "agent_routing": agent_routing_config_payload(config),
         "executor_contract": executor_contract_payload(config),
-        "execution_packet": executor_execution_packet(config, task),
+        "execution_packet": executor_execution_packet(config, task, run),
+        "review_feedback": review_feedback_packet(run),
         "role": role,
         "model_hint": {
             "role": role,
@@ -15386,6 +15615,27 @@ def apply_agent_runner_response(
     run["ended_at"] = current_utc_timestamp()
     run["metrics"] = metrics
     run["touched_files"] = sorted(set([*touched_files, *response_touched]))
+    blocked_reasons = normalize_task_string_list(run.get("blocked_reasons"))
+    failure_classification = classify_runner_failure(
+        status=status,
+        returncode=returncode,
+        timed_out=timed_out,
+        stdout=stdout,
+        stderr=stderr,
+        evidence_summary=evidence_summary,
+        blocked_reasons=blocked_reasons,
+        touched_files=run["touched_files"],
+    )
+    run["failure_classification"] = failure_classification
+    run["runner_score"] = {
+        "runner": runner_name,
+        "status": status,
+        "routing_cycle": int(run.get("routing_cycle", 1) or 1),
+        "runtime_minutes": runtime_minutes,
+        "token_count": metrics.get("token_count", 0),
+        "cost_usd": metrics.get("cost_usd", 0),
+        "touched_file_count": len(run["touched_files"]),
+    }
     response_evidence = (response_payload or {}).get("validation_evidence", [])
     validation_evidence = [item for item in run.get("validation_evidence", []) if isinstance(item, dict)]
     if isinstance(response_evidence, list):
@@ -15405,6 +15655,16 @@ def apply_agent_runner_response(
     response_links = normalize_task_string_list((response_payload or {}).get("links", []))
     if response_links:
         run["links"] = sorted(set([*normalize_task_string_list(run.get("links")), *response_links]))
+    if normalize_optional_text(failure_classification.get("failure_type", "")) not in {"", "unknown"}:
+        budget_events.append(
+            {
+                "event": "failure-classified",
+                "created_at": current_utc_timestamp(),
+                "runner": runner_name,
+                "failure_type": failure_classification.get("failure_type", "unknown"),
+                "routing_cycle": int(run.get("routing_cycle", 1) or 1),
+            }
+        )
     run["runner_events"] = [
         *[item for item in run.get("runner_events", []) if isinstance(item, dict)],
         *budget_events,
@@ -15417,6 +15677,15 @@ def apply_agent_runner_response(
             "touched_file_count": len(run["touched_files"]),
         },
     ]
+    run["execution_summary"] = {
+        "status": status,
+        "failure_type": failure_classification.get("failure_type", "unknown"),
+        "routing_cycle": int(run.get("routing_cycle", 1) or 1),
+        "touched_file_count": len(run["touched_files"]),
+        "touched_files": run["touched_files"][:20],
+        "latest_evidence_summary": evidence_summary,
+        "metrics": metrics,
+    }
     run["final_disposition"] = status
     return run
 
@@ -15537,9 +15806,12 @@ def run_codex_app_server_adapter(config: ProjectConfig, run: dict[str, object], 
     )
 
 
-def create_orchestration_run_payload(config: ProjectConfig, task_id: str) -> tuple[dict[str, object], int]:
+def create_orchestration_run_payload(config: ProjectConfig, task_id: str, from_run_id: str = "") -> tuple[dict[str, object], int]:
     task, task_issues = orchestration_find_task(config, task_id)
     blocked_reasons = list(task_issues)
+    previous_run: dict[str, object] | None = None
+    inherited_feedback: dict[str, object] = {}
+    next_cycle = 1
     if not config.orchestration_enabled:
         blocked_reasons.append("orchestration is disabled in the manifest")
     if task is None:
@@ -15547,6 +15819,27 @@ def create_orchestration_run_payload(config: ProjectConfig, task_id: str) -> tup
     elif task.get("blocked_reasons"):
         blocked_reasons.extend(str(item) for item in task.get("blocked_reasons", []))
     runs = read_orchestration_runs(config)
+    if from_run_id:
+        for candidate in runs:
+            if normalize_optional_text(candidate.get("run_id", "")) == from_run_id:
+                previous_run = candidate
+                break
+        if previous_run is None:
+            blocked_reasons.append(f"source run not found: {from_run_id}")
+        else:
+            if normalize_optional_text(previous_run.get("task_id", "")) != normalize_optional_text((task or {}).get("id", task_id)):
+                blocked_reasons.append("source run belongs to a different task")
+            inherited_feedback = latest_review_feedback(previous_run)
+            if not inherited_feedback:
+                blocked_reasons.append("source run has no reviewer feedback; run `sula orchestration review` first")
+            try:
+                next_cycle = int(previous_run.get("routing_cycle", 1) or 1) + 1
+            except (TypeError, ValueError):
+                next_cycle = 2
+            if next_cycle > config.agent_routing_max_review_cycles:
+                blocked_reasons.append(
+                    f"max review cycles reached ({config.agent_routing_max_review_cycles}); escalate to human decision before retry"
+                )
     budget = orchestration_budget_payload(config, runs)
     if budget["exhausted"]:
         blocked_reasons.append("daily orchestration budget is exhausted")
@@ -15573,6 +15866,11 @@ def create_orchestration_run_payload(config: ProjectConfig, task_id: str) -> tup
         blocked_reasons=blocked_reasons,
         workspace_path=workspace_path,
     )
+    run["routing_cycle"] = next_cycle
+    if from_run_id:
+        run["retry_of_run_id"] = from_run_id
+    if inherited_feedback:
+        run["review_feedback"] = [inherited_feedback]
     if blocked_reasons:
         record_orchestration_stage(
             config,
@@ -15583,6 +15881,7 @@ def create_orchestration_run_payload(config: ProjectConfig, task_id: str) -> tup
             state="blocked",
             summary="Orchestration run is blocked before execution.",
             next_action="Resolve blocked reasons, then rerun orchestration.",
+            routing_cycle=next_cycle,
         )
     else:
         record_orchestration_stage(
@@ -15594,6 +15893,7 @@ def create_orchestration_run_payload(config: ProjectConfig, task_id: str) -> tup
             state="completed",
             summary="Planner role resolved task intent, acceptance criteria, and runner route.",
             next_action="Dispatch executor through the configured runner boundary.",
+            routing_cycle=next_cycle,
         )
         run["runner_events"] = [
             *[item for item in run.get("runner_events", []) if isinstance(item, dict)],
@@ -15605,6 +15905,8 @@ def create_orchestration_run_payload(config: ProjectConfig, task_id: str) -> tup
                 "executor": agent_routing_role_payload(config, "executor"),
                 "verifier": agent_routing_role_payload(config, "verifier"),
                 "reviewer": agent_routing_role_payload(config, "reviewer"),
+                "retry_of_run_id": from_run_id,
+                "review_feedback": review_feedback_packet(run),
             },
         ]
         record_orchestration_stage(
@@ -15620,6 +15922,7 @@ def create_orchestration_run_payload(config: ProjectConfig, task_id: str) -> tup
                 else "Dry-run executor recorded scheduling without mutating files."
             ),
             next_action="Run verifier checks after executor returns.",
+            routing_cycle=next_cycle,
         )
     run["validation_evidence"] = evidence
     if not blocked_reasons and config.orchestration_runner == "shell-command":
@@ -15641,6 +15944,7 @@ def create_orchestration_run_payload(config: ProjectConfig, task_id: str) -> tup
             state="completed" if normalize_task_string_list(run.get("validation_evidence")) or run.get("validation_evidence") else "pending",
             summary="Verifier evidence has been collected for closeout review.",
             next_action="Reviewer should compare evidence, touched files, and acceptance criteria.",
+            routing_cycle=next_cycle,
         )
         review_state = "accepted" if normalize_optional_text(run.get("status", "")) == "accepted" else "human-review"
         record_orchestration_stage(
@@ -15652,6 +15956,7 @@ def create_orchestration_run_payload(config: ProjectConfig, task_id: str) -> tup
             state=review_state,
             summary="Reviewer gate is ready; model review does not replace verification evidence.",
             next_action="Accept with orchestration close when evidence satisfies the task.",
+            routing_cycle=next_cycle,
         )
     append_orchestration_run(config, run)
     latest = {
@@ -15671,7 +15976,7 @@ def create_orchestration_run_payload(config: ProjectConfig, task_id: str) -> tup
 
 
 def orchestration_run(config: ProjectConfig, args: argparse.Namespace) -> int:
-    payload, code = create_orchestration_run_payload(config, args.task_id)
+    payload, code = create_orchestration_run_payload(config, args.task_id, normalize_optional_text(getattr(args, "from_run_id", "")))
     if json_output_requested(args):
         emit_json(payload)
         return code
@@ -15680,6 +15985,102 @@ def orchestration_run(config: ProjectConfig, args: argparse.Namespace) -> int:
     for item in run.get("blocked_reasons", []):
         print(f"  - {item}")
     return code
+
+
+def orchestration_review(config: ProjectConfig, args: argparse.Namespace) -> int:
+    target_index, target_run, runs = find_orchestration_run(config, args.run_id)
+    if target_index < 0 or target_run is None:
+        payload = {
+            "command": "orchestration.review",
+            "status": "blocked",
+            "project": project_payload(config),
+            "run_id": args.run_id,
+            "issues": [f"run not found: {args.run_id}"],
+        }
+        if json_output_requested(args):
+            emit_json(payload)
+            return 1
+        print(f"Orchestration review {args.run_id}: blocked")
+        print(f"  - run not found: {args.run_id}")
+        return 1
+
+    run = dict(target_run)
+    failure_type = normalize_optional_text(getattr(args, "failure_type", "")).strip()
+    if not failure_type:
+        classification = run.get("failure_classification", {})
+        failure_type = normalize_optional_text(classification.get("failure_type", "")) if isinstance(classification, dict) else ""
+    if failure_type not in ORCHESTRATION_FAILURE_TYPE_CHOICES:
+        failure_type = "unknown"
+    try:
+        cycle = int(run.get("routing_cycle", 1) or 1) + 1
+    except (TypeError, ValueError):
+        cycle = 2
+    feedback = {
+        "version": VERSION,
+        "created_at": current_utc_timestamp(),
+        "cycle": cycle,
+        "failure_type": failure_type,
+        "problem": normalize_optional_text(args.problem).strip(),
+        "required_fix": normalize_optional_text(args.required_fix).strip(),
+        "validation": normalize_task_string_list(args.validation),
+        "do_not": normalize_task_string_list(args.do_not),
+        "reviewer": agent_routing_role_payload(config, "reviewer"),
+        "next_action": (
+            "Retry with `python3 scripts/sula.py orchestration run --project-root . "
+            f"--task-id {normalize_optional_text(run.get('task_id', ''))} --from-run-id {args.run_id}`"
+        ),
+    }
+    feedback_items = [item for item in run.get("review_feedback", []) if isinstance(item, dict)]
+    feedback_items.append(feedback)
+    run["review_feedback"] = feedback_items
+    run["next_routing_cycle"] = cycle
+    run["review_status"] = "retry-ready" if cycle <= config.agent_routing_max_review_cycles else "max-cycles-reached"
+    run["runner_events"] = [
+        *[item for item in run.get("runner_events", []) if isinstance(item, dict)],
+        {
+            "event": "review-feedback",
+            "created_at": current_utc_timestamp(),
+            "failure_type": failure_type,
+            "next_routing_cycle": cycle,
+        },
+    ]
+    task, _task_issues = orchestration_find_task(config, normalize_optional_text(run.get("task_id", "")))
+    record_orchestration_stage(
+        config,
+        run=run,
+        task=task,
+        stage="review-feedback",
+        role="reviewer",
+        state=run["review_status"],
+        summary=feedback["problem"],
+        next_action=feedback["next_action"],
+        routing_cycle=cycle,
+    )
+    runs[target_index] = run
+    rewrite_orchestration_runs(config, runs)
+    write_orchestration_latest(
+        config,
+        {
+            "version": VERSION,
+            "updated_at": current_utc_timestamp(),
+            "latest_run": run,
+            "budget": orchestration_budget_payload(config, runs),
+        },
+    )
+    payload = {
+        "command": "orchestration.review",
+        "status": run["review_status"],
+        "project": project_payload(config),
+        "run": run,
+        "review_feedback": feedback,
+    }
+    if json_output_requested(args):
+        emit_json(payload)
+        return 0 if run["review_status"] == "retry-ready" else 1
+    print(f"Orchestration review {args.run_id}: {run['review_status']}")
+    print(f"  Failure: {failure_type}")
+    print(f"  Next: {feedback['next_action']}")
+    return 0 if run["review_status"] == "retry-ready" else 1
 
 
 def normalize_orchestration_evidence(values: list[str]) -> list[dict[str, object]]:

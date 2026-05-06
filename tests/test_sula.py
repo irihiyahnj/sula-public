@@ -1900,6 +1900,130 @@ Canary verification fixtures need at least one non-placeholder change record so 
             self.assertIn("executor", roles)
             self.assertIn("reviewer", roles)
 
+    def test_orchestration_review_feedback_feeds_executor_retry_and_health(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            project_root = Path(tmpdir)
+            self.create_generic_project(project_root)
+            runner_script = project_root / "supervised_runner.py"
+            request_log = project_root / "runner-requests.jsonl"
+            runner_script.write_text(
+                "\n".join(
+                    [
+                        "import json, sys",
+                        "from pathlib import Path",
+                        "payload = json.loads(sys.stdin.read())",
+                        f"log_path = Path({str(request_log)!r})",
+                        "with log_path.open('a', encoding='utf-8') as handle:",
+                        "    handle.write(json.dumps(payload, ensure_ascii=True) + '\\n')",
+                        "feedback = payload.get('review_feedback') or payload.get('execution_packet', {}).get('review_feedback')",
+                        "if feedback:",
+                        "    print(json.dumps({",
+                        "      'status': 'human-review',",
+                        "      'summary': 'retry used reviewer feedback and pytest passed',",
+                        "      'touched_files': ['docs/notes.md'],",
+                        "      'validation_evidence': [{'kind': 'pytest', 'summary': 'pytest passed after reviewer feedback'}],",
+                        "      'metrics': {'runtime_minutes': 1, 'token_count': 1200, 'cost_usd': 0.02}",
+                        "    }))",
+                        "else:",
+                        "    print(json.dumps({",
+                        "      'status': 'failed',",
+                        "      'summary': 'pytest failed because implementation missed edge case',",
+                        "      'touched_files': ['docs/notes.md'],",
+                        "      'validation_evidence': [{'kind': 'pytest', 'summary': 'pytest failed'}],",
+                        "      'metrics': {'runtime_minutes': 1, 'token_count': 800, 'cost_usd': 0.01}",
+                        "    }))",
+                    ]
+                ),
+                encoding="utf-8",
+            )
+
+            adopt_result = run_cli("adopt", "--project-root", str(project_root), "--approve")
+            self.assertEqual(adopt_result.returncode, 0, adopt_result.stderr)
+            manifest_path = project_root / ".sula" / "project.toml"
+            manifest_text = manifest_path.read_text(encoding="utf-8")
+            manifest_text = manifest_text.replace('runner = "dry-run"', 'runner = "codex-sdk"')
+            manifest_text = manifest_text.replace('runner_command = ""', f'runner_command = "python3 {runner_script.as_posix()}"')
+            manifest_text = manifest_text.replace('workspace_mode = "none"', 'workspace_mode = "copy"')
+            manifest_text = manifest_text.replace('unattended_risk_ceiling = "low"', 'unattended_risk_ceiling = "medium"')
+            manifest_path.write_text(manifest_text, encoding="utf-8")
+
+            intake_result = run_cli(
+                "orchestration",
+                "intake",
+                "--project-root",
+                str(project_root),
+                "--title",
+                "Exercise supervised retry",
+                "--acceptance",
+                "reviewer feedback reaches executor",
+                "--validation",
+                "pytest passed",
+                "--json",
+            )
+            self.assertEqual(intake_result.returncode, 0, intake_result.stderr)
+            task_id = json.loads(intake_result.stdout)["task"]["id"]
+
+            first_result = run_cli("orchestration", "run", "--project-root", str(project_root), "--task-id", task_id, "--json")
+            self.assertEqual(first_result.returncode, 1)
+            first_payload = json.loads(first_result.stdout)
+            first_run = first_payload["run"]
+            self.assertEqual(first_run["status"], "failed")
+            self.assertEqual(first_run["failure_classification"]["failure_type"], "test_failed")
+            self.assertEqual(first_run["execution_summary"]["failure_type"], "test_failed")
+
+            review_result = run_cli(
+                "orchestration",
+                "review",
+                "--project-root",
+                str(project_root),
+                "--run-id",
+                first_run["run_id"],
+                "--problem",
+                "The executor missed the failing pytest edge case.",
+                "--required-fix",
+                "Fix only the edge case and rerun pytest.",
+                "--validation",
+                "pytest passed",
+                "--do-not",
+                "Do not rewrite unrelated documents.",
+                "--json",
+            )
+            self.assertEqual(review_result.returncode, 0, review_result.stderr)
+            review_payload = json.loads(review_result.stdout)
+            self.assertEqual(review_payload["status"], "retry-ready")
+            self.assertEqual(review_payload["review_feedback"]["failure_type"], "test_failed")
+
+            retry_result = run_cli(
+                "orchestration",
+                "run",
+                "--project-root",
+                str(project_root),
+                "--task-id",
+                task_id,
+                "--from-run-id",
+                first_run["run_id"],
+                "--json",
+            )
+            self.assertEqual(retry_result.returncode, 0, retry_result.stderr)
+            retry_payload = json.loads(retry_result.stdout)
+            retry_run = retry_payload["run"]
+            self.assertEqual(retry_run["status"], "human-review")
+            self.assertEqual(retry_run["routing_cycle"], 2)
+            self.assertEqual(retry_run["retry_of_run_id"], first_run["run_id"])
+
+            requests = [json.loads(line) for line in request_log.read_text(encoding="utf-8").splitlines()]
+            self.assertEqual(len(requests), 2)
+            self.assertEqual(requests[1]["routing_cycle"], 2)
+            self.assertEqual(requests[1]["review_feedback"]["required_fix"], "Fix only the edge case and rerun pytest.")
+            self.assertEqual(requests[1]["execution_packet"]["review_feedback"]["failure_type"], "test_failed")
+
+            status_result = run_cli("orchestration", "status", "--project-root", str(project_root), "--json")
+            self.assertEqual(status_result.returncode, 0, status_result.stderr)
+            health_entries = json.loads(status_result.stdout)["orchestration"]["runner_health"]["entries"]
+            self.assertTrue(health_entries)
+            self.assertEqual(health_entries[0]["runner"], "codex-sdk")
+            self.assertGreaterEqual(health_entries[0]["max_routing_cycle"], 2)
+
     def test_orchestration_trigger_and_shell_command_runner_collect_evidence(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
             project_root = Path(tmpdir)

@@ -6,6 +6,25 @@ All notable changes to Sula Core should be recorded here with explicit sync impa
 
 - no entries yet
 
+## 0.18.11 - 2026-05-06
+
+### Added
+
+- Added `orchestration review` so the reviewer role can record a structured
+  diagnosis, required fix, validation instruction, and scope guard for a run.
+- Added `orchestration run --from-run-id` so a retry inherits the latest
+  reviewer feedback and passes it to the configured executor route.
+- Runner records now include `failure_classification`, `execution_summary`, and
+  `runner_score`.
+- `orchestration status --json` now exposes descriptive `runner_health` grouped
+  by runner/provider/model.
+
+### Sync Impact
+
+- Existing adopted projects remain compatible.
+- Project-local wrappers should read `SULA_REVIEW_FEEDBACK_JSON` or the embedded
+  `execution_packet.review_feedback` field when implementing supervised retry.
+
 ## 0.18.10 - 2026-05-06
 
 ### Added

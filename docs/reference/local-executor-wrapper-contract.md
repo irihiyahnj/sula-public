@@ -53,9 +53,25 @@ Execution packet:
 - `SULA_EXECUTION_PACKET_JSON`: minimal task packet with task id, title,
   description, risk, labels, acceptance criteria, validation requirements, diff
   scope, forbidden behaviors, and expected output fields.
+- `SULA_REVIEW_FEEDBACK_JSON`: empty JSON object on the first attempt, or the
+  latest reviewer diagnosis on a supervised retry. The same object is also
+  embedded as `review_feedback` inside `SULA_EXECUTION_PACKET_JSON`.
 
 Wrappers should prefer `SULA_EXECUTION_PACKET_JSON` over rereading tracker files.
 The packet is the Sula-owned bounded work order.
+
+On retry, the review feedback object contains:
+
+```json
+{
+  "cycle": 2,
+  "failure_type": "test_failed",
+  "problem": "what the reviewer found wrong",
+  "required_fix": "specific next instruction for the executor",
+  "validation": ["command or evidence to produce"],
+  "do_not": ["scope guard"]
+}
+```
 
 ## Expected Behavior
 
@@ -103,6 +119,32 @@ The wrapper should print one JSON object to stdout:
 Allowed `status` values are `human-review`, `blocked`, `failed`, and `accepted`.
 Most real executor work should return `human-review`; Sula review and closeout
 remain the acceptance gate.
+
+## Supervised Retry Loop
+
+Sula keeps the expensive planner/reviewer role out of the long executor loop.
+The intended flow is:
+
+```bash
+python3 scripts/sula.py orchestration run --project-root . --task-id TASK --json
+python3 scripts/sula.py orchestration review --project-root . \
+  --run-id RUN \
+  --problem "why the result is not acceptable" \
+  --required-fix "what the executor should change next" \
+  --validation "pytest -q" \
+  --json
+python3 scripts/sula.py orchestration run --project-root . \
+  --task-id TASK \
+  --from-run-id RUN \
+  --json
+```
+
+The second `run` increments `routing_cycle`, passes the reviewer feedback to the
+same executor route, and stops when `agent_routing.max_review_cycles` is
+exceeded. Sula also records `failure_classification`, `execution_summary`, and
+`runner_score` on each run; `orchestration status --json` exposes aggregate
+`runner_health` so projects can compare speed, cost, review cycles, and failure
+patterns by runner/provider/model.
 
 ## Minimal Claude-Style Wrapper Shape
 

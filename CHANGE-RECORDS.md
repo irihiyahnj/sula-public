@@ -15,6 +15,7 @@ Track why Sula changed, how sync impact was evaluated, what was verified, and ho
 
 ## Index
 
+- 2026-05-06 - [Add supervised executor retry loop](docs/change-records/2026-05-06-add-supervised-executor-retry-loop.md) - Added reviewer feedback, retry dispatch, failure classification, execution summaries, and runner health for low-cost executor supervision.
 - 2026-05-06 - [Document local executor wrapper contract](docs/change-records/2026-05-06-document-local-executor-wrapper-contract.md) - Added discoverable guidance for project-local executor wrappers to consume Sula execution packets and return structured evidence/metrics.
 - 2026-05-06 - [Adjust executor default to xhigh open cost](docs/change-records/2026-05-06-adjust-executor-default-to-xhigh-open-cost.md) - Changed executor defaults to `xhigh` with open reported-cost visibility instead of a finite default cost cap.
 - 2026-05-06 - [Add bounded executor contract and budget visibility](docs/change-records/2026-05-06-add-bounded-executor-contract-and-budget-visibility.md) - Added a Sula-owned bounded executor contract, minimal runner execution packet, compact budget display, and cost-aware executor defaults.
