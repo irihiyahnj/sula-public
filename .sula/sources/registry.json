@@ -259,7 +259,7 @@
     "exists": true,
     "source_of_truth": true,
     "discovered": true,
-    "size_bytes": 16516,
+    "size_bytes": 16766,
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
@@ -276,7 +276,7 @@
     "exists": true,
     "source_of_truth": true,
     "discovered": true,
-    "size_bytes": 35645,
+    "size_bytes": 36380,
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
@@ -421,7 +421,7 @@
     "exists": true,
     "source_of_truth": true,
     "discovered": true,
-    "size_bytes": 18973,
+    "size_bytes": 19202,
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
@@ -1332,6 +1332,23 @@
     ]
   },
   {
+    "id": "source:docs-change-records-2026-05-06-adjust-executor-default-to-xhigh-open-cost-md",
+    "kind": "document",
+    "path": "docs/change-records/2026-05-06-adjust-executor-default-to-xhigh-open-cost.md",
+    "exists": true,
+    "source_of_truth": true,
+    "discovered": true,
+    "size_bytes": 2692,
+    "anchor_strategy": "heading-or-line",
+    "adapters": [
+      "generic-project",
+      "local-fs",
+      "docs",
+      "memory",
+      "repo"
+    ]
+  },
+  {
     "id": "source:docs-change-records-2026-05-06-fix-orchestration-status-terminal-active-display-md",
     "kind": "document",
     "path": "docs/change-records/2026-05-06-fix-orchestration-status-terminal-active-display.md",
@@ -1715,7 +1732,7 @@
     "exists": true,
     "source_of_truth": true,
     "discovered": true,
-    "size_bytes": 16086,
+    "size_bytes": 16161,
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
@@ -2148,6 +2165,24 @@
     "source_of_truth": true,
     "discovered": true,
     "size_bytes": 1623,
+    "anchor_strategy": "heading-or-line",
+    "adapters": [
+      "generic-project",
+      "local-fs",
+      "docs",
+      "memory",
+      "repo",
+      "release"
+    ]
+  },
+  {
+    "id": "source:docs-releases-2026-05-06-release-sula-0-18-9-xhigh-open-cost-executor-md",
+    "kind": "document",
+    "path": "docs/releases/2026-05-06-release-sula-0-18-9-xhigh-open-cost-executor.md",
+    "exists": true,
+    "source_of_truth": true,
+    "discovered": true,
+    "size_bytes": 1619,
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
@@ -3397,7 +3432,7 @@
     "exists": true,
     "source_of_truth": true,
     "discovered": true,
-    "size_bytes": 898012,
+    "size_bytes": 898318,
     "anchor_strategy": "line",
     "adapters": [
       "generic-project",
@@ -3428,36 +3463,6 @@
     "source_of_truth": true,
     "discovered": true,
     "size_bytes": 953,
-    "anchor_strategy": "line",
-    "adapters": [
-      "generic-project",
-      "local-fs",
-      "repo"
-    ]
-  },
-  {
-    "id": "source:scripts-sula-providers-base-py",
-    "kind": "code",
-    "path": "scripts/sula_providers/base.py",
-    "exists": true,
-    "source_of_truth": true,
-    "discovered": true,
-    "size_bytes": 1240,
-    "anchor_strategy": "line",
-    "adapters": [
-      "generic-project",
-      "local-fs",
-      "repo"
-    ]
-  },
-  {
-    "id": "source:scripts-sula-providers-google-drive-py",
-    "kind": "code",
-    "path": "scripts/sula_providers/google_drive.py",
-    "exists": true,
-    "source_of_truth": true,
-    "discovered": true,
-    "size_bytes": 18180,
     "anchor_strategy": "line",
     "adapters": [
       "generic-project",

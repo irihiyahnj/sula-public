@@ -1,5 +1,5 @@
 {
-  "version": "0.18.8",
+  "version": "0.18.9",
   "profile": "sula-core",
   "relations": [
     {
@@ -140,6 +140,11 @@
     {
       "from": "change:2026-05-06-fix-orchestration-status-terminal-active-display",
       "to": "source:docs-change-records-2026-05-06-fix-orchestration-status-terminal-active-display-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "change:2026-05-06-adjust-executor-default-to-xhigh-open-cost",
+      "to": "source:docs-change-records-2026-05-06-adjust-executor-default-to-xhigh-open-cost-md",
       "type": "derived-from"
     },
     {
@@ -445,6 +450,26 @@
     {
       "from": "change:2026-04-11-add-adoption-agent-flow-for-one-sentence-onboarding",
       "to": "source:docs-change-records-2026-04-11-add-adoption-agent-flow-for-one-sentence-onboarding-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "release:2026-05-06-release-sula-0-18-9-xhigh-open-cost-executor",
+      "to": "source:docs-releases-2026-05-06-release-sula-0-18-9-xhigh-open-cost-executor-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "milestone:2026-05-06-release-sula-0-18-9-xhigh-open-cost-executor",
+      "to": "source:docs-releases-2026-05-06-release-sula-0-18-9-xhigh-open-cost-executor-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "risk:docs-releases-2026-05-06-release-sula-0-18-9-xhigh-open-cost-executor-md:open-cost-means-sula-will-not-block-a-long-executor-run-solely-due-to-reported",
+      "to": "source:docs-releases-2026-05-06-release-sula-0-18-9-xhigh-open-cost-executor-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "risk:docs-releases-2026-05-06-release-sula-0-18-9-xhigh-open-cost-executor-md:projects-that-need-strict-cost-caps-can-explicitly-set",
+      "to": "source:docs-releases-2026-05-06-release-sula-0-18-9-xhigh-open-cost-executor-md",
       "type": "derived-from"
     },
     {
@@ -963,11 +988,6 @@
       "type": "derived-from"
     },
     {
-      "from": "agreement:source:change-records-md",
-      "to": "source:change-records-md",
-      "type": "derived-from"
-    },
-    {
       "from": "rule:change-records-md:rules:keep-this-file-short-and-index-oriented",
       "to": "source:change-records-md",
       "type": "derived-from"
@@ -989,11 +1009,6 @@
     },
     {
       "from": "object:source:changelog-md",
-      "to": "source:changelog-md",
-      "type": "derived-from"
-    },
-    {
-      "from": "agreement:source:changelog-md",
       "to": "source:changelog-md",
       "type": "derived-from"
     },
@@ -1375,6 +1390,11 @@
     {
       "from": "object:source:docs-change-records-2026-05-06-add-compact-orchestration-status-and-effort-routing-md",
       "to": "source:docs-change-records-2026-05-06-add-compact-orchestration-status-and-effort-routing-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "object:source:docs-change-records-2026-05-06-adjust-executor-default-to-xhigh-open-cost-md",
+      "to": "source:docs-change-records-2026-05-06-adjust-executor-default-to-xhigh-open-cost-md",
       "type": "derived-from"
     },
     {
@@ -1760,6 +1780,11 @@
     {
       "from": "agreement:source:docs-releases-2026-05-06-release-sula-0-18-8-bounded-executor-contract-md",
       "to": "source:docs-releases-2026-05-06-release-sula-0-18-8-bounded-executor-contract-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "object:source:docs-releases-2026-05-06-release-sula-0-18-9-xhigh-open-cost-executor-md",
+      "to": "source:docs-releases-2026-05-06-release-sula-0-18-9-xhigh-open-cost-executor-md",
       "type": "derived-from"
     },
     {
@@ -2360,16 +2385,6 @@
     {
       "from": "object:source:scripts-sula-providers-init-py",
       "to": "source:scripts-sula-providers-init-py",
-      "type": "derived-from"
-    },
-    {
-      "from": "object:source:scripts-sula-providers-base-py",
-      "to": "source:scripts-sula-providers-base-py",
-      "type": "derived-from"
-    },
-    {
-      "from": "object:source:scripts-sula-providers-google-drive-py",
-      "to": "source:scripts-sula-providers-google-drive-py",
       "type": "derived-from"
     }
   ]

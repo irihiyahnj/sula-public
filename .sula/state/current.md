@@ -29,6 +29,7 @@
 - Completed Sula 0.18.7 check automation self-lock release cleanup; added required follow-up section and regenerated memory.
 - Implemented Sula 0.18.8 bounded executor contract and budget visibility: executor routes now carry bounded contract and execution packet data, compact status shows executor budget, local Sula executor route was adjusted from xhigh to high, and target tests passed.
 - Completed Sula 0.18.8 validation cleanup: full unittest discover ran 124 tests with one stale site descriptor version assertion, the assertion now follows VERSION, targeted rerun passed, py_compile and JSON validation passed.
+- Prepared Sula 0.18.9 executor default adjustment: executor reasoning now defaults to xhigh, reported cost is open by default instead of a hard cap, local Sula route uses deepseek-v4-flash xhigh, and targeted validation passed.
 
 ### 2026-05-05
 

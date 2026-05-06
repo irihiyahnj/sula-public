@@ -6,6 +6,24 @@ All notable changes to Sula Core should be recorded here with explicit sync impa
 
 - no entries yet
 
+## 0.18.9 - 2026-05-06
+
+### Changed
+
+- Bounded executor routing now defaults executor reasoning effort to `xhigh`
+  because real coding executor runs need enough depth to be useful.
+- The default executor cost cap is now open (`executor_max_cost_cents = 0`):
+  Sula records and displays reported cost but does not treat long tasks as
+  failed only because they exceed a fixed dollar threshold.
+- Compact status shows open-cost executor contracts as `Budget: 8t/5m/open`.
+
+### Sync Impact
+
+- Existing adopted projects remain compatible.
+- Projects that sync this release inherit a completion-first executor policy:
+  high-depth execution remains visible and bounded by status/contract fields,
+  but cost is not a hard stop by default.
+
 ## 0.18.8 - 2026-05-06
 
 ### Added

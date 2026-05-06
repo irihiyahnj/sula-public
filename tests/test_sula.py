@@ -2084,7 +2084,7 @@ Canary verification fixtures need at least one non-placeholder change record so 
             self.assertIn("Ctx: unknown", line)
             self.assertIn("Executor: deepseek/deepseek-v4-flash/xhigh/max", line)
             self.assertIn("Workspace: copy", line)
-            self.assertIn("Budget: 8t/5m/$0.30", line)
+            self.assertIn("Budget: 8t/5m/open", line)
             self.assertIn("Cost: $0.034", line)
             self.assertIn("Next: none", line)
 
@@ -2148,7 +2148,8 @@ Canary verification fixtures need at least one non-placeholder change record so 
             )
             self.assertEqual(configure_result.returncode, 0, configure_result.stderr)
             configure_payload = json.loads(configure_result.stdout)
-            self.assertEqual(configure_payload["routing"]["executor"]["reasoning_effort"], "high")
+            self.assertEqual(configure_payload["routing"]["executor"]["reasoning_effort"], "xhigh")
+            self.assertEqual(configure_payload["routing"]["executor_contract"]["default_reasoning_effort"], "xhigh")
             self.assertEqual(configure_payload["routing"]["executor"]["provider"], "deepseek")
 
             status_result = run_cli("agent-routing", "status", "--project-root", str(project_root), "--json")
@@ -2187,7 +2188,7 @@ Canary verification fixtures need at least one non-placeholder change record so 
             compact_result = run_cli("orchestration", "status", "--project-root", str(project_root), "--compact")
             self.assertEqual(compact_result.returncode, 0, compact_result.stderr)
             compact_line = compact_result.stdout.strip()
-            self.assertIn("Executor: deepseek/deepseek-v4-flash/high/high", compact_line)
+            self.assertIn("Executor: deepseek/deepseek-v4-flash/xhigh/max", compact_line)
             self.assertIn("Budget: 6t/2m/$0.12", compact_line)
             self.assertIn("Cost: $0.110", compact_line)
 

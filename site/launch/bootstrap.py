@@ -11,7 +11,7 @@ import sys
 
 
 DEFAULT_SOURCE_REPO = "https://github.com/irihiyahnj/sula-public.git"
-DEFAULT_SOURCE_REF = "v0.18.8"
+DEFAULT_SOURCE_REF = "v0.18.9"
 DEFAULT_SOURCE_DIR = Path.home() / ".sula" / "source"
 
 

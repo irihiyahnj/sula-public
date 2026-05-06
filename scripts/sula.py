@@ -355,7 +355,7 @@ OPTIONAL_MANIFEST_SPEC = {
         "executor_default_reasoning_effort": "string",
         "executor_max_turns": "int",
         "executor_max_run_minutes": "int",
-        "executor_max_cost_cents": "int",
+        "executor_max_cost_cents": "int_nonnegative",
         "max_review_cycles": "int",
         "on_review_fail": "string",
         "require_final_acceptance": "bool",
@@ -1052,9 +1052,9 @@ class ProjectConfig:
     @property
     def agent_routing_executor_default_reasoning_effort(self) -> str:
         return normalize_workflow_choice(
-            self.agent_routing_setting("executor_default_reasoning_effort", "high"),
+            self.agent_routing_setting("executor_default_reasoning_effort", "xhigh"),
             AGENT_ROUTING_REASONING_EFFORT_CHOICES,
-            "high",
+            "xhigh",
         )
 
     @property
@@ -1074,9 +1074,9 @@ class ProjectConfig:
     @property
     def agent_routing_executor_max_cost_cents(self) -> int:
         try:
-            return max(0, int(self.agent_routing_setting("executor_max_cost_cents", 30)))
+            return max(0, int(self.agent_routing_setting("executor_max_cost_cents", 0)))
         except (TypeError, ValueError):
-            return 30
+            return 0
 
     @property
     def agent_routing_max_review_cycles(self) -> int:
@@ -3710,6 +3710,13 @@ def validate_field(section: str, key: str, value, expected_kind: str, invalid: l
         if value < 1:
             invalid.append(f"{label} must be >= 1")
         return
+    if expected_kind == "int_nonnegative":
+        if not isinstance(value, int):
+            invalid.append(f"{label} must be an integer")
+            return
+        if value < 0:
+            invalid.append(f"{label} must be >= 0")
+        return
     if expected_kind == "dict":
         if not isinstance(value, dict):
             invalid.append(f"{label} must be a table")
@@ -4447,10 +4454,10 @@ def default_agent_routing_config() -> dict:
         "budget_breach_behavior": "ask",
         "executor_context_mode": "bounded",
         "executor_output_contract": "json",
-        "executor_default_reasoning_effort": "high",
+        "executor_default_reasoning_effort": "xhigh",
         "executor_max_turns": 8,
         "executor_max_run_minutes": 5,
-        "executor_max_cost_cents": 30,
+        "executor_max_cost_cents": 0,
         "max_review_cycles": 3,
         "on_review_fail": "return-to-executor",
         "require_final_acceptance": True,
@@ -13221,11 +13228,24 @@ def orchestration_cost_label(run: dict[str, object]) -> str:
 
 def executor_contract_budget_label(config: ProjectConfig) -> str:
     contract = executor_contract_payload(config)
+    cost_label = "open"
+    if int(contract["max_cost_cents"] or 0) > 0:
+        cost_label = f"${float(contract['max_cost_usd']):.2f}"
     return (
         f"{contract['max_turns']}t/"
         f"{contract['max_run_minutes']}m/"
-        f"${float(contract['max_cost_usd']):.2f}"
+        f"{cost_label}"
     )
+
+
+def executor_contract_cost_label(contract: dict[str, object]) -> str:
+    try:
+        max_cost_cents = int(contract.get("max_cost_cents", 0) or 0)
+    except (TypeError, ValueError):
+        max_cost_cents = 0
+    if max_cost_cents <= 0:
+        return "open cost"
+    return f"${float(contract.get('max_cost_usd', 0) or 0):.2f}"
 
 
 def orchestration_last_event_label(run: dict[str, object]) -> str:
@@ -14632,7 +14652,7 @@ def agent_routing_configure_payload(project_root: Path, config: ProjectConfig, a
     agent_routing = data.setdefault("agent_routing", default_agent_routing_config())
     agent_routing["executor_context_mode"] = executor_context_mode
     agent_routing["executor_output_contract"] = executor_output_contract
-    agent_routing["executor_default_reasoning_effort"] = config.agent_routing_executor_default_reasoning_effort
+    agent_routing["executor_default_reasoning_effort"] = reasoning_effort or config.agent_routing_executor_default_reasoning_effort
     agent_routing["executor_max_turns"] = max(1, int(executor_max_turns))
     agent_routing["executor_max_run_minutes"] = max(1, int(executor_max_run_minutes))
     agent_routing["executor_max_cost_cents"] = max(0, int(executor_max_cost_cents))
@@ -14724,7 +14744,7 @@ def agent_routing_status(config: ProjectConfig, args: argparse.Namespace) -> int
             "  Executor contract: "
             + f"{contract.get('context_mode', 'bounded')} / {contract.get('output_contract', 'json')} / "
             + f"{contract.get('max_turns', 0)} turns / {contract.get('max_run_minutes', 0)}m / "
-            + f"${float(contract.get('max_cost_usd', 0) or 0):.2f}"
+            + executor_contract_cost_label(contract)
         )
     host = routing["host"]
     print(f"  Host: {host.get('agent', 'unknown')} / {host.get('provider', 'unknown')}:{host.get('model', 'unknown')}")
@@ -14753,12 +14773,6 @@ def agent_routing_doctor(config: ProjectConfig, args: argparse.Namespace) -> int
             missing = normalize_task_string_list(role.get("missing_credential_env"))
             if missing:
                 warnings.append(f"role `{role_name}` missing credential env: {', '.join(missing)}")
-    executor = agent_routing_role_payload(config, "executor")
-    if (
-        config.agent_routing_default_budget_policy == "cost-aware"
-        and normalize_optional_text(executor.get("reasoning_effort", "")) == "xhigh"
-    ):
-        warnings.append("cost-aware routing should not use executor reasoning_effort `xhigh` by default; prefer `high` or `medium` and escalate on failure")
     payload = {
         "command": "agent-routing.doctor",
         "status": "ok" if not errors else "failed",
@@ -14826,7 +14840,7 @@ def session_start(config: ProjectConfig, args: argparse.Namespace) -> int:
             "  Executor contract: "
             + f"{contract.get('context_mode', 'bounded')} / {contract.get('output_contract', 'json')} / "
             + f"{contract.get('max_turns', 0)} turns / {contract.get('max_run_minutes', 0)}m / "
-            + f"${float(contract.get('max_cost_usd', 0) or 0):.2f}"
+            + executor_contract_cost_label(contract)
         )
     for role_name in ["planner", "executor", "verifier", "reviewer"]:
         print("  " + role_status_line(role_name, config.agent_routing_roles[role_name]))

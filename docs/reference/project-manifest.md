@@ -158,12 +158,13 @@ Use `.sula/local/mcp-policy.json` or equivalent command-line flags for the curre
 - `executor_output_contract`: `json` or `freeform`; default `json`
 - `executor_default_reasoning_effort`: default executor effort when
   `agent-routing configure` is given no explicit `--reasoning-effort`; default
-  `high`
+  `xhigh`
 - `executor_max_turns`: default bounded executor turn budget; default `8`
 - `executor_max_run_minutes`: default bounded executor runtime budget; default
   `5`
 - `executor_max_cost_cents`: default reported-cost budget per executor run;
-  default `30`
+  default `0`, meaning no hard cost cap; Sula still records and displays
+  reported cost
 - `max_review_cycles`
 - `on_review_fail`: `return-to-executor`, `block`, or `ask`
 - `require_final_acceptance`

@@ -15,6 +15,7 @@ Track why Sula changed, how sync impact was evaluated, what was verified, and ho
 
 ## Index
 
+- 2026-05-06 - [Adjust executor default to xhigh open cost](docs/change-records/2026-05-06-adjust-executor-default-to-xhigh-open-cost.md) - Changed executor defaults to `xhigh` with open reported-cost visibility instead of a finite default cost cap.
 - 2026-05-06 - [Add bounded executor contract and budget visibility](docs/change-records/2026-05-06-add-bounded-executor-contract-and-budget-visibility.md) - Added a Sula-owned bounded executor contract, minimal runner execution packet, compact budget display, and cost-aware executor defaults.
 - 2026-05-06 - [Fix Sula check automation self lock](docs/change-records/2026-05-06-fix-sula-check-automation-self-lock.md) - Prevented Sula-generated `sula-check` automation repair tasks and their dry-run runs from self-locking `sula check`.
 - 2026-05-06 - [Release Sula 0.18.5 compact orchestration status](docs/change-records/2026-05-06-release-sula-0-18-5-compact-orchestration-status.md) - Promoted compact orchestration status, executor reasoning effort, and runner effort mapping into a versioned Sula Core patch release.
