@@ -138,7 +138,36 @@
       "trigger_event_kind": "cli-intent",
       "created_at": "2026-05-06T15:02:29Z",
       "updated_at": "2026-05-06T15:08:45Z"
+    },
+    {
+      "id": "cli:prevent-sula-check-self-lock-automation-repair",
+      "source_kind": "cli-intent",
+      "source_url": "",
+      "identifier": "prevent-sula-check-self-lock-automation-repair",
+      "title": "Prevent Sula check self-lock from automation repair tasks",
+      "description": "Adjust Sula check orchestration validation so Sula-generated sula-check repair intents and their dry-run human-review runs do not cause check to fail by themselves. Preserve normal project task and real pending run checks.",
+      "state": "completed",
+      "priority": "high",
+      "labels": [
+        "automation",
+        "sula-check",
+        "orchestration"
+      ],
+      "blocked_by": [],
+      "project_slug": "sula",
+      "acceptance_criteria": [
+        "A stale check repair automation intent cannot be the sole reason that sula check fails.",
+        "Normal non-automation open eligible orchestration tasks still cause sula check to fail.",
+        "Sula check recovery behavior still resolves sula-check automation intents when check passes."
+      ],
+      "validation_requirements": [
+        "PYTHONDONTWRITEBYTECODE=1 python3 -m unittest tests.test_sula.SulaCliTests.test_automation_check_failure_creates_intent_without_manual_trigger tests.test_sula.SulaCliTests.test_check_ignores_sula_check_automation_repair_self_lock -v"
+      ],
+      "risk_hints": [],
+      "trigger_event_kind": "cli-intent",
+      "created_at": "2026-05-06T16:49:18Z",
+      "updated_at": "2026-05-06T17:01:07Z"
     }
   ],
-  "updated_at": "2026-05-06T15:08:45Z"
+  "updated_at": "2026-05-06T17:01:07Z"
 }

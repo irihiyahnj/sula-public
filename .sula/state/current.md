@@ -25,6 +25,8 @@
 - Finalize Sula 0.18.5 compact orchestration status release metadata and canary verification.
 - Adjusted orchestration visible-active semantics so terminal runs stay in history and no longer appear as active execution; added regression coverage and a change record.
 - Released Sula 0.18.6 terminal active display patch; bumped version metadata, launch descriptor, and bootstrap default ref.
+- Released Sula 0.18.7 check automation self-lock fix; DeepSeek Flash executor supplied the initial patch, reviewer corrected it, validation passed, and runner cost/token metrics were recorded.
+- Completed Sula 0.18.7 check automation self-lock release cleanup; added required follow-up section and regenerated memory.
 
 ### 2026-05-05
 

@@ -2124,6 +2124,70 @@ Canary verification fixtures need at least one non-placeholder change record so 
             recovered_tasks_payload = json.loads(recovered_tasks_result.stdout)
             self.assertFalse(any(item["source_kind"] == "automation" for item in recovered_tasks_payload["tasks"]))
 
+    def test_check_ignores_sula_check_automation_repair_self_lock(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            project_root = Path(tmpdir)
+            self.create_generic_project(project_root)
+
+            adopt_result = run_cli("adopt", "--project-root", str(project_root), "--approve")
+            self.assertEqual(adopt_result.returncode, 0, adopt_result.stderr)
+
+            tasks_path = project_root / "docs" / "workflows" / "tasks.json"
+            tasks_path.parent.mkdir(parents=True, exist_ok=True)
+            tasks_path.write_text(json.dumps({"version": "test", "tasks": []}) + "\n", encoding="utf-8")
+
+            status_path = project_root / "STATUS.md"
+            status_path.write_text(status_path.read_text(encoding="utf-8") + "\n- unsynchronized status edit\n", encoding="utf-8")
+
+            failed_check = run_cli("check", "--project-root", str(project_root), "--json")
+            self.assertEqual(failed_check.returncode, 1)
+
+            digest_result = run_cli("memory", "digest", "--project-root", str(project_root))
+            self.assertEqual(digest_result.returncode, 0, digest_result.stderr)
+
+            recovered_check = run_cli("check", "--project-root", str(project_root), "--json")
+            self.assertEqual(recovered_check.returncode, 0, recovered_check.stdout)
+            recovered_payload = json.loads(recovered_check.stdout)
+            self.assertFalse(
+                any("open/eligible task" in issue for issue in recovered_payload["issues"]),
+                recovered_payload["issues"],
+            )
+            self.assertFalse(
+                any("run(s) not yet accepted" in issue for issue in recovered_payload["issues"]),
+                recovered_payload["issues"],
+            )
+
+            intents_path = project_root / ".sula" / "state" / "automation" / "intents.jsonl"
+            intents = [json.loads(line) for line in intents_path.read_text(encoding="utf-8").splitlines() if line.strip()]
+            self.assertTrue(any(item["title"] == "Repair failed Sula check" and item["state"] == "accepted" for item in intents))
+
+            tasks_path.write_text(
+                json.dumps(
+                    {
+                        "version": "test",
+                        "tasks": [
+                            {
+                                "id": "manual-non-automation-task",
+                                "source_kind": "local-task",
+                                "identifier": "manual-non-automation-task",
+                                "title": "Manual non-automation task",
+                                "state": "open",
+                                "acceptance_criteria": ["Manual task is handled"],
+                                "validation_requirements": [],
+                                "labels": [],
+                                "blocked_by": [],
+                            }
+                        ],
+                    }
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+
+            manual_failed_check = run_cli("check", "--project-root", str(project_root))
+            self.assertEqual(manual_failed_check.returncode, 1)
+            self.assertIn("manual-non-automation-task", manual_failed_check.stdout)
+
     def test_automation_default_dispatches_low_risk_intent_to_dry_run(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
             project_root = Path(tmpdir)

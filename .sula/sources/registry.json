@@ -276,7 +276,7 @@
     "exists": true,
     "source_of_truth": true,
     "discovered": true,
-    "size_bytes": 33805,
+    "size_bytes": 34361,
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
@@ -421,7 +421,7 @@
     "exists": true,
     "source_of_truth": true,
     "discovered": true,
-    "size_bytes": 18159,
+    "size_bytes": 18478,
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
@@ -1332,6 +1332,23 @@
     ]
   },
   {
+    "id": "source:docs-change-records-2026-05-06-fix-sula-check-automation-self-lock-md",
+    "kind": "document",
+    "path": "docs/change-records/2026-05-06-fix-sula-check-automation-self-lock.md",
+    "exists": true,
+    "source_of_truth": true,
+    "discovered": true,
+    "size_bytes": 3043,
+    "anchor_strategy": "heading-or-line",
+    "adapters": [
+      "generic-project",
+      "local-fs",
+      "docs",
+      "memory",
+      "repo"
+    ]
+  },
+  {
     "id": "source:docs-change-records-2026-05-06-release-sula-0-18-5-compact-orchestration-status-md",
     "kind": "document",
     "path": "docs/change-records/2026-05-06-release-sula-0-18-5-compact-orchestration-status.md",
@@ -2089,6 +2106,24 @@
     ]
   },
   {
+    "id": "source:docs-releases-2026-05-06-release-sula-0-18-7-check-automation-self-lock-md",
+    "kind": "document",
+    "path": "docs/releases/2026-05-06-release-sula-0-18-7-check-automation-self-lock.md",
+    "exists": true,
+    "source_of_truth": true,
+    "discovered": true,
+    "size_bytes": 1595,
+    "anchor_strategy": "heading-or-line",
+    "adapters": [
+      "generic-project",
+      "local-fs",
+      "docs",
+      "memory",
+      "repo",
+      "release"
+    ]
+  },
+  {
     "id": "source:docs-releases-readme-md",
     "kind": "document",
     "path": "docs/releases/README.md",
@@ -2310,7 +2345,7 @@
     "exists": true,
     "source_of_truth": true,
     "discovered": true,
-    "size_bytes": 6509,
+    "size_bytes": 8024,
     "anchor_strategy": "line",
     "adapters": [
       "generic-project",
@@ -3327,7 +3362,7 @@
     "exists": true,
     "source_of_truth": true,
     "discovered": true,
-    "size_bytes": 884300,
+    "size_bytes": 885889,
     "anchor_strategy": "line",
     "adapters": [
       "generic-project",
@@ -3418,36 +3453,6 @@
     "source_of_truth": true,
     "discovered": true,
     "size_bytes": 7158,
-    "anchor_strategy": "line",
-    "adapters": [
-      "generic-project",
-      "local-fs",
-      "repo"
-    ]
-  },
-  {
-    "id": "source:site-sula-json",
-    "kind": "config",
-    "path": "site/sula.json",
-    "exists": true,
-    "source_of_truth": true,
-    "discovered": true,
-    "size_bytes": 6531,
-    "anchor_strategy": "line",
-    "adapters": [
-      "generic-project",
-      "local-fs",
-      "repo"
-    ]
-  },
-  {
-    "id": "source:tests-test-sula-py",
-    "kind": "code",
-    "path": "tests/test_sula.py",
-    "exists": true,
-    "source_of_truth": true,
-    "discovered": true,
-    "size_bytes": 253188,
     "anchor_strategy": "line",
     "adapters": [
       "generic-project",

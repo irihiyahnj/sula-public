@@ -6,6 +6,26 @@ All notable changes to Sula Core should be recorded here with explicit sync impa
 
 - no entries yet
 
+## 0.18.7 - 2026-05-06
+
+### Fixed
+
+- `sula check` no longer self-locks when the only remaining orchestration work
+  is Sula's own `sula-check` automation repair intent or its dry-run
+  human-review run.
+
+### Changed
+
+- Open-task check failures now include up to three task ids, making the blocking
+  task easier to identify.
+
+### Sync Impact
+
+- Existing adopted projects remain compatible.
+- Projects affected by repeated `Repair failed Sula check` automation loops
+  should sync to this patch, rebuild memory digest if needed, then rerun
+  `sula check`.
+
 ## 0.18.6 - 2026-05-06
 
 ### Changed

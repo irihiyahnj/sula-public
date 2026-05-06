@@ -6927,6 +6927,23 @@ def collect_daily_check_drift_errors(config: ProjectConfig) -> list[str]:
     return errors
 
 
+def is_sula_check_automation_task(task: dict[str, object]) -> bool:
+    labels = set(normalize_task_string_list(task.get("labels")))
+    return normalize_optional_text(task.get("source_kind", "")) == "automation" and "sula-check" in labels
+
+
+def sula_check_automation_task_ids(config: ProjectConfig) -> set[str]:
+    ids: set[str] = set()
+    for intent in load_automation_intents(config):
+        labels = set(normalize_task_string_list(intent.get("labels")))
+        if "sula-check" not in labels:
+            continue
+        task_id = normalize_optional_text(intent.get("task_id", ""))
+        if task_id:
+            ids.add(task_id)
+    return ids
+
+
 def collect_orchestration_check_errors(config: ProjectConfig) -> list[str]:
     """Check for open orchestration tasks and unclosed runs. Emit warnings, not hard errors."""
     errors: list[str] = []
@@ -6936,10 +6953,30 @@ def collect_orchestration_check_errors(config: ProjectConfig) -> list[str]:
         return errors
     try:
         tasks, task_issues = load_orchestration_tasks(config)
-        open_tasks = [t for t in tasks if t.get("state") in {"open", "running"} and t.get("eligible")]
+        ignored_task_ids = sula_check_automation_task_ids(config)
+        for task in tasks:
+            if is_sula_check_automation_task(task):
+                task_id = normalize_optional_text(task.get("id", ""))
+                if task_id:
+                    ignored_task_ids.add(task_id)
+        open_tasks = [
+            t
+            for t in tasks
+            if t.get("state") in {"open", "running"}
+            and t.get("eligible")
+            and normalize_optional_text(t.get("id", "")) not in ignored_task_ids
+        ]
         if open_tasks:
-            errors.append(f"orchestration: {len(open_tasks)} open/eligible task(s) exist. Close them with `orchestration close --accept`.")
-        blocked = [t for t in tasks if t.get("blocked_reasons") and t.get("state") in {"open", "running"}]
+            task_ids = ", ".join(normalize_optional_text(t.get("id", "")) for t in open_tasks[:3])
+            suffix = f": {task_ids}" if task_ids else ""
+            errors.append(f"orchestration: {len(open_tasks)} open/eligible task(s) exist{suffix}. Close them with `orchestration close --accept`.")
+        blocked = [
+            t
+            for t in tasks
+            if t.get("blocked_reasons")
+            and t.get("state") in {"open", "running"}
+            and normalize_optional_text(t.get("id", "")) not in ignored_task_ids
+        ]
         for t in blocked[:3]:
             reasons = "; ".join(str(r) for r in t.get("blocked_reasons", [])[:2])
             errors.append(f"orchestration: task `{t.get('id')}` blocked: {reasons}")
@@ -6947,7 +6984,13 @@ def collect_orchestration_check_errors(config: ProjectConfig) -> list[str]:
         errors.append("orchestration: could not load task file")
     try:
         runs = read_orchestration_runs(config)
-        pending_runs = [r for r in runs if r.get("status") in {"planned", "running", "human-review"}]
+        ignored_task_ids = sula_check_automation_task_ids(config)
+        pending_runs = [
+            r
+            for r in runs
+            if r.get("status") in {"planned", "running", "human-review"}
+            and normalize_optional_text(r.get("task_id", "")) not in ignored_task_ids
+        ]
         if pending_runs:
             errors.append(f"orchestration: {len(pending_runs)} run(s) not yet accepted/closed.")
     except Exception:

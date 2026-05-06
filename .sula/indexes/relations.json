@@ -1,5 +1,5 @@
 {
-  "version": "0.18.6",
+  "version": "0.18.7",
   "profile": "sula-core",
   "relations": [
     {
@@ -130,6 +130,11 @@
     {
       "from": "change:2026-05-06-release-sula-0-18-5-compact-orchestration-status",
       "to": "source:docs-change-records-2026-05-06-release-sula-0-18-5-compact-orchestration-status-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "change:2026-05-06-fix-sula-check-automation-self-lock",
+      "to": "source:docs-change-records-2026-05-06-fix-sula-check-automation-self-lock-md",
       "type": "derived-from"
     },
     {
@@ -430,6 +435,26 @@
     {
       "from": "change:2026-04-11-add-adoption-agent-flow-for-one-sentence-onboarding",
       "to": "source:docs-change-records-2026-04-11-add-adoption-agent-flow-for-one-sentence-onboarding-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "release:2026-05-06-release-sula-0-18-7-check-automation-self-lock",
+      "to": "source:docs-releases-2026-05-06-release-sula-0-18-7-check-automation-self-lock-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "milestone:2026-05-06-release-sula-0-18-7-check-automation-self-lock",
+      "to": "source:docs-releases-2026-05-06-release-sula-0-18-7-check-automation-self-lock-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "risk:docs-releases-2026-05-06-release-sula-0-18-7-check-automation-self-lock-md:this-patch-intentionally-ignores-only-sula-s-own-sula-check-automation",
+      "to": "source:docs-releases-2026-05-06-release-sula-0-18-7-check-automation-self-lock-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "risk:docs-releases-2026-05-06-release-sula-0-18-7-check-automation-self-lock-md:projects-with-stale-generated-state-may-still-need-memory-digest-before",
+      "to": "source:docs-releases-2026-05-06-release-sula-0-18-7-check-automation-self-lock-md",
       "type": "derived-from"
     },
     {
@@ -1303,6 +1328,11 @@
       "type": "derived-from"
     },
     {
+      "from": "object:source:docs-change-records-2026-05-06-fix-sula-check-automation-self-lock-md",
+      "to": "source:docs-change-records-2026-05-06-fix-sula-check-automation-self-lock-md",
+      "type": "derived-from"
+    },
+    {
       "from": "object:source:docs-change-records-2026-05-06-release-sula-0-18-5-compact-orchestration-status-md",
       "to": "source:docs-change-records-2026-05-06-release-sula-0-18-5-compact-orchestration-status-md",
       "type": "derived-from"
@@ -1660,6 +1690,11 @@
     {
       "from": "object:source:docs-releases-2026-05-06-release-sula-0-18-6-terminal-active-display-md",
       "to": "source:docs-releases-2026-05-06-release-sula-0-18-6-terminal-active-display-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "object:source:docs-releases-2026-05-06-release-sula-0-18-7-check-automation-self-lock-md",
+      "to": "source:docs-releases-2026-05-06-release-sula-0-18-7-check-automation-self-lock-md",
       "type": "derived-from"
     },
     {
@@ -2280,16 +2315,6 @@
     {
       "from": "object:source:site-launch-bootstrap-py",
       "to": "source:site-launch-bootstrap-py",
-      "type": "derived-from"
-    },
-    {
-      "from": "object:source:site-sula-json",
-      "to": "source:site-sula-json",
-      "type": "derived-from"
-    },
-    {
-      "from": "object:source:tests-test-sula-py",
-      "to": "source:tests-test-sula-py",
       "type": "derived-from"
     }
   ]
