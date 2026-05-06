@@ -15,6 +15,8 @@ Track why Sula changed, how sync impact was evaluated, what was verified, and ho
 
 ## Index
 
+- 2026-05-06 - [Add bounded executor contract and budget visibility](docs/change-records/2026-05-06-add-bounded-executor-contract-and-budget-visibility.md) - Added a Sula-owned bounded executor contract, minimal runner execution packet, compact budget display, and cost-aware executor defaults.
+- 2026-05-06 - [Fix Sula check automation self lock](docs/change-records/2026-05-06-fix-sula-check-automation-self-lock.md) - Prevented Sula-generated `sula-check` automation repair tasks and their dry-run runs from self-locking `sula check`.
 - 2026-05-06 - [Release Sula 0.18.5 compact orchestration status](docs/change-records/2026-05-06-release-sula-0-18-5-compact-orchestration-status.md) - Promoted compact orchestration status, executor reasoning effort, and runner effort mapping into a versioned Sula Core patch release.
 - 2026-05-06 - [Add compact orchestration status and effort routing](docs/change-records/2026-05-06-add-compact-orchestration-status-and-effort-routing.md) - Added `orchestration status --compact`, executor `--reasoning-effort` configuration, runner effort propagation, and Claude-style `xhigh` to `max` effort mapping.
 - 2026-05-02 - [Commit 0.15.0 and fix self-referencing validation](docs/change-records/2026-05-02-commit-0-15-0-and-fix-self-referencing-validation.md) - Committed the full 0.15.0 release from the working tree, gitignored runtime automation/orchestration state, added `git commit: any` sentinel to doctor validation, and verified all 4 canaries pass release readiness with 0 issues.

@@ -761,7 +761,9 @@ Canary verification fixtures need at least one non-placeholder change record so 
         self.assertEqual(descriptor["public_release_strategy"], "single-public-repo")
         self.assertEqual(descriptor["public_source_status"], "published")
         self.assertEqual(descriptor["source_repository_url"], "https://github.com/irihiyahnj/sula-public.git")
-        self.assertEqual(descriptor["source_ref"], "v0.18.5")
+        expected_version = (REPO_ROOT / "VERSION").read_text(encoding="utf-8").strip()
+        self.assertEqual(descriptor["version"], expected_version)
+        self.assertEqual(descriptor["source_ref"], f"v{expected_version}")
 
     def test_mcp_readonly_bootstrap_and_rules_do_not_write_project_files(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -1879,6 +1881,9 @@ Canary verification fixtures need at least one non-placeholder change record so 
             self.assertEqual(request_payload["role"], "executor")
             self.assertEqual(request_payload["model_hint"]["provider"], "deepseek")
             self.assertEqual(request_payload["model_hint"]["model"], "deepseek-flash")
+            self.assertEqual(request_payload["executor_contract"]["context_mode"], "bounded")
+            self.assertEqual(request_payload["execution_packet"]["title"], "Implement role aware routing")
+            self.assertIn("metrics", request_payload["execution_packet"]["expected_output"]["required_fields"])
             self.assertTrue(request_payload["write_access"])
 
             status_result = run_cli("orchestration", "status", "--project-root", str(project_root), "--json")
@@ -2072,14 +2077,119 @@ Canary verification fixtures need at least one non-placeholder change record so 
             compact_result = run_cli("orchestration", "status", "--project-root", str(project_root), "--compact")
             self.assertEqual(compact_result.returncode, 0, compact_result.stderr)
             line = compact_result.stdout.strip()
-            self.assertIn("Sula: accepted", line)
+            self.assertIn("Sula: idle", line)
+            self.assertIn("/accepted", line)
             self.assertIn("Tasks: 1/1 done", line)
             self.assertIn("Main: codex/current-session/high", line)
             self.assertIn("Ctx: unknown", line)
             self.assertIn("Executor: deepseek/deepseek-v4-flash/xhigh/max", line)
             self.assertIn("Workspace: copy", line)
+            self.assertIn("Budget: 8t/5m/$0.30", line)
             self.assertIn("Cost: $0.034", line)
-            self.assertIn("Next: done", line)
+            self.assertIn("Next: none", line)
+
+    def test_shell_runner_receives_bounded_executor_contract_and_compact_budget(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            project_root = Path(tmpdir)
+            self.create_generic_project(project_root)
+
+            runner_script = project_root / "contract_runner.py"
+            runner_script.write_text(
+                "\n".join(
+                    [
+                        "import json, os",
+                        "contract = json.loads(os.environ['SULA_EXECUTOR_CONTRACT_JSON'])",
+                        "packet = json.loads(os.environ['SULA_EXECUTION_PACKET_JSON'])",
+                        "summary = '/'.join([",
+                        "  contract['context_mode'],",
+                        "  contract['output_contract'],",
+                        "  str(contract['max_turns']),",
+                        "  str(contract['max_run_minutes']),",
+                        "  str(contract['max_cost_cents']),",
+                        "  packet['title'],",
+                        "  packet['expected_output']['required_fields'][-1],",
+                        "])",
+                        "print(json.dumps({",
+                        "  'status': 'human-review',",
+                        "  'summary': 'bounded contract runner completed',",
+                        "  'metrics': {'cost_usd': 0.11},",
+                        "  'validation_evidence': [{'kind': 'executor-contract', 'summary': summary}]",
+                        "}))",
+                    ]
+                ),
+                encoding="utf-8",
+            )
+            adopt_result = run_cli("adopt", "--project-root", str(project_root), "--approve")
+            self.assertEqual(adopt_result.returncode, 0, adopt_result.stderr)
+
+            configure_result = run_cli(
+                "agent-routing",
+                "configure",
+                "--project-root",
+                str(project_root),
+                "--runner",
+                "shell-command",
+                "--runner-command",
+                f"python3 {runner_script.as_posix()}",
+                "--provider",
+                "deepseek",
+                "--model",
+                "deepseek-v4-flash",
+                "--workspace-mode",
+                "copy",
+                "--write-access",
+                "--executor-max-turns",
+                "6",
+                "--executor-max-run-minutes",
+                "2",
+                "--executor-max-cost-cents",
+                "12",
+                "--json",
+            )
+            self.assertEqual(configure_result.returncode, 0, configure_result.stderr)
+            configure_payload = json.loads(configure_result.stdout)
+            self.assertEqual(configure_payload["routing"]["executor"]["reasoning_effort"], "high")
+            self.assertEqual(configure_payload["routing"]["executor"]["provider"], "deepseek")
+
+            status_result = run_cli("agent-routing", "status", "--project-root", str(project_root), "--json")
+            self.assertEqual(status_result.returncode, 0, status_result.stderr)
+            status_payload = json.loads(status_result.stdout)
+            contract = status_payload["agent_routing"]["config"]["executor_contract"]
+            self.assertEqual(contract["max_turns"], 6)
+            self.assertEqual(contract["max_run_minutes"], 2)
+            self.assertEqual(contract["max_cost_cents"], 12)
+
+            intake_result = run_cli(
+                "orchestration",
+                "intake",
+                "--project-root",
+                str(project_root),
+                "--title",
+                "Bounded contract smoke",
+                "--acceptance",
+                "runner receives bounded executor contract",
+                "--validation",
+                "executor contract evidence recorded",
+                "--json",
+            )
+            self.assertEqual(intake_result.returncode, 0, intake_result.stderr)
+            task_id = json.loads(intake_result.stdout)["task"]["id"]
+
+            run_result = run_cli("orchestration", "run", "--project-root", str(project_root), "--task-id", task_id, "--json")
+            self.assertEqual(run_result.returncode, 0, run_result.stderr)
+            run_payload = json.loads(run_result.stdout)
+            self.assertEqual(run_payload["run"]["executor_contract"]["max_turns"], 6)
+            self.assertEqual(
+                run_payload["run"]["validation_evidence"][-2]["summary"],
+                "bounded/json/6/2/12/Bounded contract smoke/metrics",
+            )
+
+            compact_result = run_cli("orchestration", "status", "--project-root", str(project_root), "--compact")
+            self.assertEqual(compact_result.returncode, 0, compact_result.stderr)
+            compact_line = compact_result.stdout.strip()
+            self.assertIn("Executor: deepseek/deepseek-v4-flash/high/high", compact_line)
+            self.assertIn("Budget: 6t/2m/$0.12", compact_line)
+            self.assertIn("Cost: $0.110", compact_line)
 
     def test_automation_check_failure_creates_intent_without_manual_trigger(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:

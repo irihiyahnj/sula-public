@@ -86,6 +86,13 @@ enabled = true
 mode = "plan-execute-review"
 visibility = "always"
 default_budget_policy = "cost-aware"
+budget_breach_behavior = "ask"
+executor_context_mode = "bounded"
+executor_output_contract = "json"
+executor_default_reasoning_effort = "high"
+executor_max_turns = 8
+executor_max_run_minutes = 5
+executor_max_cost_cents = 30
 max_review_cycles = 3
 on_review_fail = "return-to-executor"
 require_final_acceptance = true
@@ -212,7 +219,7 @@ Sula should add these human and machine surfaces:
 | --- | --- |
 | `sula session start` | Standard CLI entry banner: memory digest pointer, active tasks, active model roles, required next command. |
 | `sula orchestration status` | Existing status should include active role/model/stage. |
-| `sula orchestration status --compact` | Render one compact English execution line with run state, task completion count, main model/depth, executor model/depth/runner effort, workspace, elapsed time, cost, last event, and next action. |
+| `sula orchestration status --compact` | Render one compact English execution line with run state, task completion count, main model/depth, executor model/depth/runner effort, workspace, executor budget, elapsed time, cost, last event, and next action. |
 | `sula orchestration status --watch` | Poll and render active execution state until the run finishes or is cancelled. |
 | `sula orchestration timeline` | Render recent run events from `events.jsonl`. |
 | `sula agent-routing status --json` | Emit resolved routing policy, local provider readiness, active role, and model visibility. |
@@ -233,7 +240,7 @@ The first implementation should reuse existing runner boundaries instead of addi
 
 1. `orchestration run` resolves `agent_routing`.
 2. Sula writes an `active.json` record and a `planner.started` event.
-3. A configured runner receives a JSON request with `role`, `model_hint`, `write_access`, `workspace`, task data, project policy, and acceptance criteria.
+3. A configured runner receives a JSON request with `role`, `model_hint`, `write_access`, `workspace`, task data, project policy, acceptance criteria, bounded executor contract, and minimal execution packet.
 4. Planner returns a plan artifact or structured plan summary.
 5. Sula dispatches executor with the approved plan.
 6. Executor returns touched files, patch summary, and implementation notes.

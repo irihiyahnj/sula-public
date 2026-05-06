@@ -233,3 +233,8 @@
 {"timestamp": "2026-05-06T17:02:45Z", "event_type": "report.created", "summary": "Session report written to STATUS.md under 2026-05-06.", "profile": "sula-core", "project": "sula"}
 {"timestamp": "2026-05-06T17:03:49Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "sula-core", "project": "sula"}
 {"timestamp": "2026-05-06T17:04:10Z", "event_type": "report.created", "summary": "Session report written to STATUS.md under 2026-05-06.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-05-06T17:14:10Z", "event_type": "orchestration.intake", "summary": "Captured orchestration task `Add bounded executor contract and budget visibility`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-05-06T17:26:10Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-05-06T17:26:30Z", "event_type": "report.created", "summary": "Session report written to STATUS.md under 2026-05-06.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-05-06T17:53:07Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-05-06T17:53:25Z", "event_type": "report.created", "summary": "Session report written to STATUS.md under 2026-05-06.", "profile": "sula-core", "project": "sula"}

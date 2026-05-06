@@ -1,5 +1,5 @@
 {
-  "version": "0.18.7",
+  "version": "0.18.8",
   "profile": "sula-core",
   "relations": [
     {
@@ -145,6 +145,16 @@
     {
       "from": "change:2026-05-06-add-compact-orchestration-status-and-effort-routing",
       "to": "source:docs-change-records-2026-05-06-add-compact-orchestration-status-and-effort-routing-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "change:2026-05-06-add-bounded-executor-contract-and-budget-visibility",
+      "to": "source:docs-change-records-2026-05-06-add-bounded-executor-contract-and-budget-visibility-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "agreement:2026-05-06-add-bounded-executor-contract-and-budget-visibility",
+      "to": "source:docs-change-records-2026-05-06-add-bounded-executor-contract-and-budget-visibility-md",
       "type": "derived-from"
     },
     {
@@ -435,6 +445,31 @@
     {
       "from": "change:2026-04-11-add-adoption-agent-flow-for-one-sentence-onboarding",
       "to": "source:docs-change-records-2026-04-11-add-adoption-agent-flow-for-one-sentence-onboarding-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "release:2026-05-06-release-sula-0-18-8-bounded-executor-contract",
+      "to": "source:docs-releases-2026-05-06-release-sula-0-18-8-bounded-executor-contract-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "milestone:2026-05-06-release-sula-0-18-8-bounded-executor-contract",
+      "to": "source:docs-releases-2026-05-06-release-sula-0-18-8-bounded-executor-contract-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "risk:docs-releases-2026-05-06-release-sula-0-18-8-bounded-executor-contract-md:existing-runner-adapters-remain-backward-compatible-but-custom-runners-should",
+      "to": "source:docs-releases-2026-05-06-release-sula-0-18-8-bounded-executor-contract-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "risk:docs-releases-2026-05-06-release-sula-0-18-8-bounded-executor-contract-md:sula-can-enforce-runtime-timeout-locally-but-token-cost-limits-are-currently",
+      "to": "source:docs-releases-2026-05-06-release-sula-0-18-8-bounded-executor-contract-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "agreement:2026-05-06-release-sula-0-18-8-bounded-executor-contract",
+      "to": "source:docs-releases-2026-05-06-release-sula-0-18-8-bounded-executor-contract-md",
       "type": "derived-from"
     },
     {
@@ -928,6 +963,11 @@
       "type": "derived-from"
     },
     {
+      "from": "agreement:source:change-records-md",
+      "to": "source:change-records-md",
+      "type": "derived-from"
+    },
+    {
       "from": "rule:change-records-md:rules:keep-this-file-short-and-index-oriented",
       "to": "source:change-records-md",
       "type": "derived-from"
@@ -949,6 +989,11 @@
     },
     {
       "from": "object:source:changelog-md",
+      "to": "source:changelog-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "agreement:source:changelog-md",
       "to": "source:changelog-md",
       "type": "derived-from"
     },
@@ -1315,6 +1360,16 @@
     {
       "from": "object:source:docs-change-records-2026-05-05-implement-sula-0-17-0-agent-native-control-surface-md",
       "to": "source:docs-change-records-2026-05-05-implement-sula-0-17-0-agent-native-control-surface-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "object:source:docs-change-records-2026-05-06-add-bounded-executor-contract-and-budget-visibility-md",
+      "to": "source:docs-change-records-2026-05-06-add-bounded-executor-contract-and-budget-visibility-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "agreement:source:docs-change-records-2026-05-06-add-bounded-executor-contract-and-budget-visibility-md",
+      "to": "source:docs-change-records-2026-05-06-add-bounded-executor-contract-and-budget-visibility-md",
       "type": "derived-from"
     },
     {
@@ -1695,6 +1750,16 @@
     {
       "from": "object:source:docs-releases-2026-05-06-release-sula-0-18-7-check-automation-self-lock-md",
       "to": "source:docs-releases-2026-05-06-release-sula-0-18-7-check-automation-self-lock-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "object:source:docs-releases-2026-05-06-release-sula-0-18-8-bounded-executor-contract-md",
+      "to": "source:docs-releases-2026-05-06-release-sula-0-18-8-bounded-executor-contract-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "agreement:source:docs-releases-2026-05-06-release-sula-0-18-8-bounded-executor-contract-md",
+      "to": "source:docs-releases-2026-05-06-release-sula-0-18-8-bounded-executor-contract-md",
       "type": "derived-from"
     },
     {
@@ -2305,16 +2370,6 @@
     {
       "from": "object:source:scripts-sula-providers-google-drive-py",
       "to": "source:scripts-sula-providers-google-drive-py",
-      "type": "derived-from"
-    },
-    {
-      "from": "object:source:scripts-sula-providers-google-oauth-store-py",
-      "to": "source:scripts-sula-providers-google-oauth-store-py",
-      "type": "derived-from"
-    },
-    {
-      "from": "object:source:site-launch-bootstrap-py",
-      "to": "source:site-launch-bootstrap-py",
       "type": "derived-from"
     }
   ]

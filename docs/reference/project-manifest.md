@@ -154,6 +154,16 @@ Use `.sula/local/mcp-policy.json` or equivalent command-line flags for the curre
 - `visibility`: `off`, `on-demand`, or `always`
 - `default_budget_policy`: `cost-aware`, `speed-first`, or `quality-first`
 - `budget_breach_behavior`: `ask`, `stop`, or `downgrade`
+- `executor_context_mode`: `bounded` or `full`; default `bounded`
+- `executor_output_contract`: `json` or `freeform`; default `json`
+- `executor_default_reasoning_effort`: default executor effort when
+  `agent-routing configure` is given no explicit `--reasoning-effort`; default
+  `high`
+- `executor_max_turns`: default bounded executor turn budget; default `8`
+- `executor_max_run_minutes`: default bounded executor runtime budget; default
+  `5`
+- `executor_max_cost_cents`: default reported-cost budget per executor run;
+  default `30`
 - `max_review_cycles`
 - `on_review_fail`: `return-to-executor`, `block`, or `ask`
 - `require_final_acceptance`
@@ -161,6 +171,12 @@ Use `.sula/local/mcp-policy.json` or equivalent command-line flags for the curre
 - role fields: `provider`, `model`, `reasoning_effort`, `write_access`, and `workspace_mode`
 
 Provider credentials and endpoints are machine-local. Use `.sula/local/agent-providers.json` to name environment variables such as `SULA_DEEPSEEK_API_KEY`; never store raw keys in `.sula/project.toml`. Operators can run `python3 scripts/sula.py agent-routing configure --project-root .` to choose an executor CLI/model once. Sula remembers that route until `--replace` or explicit new values are provided.
+
+Runner adapters receive the bounded executor contract as Sula-owned context, so
+cheap executor models can act as constrained patch workers instead of full
+autonomous agents. Shell-command runners receive `SULA_EXECUTOR_CONTRACT_JSON`
+and `SULA_EXECUTION_PACKET_JSON`; Codex-style runners receive
+`executor_contract` and `execution_packet` in the request JSON.
 
 ### `[storage]` (optional but recommended)
 

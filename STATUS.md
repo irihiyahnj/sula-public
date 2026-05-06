@@ -22,6 +22,8 @@
 - Released Sula 0.18.6 terminal active display patch; bumped version metadata, launch descriptor, and bootstrap default ref.
 - Released Sula 0.18.7 check automation self-lock fix; DeepSeek Flash executor supplied the initial patch, reviewer corrected it, validation passed, and runner cost/token metrics were recorded.
 - Completed Sula 0.18.7 check automation self-lock release cleanup; added required follow-up section and regenerated memory.
+- Implemented Sula 0.18.8 bounded executor contract and budget visibility: executor routes now carry bounded contract and execution packet data, compact status shows executor budget, local Sula executor route was adjusted from xhigh to high, and target tests passed.
+- Completed Sula 0.18.8 validation cleanup: full unittest discover ran 124 tests with one stale site descriptor version assertion, the assertion now follows VERSION, targeted rerun passed, py_compile and JSON validation passed.
 
 ### 2026-05-05
 

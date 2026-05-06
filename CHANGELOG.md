@@ -6,6 +6,37 @@ All notable changes to Sula Core should be recorded here with explicit sync impa
 
 - no entries yet
 
+## 0.18.8 - 2026-05-06
+
+### Added
+
+- Agent routing now exposes a bounded executor contract: context mode, output
+  contract, default executor effort, max turns, max run minutes, and max cost
+  cents.
+- Shell-command runners receive the executor contract and minimal execution
+  packet through environment variables; Codex runner adapters receive the same
+  data in their JSON request payload.
+- Compact orchestration status keeps the existing Sula one-line style and now
+  shows the executor budget as turns/minutes/cost.
+
+### Changed
+
+- `agent-routing configure` now defaults an unspecified executor reasoning
+  effort to the cost-aware executor default (`high`) instead of leaving the
+  executor depth unbounded.
+- Runner timeouts use the lower of the global orchestration max run minutes and
+  the executor contract max run minutes.
+- `agent-routing doctor` warns when cost-aware routing is configured with
+  executor `xhigh`, so projects can catch expensive delegation routes before
+  running them.
+
+### Sync Impact
+
+- Existing adopted projects remain compatible; missing executor contract fields
+  fall back to safe defaults.
+- Projects that sync this release can keep their remembered local CLI/model
+  route while gaining a visible budget contract and bounded runner request.
+
 ## 0.18.7 - 2026-05-06
 
 ### Fixed

@@ -100,6 +100,9 @@ AGENT_ROUTING_BUDGET_POLICY_CHOICES = ["cost-aware", "speed-first", "quality-fir
 AGENT_ROUTING_ON_REVIEW_FAIL_CHOICES = ["return-to-executor", "block", "ask"]
 AGENT_ROUTING_ROLE_CHOICES = ["host", "planner", "executor", "verifier", "reviewer", "acceptor"]
 AGENT_ROUTING_BUDGET_BREACH_CHOICES = ["ask", "stop", "downgrade"]
+AGENT_ROUTING_EXECUTOR_CONTEXT_MODE_CHOICES = ["bounded", "full"]
+AGENT_ROUTING_EXECUTOR_OUTPUT_CONTRACT_CHOICES = ["json", "freeform"]
+AGENT_ROUTING_REASONING_EFFORT_CHOICES = ["", "low", "medium", "high", "xhigh"]
 AUTOMATION_MODE_CHOICES = ["observe", "assist", "execute"]
 AUTOMATION_EVENT_SOURCE_CHOICES = ["sula-cli", "provider", "status", "artifact", "workflow", "external"]
 ORCHESTRATION_TRIGGER_SOURCE_KIND_CHOICES = [
@@ -347,6 +350,12 @@ OPTIONAL_MANIFEST_SPEC = {
         "visibility": "string",
         "default_budget_policy": "string",
         "budget_breach_behavior": "string",
+        "executor_context_mode": "string",
+        "executor_output_contract": "string",
+        "executor_default_reasoning_effort": "string",
+        "executor_max_turns": "int",
+        "executor_max_run_minutes": "int",
+        "executor_max_cost_cents": "int",
         "max_review_cycles": "int",
         "on_review_fail": "string",
         "require_final_acceptance": "bool",
@@ -1023,6 +1032,51 @@ class ProjectConfig:
             AGENT_ROUTING_BUDGET_BREACH_CHOICES,
             "ask",
         )
+
+    @property
+    def agent_routing_executor_context_mode(self) -> str:
+        return normalize_workflow_choice(
+            self.agent_routing_setting("executor_context_mode", "bounded"),
+            AGENT_ROUTING_EXECUTOR_CONTEXT_MODE_CHOICES,
+            "bounded",
+        )
+
+    @property
+    def agent_routing_executor_output_contract(self) -> str:
+        return normalize_workflow_choice(
+            self.agent_routing_setting("executor_output_contract", "json"),
+            AGENT_ROUTING_EXECUTOR_OUTPUT_CONTRACT_CHOICES,
+            "json",
+        )
+
+    @property
+    def agent_routing_executor_default_reasoning_effort(self) -> str:
+        return normalize_workflow_choice(
+            self.agent_routing_setting("executor_default_reasoning_effort", "high"),
+            AGENT_ROUTING_REASONING_EFFORT_CHOICES,
+            "high",
+        )
+
+    @property
+    def agent_routing_executor_max_turns(self) -> int:
+        try:
+            return max(1, int(self.agent_routing_setting("executor_max_turns", 8)))
+        except (TypeError, ValueError):
+            return 8
+
+    @property
+    def agent_routing_executor_max_run_minutes(self) -> int:
+        try:
+            return max(1, int(self.agent_routing_setting("executor_max_run_minutes", 5)))
+        except (TypeError, ValueError):
+            return 5
+
+    @property
+    def agent_routing_executor_max_cost_cents(self) -> int:
+        try:
+            return max(0, int(self.agent_routing_setting("executor_max_cost_cents", 30)))
+        except (TypeError, ValueError):
+            return 30
 
     @property
     def agent_routing_max_review_cycles(self) -> int:
@@ -1726,6 +1780,11 @@ def parse_args() -> argparse.Namespace:
     agent_routing_configure_cmd.add_argument("--endpoint-env", default="", help="Optional env var name for provider endpoint")
     agent_routing_configure_cmd.add_argument("--api-key-env", default="", help="Optional env var name for provider API key")
     agent_routing_configure_cmd.add_argument("--workspace-mode", choices=ORCHESTRATION_WORKSPACE_MODE_CHOICES, help="Workspace mode for executor runs")
+    agent_routing_configure_cmd.add_argument("--executor-context-mode", choices=AGENT_ROUTING_EXECUTOR_CONTEXT_MODE_CHOICES, help="Executor context contract mode")
+    agent_routing_configure_cmd.add_argument("--executor-output-contract", choices=AGENT_ROUTING_EXECUTOR_OUTPUT_CONTRACT_CHOICES, help="Executor output contract")
+    agent_routing_configure_cmd.add_argument("--executor-max-turns", type=int, help="Maximum executor agent turns per run")
+    agent_routing_configure_cmd.add_argument("--executor-max-run-minutes", type=int, help="Maximum executor runtime minutes per run")
+    agent_routing_configure_cmd.add_argument("--executor-max-cost-cents", type=int, help="Maximum executor reported cost in cents per run")
     write_access_group = agent_routing_configure_cmd.add_mutually_exclusive_group()
     write_access_group.add_argument("--write-access", dest="write_access", action="store_true", help="Allow executor role to write in its workspace")
     write_access_group.add_argument("--no-write-access", dest="write_access", action="store_false", help="Keep executor role read-only")
@@ -2205,6 +2264,20 @@ def agent_behavior_payload(config: ProjectConfig) -> dict[str, object]:
     }
 
 
+def executor_contract_payload(config: ProjectConfig) -> dict[str, object]:
+    max_cost_cents = config.agent_routing_executor_max_cost_cents
+    return {
+        "context_mode": config.agent_routing_executor_context_mode,
+        "output_contract": config.agent_routing_executor_output_contract,
+        "default_reasoning_effort": config.agent_routing_executor_default_reasoning_effort,
+        "max_turns": config.agent_routing_executor_max_turns,
+        "max_run_minutes": config.agent_routing_executor_max_run_minutes,
+        "max_cost_cents": max_cost_cents,
+        "max_cost_usd": round(max_cost_cents / 100, 2),
+        "budget_breach_behavior": config.agent_routing_budget_breach_behavior,
+    }
+
+
 def agent_routing_config_payload(config: ProjectConfig) -> dict[str, object]:
     return {
         "enabled": config.agent_routing_enabled,
@@ -2212,6 +2285,7 @@ def agent_routing_config_payload(config: ProjectConfig) -> dict[str, object]:
         "visibility": config.agent_routing_visibility,
         "default_budget_policy": config.agent_routing_default_budget_policy,
         "budget_breach_behavior": config.agent_routing_budget_breach_behavior,
+        "executor_contract": executor_contract_payload(config),
         "max_review_cycles": config.agent_routing_max_review_cycles,
         "on_review_fail": config.agent_routing_on_review_fail,
         "require_final_acceptance": config.agent_routing_require_final_acceptance,
@@ -3565,6 +3639,9 @@ def validate_manifest(data: dict) -> None:
         validate_choice_field("agent_routing", "visibility", agent_routing_section.get("visibility"), AGENT_ROUTING_VISIBILITY_CHOICES, invalid)
         validate_choice_field("agent_routing", "default_budget_policy", agent_routing_section.get("default_budget_policy"), AGENT_ROUTING_BUDGET_POLICY_CHOICES, invalid)
         validate_choice_field("agent_routing", "budget_breach_behavior", agent_routing_section.get("budget_breach_behavior"), AGENT_ROUTING_BUDGET_BREACH_CHOICES, invalid)
+        validate_choice_field("agent_routing", "executor_context_mode", agent_routing_section.get("executor_context_mode"), AGENT_ROUTING_EXECUTOR_CONTEXT_MODE_CHOICES, invalid)
+        validate_choice_field("agent_routing", "executor_output_contract", agent_routing_section.get("executor_output_contract"), AGENT_ROUTING_EXECUTOR_OUTPUT_CONTRACT_CHOICES, invalid)
+        validate_choice_field("agent_routing", "executor_default_reasoning_effort", agent_routing_section.get("executor_default_reasoning_effort"), AGENT_ROUTING_REASONING_EFFORT_CHOICES, invalid)
         validate_choice_field("agent_routing", "on_review_fail", agent_routing_section.get("on_review_fail"), AGENT_ROUTING_ON_REVIEW_FAIL_CHOICES, invalid)
         roles = agent_routing_section.get("roles", {})
         if isinstance(roles, dict):
@@ -4368,6 +4445,12 @@ def default_agent_routing_config() -> dict:
         "visibility": "always",
         "default_budget_policy": "cost-aware",
         "budget_breach_behavior": "ask",
+        "executor_context_mode": "bounded",
+        "executor_output_contract": "json",
+        "executor_default_reasoning_effort": "high",
+        "executor_max_turns": 8,
+        "executor_max_run_minutes": 5,
+        "executor_max_cost_cents": 30,
         "max_review_cycles": 3,
         "on_review_fail": "return-to-executor",
         "require_final_acceptance": True,
@@ -13136,6 +13219,15 @@ def orchestration_cost_label(run: dict[str, object]) -> str:
     return f"${float(cost or 0):.3f}"
 
 
+def executor_contract_budget_label(config: ProjectConfig) -> str:
+    contract = executor_contract_payload(config)
+    return (
+        f"{contract['max_turns']}t/"
+        f"{contract['max_run_minutes']}m/"
+        f"${float(contract['max_cost_usd']):.2f}"
+    )
+
+
 def orchestration_last_event_label(run: dict[str, object]) -> str:
     blocked = run.get("blocked_reasons")
     if isinstance(blocked, list) and blocked:
@@ -13185,7 +13277,7 @@ def orchestration_compact_status_line(config: ProjectConfig, *, ctx: str = "unkn
         f"Tasks: {orchestration_tasks_done_label(tasks, run)} | Risk: {normalize_optional_text(run.get('risk', 'unknown')) or 'unknown'} | "
         f"Main: {role_compact_label(config, main_role, provider_default='codex')} | Ctx: {ctx} | "
         f"Executor: {role_compact_label(config, executor, include_runner_effort=True)} | Workspace: {workspace or 'unknown'} | "
-        f"Elapsed: {orchestration_elapsed_label(run)} | Cost: {orchestration_cost_label(run)} | "
+        f"Budget: {executor_contract_budget_label(config)} | Elapsed: {orchestration_elapsed_label(run)} | Cost: {orchestration_cost_label(run)} | "
         f"Last: {orchestration_last_event_label(run)} | Next: {orchestration_next_label(status)}"
     )
 
@@ -14342,6 +14434,7 @@ def agent_routing_remembered_payload(config: ProjectConfig) -> dict[str, object]
             "workspace_mode": config.orchestration_workspace_mode,
         },
         "executor": agent_routing_role_payload(config, "executor"),
+        "executor_contract": executor_contract_payload(config),
     }
 
 
@@ -14406,8 +14499,23 @@ def upsert_local_agent_provider(
 def agent_routing_configure_payload(project_root: Path, config: ProjectConfig, args: argparse.Namespace) -> tuple[dict[str, object], int]:
     has_cli_values = any(
         normalize_optional_text(getattr(args, name, ""))
-        for name in ["runner", "runner_command", "runner_endpoint", "provider", "model", "reasoning_effort", "workspace_mode", "endpoint_env", "api_key_env"]
-    ) or getattr(args, "write_access", None) is not None
+        for name in [
+            "runner",
+            "runner_command",
+            "runner_endpoint",
+            "provider",
+            "model",
+            "reasoning_effort",
+            "workspace_mode",
+            "endpoint_env",
+            "api_key_env",
+            "executor_context_mode",
+            "executor_output_contract",
+        ]
+    ) or getattr(args, "write_access", None) is not None or any(
+        getattr(args, name, None) is not None
+        for name in ["executor_max_turns", "executor_max_run_minutes", "executor_max_cost_cents"]
+    )
     remembered = agent_routing_executor_is_remembered(config)
     if remembered and not bool(getattr(args, "replace", False)) and not has_cli_values:
         payload = {
@@ -14436,8 +14544,23 @@ def agent_routing_configure_payload(project_root: Path, config: ProjectConfig, a
     runner_endpoint = normalize_optional_text(getattr(args, "runner_endpoint", "")) or config.orchestration_runner_endpoint
     provider = normalize_optional_text(getattr(args, "provider", "")) or normalize_optional_text(current_executor.get("provider", "")) or "local"
     model = normalize_optional_text(getattr(args, "model", "")) or normalize_optional_text(current_executor.get("model", "")) or "configured-runner"
-    reasoning_effort = normalize_optional_text(getattr(args, "reasoning_effort", "")) or normalize_optional_text(current_executor.get("reasoning_effort", ""))
+    reasoning_effort = (
+        normalize_optional_text(getattr(args, "reasoning_effort", ""))
+        or normalize_optional_text(current_executor.get("reasoning_effort", ""))
+        or config.agent_routing_executor_default_reasoning_effort
+    )
     workspace_mode = normalize_optional_text(getattr(args, "workspace_mode", "")) or config.orchestration_workspace_mode
+    executor_context_mode = normalize_optional_text(getattr(args, "executor_context_mode", "")) or config.agent_routing_executor_context_mode
+    executor_output_contract = normalize_optional_text(getattr(args, "executor_output_contract", "")) or config.agent_routing_executor_output_contract
+    executor_max_turns = getattr(args, "executor_max_turns", None)
+    if executor_max_turns is None:
+        executor_max_turns = config.agent_routing_executor_max_turns
+    executor_max_run_minutes = getattr(args, "executor_max_run_minutes", None)
+    if executor_max_run_minutes is None:
+        executor_max_run_minutes = config.agent_routing_executor_max_run_minutes
+    executor_max_cost_cents = getattr(args, "executor_max_cost_cents", None)
+    if executor_max_cost_cents is None:
+        executor_max_cost_cents = config.agent_routing_executor_max_cost_cents
     write_access = getattr(args, "write_access", None)
     if write_access is None:
         write_access = bool(current_executor.get("write_access", False))
@@ -14467,6 +14590,20 @@ def agent_routing_configure_payload(project_root: Path, config: ProjectConfig, a
             "project": project_payload(config),
             "errors": [f"unsupported workspace mode: {workspace_mode}"],
         }, 1
+    if executor_context_mode not in AGENT_ROUTING_EXECUTOR_CONTEXT_MODE_CHOICES:
+        return {
+            "command": "agent-routing.configure",
+            "status": "failed",
+            "project": project_payload(config),
+            "errors": [f"unsupported executor context mode: {executor_context_mode}"],
+        }, 1
+    if executor_output_contract not in AGENT_ROUTING_EXECUTOR_OUTPUT_CONTRACT_CHOICES:
+        return {
+            "command": "agent-routing.configure",
+            "status": "failed",
+            "project": project_payload(config),
+            "errors": [f"unsupported executor output contract: {executor_output_contract}"],
+        }, 1
     errors = []
     if runner in {"shell-command", "codex-sdk"} and not runner_command:
         errors.append(f"runner `{runner}` requires --runner-command")
@@ -14493,6 +14630,12 @@ def agent_routing_configure_payload(project_root: Path, config: ProjectConfig, a
     if runner in {"shell-command", "codex-sdk", "codex-app-server"} and workspace_mode == "none":
         orchestration["allow_project_root_runner"] = True
     agent_routing = data.setdefault("agent_routing", default_agent_routing_config())
+    agent_routing["executor_context_mode"] = executor_context_mode
+    agent_routing["executor_output_contract"] = executor_output_contract
+    agent_routing["executor_default_reasoning_effort"] = config.agent_routing_executor_default_reasoning_effort
+    agent_routing["executor_max_turns"] = max(1, int(executor_max_turns))
+    agent_routing["executor_max_run_minutes"] = max(1, int(executor_max_run_minutes))
+    agent_routing["executor_max_cost_cents"] = max(0, int(executor_max_cost_cents))
     roles = agent_routing.setdefault("roles", default_agent_routing_roles())
     executor = roles.setdefault("executor", default_agent_routing_roles()["executor"])
     executor["provider"] = provider
@@ -14532,13 +14675,13 @@ def agent_routing_configure(project_root: Path, config: ProjectConfig, args: arg
         print("  Reusing remembered executor route.")
         print(f"  Runner: {remembered['runner']['kind']} / {remembered['runner']['command'] or remembered['runner']['endpoint']}")
         executor = remembered["executor"]
-        print(f"  Executor: {executor.get('provider', 'unknown')}:{executor.get('model', 'unknown')}")
+        print(f"  Executor: {executor.get('provider', 'unknown')}:{executor.get('model', 'unknown')} / {executor.get('reasoning_effort', '') or 'default'}")
     elif payload["status"] == "ok":
         remembered = payload["routing"]
         print("  Remembered executor route.")
         print(f"  Runner: {remembered['runner']['kind']} / {remembered['runner']['command'] or remembered['runner']['endpoint']}")
         executor = remembered["executor"]
-        print(f"  Executor: {executor.get('provider', 'unknown')}:{executor.get('model', 'unknown')}")
+        print(f"  Executor: {executor.get('provider', 'unknown')}:{executor.get('model', 'unknown')} / {executor.get('reasoning_effort', '') or 'default'}")
     for item in payload.get("errors", []):
         print(f"  error: {item}")
     next_action = normalize_optional_text(payload.get("next_action", ""))
@@ -14575,6 +14718,14 @@ def agent_routing_status(config: ProjectConfig, args: argparse.Namespace) -> int
     print(f"  Mode: {config_payload['mode']}")
     print(f"  Visibility: {config_payload['visibility']}")
     print(f"  Budget policy: {config_payload['default_budget_policy']} / breach={config_payload['budget_breach_behavior']}")
+    contract = config_payload.get("executor_contract", {})
+    if isinstance(contract, dict):
+        print(
+            "  Executor contract: "
+            + f"{contract.get('context_mode', 'bounded')} / {contract.get('output_contract', 'json')} / "
+            + f"{contract.get('max_turns', 0)} turns / {contract.get('max_run_minutes', 0)}m / "
+            + f"${float(contract.get('max_cost_usd', 0) or 0):.2f}"
+        )
     host = routing["host"]
     print(f"  Host: {host.get('agent', 'unknown')} / {host.get('provider', 'unknown')}:{host.get('model', 'unknown')}")
     roles = routing["provider_readiness"]["roles"]
@@ -14602,6 +14753,12 @@ def agent_routing_doctor(config: ProjectConfig, args: argparse.Namespace) -> int
             missing = normalize_task_string_list(role.get("missing_credential_env"))
             if missing:
                 warnings.append(f"role `{role_name}` missing credential env: {', '.join(missing)}")
+    executor = agent_routing_role_payload(config, "executor")
+    if (
+        config.agent_routing_default_budget_policy == "cost-aware"
+        and normalize_optional_text(executor.get("reasoning_effort", "")) == "xhigh"
+    ):
+        warnings.append("cost-aware routing should not use executor reasoning_effort `xhigh` by default; prefer `high` or `medium` and escalate on failure")
     payload = {
         "command": "agent-routing.doctor",
         "status": "ok" if not errors else "failed",
@@ -14663,6 +14820,14 @@ def session_start(config: ProjectConfig, args: argparse.Namespace) -> int:
     print(f"  Memory digest: {payload['memory_digest']}")
     print(f"  Host: {host['agent']} / {host['provider']}:{host['model']}")
     print(f"  Agent routing: {routing['config']['mode']} ({'enabled' if routing['config']['enabled'] else 'disabled'})")
+    contract = routing["config"].get("executor_contract", {})
+    if isinstance(contract, dict):
+        print(
+            "  Executor contract: "
+            + f"{contract.get('context_mode', 'bounded')} / {contract.get('output_contract', 'json')} / "
+            + f"{contract.get('max_turns', 0)} turns / {contract.get('max_run_minutes', 0)}m / "
+            + f"${float(contract.get('max_cost_usd', 0) or 0):.2f}"
+        )
     for role_name in ["planner", "executor", "verifier", "reviewer"]:
         print("  " + role_status_line(role_name, config.agent_routing_roles[role_name]))
     active_event = active.get("active", {}) if isinstance(active, dict) else {}
@@ -14908,6 +15073,7 @@ def build_orchestration_run_record(
         "workspace_mode": config.orchestration_workspace_mode,
         "workspace_path": workspace_path,
         "agent_routing": agent_routing_config_payload(config),
+        "executor_contract": executor_contract_payload(config),
         "routing_mode": config.agent_routing_mode if config.agent_routing_enabled else "off",
         "routing_cycle": 1,
         "active_role": "executor",
@@ -14963,6 +15129,38 @@ def redact_runner_text(text: str) -> str:
     redacted = text
     redacted = re.sub(r"(?i)(api[_-]?key|token|secret|password|credential)(\\s*[=:]\\s*)\\S+", r"\\1\\2[REDACTED]", redacted)
     return redacted[:8000]
+
+
+def executor_execution_packet(config: ProjectConfig, task: dict[str, object] | None) -> dict[str, object]:
+    task_payload = task or {}
+    return {
+        "task_id": normalize_optional_text(task_payload.get("id", "")),
+        "title": normalize_optional_text(task_payload.get("title", "")),
+        "description": normalize_optional_text(task_payload.get("description", "")),
+        "risk": normalize_optional_text(task_payload.get("risk", "")),
+        "labels": normalize_task_string_list(task_payload.get("labels")),
+        "acceptance_criteria": normalize_task_string_list(task_payload.get("acceptance_criteria")),
+        "validation_requirements": normalize_task_string_list(task_payload.get("validation_requirements")),
+        "diff_scope": (
+            "change only lines required by this task"
+            if config.agent_diff_scope_policy == "surgical"
+            else config.agent_diff_scope_policy
+        ),
+        "forbidden_behaviors": [
+            "do not expand the task scope",
+            "do not store or print secrets",
+            "do not run destructive git operations",
+            "if validation cannot run, report the blocker immediately",
+        ],
+        "expected_output": {
+            "format": config.agent_routing_executor_output_contract,
+            "required_fields": ["status", "summary", "touched_files", "validation_evidence", "metrics"],
+        },
+    }
+
+
+def executor_timeout_seconds(config: ProjectConfig) -> int:
+    return max(1, min(config.orchestration_max_run_minutes, config.agent_routing_executor_max_run_minutes)) * 60
 
 
 def prepare_orchestration_runner_workspace(
@@ -15024,6 +15222,8 @@ def run_shell_command_adapter(config: ProjectConfig, run: dict[str, object], tas
     ]
     env = os.environ.copy()
     role_payload = agent_routing_role_payload(config, "executor")
+    executor_contract = executor_contract_payload(config)
+    execution_packet = executor_execution_packet(config, task)
     env.update(
         {
             "SULA_RUN_ID": normalize_optional_text(run.get("run_id", "")),
@@ -15036,6 +15236,13 @@ def run_shell_command_adapter(config: ProjectConfig, run: dict[str, object], tas
             "SULA_MODEL_REASONING_EFFORT": normalize_optional_text(role_payload.get("reasoning_effort", "")),
             "SULA_RUNNER_EFFORT": runner_effort_for_role(config, role_payload),
             "SULA_ROUTING_CYCLE": str(run.get("routing_cycle", 1)),
+            "SULA_EXECUTOR_CONTEXT_MODE": normalize_optional_text(executor_contract.get("context_mode", "")),
+            "SULA_EXECUTOR_OUTPUT_CONTRACT": normalize_optional_text(executor_contract.get("output_contract", "")),
+            "SULA_EXECUTOR_MAX_TURNS": str(executor_contract.get("max_turns", "")),
+            "SULA_EXECUTOR_MAX_RUN_MINUTES": str(executor_contract.get("max_run_minutes", "")),
+            "SULA_EXECUTOR_MAX_COST_CENTS": str(executor_contract.get("max_cost_cents", "")),
+            "SULA_EXECUTOR_CONTRACT_JSON": json.dumps(executor_contract, ensure_ascii=True),
+            "SULA_EXECUTION_PACKET_JSON": json.dumps(execution_packet, ensure_ascii=True),
         }
     )
     try:
@@ -15046,7 +15253,7 @@ def run_shell_command_adapter(config: ProjectConfig, run: dict[str, object], tas
             env=env,
             capture_output=True,
             text=True,
-            timeout=max(1, config.orchestration_max_run_minutes) * 60,
+            timeout=executor_timeout_seconds(config),
         )
         stdout = redact_runner_text(completed.stdout or "")
         stderr = redact_runner_text(completed.stderr or "")
@@ -15091,6 +15298,8 @@ def codex_runner_request_payload(config: ProjectConfig, run: dict[str, object], 
         "workspace_path": str(workspace),
         "quality_checklist": agent_quality_checklist_payload(config),
         "agent_routing": agent_routing_config_payload(config),
+        "executor_contract": executor_contract_payload(config),
+        "execution_packet": executor_execution_packet(config, task),
         "role": role,
         "model_hint": {
             "role": role,
@@ -15131,12 +15340,37 @@ def apply_agent_runner_response(
             else f"{runner_name} failed with exit code {returncode}"
         )
     response_touched = normalize_task_string_list((response_payload or {}).get("touched_files", []))
+    response_metrics = (response_payload or {}).get("metrics", {})
+    response_metrics = response_metrics if isinstance(response_metrics, dict) else {}
+    metrics = {
+        **({"runtime_minutes": runtime_minutes, "token_count": 0, "cost_usd": 0}),
+        **response_metrics,
+    }
+    budget_events: list[dict[str, object]] = []
+    try:
+        cost_cents = int(round(float(metrics.get("cost_usd", 0) or 0) * 100))
+    except (TypeError, ValueError):
+        cost_cents = 0
+    max_cost_cents = config.agent_routing_executor_max_cost_cents
+    if max_cost_cents and cost_cents > max_cost_cents:
+        budget_event = {
+            "event": "budget-breach",
+            "created_at": current_utc_timestamp(),
+            "runner": runner_name,
+            "cost_cents": cost_cents,
+            "max_cost_cents": max_cost_cents,
+            "behavior": config.agent_routing_budget_breach_behavior,
+        }
+        budget_events.append(budget_event)
+        if config.agent_routing_budget_breach_behavior == "stop":
+            status = "blocked"
+            evidence_summary = (
+                f"{evidence_summary}; executor cost ${cost_cents / 100:.2f} exceeded budget "
+                f"${max_cost_cents / 100:.2f}"
+            )
     run["status"] = status
     run["ended_at"] = current_utc_timestamp()
-    run["metrics"] = {
-        **({"runtime_minutes": runtime_minutes, "token_count": 0, "cost_usd": 0}),
-        **({k: v for k, v in (response_payload or {}).get("metrics", {}).items()} if isinstance((response_payload or {}).get("metrics", {}), dict) else {}),
-    }
+    run["metrics"] = metrics
     run["touched_files"] = sorted(set([*touched_files, *response_touched]))
     response_evidence = (response_payload or {}).get("validation_evidence", [])
     validation_evidence = [item for item in run.get("validation_evidence", []) if isinstance(item, dict)]
@@ -15159,6 +15393,7 @@ def apply_agent_runner_response(
         run["links"] = sorted(set([*normalize_task_string_list(run.get("links")), *response_links]))
     run["runner_events"] = [
         *[item for item in run.get("runner_events", []) if isinstance(item, dict)],
+        *budget_events,
         {
             "event": "finish",
             "created_at": current_utc_timestamp(),
@@ -15200,7 +15435,7 @@ def run_codex_sdk_adapter(config: ProjectConfig, run: dict[str, object], task: d
             input=json.dumps(request_payload, ensure_ascii=True),
             capture_output=True,
             text=True,
-            timeout=max(1, config.orchestration_max_run_minutes) * 60,
+            timeout=executor_timeout_seconds(config),
         )
         stdout = redact_runner_text(completed.stdout or "")
         stderr = redact_runner_text(completed.stderr or "")
@@ -15265,7 +15500,7 @@ def run_codex_app_server_adapter(config: ProjectConfig, run: dict[str, object], 
     returncode = 0
     timed_out = False
     try:
-        with request.urlopen(req, timeout=max(1, config.orchestration_max_run_minutes) * 60) as response:
+        with request.urlopen(req, timeout=executor_timeout_seconds(config)) as response:
             stdout = redact_runner_text(response.read().decode("utf-8"))
             parsed = json.loads(stdout or "{}")
             if isinstance(parsed, dict):
