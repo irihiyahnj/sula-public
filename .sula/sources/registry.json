@@ -259,7 +259,7 @@
     "exists": true,
     "source_of_truth": true,
     "discovered": true,
-    "size_bytes": 16766,
+    "size_bytes": 17040,
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
@@ -276,7 +276,7 @@
     "exists": true,
     "source_of_truth": true,
     "discovered": true,
-    "size_bytes": 36380,
+    "size_bytes": 37026,
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
@@ -389,7 +389,7 @@
     "exists": true,
     "source_of_truth": true,
     "discovered": true,
-    "size_bytes": 36032,
+    "size_bytes": 36405,
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
@@ -421,7 +421,7 @@
     "exists": true,
     "source_of_truth": true,
     "discovered": true,
-    "size_bytes": 19202,
+    "size_bytes": 19574,
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
@@ -438,7 +438,7 @@
     "exists": true,
     "source_of_truth": true,
     "discovered": true,
-    "size_bytes": 3822,
+    "size_bytes": 3988,
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
@@ -1349,6 +1349,23 @@
     ]
   },
   {
+    "id": "source:docs-change-records-2026-05-06-document-local-executor-wrapper-contract-md",
+    "kind": "document",
+    "path": "docs/change-records/2026-05-06-document-local-executor-wrapper-contract.md",
+    "exists": true,
+    "source_of_truth": true,
+    "discovered": true,
+    "size_bytes": 2427,
+    "anchor_strategy": "heading-or-line",
+    "adapters": [
+      "generic-project",
+      "local-fs",
+      "docs",
+      "memory",
+      "repo"
+    ]
+  },
+  {
     "id": "source:docs-change-records-2026-05-06-fix-orchestration-status-terminal-active-display-md",
     "kind": "document",
     "path": "docs/change-records/2026-05-06-fix-orchestration-status-terminal-active-display.md",
@@ -1669,6 +1686,22 @@
     "source_of_truth": true,
     "discovered": true,
     "size_bytes": 3706,
+    "anchor_strategy": "heading-or-line",
+    "adapters": [
+      "generic-project",
+      "local-fs",
+      "docs",
+      "repo"
+    ]
+  },
+  {
+    "id": "source:docs-reference-local-executor-wrapper-contract-md",
+    "kind": "document",
+    "path": "docs/reference/local-executor-wrapper-contract.md",
+    "exists": true,
+    "source_of_truth": true,
+    "discovered": true,
+    "size_bytes": 3769,
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
@@ -2039,6 +2072,24 @@
     "source_of_truth": true,
     "discovered": true,
     "size_bytes": 1857,
+    "anchor_strategy": "heading-or-line",
+    "adapters": [
+      "generic-project",
+      "local-fs",
+      "docs",
+      "memory",
+      "repo",
+      "release"
+    ]
+  },
+  {
+    "id": "source:docs-releases-2026-05-06-release-sula-0-18-10-local-executor-wrapper-contract-md",
+    "kind": "document",
+    "path": "docs/releases/2026-05-06-release-sula-0-18-10-local-executor-wrapper-contract.md",
+    "exists": true,
+    "source_of_truth": true,
+    "discovered": true,
+    "size_bytes": 1393,
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
@@ -3418,51 +3469,6 @@
     "source_of_truth": true,
     "discovered": true,
     "size_bytes": 12907,
-    "anchor_strategy": "line",
-    "adapters": [
-      "generic-project",
-      "local-fs",
-      "repo"
-    ]
-  },
-  {
-    "id": "source:scripts-sula-py",
-    "kind": "code",
-    "path": "scripts/sula.py",
-    "exists": true,
-    "source_of_truth": true,
-    "discovered": true,
-    "size_bytes": 898318,
-    "anchor_strategy": "line",
-    "adapters": [
-      "generic-project",
-      "local-fs",
-      "repo"
-    ]
-  },
-  {
-    "id": "source:scripts-sula-google-auth-py",
-    "kind": "code",
-    "path": "scripts/sula_google_auth.py",
-    "exists": true,
-    "source_of_truth": true,
-    "discovered": true,
-    "size_bytes": 8232,
-    "anchor_strategy": "line",
-    "adapters": [
-      "generic-project",
-      "local-fs",
-      "repo"
-    ]
-  },
-  {
-    "id": "source:scripts-sula-providers-init-py",
-    "kind": "code",
-    "path": "scripts/sula_providers/__init__.py",
-    "exists": true,
-    "source_of_truth": true,
-    "discovered": true,
-    "size_bytes": 953,
     "anchor_strategy": "line",
     "adapters": [
       "generic-project",

@@ -240,3 +240,7 @@
 {"timestamp": "2026-05-06T17:53:25Z", "event_type": "report.created", "summary": "Session report written to STATUS.md under 2026-05-06.", "profile": "sula-core", "project": "sula"}
 {"timestamp": "2026-05-06T22:41:53Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "sula-core", "project": "sula"}
 {"timestamp": "2026-05-06T22:42:15Z", "event_type": "report.created", "summary": "Session report written to STATUS.md under 2026-05-06.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-05-06T22:54:02Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-05-06T22:54:22Z", "event_type": "report.created", "summary": "Session report written to STATUS.md under 2026-05-06.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-05-06T22:55:15Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "sula-core", "project": "sula"}
+{"timestamp": "2026-05-06T22:55:35Z", "event_type": "report.created", "summary": "Session report written to STATUS.md under 2026-05-06.", "profile": "sula-core", "project": "sula"}

@@ -6,6 +6,23 @@ All notable changes to Sula Core should be recorded here with explicit sync impa
 
 - no entries yet
 
+## 0.18.10 - 2026-05-06
+
+### Added
+
+- Added a local executor wrapper contract reference describing how project-local
+  runner scripts should consume `SULA_EXECUTOR_CONTRACT_JSON` and
+  `SULA_EXECUTION_PACKET_JSON`.
+- Documented the expected Sula runner JSON response shape for status, summary,
+  touched files, validation evidence, and usage/cost metrics.
+
+### Sync Impact
+
+- Existing adopted projects remain compatible.
+- Projects that sync this release can point local wrapper maintainers or other
+  models at `docs/reference/local-executor-wrapper-contract.md` when adapting
+  Claude Code, Hermes, DeepSeek, or other local executor commands.
+
 ## 0.18.9 - 2026-05-06
 
 ### Changed

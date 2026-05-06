@@ -1,5 +1,5 @@
 {
-  "version": "0.18.9",
+  "version": "0.18.10",
   "profile": "sula-core",
   "relations": [
     {
@@ -140,6 +140,16 @@
     {
       "from": "change:2026-05-06-fix-orchestration-status-terminal-active-display",
       "to": "source:docs-change-records-2026-05-06-fix-orchestration-status-terminal-active-display-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "change:2026-05-06-document-local-executor-wrapper-contract",
+      "to": "source:docs-change-records-2026-05-06-document-local-executor-wrapper-contract-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "agreement:2026-05-06-document-local-executor-wrapper-contract",
+      "to": "source:docs-change-records-2026-05-06-document-local-executor-wrapper-contract-md",
       "type": "derived-from"
     },
     {
@@ -623,6 +633,31 @@
       "type": "derived-from"
     },
     {
+      "from": "release:2026-05-06-release-sula-0-18-10-local-executor-wrapper-contract",
+      "to": "source:docs-releases-2026-05-06-release-sula-0-18-10-local-executor-wrapper-contract-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "milestone:2026-05-06-release-sula-0-18-10-local-executor-wrapper-contract",
+      "to": "source:docs-releases-2026-05-06-release-sula-0-18-10-local-executor-wrapper-contract-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "risk:docs-releases-2026-05-06-release-sula-0-18-10-local-executor-wrapper-contract-md:the-release-documents-the-wrapper-boundary-but-does-not-centrally-install-or",
+      "to": "source:docs-releases-2026-05-06-release-sula-0-18-10-local-executor-wrapper-contract-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "risk:docs-releases-2026-05-06-release-sula-0-18-10-local-executor-wrapper-contract-md:projects-still-need-to-adapt-their-local-wrapper-command-to-their-chosen-cli",
+      "to": "source:docs-releases-2026-05-06-release-sula-0-18-10-local-executor-wrapper-contract-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "agreement:2026-05-06-release-sula-0-18-10-local-executor-wrapper-contract",
+      "to": "source:docs-releases-2026-05-06-release-sula-0-18-10-local-executor-wrapper-contract-md",
+      "type": "derived-from"
+    },
+    {
       "from": "release:2026-05-06-release-sula-0-18-1-current-upgrade-descriptor",
       "to": "source:docs-releases-2026-05-06-release-sula-0-18-1-current-upgrade-descriptor-md",
       "type": "derived-from"
@@ -988,6 +1023,11 @@
       "type": "derived-from"
     },
     {
+      "from": "agreement:source:change-records-md",
+      "to": "source:change-records-md",
+      "type": "derived-from"
+    },
+    {
       "from": "rule:change-records-md:rules:keep-this-file-short-and-index-oriented",
       "to": "source:change-records-md",
       "type": "derived-from"
@@ -1009,6 +1049,11 @@
     },
     {
       "from": "object:source:changelog-md",
+      "to": "source:changelog-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "agreement:source:changelog-md",
       "to": "source:changelog-md",
       "type": "derived-from"
     },
@@ -1398,6 +1443,16 @@
       "type": "derived-from"
     },
     {
+      "from": "object:source:docs-change-records-2026-05-06-document-local-executor-wrapper-contract-md",
+      "to": "source:docs-change-records-2026-05-06-document-local-executor-wrapper-contract-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "agreement:source:docs-change-records-2026-05-06-document-local-executor-wrapper-contract-md",
+      "to": "source:docs-change-records-2026-05-06-document-local-executor-wrapper-contract-md",
+      "type": "derived-from"
+    },
+    {
       "from": "object:source:docs-change-records-2026-05-06-fix-orchestration-status-terminal-active-display-md",
       "to": "source:docs-change-records-2026-05-06-fix-orchestration-status-terminal-active-display-md",
       "type": "derived-from"
@@ -1510,6 +1565,16 @@
     {
       "from": "object:source:docs-reference-feedback-bundle-lifecycle-md",
       "to": "source:docs-reference-feedback-bundle-lifecycle-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "object:source:docs-reference-local-executor-wrapper-contract-md",
+      "to": "source:docs-reference-local-executor-wrapper-contract-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "agreement:source:docs-reference-local-executor-wrapper-contract-md",
+      "to": "source:docs-reference-local-executor-wrapper-contract-md",
       "type": "derived-from"
     },
     {
@@ -1740,6 +1805,16 @@
     {
       "from": "agreement:source:docs-releases-2026-05-06-release-sula-0-18-1-current-upgrade-descriptor-md",
       "to": "source:docs-releases-2026-05-06-release-sula-0-18-1-current-upgrade-descriptor-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "object:source:docs-releases-2026-05-06-release-sula-0-18-10-local-executor-wrapper-contract-md",
+      "to": "source:docs-releases-2026-05-06-release-sula-0-18-10-local-executor-wrapper-contract-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "agreement:source:docs-releases-2026-05-06-release-sula-0-18-10-local-executor-wrapper-contract-md",
+      "to": "source:docs-releases-2026-05-06-release-sula-0-18-10-local-executor-wrapper-contract-md",
       "type": "derived-from"
     },
     {
@@ -2370,21 +2445,6 @@
     {
       "from": "object:source:schema-project-schema-json",
       "to": "source:schema-project-schema-json",
-      "type": "derived-from"
-    },
-    {
-      "from": "object:source:scripts-sula-py",
-      "to": "source:scripts-sula-py",
-      "type": "derived-from"
-    },
-    {
-      "from": "object:source:scripts-sula-google-auth-py",
-      "to": "source:scripts-sula-google-auth-py",
-      "type": "derived-from"
-    },
-    {
-      "from": "object:source:scripts-sula-providers-init-py",
-      "to": "source:scripts-sula-providers-init-py",
       "type": "derived-from"
     }
   ]
