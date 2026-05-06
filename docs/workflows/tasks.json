@@ -1,0 +1,117 @@
+{
+  "version": "0.17.0",
+  "tasks": [
+    {
+      "id": "trigger:workflow-start:workflow-start-2026-05-05-execute-sula-0-17-0-agent-native-project-os-upgrade",
+      "source_kind": "workflow-start",
+      "source_url": "",
+      "identifier": "workflow-start-2026-05-05-execute-sula-0-17-0-agent-native-project-os-upgrade",
+      "title": "Define Sula 0.17.0 agent-native project OS upgrade execution package",
+      "description": "Create the whitepaper, overview, workflow records, and phased task package for implementing the Sula 0.17.0 agent-native project operating system upgrade.",
+      "state": "completed",
+      "priority": "high",
+      "labels": [
+        "0.17.0",
+        "agent-native",
+        "mcp",
+        "portfolio"
+      ],
+      "blocked_by": [],
+      "project_slug": "sula",
+      "acceptance_criteria": [
+        "The 0.17.0 whitepaper defines product boundary, MCP-compatible surface, safety model, phased implementation order, and definition of done.",
+        "The execution package breaks the upgrade into independently verifiable task packages.",
+        "README and overview docs link to the 0.17.0 whitepaper.",
+        "A change record, workflow spec, workflow plan, and workflow review record exist for the planning package."
+      ],
+      "validation_requirements": [
+        "python3 scripts/sula.py check --project-root .",
+        "python3 scripts/sula.py doctor --project-root . --strict",
+        "python3 -m unittest discover -s tests -v"
+      ],
+      "risk_hints": [],
+      "trigger_event_kind": "workflow-start",
+      "created_at": "2026-05-05T01:40:28Z",
+      "updated_at": "2026-05-05T03:45:10Z"
+    },
+    {
+      "id": "agent-routing-visible-execution-phase-1",
+      "source_kind": "local-task",
+      "source_url": "docs/workflows/specs/2026-05-05-agent-routing-visible-execution-spec.md",
+      "identifier": "agent-routing-visible-execution-phase-1",
+      "title": "Implement Sula-owned visible execution status",
+      "description": "Add a cross-CLI Sula status surface so Codex CLI, Claude Code, Gemini, and plain terminal users can all see active tasks, current stage, host model visibility, and next action through Sula instead of relying on client-native task UI.",
+      "state": "blocked",
+      "priority": "high",
+      "labels": [
+        "agent-routing",
+        "visibility",
+        "orchestration",
+        "cli"
+      ],
+      "blocked_by": [
+        "explicit implementation start approval"
+      ],
+      "project_slug": "sula",
+      "acceptance_criteria": [
+        "`session start` prints memory digest pointer, active tasks, current stage, resolved runner, and host model metadata when available.",
+        "`orchestration status` includes active task, role, stage, model/provider when known, and next action.",
+        "`orchestration status --watch` or equivalent polling display works without external dependencies.",
+        "Generated AI instruction templates tell every supported coding CLI to surface Sula session status at startup.",
+        "Runtime status records stay under ignored `.sula/state/` paths and do not become project truth."
+      ],
+      "validation_requirements": [
+        "python3 scripts/sula.py check --project-root .",
+        "python3 scripts/sula.py doctor --project-root . --strict",
+        "python3 -m unittest discover -s tests -v"
+      ],
+      "risk_hints": [
+        "managed-template-sync",
+        "cli-ux"
+      ],
+      "created_at": "2026-05-05T22:12:51Z",
+      "updated_at": "2026-05-05T22:12:51Z"
+    },
+    {
+      "id": "agent-routing-visible-execution-phase-2",
+      "source_kind": "local-task",
+      "source_url": "docs/workflows/specs/2026-05-05-agent-routing-visible-execution-spec.md",
+      "identifier": "agent-routing-visible-execution-phase-2",
+      "title": "Implement role-based agent routing policy",
+      "description": "Add manifest-level planner, executor, verifier, and reviewer routing policy with local provider configuration, role-aware runner requests, reviewer feedback loops, and budget-aware gates.",
+      "state": "blocked",
+      "priority": "high",
+      "labels": [
+        "agent-routing",
+        "model-policy",
+        "runner",
+        "budget"
+      ],
+      "blocked_by": [
+        "agent-routing-visible-execution-phase-1",
+        "explicit implementation start approval"
+      ],
+      "project_slug": "sula",
+      "acceptance_criteria": [
+        "`[agent_routing]` parses from `.sula/project.toml` with documented defaults and schema validation.",
+        "`.sula/local/agent-providers.json` can validate provider readiness without exposing secrets.",
+        "`agent-routing status --json` and `agent-routing doctor` expose role/model/provider readiness.",
+        "Runner request JSON includes role, model hint, write access, routing cycle, and budget context while preserving old runner compatibility.",
+        "`plan-execute-review` can route planner, executor, verifier, and reviewer stages and stop on acceptance, block, cancellation, or max review cycles."
+      ],
+      "validation_requirements": [
+        "python3 scripts/sula.py check --project-root .",
+        "python3 scripts/sula.py doctor --project-root . --strict",
+        "python3 -m unittest discover -s tests -v"
+      ],
+      "risk_hints": [
+        "runner",
+        "cost-control",
+        "credential-boundary"
+      ],
+      "created_at": "2026-05-05T22:12:51Z",
+      "updated_at": "2026-05-05T22:12:51Z"
+    }
+  ],
+  "updated_at": "2026-05-05T22:12:51Z"
+}
