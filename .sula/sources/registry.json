@@ -276,7 +276,7 @@
     "exists": true,
     "source_of_truth": true,
     "discovered": true,
-    "size_bytes": 33381,
+    "size_bytes": 33805,
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
@@ -421,7 +421,7 @@
     "exists": true,
     "source_of_truth": true,
     "discovered": true,
-    "size_bytes": 18034,
+    "size_bytes": 18159,
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
@@ -2060,6 +2060,24 @@
     "source_of_truth": true,
     "discovered": true,
     "size_bytes": 2028,
+    "anchor_strategy": "heading-or-line",
+    "adapters": [
+      "generic-project",
+      "local-fs",
+      "docs",
+      "memory",
+      "repo",
+      "release"
+    ]
+  },
+  {
+    "id": "source:docs-releases-2026-05-06-release-sula-0-18-6-terminal-active-display-md",
+    "kind": "document",
+    "path": "docs/releases/2026-05-06-release-sula-0-18-6-terminal-active-display.md",
+    "exists": true,
+    "source_of_truth": true,
+    "discovered": true,
+    "size_bytes": 1640,
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",

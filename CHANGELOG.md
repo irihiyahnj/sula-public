@@ -6,6 +6,21 @@ All notable changes to Sula Core should be recorded here with explicit sync impa
 
 - no entries yet
 
+## 0.18.6 - 2026-05-06
+
+### Changed
+
+- Orchestration status now keeps terminal runs in history instead of showing
+  them as active execution.
+- `session start` and compact orchestration status now agree on the current
+  idle state when no run is live.
+
+### Sync Impact
+
+- Existing adopted projects remain compatible.
+- Projects that sync this patch will stop seeing completed runs presented as
+  the active execution slot.
+
 ## 0.18.5 - 2026-05-06
 
 ### Added

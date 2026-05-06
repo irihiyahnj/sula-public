@@ -1,5 +1,5 @@
 {
-  "version": "0.18.5",
+  "version": "0.18.6",
   "profile": "sula-core",
   "relations": [
     {
@@ -430,6 +430,26 @@
     {
       "from": "change:2026-04-11-add-adoption-agent-flow-for-one-sentence-onboarding",
       "to": "source:docs-change-records-2026-04-11-add-adoption-agent-flow-for-one-sentence-onboarding-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "release:2026-05-06-release-sula-0-18-6-terminal-active-display",
+      "to": "source:docs-releases-2026-05-06-release-sula-0-18-6-terminal-active-display-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "milestone:2026-05-06-release-sula-0-18-6-terminal-active-display",
+      "to": "source:docs-releases-2026-05-06-release-sula-0-18-6-terminal-active-display-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "risk:docs-releases-2026-05-06-release-sula-0-18-6-terminal-active-display-md:projects-that-relied-on-the-previous-compact-status-phrasing-will-need-to",
+      "to": "source:docs-releases-2026-05-06-release-sula-0-18-6-terminal-active-display-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "risk:docs-releases-2026-05-06-release-sula-0-18-6-terminal-active-display-md:existing-adopted-projects-remain-compatible-but-they-will-not-see-the-new",
+      "to": "source:docs-releases-2026-05-06-release-sula-0-18-6-terminal-active-display-md",
       "type": "derived-from"
     },
     {
@@ -1635,6 +1655,11 @@
     {
       "from": "object:source:docs-releases-2026-05-06-release-sula-0-18-5-compact-orchestration-status-md",
       "to": "source:docs-releases-2026-05-06-release-sula-0-18-5-compact-orchestration-status-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "object:source:docs-releases-2026-05-06-release-sula-0-18-6-terminal-active-display-md",
+      "to": "source:docs-releases-2026-05-06-release-sula-0-18-6-terminal-active-display-md",
       "type": "derived-from"
     },
     {

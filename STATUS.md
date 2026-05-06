@@ -19,6 +19,7 @@
 - Prepared Sula 0.18.5 so compact orchestration status and executor effort routing can roll out through the normal versioned upgrade path.
 - Finalize Sula 0.18.5 compact orchestration status release metadata and canary verification.
 - Adjusted orchestration visible-active semantics so terminal runs stay in history and no longer appear as active execution; added regression coverage and a change record.
+- Released Sula 0.18.6 terminal active display patch; bumped version metadata, launch descriptor, and bootstrap default ref.
 
 ### 2026-05-05
 
