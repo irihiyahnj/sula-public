@@ -501,8 +501,8 @@ Agent routing is now a first-class visibility and runner-contract surface:
 Autopilot routing is the commandless entry surface for mechanical maintenance:
 
 - `python3 scripts/sula.py auto --project-root /path/to/controller --intent "upgrade all Sula projects under this directory" --scope /path/to/scope` classifies the user goal and routes recognized fleet maintenance to the guarded fleet runner
-- `python3 scripts/sula.py fleet upgrade --project-root /path/to/controller --scope /path/to/scope --target-version <version> --json` discovers adopted projects, skips backup/archive/workspace/release-output directories, and delegates old active projects to their configured executor route
-- fleet upgrades are executor-required by default; Sula blocks instead of letting the host chat model burn supervisor tokens on mechanical sync work when no real executor route is configured
+- `python3 scripts/sula.py fleet upgrade --project-root /path/to/controller --scope /path/to/scope --target-version <version> --json` discovers adopted projects, skips backup/archive/workspace/release-output directories, and upgrades old active projects through the cheapest available executor
+- fleet upgrades use Sula's deterministic zero-model executor when the target project has no real local model runner; configured shell executors can still run first, but Sula falls back to deterministic sync/doctor/digest/check if they do not complete the upgrade
 - `python3 scripts/sula.py fleet status --project-root /path/to/controller --compact` prints the Sula-owned one-line fleet status bar with project counts, main model, executor model, reported tokens, reported cost, and next action
 - first shipped executor support for fleet work is `runner = "shell-command"` with `runner_command`; the wrapper receives `SULA_FLEET_TASK_JSON`, `SULA_AUTOPILOT_INTENT_JSON`, `SULA_MODEL_*`, and `SULA_RUNNER_EFFORT`
 - detailed behavior is documented in [docs/reference/autopilot-intent-router.md](docs/reference/autopilot-intent-router.md)

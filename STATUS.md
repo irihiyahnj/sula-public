@@ -6,6 +6,7 @@
 
 - Implemented Sula 0.18.12 autopilot maintenance routing with executor-required fleet upgrades, compact fleet status, managed AI instruction updates, release metadata, and targeted tests.
 - Released Sula 0.18.13 fleet token and cost status metrics: compact fleet status now shows executor-reported token count and cost, with usage aggregation tests and docs.
+- Implemented Sula 0.18.14 deterministic fleet upgrades: Sula maintenance upgrades now use zero-model sync/doctor/digest/check execution when target projects lack model runners, with shell fallback and status evidence.
 
 ### 2026-05-06
 

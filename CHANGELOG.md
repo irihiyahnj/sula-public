@@ -6,6 +6,26 @@ All notable changes to Sula Core should be recorded here with explicit sync impa
 
 - no entries yet
 
+## 0.18.14 - 2026-05-07
+
+### Changed
+
+- Fleet Sula upgrades now use a deterministic zero-model executor when a target
+  project has no real local model runner.
+- Configured shell fleet executors still run first, but Sula falls back to the
+  deterministic sync/doctor/digest/check path when the shell runner does not
+  complete the version upgrade.
+- Fleet upgrade status now records `executor_kind` values such as
+  `sula-deterministic` and `sula-deterministic-fallback`.
+
+### Sync Impact
+
+- Existing adopted projects remain compatible.
+- Sula upgrade tasks no longer require every target project to configure a local
+  model wrapper before fleet upgrades can proceed.
+- Code-changing tasks still require model runners; this deterministic fallback
+  is only for Sula maintenance upgrades.
+
 ## 0.18.13 - 2026-05-07
 
 ### Changed

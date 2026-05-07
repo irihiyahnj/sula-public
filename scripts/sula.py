@@ -2615,6 +2615,68 @@ def run_fleet_shell_executor(
     }
 
 
+def run_fleet_deterministic_executor(
+    *,
+    project_root: Path,
+    target_version: str,
+    source_script: Path,
+) -> dict[str, object]:
+    start = datetime.now(timezone.utc)
+    commands = [
+        ["python3", str(source_script), "sync", "--project-root", str(project_root), "--json"],
+        ["python3", str(source_script), "doctor", "--project-root", str(project_root), "--strict", "--json"],
+        ["python3", str(source_script), "memory", "digest", "--project-root", str(project_root)],
+        ["python3", str(source_script), "check", "--project-root", str(project_root), "--json"],
+    ]
+    evidence: list[dict[str, object]] = []
+    failed = False
+    for command in commands:
+        completed = subprocess.run(
+            command,
+            cwd=project_root,
+            capture_output=True,
+            text=True,
+            timeout=180,
+        )
+        stdout = redact_runner_text(completed.stdout or "")
+        stderr = redact_runner_text(completed.stderr or "")
+        evidence.append(
+            {
+                "kind": "sula-command",
+                "command": " ".join(command),
+                "returncode": completed.returncode,
+                "stdout": stdout[-2000:],
+                "stderr": stderr[-2000:],
+            }
+        )
+        if completed.returncode != 0:
+            failed = True
+            break
+    after_version = read_sula_version_lock(project_root)
+    runtime_seconds = max(0, int((datetime.now(timezone.utc) - start).total_seconds()))
+    if after_version == target_version and not failed:
+        status = "accepted"
+        summary = f"deterministic Sula upgrade completed for {project_root}"
+    elif after_version == target_version:
+        status = "human-review"
+        summary = f"Sula version reached {target_version}, but validation needs review"
+    else:
+        status = "failed"
+        summary = f"Sula deterministic upgrade did not reach {target_version}"
+    return {
+        "status": status,
+        "summary": summary,
+        "returncode": 1 if status == "failed" else 0,
+        "timed_out": False,
+        "validation_evidence": evidence,
+        "metrics": {
+            "runtime_seconds": runtime_seconds,
+            "token_count": 0,
+            "cost_usd": 0,
+        },
+    }
+
+
 def fleet_usage_metrics(results: list[dict[str, object]]) -> dict[str, object]:
     token_count = 0
     cost_usd = 0.0
@@ -2701,10 +2763,6 @@ def fleet_upgrade_payload(
         readiness = fleet_executor_readiness(project_config, load_error)
         result["executor_readiness"] = readiness
         if delegate == "executor":
-            if not bool(readiness.get("ready", False)) or project_config is None:
-                result.update({"status": "blocked", "reason": "executor-unavailable"})
-                results.append(result)
-                continue
             task_packet = fleet_upgrade_task_packet(
                 project_root=project_root,
                 target_version=target_version,
@@ -2714,10 +2772,31 @@ def fleet_upgrade_payload(
             )
             result["task_packet"] = task_packet
             if dry_run:
-                result.update({"status": "planned", "reason": "dry-run"})
+                runner = "configured-shell" if bool(readiness.get("ready", False)) else "sula-deterministic"
+                result.update({"status": "planned", "reason": "dry-run", "planned_executor": runner})
                 results.append(result)
                 continue
-            executor_result = run_fleet_shell_executor(config, project_config, task_packet=task_packet, intent=intent)
+            if bool(readiness.get("ready", False)) and project_config is not None:
+                executor_result = run_fleet_shell_executor(config, project_config, task_packet=task_packet, intent=intent)
+                after_version = read_sula_version_lock(project_root)
+                if normalize_optional_text(executor_result.get("status", "")) == "accepted" and after_version == target_version:
+                    result["executor_kind"] = "shell-command"
+                else:
+                    fallback_result = run_fleet_deterministic_executor(
+                        project_root=project_root,
+                        target_version=target_version,
+                        source_script=source_script,
+                    )
+                    result["shell_executor_result"] = executor_result
+                    result["executor_kind"] = "sula-deterministic-fallback"
+                    executor_result = fallback_result
+            else:
+                result["executor_kind"] = "sula-deterministic"
+                executor_result = run_fleet_deterministic_executor(
+                    project_root=project_root,
+                    target_version=target_version,
+                    source_script=source_script,
+                )
             result["executor_result"] = executor_result
             result["after_version"] = read_sula_version_lock(project_root)
             result["status"] = normalize_optional_text(executor_result.get("status", "failed")) or "failed"

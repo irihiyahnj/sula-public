@@ -2095,7 +2095,7 @@ Canary verification fixtures need at least one non-placeholder change record so 
             self.assertTrue(request_payload["executor_required"])
             self.assertEqual(request_payload["task"], "upgrade_sula_project")
 
-    def test_auto_upgrade_blocks_old_project_without_executor(self) -> None:
+    def test_auto_upgrade_uses_deterministic_executor_without_model_runner(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
             scope = Path(tmpdir)
             controller_root = scope / "controller"
@@ -2119,14 +2119,17 @@ Canary verification fixtures need at least one non-placeholder change record so 
                 "--json",
             )
 
-            self.assertEqual(result.returncode, 1)
+            self.assertEqual(result.returncode, 0, result.stderr)
             payload = json.loads(result.stdout)
             projects = {item["project_root"]: item for item in payload["autopilot"]["projects"]}
             child = projects[str(child_root.resolve())]
-            self.assertEqual(child["status"], "blocked")
-            self.assertEqual(child["reason"], "executor-unavailable")
+            self.assertEqual(child["status"], "accepted")
+            self.assertEqual(child["executor_kind"], "sula-deterministic")
+            self.assertEqual(child["after_version"], VERSION)
             self.assertIn("not a real executor", child["executor_readiness"]["reason"])
-            self.assertIn('0.18.10', (child_root / ".sula" / "version.lock").read_text(encoding="utf-8"))
+            self.assertIn(f'sula_version = "{VERSION}"', (child_root / ".sula" / "version.lock").read_text(encoding="utf-8"))
+            self.assertEqual(child["executor_result"]["metrics"]["token_count"], 0)
+            self.assertEqual(child["executor_result"]["metrics"]["cost_usd"], 0)
 
     def test_orchestration_trigger_and_shell_command_runner_collect_evidence(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:

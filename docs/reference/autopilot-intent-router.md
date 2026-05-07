@@ -47,7 +47,7 @@ The executor's job is:
 - run the allowed Sula validation commands
 - return structured status, validation evidence, touched files, and metrics
 
-If an active project is behind the target version and has no configured real executor, Sula returns `blocked` with reason `executor-unavailable`. The host model should report the block or configure the route with the user's approval; it should not silently perform the mechanical upgrade itself.
+If an active project is behind the target version and has no configured real model runner, Sula uses its deterministic zero-model upgrade executor. That executor runs Sula's own `sync`, `doctor --strict`, `memory digest`, and `check` commands and reports zero token and zero model cost. The host model should review the resulting status and evidence instead of performing the mechanical upgrade itself.
 
 ## Supported Fleet Executor
 

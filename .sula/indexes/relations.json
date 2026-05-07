@@ -1,5 +1,5 @@
 {
-  "version": "0.18.13",
+  "version": "0.18.14",
   "profile": "sula-core",
   "relations": [
     {
@@ -130,6 +130,11 @@
     {
       "from": "change:2026-05-07-add-fleet-token-and-cost-status-metrics",
       "to": "source:docs-change-records-2026-05-07-add-fleet-token-and-cost-status-metrics-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "change:2026-05-07-add-deterministic-fleet-upgrade-executor",
+      "to": "source:docs-change-records-2026-05-07-add-deterministic-fleet-upgrade-executor-md",
       "type": "derived-from"
     },
     {
@@ -485,6 +490,26 @@
     {
       "from": "change:2026-04-11-add-adoption-agent-flow-for-one-sentence-onboarding",
       "to": "source:docs-change-records-2026-04-11-add-adoption-agent-flow-for-one-sentence-onboarding-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "release:2026-05-07-release-sula-0-18-14-deterministic-fleet-upgrades",
+      "to": "source:docs-releases-2026-05-07-release-sula-0-18-14-deterministic-fleet-upgrades-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "milestone:2026-05-07-release-sula-0-18-14-deterministic-fleet-upgrades",
+      "to": "source:docs-releases-2026-05-07-release-sula-0-18-14-deterministic-fleet-upgrades-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "risk:docs-releases-2026-05-07-release-sula-0-18-14-deterministic-fleet-upgrades-md:the-deterministic-executor-can-still-leave-a-project-in-human-review-if",
+      "to": "source:docs-releases-2026-05-07-release-sula-0-18-14-deterministic-fleet-upgrades-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "risk:docs-releases-2026-05-07-release-sula-0-18-14-deterministic-fleet-upgrades-md:this-release-does-not-make-code-changing-tasks-deterministic-those-still-need",
+      "to": "source:docs-releases-2026-05-07-release-sula-0-18-14-deterministic-fleet-upgrades-md",
       "type": "derived-from"
     },
     {
@@ -1573,6 +1598,11 @@
       "type": "derived-from"
     },
     {
+      "from": "object:source:docs-change-records-2026-05-07-add-deterministic-fleet-upgrade-executor-md",
+      "to": "source:docs-change-records-2026-05-07-add-deterministic-fleet-upgrade-executor-md",
+      "type": "derived-from"
+    },
+    {
       "from": "object:source:docs-change-records-2026-05-07-add-fleet-token-and-cost-status-metrics-md",
       "to": "source:docs-change-records-2026-05-07-add-fleet-token-and-cost-status-metrics-md",
       "type": "derived-from"
@@ -1990,6 +2020,11 @@
     {
       "from": "object:source:docs-releases-2026-05-07-release-sula-0-18-13-fleet-token-cost-status-md",
       "to": "source:docs-releases-2026-05-07-release-sula-0-18-13-fleet-token-cost-status-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "object:source:docs-releases-2026-05-07-release-sula-0-18-14-deterministic-fleet-upgrades-md",
+      "to": "source:docs-releases-2026-05-07-release-sula-0-18-14-deterministic-fleet-upgrades-md",
       "type": "derived-from"
     },
     {
@@ -2530,16 +2565,6 @@
     {
       "from": "object:source:examples-okoktoto-docs-runbooks-deploy-and-rollback-md",
       "to": "source:examples-okoktoto-docs-runbooks-deploy-and-rollback-md",
-      "type": "derived-from"
-    },
-    {
-      "from": "object:source:examples-okoktoto-docs-runbooks-erpnext-integration-md",
-      "to": "source:examples-okoktoto-docs-runbooks-erpnext-integration-md",
-      "type": "derived-from"
-    },
-    {
-      "from": "object:source:examples-okoktoto-src-app-tsx",
-      "to": "source:examples-okoktoto-src-app-tsx",
       "type": "derived-from"
     }
   ]
