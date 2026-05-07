@@ -33,3 +33,6 @@
 {"timestamp": "2026-05-06T12:54:08Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "generic-project", "project": "client-service-drive-canary"}
 {"timestamp": "2026-05-06T12:54:52Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "generic-project", "project": "client-service-drive-canary"}
 {"timestamp": "2026-05-06T12:55:58Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "generic-project", "project": "client-service-drive-canary"}
+{"timestamp": "2026-05-06T23:54:14Z", "event_type": "sync.applied", "summary": "Synchronized enabled Sula projections.", "profile": "generic-project", "project": "client-service-drive-canary"}
+{"timestamp": "2026-05-06T23:54:17Z", "event_type": "memory.digest", "summary": "Regenerated memory digest at `.sula/memory-digest.md`.", "profile": "generic-project", "project": "client-service-drive-canary"}
+{"timestamp": "2026-05-07T00:26:28Z", "event_type": "sync.applied", "summary": "Synchronized enabled Sula projections.", "profile": "generic-project", "project": "client-service-drive-canary"}

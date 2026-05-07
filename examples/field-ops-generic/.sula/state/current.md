@@ -1,6 +1,6 @@
 # Current State Snapshot
 
-- generated on: 2026-05-06
+- generated on: 2026-05-07
 - project: Field Ops Generic Canary
 - profile: `generic-project`
 - source priority: STATUS.md and project records override this generated snapshot

@@ -1,5 +1,5 @@
 {
-  "version": "0.18.11",
+  "version": "0.18.12",
   "profile": "sula-core",
   "relations": [
     {
@@ -123,8 +123,18 @@
       "type": "derived-from"
     },
     {
-      "from": "task:handoff:review-docs-change-records-2026-05-06-release-sula-0-18-5-compact-orchestration-status-md-run-python3-scripts-sula-py-check-project-root-run-python3-m-unittest-tests-test-sula-v",
+      "from": "task:handoff:review-docs-change-records-2026-05-07-add-autopilot-intent-router-and-fleet-executor-guard-md-run-git-tag-v0-18-12-run-git-push-origin-main-v0-18-12",
       "to": "source:status-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "change:2026-05-07-add-autopilot-intent-router-and-fleet-executor-guard",
+      "to": "source:docs-change-records-2026-05-07-add-autopilot-intent-router-and-fleet-executor-guard-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "agreement:2026-05-07-add-autopilot-intent-router-and-fleet-executor-guard",
+      "to": "source:docs-change-records-2026-05-07-add-autopilot-intent-router-and-fleet-executor-guard-md",
       "type": "derived-from"
     },
     {
@@ -470,6 +480,31 @@
     {
       "from": "change:2026-04-11-add-adoption-agent-flow-for-one-sentence-onboarding",
       "to": "source:docs-change-records-2026-04-11-add-adoption-agent-flow-for-one-sentence-onboarding-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "release:2026-05-07-release-sula-0-18-12-autopilot-fleet-executor-guard",
+      "to": "source:docs-releases-2026-05-07-release-sula-0-18-12-autopilot-fleet-executor-guard-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "milestone:2026-05-07-release-sula-0-18-12-autopilot-fleet-executor-guard",
+      "to": "source:docs-releases-2026-05-07-release-sula-0-18-12-autopilot-fleet-executor-guard-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "risk:docs-releases-2026-05-07-release-sula-0-18-12-autopilot-fleet-executor-guard-md:the-first-classifier-is-intentionally-narrow-unrecognized-natural-language",
+      "to": "source:docs-releases-2026-05-07-release-sula-0-18-12-autopilot-fleet-executor-guard-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "risk:docs-releases-2026-05-07-release-sula-0-18-12-autopilot-fleet-executor-guard-md:real-fleet-execution-currently-requires-a-configured-project-local",
+      "to": "source:docs-releases-2026-05-07-release-sula-0-18-12-autopilot-fleet-executor-guard-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "risk:docs-releases-2026-05-07-release-sula-0-18-12-autopilot-fleet-executor-guard-md:host-models-still-need-to-respect-the-managed-instruction-files-sula-blocks",
+      "to": "source:docs-releases-2026-05-07-release-sula-0-18-12-autopilot-fleet-executor-guard-md",
       "type": "derived-from"
     },
     {
@@ -1083,11 +1118,6 @@
       "type": "derived-from"
     },
     {
-      "from": "agreement:source:changelog-md",
-      "to": "source:changelog-md",
-      "type": "derived-from"
-    },
-    {
       "from": "object:source:claude-md",
       "to": "source:claude-md",
       "type": "derived-from"
@@ -1508,6 +1538,16 @@
       "type": "derived-from"
     },
     {
+      "from": "object:source:docs-change-records-2026-05-07-add-autopilot-intent-router-and-fleet-executor-guard-md",
+      "to": "source:docs-change-records-2026-05-07-add-autopilot-intent-router-and-fleet-executor-guard-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "agreement:source:docs-change-records-2026-05-07-add-autopilot-intent-router-and-fleet-executor-guard-md",
+      "to": "source:docs-change-records-2026-05-07-add-autopilot-intent-router-and-fleet-executor-guard-md",
+      "type": "derived-from"
+    },
+    {
       "from": "object:source:docs-change-records-readme-md",
       "to": "source:docs-change-records-readme-md",
       "type": "derived-from"
@@ -1600,6 +1640,11 @@
     {
       "from": "object:source:docs-reference-agent-execution-quality-policy-md",
       "to": "source:docs-reference-agent-execution-quality-policy-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "object:source:docs-reference-autopilot-intent-router-md",
+      "to": "source:docs-reference-autopilot-intent-router-md",
       "type": "derived-from"
     },
     {
@@ -1905,6 +1950,11 @@
     {
       "from": "object:source:docs-releases-2026-05-06-release-sula-0-18-9-xhigh-open-cost-executor-md",
       "to": "source:docs-releases-2026-05-06-release-sula-0-18-9-xhigh-open-cost-executor-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "object:source:docs-releases-2026-05-07-release-sula-0-18-12-autopilot-fleet-executor-guard-md",
+      "to": "source:docs-releases-2026-05-07-release-sula-0-18-12-autopilot-fleet-executor-guard-md",
       "type": "derived-from"
     },
     {
@@ -2465,21 +2515,6 @@
     {
       "from": "object:source:examples-okoktoto-src-store-usestore-ts",
       "to": "source:examples-okoktoto-src-store-usestore-ts",
-      "type": "derived-from"
-    },
-    {
-      "from": "object:source:registry-adopted-projects-toml",
-      "to": "source:registry-adopted-projects-toml",
-      "type": "derived-from"
-    },
-    {
-      "from": "object:source:registry-feedback-readme-md",
-      "to": "source:registry-feedback-readme-md",
-      "type": "derived-from"
-    },
-    {
-      "from": "object:source:registry-feedback-catalog-json",
-      "to": "source:registry-feedback-catalog-json",
       "type": "derived-from"
     }
   ]

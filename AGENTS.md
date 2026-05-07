@@ -29,6 +29,12 @@ Every AI session in a Sula-adopted project follows this flow:
 
 1. **Start**: Read `.sula/memory-digest.md` first — it contains the current project state, recent activity, and handoff instructions. Then run `python3 scripts/sula.py session start --project-root .` so every CLI sees the same active task, stage, role, and model-routing status.
 2. **Work**: Perform the tasks described in STATUS.md Handoff section or as directed by the user.
+   If the user gives a natural-language project-maintenance or fleet-maintenance goal, route it through Sula before doing the mechanical work yourself:
+   ```bash
+   python3 scripts/sula.py auto --project-root . \
+     --intent "User goal in their words"
+   ```
+   If Sula classifies the goal as executor-required, do not perform that work in the host chat model. Let the configured executor route handle it, then review the status and evidence.
 3. **Report before each commit**: Before every `git commit`, record what changed:
    ```bash
    python3 scripts/sula.py report --project-root . \
@@ -51,7 +57,7 @@ Every AI session in a Sula-adopted project follows this flow:
 - project manifest schema and example
 - machine-readable CLI outputs for local software integration
 - optional MCP-compatible agent-native control surface for project, portfolio, artifact, provider, workflow, orchestration, and controlled record tools
-- `onboard`, `adopt`, `init`, `sync`, `doctor`, `check`, `remove`, `query`, `status`, `session`, `agent-routing`, `artifact`, `portfolio`, `feedback`, `record`, `memory digest`, and `report` commands
+- `onboard`, `adopt`, `init`, `sync`, `doctor`, `check`, `auto`, `fleet`, `remove`, `query`, `status`, `session`, `agent-routing`, `artifact`, `portfolio`, `feedback`, `record`, `memory digest`, and `report` commands
 - static launch-site assets under `site/`, including the canonical launch contract and bootstrap shim
 
 ## Current Capabilities
@@ -66,6 +72,7 @@ Every AI session in a Sula-adopted project follows this flow:
 - Sula can prepare machine-readable provider import plans through `artifact import-plan`, including auto-generated `.docx` or `.xlsx` bridge artifacts when a Google Docs or Google Sheets import still needs a local handoff file.
 - Sula can expose a dependency-light MCP-compatible control surface through `mcp tools`, `mcp call`, and `mcp serve`, with read-only project/portfolio tools by default and controlled write tools gated by local allowlists and write classes.
 - Sula can now expose a CLI-owned session status banner and role-based agent routing policy so every coding CLI can see the active task, stage, model/provider role assignments, and local provider readiness without relying on client-native task UI.
+- Sula can now route natural-language maintenance goals through `auto`, including executor-required fleet Sula upgrades that hand mechanical project work to configured local executor routes and leave the host model in supervisor/reviewer mode.
 - Sula can return a consolidated project policy view for agents, including highest rule, workflow policy, agent behavior, approval categories, verification adapters, software constraints, service constraints, and instruction-file summaries.
 - Sula can report provider adapter capabilities and structured PR closeout evidence, including CI state, unresolved review-thread count, comments requiring action, and closeout state when fixture or remote metadata is available.
 - `artifact create` can now render formal source-document bundles for `schedule`, `proposal` / `plan`, `report`, `process`, and `training` artifacts instead of falling back to a single generic shell.

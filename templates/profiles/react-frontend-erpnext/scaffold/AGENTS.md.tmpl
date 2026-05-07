@@ -20,6 +20,7 @@ If any tool-specific file conflicts with this file, `AGENTS.md` wins.
 
 - Read this file before making changes.
 - Start each session by reading `.sula/memory-digest.md` and running `python3 scripts/sula.py session start --project-root .` so every CLI sees the same active task, stage, role, and model-routing status.
+- If the user gives a natural-language project-maintenance or fleet-maintenance goal, first run `python3 scripts/sula.py auto --project-root . --intent "<user goal>"`. If Sula marks it executor-required, do not perform the mechanical work in the host chat model; let the configured executor route handle it and review the returned evidence.
 - GitHub is the durable source of truth.
 - Working branches should use `{{WORKING_BRANCH_PREFIX}}*`.
 - Deployment branch is `{{DEPLOYMENT_BRANCH}}`.

@@ -6,6 +6,36 @@ All notable changes to Sula Core should be recorded here with explicit sync impa
 
 - no entries yet
 
+## 0.18.12 - 2026-05-07
+
+### Added
+
+- Added `auto` as the natural-language autopilot entrypoint for project and
+  fleet maintenance goals.
+- Added `fleet upgrade` and `fleet status` for executor-required Sula upgrades
+  across discovered adopted projects.
+- Fleet upgrade now writes `.sula/state/fleet/latest.json` and prints a compact
+  Sula status bar with project counts, supervisor route, executor route, and
+  next action.
+- AI tool instructions now tell Sula-aware coding CLIs to route natural-language
+  maintenance goals through `auto` before doing mechanical work in the host
+  model.
+
+### Changed
+
+- Sula fleet upgrades default to executor delegation and block active old
+  projects when no real executor route is configured, instead of silently
+  spending supervisor-model tokens on mechanical sync work.
+
+### Sync Impact
+
+- Existing adopted projects remain compatible.
+- Projects that sync this release inherit the commandless maintenance routing
+  rule in managed AI instruction files.
+- Real delegated fleet execution requires a project-local `shell-command`
+  executor wrapper; otherwise Sula reports `executor-unavailable` and leaves the
+  host model in supervisor/reviewer mode.
+
 ## 0.18.11 - 2026-05-06
 
 ### Added

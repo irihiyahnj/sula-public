@@ -1,6 +1,6 @@
 # Current State Snapshot
 
-- generated on: 2026-05-06
+- generated on: 2026-05-07
 - project: OKOKTOTO v5
 - profile: `react-frontend-erpnext`
 - source priority: STATUS.md and project records override this generated snapshot

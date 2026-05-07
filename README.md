@@ -19,6 +19,7 @@ Sula is not a product template for one stack. It is a coordination layer with:
 - a feedback-bundle workflow so reusable fixes can move upstream into Sula Core and then back downstream through versioned sync
 - a single-project memory model for durable status, decisions, releases, and incidents
 - workflow packs, artifact routing, and portfolio registration for non-code client projects
+- a natural-language autopilot router for project maintenance, including executor-required fleet upgrades that keep the host model in supervisor mode
 
 Long-term direction:
 
@@ -496,6 +497,15 @@ Agent routing is now a first-class visibility and runner-contract surface:
 - runner requests for `codex-sdk` and `codex-app-server`, plus shell-command runner environment variables, now expose both the Sula reasoning effort and the runner-native effort; Claude-style `xhigh` routes map to runner effort `max`
 - `agent-routing configure` can remember a local executor command such as a Claude Code or Hermes wrapper backed by DeepSeek, including the desired executor reasoning effort; Sula dispatches that command and records status, while the wrapper remains responsible for its own model/API configuration
 - local executor wrappers should follow [docs/reference/local-executor-wrapper-contract.md](docs/reference/local-executor-wrapper-contract.md): consume `SULA_EXECUTOR_CONTRACT_JSON`, `SULA_EXECUTION_PACKET_JSON`, and retry feedback when present; call the local model CLI non-interactively; and return one Sula JSON object with status, summary, touched files, validation evidence, and usage/cost metrics
+
+Autopilot routing is the commandless entry surface for mechanical maintenance:
+
+- `python3 scripts/sula.py auto --project-root /path/to/controller --intent "upgrade all Sula projects under this directory" --scope /path/to/scope` classifies the user goal and routes recognized fleet maintenance to the guarded fleet runner
+- `python3 scripts/sula.py fleet upgrade --project-root /path/to/controller --scope /path/to/scope --target-version <version> --json` discovers adopted projects, skips backup/archive/workspace/release-output directories, and delegates old active projects to their configured executor route
+- fleet upgrades are executor-required by default; Sula blocks instead of letting the host chat model burn supervisor tokens on mechanical sync work when no real executor route is configured
+- `python3 scripts/sula.py fleet status --project-root /path/to/controller --compact` prints the Sula-owned one-line fleet status bar with project counts, main model, executor model, and next action
+- first shipped executor support for fleet work is `runner = "shell-command"` with `runner_command`; the wrapper receives `SULA_FLEET_TASK_JSON`, `SULA_AUTOPILOT_INTENT_JSON`, `SULA_MODEL_*`, and `SULA_RUNNER_EFFORT`
+- detailed behavior is documented in [docs/reference/autopilot-intent-router.md](docs/reference/autopilot-intent-router.md)
 
 Provider-backed artifacts can also be registered without a local materialized file path by supplying a stable project-relative path and provider item metadata. This lets Drive-synced and provider-native deliverables survive device-specific local path differences.
 

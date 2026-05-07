@@ -34,6 +34,7 @@ Sula manages the cross-project operational layer so this repository can benefit 
 - `reference/symphony-orchestration-absorption-plan.md`: completed-state contract for absorbing Symphony-style automation and agent orchestration without binding Sula Core to one tracker, runner, or daemon implementation
 - `reference/agent-execution-quality-policy.md`: Sula-native contract for portable agent behavior quality inspired by reusable coding-guidance skills
 - `reference/local-executor-wrapper-contract.md`: project-local runner wrapper contract for consuming Sula executor packets, supervised retry feedback, and returning structured metrics/evidence
+- `reference/autopilot-intent-router.md`: natural-language maintenance routing, executor-required fleet upgrades, and the fleet status bar contract
 
 ### 5. Workflow Plans
 

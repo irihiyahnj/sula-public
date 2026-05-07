@@ -243,7 +243,7 @@
     "exists": true,
     "source_of_truth": true,
     "discovered": true,
-    "size_bytes": 6994,
+    "size_bytes": 7701,
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
@@ -259,7 +259,7 @@
     "exists": true,
     "source_of_truth": true,
     "discovered": true,
-    "size_bytes": 17303,
+    "size_bytes": 17658,
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
@@ -276,7 +276,7 @@
     "exists": true,
     "source_of_truth": true,
     "discovered": true,
-    "size_bytes": 37026,
+    "size_bytes": 38986,
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
@@ -293,7 +293,7 @@
     "exists": true,
     "source_of_truth": true,
     "discovered": true,
-    "size_bytes": 1291,
+    "size_bytes": 1624,
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
@@ -309,7 +309,7 @@
     "exists": true,
     "source_of_truth": true,
     "discovered": true,
-    "size_bytes": 2158,
+    "size_bytes": 2491,
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
@@ -357,7 +357,7 @@
     "exists": true,
     "source_of_truth": true,
     "discovered": true,
-    "size_bytes": 1319,
+    "size_bytes": 1652,
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
@@ -389,7 +389,7 @@
     "exists": true,
     "source_of_truth": true,
     "discovered": true,
-    "size_bytes": 36435,
+    "size_bytes": 37929,
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
@@ -421,7 +421,7 @@
     "exists": true,
     "source_of_truth": true,
     "discovered": true,
-    "size_bytes": 19924,
+    "size_bytes": 20132,
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
@@ -438,7 +438,7 @@
     "exists": true,
     "source_of_truth": true,
     "discovered": true,
-    "size_bytes": 4016,
+    "size_bytes": 4164,
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
@@ -1435,6 +1435,23 @@
     ]
   },
   {
+    "id": "source:docs-change-records-2026-05-07-add-autopilot-intent-router-and-fleet-executor-guard-md",
+    "kind": "document",
+    "path": "docs/change-records/2026-05-07-add-autopilot-intent-router-and-fleet-executor-guard.md",
+    "exists": true,
+    "source_of_truth": true,
+    "discovered": true,
+    "size_bytes": 3611,
+    "anchor_strategy": "heading-or-line",
+    "adapters": [
+      "generic-project",
+      "local-fs",
+      "docs",
+      "memory",
+      "repo"
+    ]
+  },
+  {
     "id": "source:docs-change-records-readme-md",
     "kind": "document",
     "path": "docs/change-records/README.md",
@@ -1687,6 +1704,22 @@
     "source_of_truth": true,
     "discovered": true,
     "size_bytes": 2449,
+    "anchor_strategy": "heading-or-line",
+    "adapters": [
+      "generic-project",
+      "local-fs",
+      "docs",
+      "repo"
+    ]
+  },
+  {
+    "id": "source:docs-reference-autopilot-intent-router-md",
+    "kind": "document",
+    "path": "docs/reference/autopilot-intent-router.md",
+    "exists": true,
+    "source_of_truth": true,
+    "discovered": true,
+    "size_bytes": 4375,
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
@@ -2269,6 +2302,24 @@
     "source_of_truth": true,
     "discovered": true,
     "size_bytes": 1619,
+    "anchor_strategy": "heading-or-line",
+    "adapters": [
+      "generic-project",
+      "local-fs",
+      "docs",
+      "memory",
+      "repo",
+      "release"
+    ]
+  },
+  {
+    "id": "source:docs-releases-2026-05-07-release-sula-0-18-12-autopilot-fleet-executor-guard-md",
+    "kind": "document",
+    "path": "docs/releases/2026-05-07-release-sula-0-18-12-autopilot-fleet-executor-guard.md",
+    "exists": true,
+    "source_of_truth": true,
+    "discovered": true,
+    "size_bytes": 1888,
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
@@ -2949,7 +3000,7 @@
     "exists": true,
     "source_of_truth": true,
     "discovered": true,
-    "size_bytes": 1243,
+    "size_bytes": 1576,
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
@@ -2965,7 +3016,7 @@
     "exists": true,
     "source_of_truth": true,
     "discovered": true,
-    "size_bytes": 2114,
+    "size_bytes": 2447,
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
@@ -2981,7 +3032,7 @@
     "exists": true,
     "source_of_truth": true,
     "discovered": true,
-    "size_bytes": 1271,
+    "size_bytes": 1604,
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
@@ -3029,7 +3080,7 @@
     "exists": true,
     "source_of_truth": true,
     "discovered": true,
-    "size_bytes": 3836,
+    "size_bytes": 4178,
     "anchor_strategy": "heading-or-line",
     "adapters": [
       "generic-project",
@@ -3430,55 +3481,6 @@
       "generic-project",
       "local-fs",
       "repo"
-    ]
-  },
-  {
-    "id": "source:registry-adopted-projects-toml",
-    "kind": "config",
-    "path": "registry/adopted-projects.toml",
-    "exists": true,
-    "source_of_truth": true,
-    "discovered": true,
-    "size_bytes": 2282,
-    "anchor_strategy": "line",
-    "adapters": [
-      "generic-project",
-      "local-fs",
-      "repo",
-      "registry"
-    ]
-  },
-  {
-    "id": "source:registry-feedback-readme-md",
-    "kind": "document",
-    "path": "registry/feedback/README.md",
-    "exists": true,
-    "source_of_truth": true,
-    "discovered": true,
-    "size_bytes": 480,
-    "anchor_strategy": "heading-or-line",
-    "adapters": [
-      "generic-project",
-      "local-fs",
-      "docs",
-      "repo",
-      "registry"
-    ]
-  },
-  {
-    "id": "source:registry-feedback-catalog-json",
-    "kind": "config",
-    "path": "registry/feedback/catalog.json",
-    "exists": true,
-    "source_of_truth": true,
-    "discovered": true,
-    "size_bytes": 61,
-    "anchor_strategy": "line",
-    "adapters": [
-      "generic-project",
-      "local-fs",
-      "repo",
-      "registry"
     ]
   }
 ]

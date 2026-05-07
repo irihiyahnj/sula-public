@@ -17,3 +17,4 @@ If this file conflicts with `AGENTS.md`, `AGENTS.md` wins.
 - Deployment branch = `{{DEPLOYMENT_BRANCH}}`.
 - Validate substantial changes with `{{BUILD_COMMAND}}`.
 - Session lifecycle: start by reading `.sula/memory-digest.md` and running `python3 scripts/sula.py session start --project-root .`; end by running `python3 scripts/sula.py report --project-root . --summary "..."` and committing the result. See AGENTS.md Session Lifecycle section for the full flow.
+- Natural-language project-maintenance and fleet-maintenance goals must be routed through `python3 scripts/sula.py auto --project-root . --intent "<user goal>"` before doing the mechanical work yourself. If Sula classifies the goal as executor-required, stay in supervisor/reviewer mode and let the configured executor route run it.

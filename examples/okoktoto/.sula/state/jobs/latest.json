@@ -1,11 +1,11 @@
 {
-  "id": "job:memory.digest:20260506-125525",
+  "id": "job:memory.digest:20260506-235433",
   "job_type": "memory.digest",
   "status": "ok",
   "summary": "Regenerated memory digest at `.sula/memory-digest.md`.",
   "details": {
     "output_path": ".sula/memory-digest.md"
   },
-  "started_at": "2026-05-06T12:55:25Z",
-  "finished_at": "2026-05-06T12:55:25Z"
+  "started_at": "2026-05-06T23:54:33Z",
+  "finished_at": "2026-05-06T23:54:33Z"
 }

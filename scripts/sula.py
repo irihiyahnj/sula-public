@@ -1758,6 +1758,32 @@ def parse_args() -> argparse.Namespace:
     add_project_root_arg(check_cmd)
     check_cmd.add_argument("--json", action="store_true", help="Print JSON instead of human-readable output")
 
+    auto_cmd = sub.add_parser("auto", help="Route a natural-language user goal through Sula autopilot")
+    add_project_root_arg(auto_cmd)
+    auto_cmd.add_argument("--intent", required=True, help="Natural-language user goal to classify and execute")
+    auto_cmd.add_argument("--scope", default="", help="Optional filesystem scope for fleet intents")
+    auto_cmd.add_argument("--target-version", default=VERSION, help="Target Sula version for upgrade intents")
+    auto_cmd.add_argument("--dry-run", action="store_true", help="Plan without dispatching executors")
+    auto_cmd.add_argument("--json", action="store_true", help="Print JSON instead of human-readable output")
+
+    fleet_cmd = sub.add_parser("fleet", help="Run Sula autopilot workflows across multiple adopted projects")
+    fleet_sub = fleet_cmd.add_subparsers(dest="fleet_command", required=True)
+
+    fleet_upgrade_cmd = fleet_sub.add_parser("upgrade", help="Upgrade discovered Sula projects through executor-required fleet mode")
+    add_project_root_arg(fleet_upgrade_cmd)
+    fleet_upgrade_cmd.add_argument("--scope", required=True, help="Directory scope to scan for Sula projects")
+    fleet_upgrade_cmd.add_argument("--target-version", default=VERSION)
+    fleet_upgrade_cmd.add_argument("--delegate", choices=["executor", "host"], default="executor")
+    fleet_upgrade_cmd.add_argument("--executor-required", action="store_true", default=True, help="Block write work when no executor is available")
+    fleet_upgrade_cmd.add_argument("--allow-host-execution", action="store_true", help="Allow host execution for deterministic maintenance")
+    fleet_upgrade_cmd.add_argument("--dry-run", action="store_true")
+    fleet_upgrade_cmd.add_argument("--json", action="store_true", help="Print JSON instead of human-readable output")
+
+    fleet_status_cmd = fleet_sub.add_parser("status", help="Show latest fleet autopilot run")
+    add_project_root_arg(fleet_status_cmd)
+    fleet_status_cmd.add_argument("--compact", action="store_true")
+    fleet_status_cmd.add_argument("--json", action="store_true", help="Print JSON instead of human-readable output")
+
     status_cmd = sub.add_parser("status", help="Summarize current project state")
     add_project_root_arg(status_cmd)
     status_cmd.add_argument("--refresh-provider", action="store_true", help="Refresh collaborative provider-native truth sources before summarizing")
@@ -2373,6 +2399,407 @@ def sync_plan_payload(actions: list[RenderAction]) -> dict[str, object]:
             for action in actions
         ],
     }
+
+
+def fleet_state_root(config: ProjectConfig) -> Path:
+    return config.root / ".sula" / "state" / "fleet"
+
+
+def fleet_latest_path(config: ProjectConfig) -> Path:
+    return fleet_state_root(config) / "latest.json"
+
+
+def write_fleet_latest(config: ProjectConfig, payload: dict[str, object]) -> None:
+    fleet_state_root(config).mkdir(parents=True, exist_ok=True)
+    fleet_latest_path(config).write_text(json.dumps(payload, indent=2, ensure_ascii=True) + "\n", encoding="utf-8")
+
+
+def read_sula_version_lock(project_root: Path) -> str:
+    lock_path = project_root / ".sula" / "version.lock"
+    if not lock_path.exists():
+        return "unknown"
+    for line in lock_path.read_text(encoding="utf-8", errors="replace").splitlines():
+        line = line.strip()
+        if line.startswith("sula_version") and '"' in line:
+            parts = line.split('"')
+            if len(parts) >= 2:
+                return parts[1]
+    return "unknown"
+
+
+def classify_fleet_project_path(project_root: Path) -> str:
+    text = project_root.as_posix().lower()
+    parts = set(project_root.parts)
+    if "pre-fix-backups" in parts or "/backup" in text or "/backups" in text:
+        return "backup"
+    if "archive" in parts or re.search(r"/sula-public-\d", text):
+        return "archive"
+    if ".opensula-workspaces" in parts or "/.sula/local/workspaces/" in text:
+        return "workspace"
+    if "releases" in parts and re.search(r"/releases/[0-9a-f]{5,}($|/)", text):
+        return "deployment-release"
+    return "active"
+
+
+def discover_sula_projects(scope: Path) -> list[dict[str, object]]:
+    skip_names = {".git", "node_modules", ".cache", "__pycache__", ".pytest_cache", ".mypy_cache", ".venv", "venv"}
+    discovered: list[dict[str, object]] = []
+    for dirpath, dirnames, filenames in os.walk(scope, topdown=True, followlinks=False):
+        current = Path(dirpath)
+        lowered = current.as_posix().lower()
+        if lowered in {"/proc", "/sys", "/dev", "/run"} or lowered.startswith(("/proc/", "/sys/", "/dev/", "/run/")):
+            dirnames[:] = []
+            continue
+        dirnames[:] = [
+            name
+            for name in dirnames
+            if name not in skip_names
+            and not (name == "workspaces" and current.name == "local" and current.parent.name == ".sula")
+        ]
+        if current.name == ".sula":
+            dirnames[:] = [name for name in dirnames if name != "local"]
+        if "project.toml" in filenames and current.name == ".sula":
+            project_root = current.parent.resolve()
+            discovered.append(
+                {
+                    "project_root": str(project_root),
+                    "classification": classify_fleet_project_path(project_root),
+                    "current_version": read_sula_version_lock(project_root),
+                    "manifest_path": str(current / "project.toml"),
+                }
+            )
+            dirnames[:] = []
+    discovered.sort(key=lambda item: normalize_optional_text(item.get("project_root", "")))
+    return discovered
+
+
+def fleet_project_config(project_root: Path) -> tuple[ProjectConfig | None, str]:
+    try:
+        return load_manifest(project_root), ""
+    except SystemExit as exc:
+        return None, normalize_optional_text(exc)
+    except Exception as exc:
+        return None, str(exc)
+
+
+def fleet_executor_readiness(project_config: ProjectConfig | None, load_error: str = "") -> dict[str, object]:
+    if project_config is None:
+        return {"ready": False, "reason": load_error or "manifest could not be loaded", "runner": "unknown"}
+    runner = project_config.orchestration_runner
+    if runner == "shell-command":
+        if project_config.orchestration_runner_command:
+            role = agent_routing_role_payload(project_config, "executor")
+            return {
+                "ready": True,
+                "runner": runner,
+                "runner_command": project_config.orchestration_runner_command,
+                "provider": normalize_optional_text(role.get("provider", "")),
+                "model": normalize_optional_text(role.get("model", "")),
+                "reasoning_effort": normalize_optional_text(role.get("reasoning_effort", "")),
+                "runner_effort": runner_effort_for_role(project_config, role),
+            }
+        return {"ready": False, "reason": "shell-command runner has no runner_command", "runner": runner}
+    if runner in {"codex-sdk", "codex-app-server"}:
+        return {"ready": False, "reason": f"fleet executor currently supports shell-command runners only, not {runner}", "runner": runner}
+    return {"ready": False, "reason": f"runner {runner} is not a real executor", "runner": runner}
+
+
+def fleet_upgrade_task_packet(
+    *,
+    project_root: Path,
+    target_version: str,
+    current_version: str,
+    source_script: Path,
+    executor_required: bool,
+) -> dict[str, object]:
+    return {
+        "task": "upgrade_sula_project",
+        "project_root": str(project_root),
+        "current_version": current_version,
+        "target_version": target_version,
+        "source_script": str(source_script),
+        "executor_required": executor_required,
+        "allowed_commands": [
+            "python3 <source_script> sync --project-root <project_root> --json",
+            "python3 <source_script> doctor --project-root <project_root> --strict --json",
+            "python3 <source_script> memory digest --project-root <project_root>",
+            "python3 <source_script> check --project-root <project_root> --json",
+        ],
+        "forbidden_behaviors": [
+            "do not change business code unless check failure explicitly requires it",
+            "do not read, print, or store secrets",
+            "do not run destructive git operations",
+            "do not modify archive, backup, workspace, or deployment release directories",
+        ],
+        "expected_output": {
+            "format": "json",
+            "required_fields": ["status", "summary", "validation_evidence", "metrics"],
+        },
+    }
+
+
+def run_fleet_shell_executor(
+    controller_config: ProjectConfig,
+    project_config: ProjectConfig,
+    *,
+    task_packet: dict[str, object],
+    intent: str,
+) -> dict[str, object]:
+    role_payload = agent_routing_role_payload(project_config, "executor")
+    env = os.environ.copy()
+    env.update(
+        {
+            "SULA_EXECUTOR_REQUIRED": "true",
+            "SULA_AGENT_ROLE": "executor",
+            "SULA_MODEL_PROVIDER": normalize_optional_text(role_payload.get("provider", "")),
+            "SULA_MODEL_NAME": normalize_optional_text(role_payload.get("model", "")),
+            "SULA_MODEL_REASONING_EFFORT": normalize_optional_text(role_payload.get("reasoning_effort", "")),
+            "SULA_RUNNER_EFFORT": runner_effort_for_role(project_config, role_payload),
+            "SULA_FLEET_TASK_JSON": json.dumps(task_packet, ensure_ascii=True),
+            "SULA_AUTOPILOT_INTENT_JSON": json.dumps(
+                {
+                    "intent": intent,
+                    "controller_project_root": str(controller_config.root),
+                    "created_at": current_utc_timestamp(),
+                },
+                ensure_ascii=True,
+            ),
+        }
+    )
+    start = datetime.now(timezone.utc)
+    try:
+        completed = subprocess.run(
+            project_config.orchestration_runner_command,
+            shell=True,
+            cwd=project_config.root,
+            env=env,
+            capture_output=True,
+            text=True,
+            timeout=executor_timeout_seconds(project_config),
+        )
+        stdout = redact_runner_text(completed.stdout or "")
+        stderr = redact_runner_text(completed.stderr or "")
+        returncode = completed.returncode
+        timed_out = False
+    except subprocess.TimeoutExpired as exc:
+        stdout = redact_runner_text(exc.stdout if isinstance(exc.stdout, str) else "")
+        stderr = redact_runner_text(exc.stderr if isinstance(exc.stderr, str) else "")
+        returncode = 124
+        timed_out = True
+    runtime_seconds = max(0, int((datetime.now(timezone.utc) - start).total_seconds()))
+    response_payload: dict[str, object] = {}
+    if stdout.strip():
+        try:
+            parsed = json.loads(stdout)
+            if isinstance(parsed, dict):
+                response_payload = parsed
+        except json.JSONDecodeError:
+            response_payload = {}
+    explicit_status = normalize_optional_text(response_payload.get("status", "")).strip()
+    if explicit_status not in {"accepted", "human-review", "blocked", "failed"}:
+        explicit_status = "failed" if timed_out or returncode != 0 else "human-review"
+    metrics = response_payload.get("metrics", {})
+    metrics = metrics if isinstance(metrics, dict) else {}
+    metrics.setdefault("runtime_seconds", runtime_seconds)
+    metrics.setdefault("token_count", 0)
+    metrics.setdefault("cost_usd", 0)
+    return {
+        "status": explicit_status,
+        "summary": normalize_optional_text(response_payload.get("summary", "")) or f"fleet executor finished with exit code {returncode}",
+        "returncode": returncode,
+        "timed_out": timed_out,
+        "stdout": stdout[-4000:],
+        "stderr": stderr[-4000:],
+        "validation_evidence": response_payload.get("validation_evidence", []),
+        "metrics": metrics,
+    }
+
+
+def fleet_status_bar(config: ProjectConfig, *, status: str, payload_counts: dict[str, int], total: int) -> str:
+    reviewer = agent_routing_role_payload(config, "reviewer")
+    executor = agent_routing_role_payload(config, "executor")
+    done = sum(payload_counts.get(key, 0) for key in ["accepted", "current", "skipped", "human-review"])
+    blocked = payload_counts.get("blocked", 0) + payload_counts.get("failed", 0)
+    return (
+        f"Sula: fleet/{status} | Projects: {done}/{total} done"
+        f"{' / ' + str(blocked) + ' blocked' if blocked else ''} | "
+        f"Main: {role_compact_label(config, reviewer, provider_default='codex')} | "
+        f"Executor: {role_compact_label(config, executor, include_runner_effort=True)} | "
+        "Guard: executor-required | Next: review report"
+    )
+
+
+def fleet_upgrade_payload(
+    config: ProjectConfig,
+    *,
+    scope: Path,
+    target_version: str,
+    delegate: str,
+    executor_required: bool,
+    allow_host_execution: bool,
+    dry_run: bool,
+    intent: str = "",
+) -> tuple[dict[str, object], int]:
+    discovered = discover_sula_projects(scope)
+    results: list[dict[str, object]] = []
+    source_script = SULA_ROOT / "scripts" / "sula.py"
+    for item in discovered:
+        project_root = Path(normalize_optional_text(item.get("project_root", "")))
+        classification = normalize_optional_text(item.get("classification", "active"))
+        current_version = normalize_optional_text(item.get("current_version", "unknown"))
+        result: dict[str, object] = {**item, "target_version": target_version, "delegate": delegate, "executor_required": executor_required}
+        if classification != "active":
+            result.update({"status": "skipped", "reason": f"classified as {classification}"})
+            results.append(result)
+            continue
+        if current_version == target_version:
+            result.update({"status": "current", "reason": "already at target version"})
+            results.append(result)
+            continue
+        project_config, load_error = fleet_project_config(project_root)
+        readiness = fleet_executor_readiness(project_config, load_error)
+        result["executor_readiness"] = readiness
+        if delegate == "executor":
+            if not bool(readiness.get("ready", False)) or project_config is None:
+                result.update({"status": "blocked", "reason": "executor-unavailable"})
+                results.append(result)
+                continue
+            task_packet = fleet_upgrade_task_packet(
+                project_root=project_root,
+                target_version=target_version,
+                current_version=current_version,
+                source_script=source_script,
+                executor_required=executor_required,
+            )
+            result["task_packet"] = task_packet
+            if dry_run:
+                result.update({"status": "planned", "reason": "dry-run"})
+                results.append(result)
+                continue
+            executor_result = run_fleet_shell_executor(config, project_config, task_packet=task_packet, intent=intent)
+            result["executor_result"] = executor_result
+            result["after_version"] = read_sula_version_lock(project_root)
+            result["status"] = normalize_optional_text(executor_result.get("status", "failed")) or "failed"
+            results.append(result)
+            continue
+        if delegate == "host" and allow_host_execution:
+            result.update({"status": "blocked", "reason": "host execution is intentionally not implemented for fleet upgrade"})
+        else:
+            result.update({"status": "blocked", "reason": "host execution denied by executor-required guard"})
+        results.append(result)
+    counts: dict[str, int] = {}
+    for result in results:
+        status = normalize_optional_text(result.get("status", "unknown")) or "unknown"
+        counts[status] = counts.get(status, 0) + 1
+    blocked = any(normalize_optional_text(item.get("status", "")) in {"blocked", "failed"} for item in results)
+    payload = {
+        "command": "fleet.upgrade",
+        "status": "blocked" if blocked else "ok",
+        "version": VERSION,
+        "started_at": current_utc_timestamp(),
+        "ended_at": current_utc_timestamp(),
+        "project": project_payload(config),
+        "intent": intent,
+        "scope": str(scope),
+        "target_version": target_version,
+        "delegate": delegate,
+        "executor_required": executor_required,
+        "allow_host_execution": allow_host_execution,
+        "dry_run": dry_run,
+        "summary": {
+            "total": len(results),
+            "counts": counts,
+            "active": sum(1 for item in discovered if item.get("classification") == "active"),
+            "skipped": sum(1 for item in results if item.get("status") == "skipped"),
+        },
+        "projects": results,
+        "status_bar": fleet_status_bar(config, status="blocked" if blocked else "ok", payload_counts=counts, total=len(results)),
+    }
+    write_fleet_latest(config, payload)
+    return payload, 1 if blocked else 0
+
+
+def classify_auto_intent(intent: str) -> str:
+    lowered = intent.lower()
+    if ("sula" in lowered or "sulia" in lowered) and any(word in lowered for word in ["upgrade", "update", "sync"]):
+        return "fleet.upgrade"
+    if ("升级" in intent or "更新" in intent or "同步" in intent) and ("sula" in lowered or "sulia" in lowered):
+        return "fleet.upgrade"
+    return "unknown"
+
+
+def auto_intent(config: ProjectConfig, args: argparse.Namespace) -> int:
+    intent = normalize_optional_text(args.intent)
+    routed = classify_auto_intent(intent)
+    if routed == "fleet.upgrade":
+        scope_text = normalize_optional_text(getattr(args, "scope", "")) or str(config.root)
+        payload, code = fleet_upgrade_payload(
+            config,
+            scope=Path(scope_text).expanduser().resolve(),
+            target_version=normalize_optional_text(getattr(args, "target_version", "")) or VERSION,
+            delegate="executor",
+            executor_required=True,
+            allow_host_execution=False,
+            dry_run=bool(getattr(args, "dry_run", False)),
+            intent=intent,
+        )
+        auto_payload = {"command": "auto", "status": payload["status"], "routed_intent": routed, "autopilot": payload}
+        if json_output_requested(args):
+            emit_json(auto_payload)
+            return code
+        print(payload["status_bar"])
+        print(f"Routed intent: {routed}")
+        return code
+    payload = {
+        "command": "auto",
+        "status": "blocked",
+        "routed_intent": "unknown",
+        "intent": intent,
+        "reason": "Sula autopilot could not classify this goal yet",
+    }
+    if json_output_requested(args):
+        emit_json(payload)
+        return 1
+    print("Sula autopilot: blocked")
+    print(f"  Reason: {payload['reason']}")
+    return 1
+
+
+def handle_fleet_command(config: ProjectConfig, args: argparse.Namespace) -> int:
+    if args.fleet_command == "upgrade":
+        payload, code = fleet_upgrade_payload(
+            config,
+            scope=Path(args.scope).expanduser().resolve(),
+            target_version=normalize_optional_text(args.target_version) or VERSION,
+            delegate=normalize_optional_text(args.delegate) or "executor",
+            executor_required=bool(getattr(args, "executor_required", True)),
+            allow_host_execution=bool(getattr(args, "allow_host_execution", False)),
+            dry_run=bool(getattr(args, "dry_run", False)),
+            intent="fleet upgrade",
+        )
+        if json_output_requested(args):
+            emit_json(payload)
+            return code
+        print(payload["status_bar"])
+        print(f"Fleet upgrade: {payload['status']}")
+        for item in payload["projects"]:
+            print(f"  - {item['status']}: {item['project_root']} ({item.get('current_version')} -> {item.get('target_version')})")
+        return code
+    if args.fleet_command == "status":
+        payload = load_json_file(fleet_latest_path(config), default={})
+        if not isinstance(payload, dict):
+            payload = {}
+        if json_output_requested(args):
+            emit_json({"command": "fleet.status", "status": "ok" if payload else "empty", "project": project_payload(config), "fleet": payload})
+            return 0
+        if bool(getattr(args, "compact", False)) and payload:
+            print(normalize_optional_text(payload.get("status_bar", "")) or "Sula: fleet/unknown")
+            return 0
+        print(f"Fleet status for {config.data['project']['name']}: {'available' if payload else 'empty'}")
+        if payload:
+            print(normalize_optional_text(payload.get("status_bar", "")))
+        return 0
+    raise AssertionError("unreachable")
 
 
 def clone_namespace(args: argparse.Namespace) -> argparse.Namespace:
@@ -3102,6 +3529,12 @@ def main() -> int:
 
     if args.command == "check":
         return daily_check(config, json_mode=json_output_requested(args))
+
+    if args.command == "auto":
+        return auto_intent(config, args)
+
+    if args.command == "fleet":
+        return handle_fleet_command(config, args)
 
     if args.command == "status":
         return project_status(config, args)

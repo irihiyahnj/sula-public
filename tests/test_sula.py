@@ -16,6 +16,7 @@ import zipfile
 REPO_ROOT = Path(__file__).resolve().parents[1]
 SULA_SCRIPT = REPO_ROOT / "scripts" / "sula.py"
 SITE_BOOTSTRAP_SCRIPT = REPO_ROOT / "site" / "launch" / "bootstrap.py"
+VERSION = (REPO_ROOT / "VERSION").read_text(encoding="utf-8").strip()
 
 
 def run_cli(*args: str, cwd: Path | None = None, env: dict[str, str] | None = None) -> subprocess.CompletedProcess[str]:
@@ -2023,6 +2024,105 @@ Canary verification fixtures need at least one non-placeholder change record so 
             self.assertTrue(health_entries)
             self.assertEqual(health_entries[0]["runner"], "codex-sdk")
             self.assertGreaterEqual(health_entries[0]["max_routing_cycle"], 2)
+
+    def test_auto_upgrade_intent_delegates_project_upgrade_to_executor(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            scope = Path(tmpdir)
+            controller_root = scope / "controller"
+            child_root = scope / "child"
+            self.create_generic_project(controller_root)
+            self.create_generic_project(child_root)
+            self.assertEqual(run_cli("adopt", "--project-root", str(controller_root), "--approve").returncode, 0)
+            self.assertEqual(run_cli("adopt", "--project-root", str(child_root), "--approve").returncode, 0)
+
+            (child_root / ".sula" / "version.lock").write_text('sula_version = "0.18.10"\n', encoding="utf-8")
+            request_path = child_root / "fleet-request.json"
+            runner_script = child_root / "fleet_runner.py"
+            runner_script.write_text(
+                "\n".join(
+                    [
+                        "import json, os",
+                        "from pathlib import Path",
+                        "packet = json.loads(os.environ['SULA_FLEET_TASK_JSON'])",
+                        f"Path({str(request_path)!r}).write_text(json.dumps(packet, indent=2), encoding='utf-8')",
+                        "Path('.sula/version.lock').write_text(f'sula_version = \"{packet[\"target_version\"]}\"\\n', encoding='utf-8')",
+                        "print(json.dumps({",
+                        "  'status': 'accepted',",
+                        "  'summary': 'executor upgraded project',",
+                        "  'validation_evidence': [{'kind': 'fleet-runner', 'summary': 'upgrade executed by executor'}],",
+                        "  'metrics': {'token_count': 321, 'cost_usd': 0.004}",
+                        "}))",
+                    ]
+                ),
+                encoding="utf-8",
+            )
+            manifest_path = child_root / ".sula" / "project.toml"
+            manifest_text = manifest_path.read_text(encoding="utf-8")
+            manifest_text = manifest_text.replace('runner = "dry-run"', 'runner = "shell-command"')
+            manifest_text = manifest_text.replace('runner_command = ""', f'runner_command = "python3 {runner_script.as_posix()}"')
+            manifest_text = manifest_text.replace('workspace_mode = "none"', 'workspace_mode = "copy"')
+            manifest_text = manifest_text.replace('[agent_routing.roles.executor]\nprovider = "local"', '[agent_routing.roles.executor]\nprovider = "deepseek"')
+            manifest_text = manifest_text.replace('model = "configured-runner"', 'model = "deepseek-v4-flash"', 1)
+            manifest_text = manifest_text.replace('reasoning_effort = ""', 'reasoning_effort = "xhigh"', 1)
+            manifest_text = manifest_text.replace('write_access = false', 'write_access = true', 1)
+            manifest_path.write_text(manifest_text, encoding="utf-8")
+
+            result = run_cli(
+                "auto",
+                "--project-root",
+                str(controller_root),
+                "--intent",
+                "升级这个目录所有 Sula 项目",
+                "--scope",
+                str(scope),
+                "--target-version",
+                VERSION,
+                "--json",
+            )
+
+            self.assertEqual(result.returncode, 0, result.stderr)
+            payload = json.loads(result.stdout)
+            self.assertEqual(payload["routed_intent"], "fleet.upgrade")
+            projects = {item["project_root"]: item for item in payload["autopilot"]["projects"]}
+            self.assertEqual(projects[str(child_root.resolve())]["status"], "accepted")
+            self.assertEqual(projects[str(child_root.resolve())]["after_version"], VERSION)
+            self.assertTrue(request_path.exists())
+            request_payload = json.loads(request_path.read_text(encoding="utf-8"))
+            self.assertTrue(request_payload["executor_required"])
+            self.assertEqual(request_payload["task"], "upgrade_sula_project")
+
+    def test_auto_upgrade_blocks_old_project_without_executor(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            scope = Path(tmpdir)
+            controller_root = scope / "controller"
+            child_root = scope / "child"
+            self.create_generic_project(controller_root)
+            self.create_generic_project(child_root)
+            self.assertEqual(run_cli("adopt", "--project-root", str(controller_root), "--approve").returncode, 0)
+            self.assertEqual(run_cli("adopt", "--project-root", str(child_root), "--approve").returncode, 0)
+            (child_root / ".sula" / "version.lock").write_text('sula_version = "0.18.10"\n', encoding="utf-8")
+
+            result = run_cli(
+                "auto",
+                "--project-root",
+                str(controller_root),
+                "--intent",
+                "升级这个目录所有 Sula 项目",
+                "--scope",
+                str(scope),
+                "--target-version",
+                VERSION,
+                "--json",
+            )
+
+            self.assertEqual(result.returncode, 1)
+            payload = json.loads(result.stdout)
+            projects = {item["project_root"]: item for item in payload["autopilot"]["projects"]}
+            child = projects[str(child_root.resolve())]
+            self.assertEqual(child["status"], "blocked")
+            self.assertEqual(child["reason"], "executor-unavailable")
+            self.assertIn("not a real executor", child["executor_readiness"]["reason"])
+            self.assertIn('0.18.10', (child_root / ".sula" / "version.lock").read_text(encoding="utf-8"))
 
     def test_orchestration_trigger_and_shell_command_runner_collect_evidence(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
