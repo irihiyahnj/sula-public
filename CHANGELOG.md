@@ -6,6 +6,22 @@ All notable changes to Sula Core should be recorded here with explicit sync impa
 
 - no entries yet
 
+## 0.18.13 - 2026-05-07
+
+### Changed
+
+- Fleet compact status now includes reported executor token count and cost.
+- Fleet upgrade summaries now aggregate `summary.usage.token_count`,
+  `summary.usage.cost_usd`, and `summary.usage.runtime_seconds` from executor
+  metrics.
+
+### Sync Impact
+
+- Existing adopted projects remain compatible.
+- Project-local executor wrappers should continue returning `metrics.token_count`
+  and `metrics.cost_usd`; Sula now displays those values directly in the fleet
+  status bar.
+
 ## 0.18.12 - 2026-05-07
 
 ### Added

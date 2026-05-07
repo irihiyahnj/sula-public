@@ -2615,16 +2615,57 @@ def run_fleet_shell_executor(
     }
 
 
-def fleet_status_bar(config: ProjectConfig, *, status: str, payload_counts: dict[str, int], total: int) -> str:
+def fleet_usage_metrics(results: list[dict[str, object]]) -> dict[str, object]:
+    token_count = 0
+    cost_usd = 0.0
+    runtime_seconds = 0
+    for result in results:
+        executor_result = result.get("executor_result", {})
+        if not isinstance(executor_result, dict):
+            continue
+        metrics = executor_result.get("metrics", {})
+        if not isinstance(metrics, dict):
+            continue
+        try:
+            token_count += int(metrics.get("token_count", 0) or 0)
+        except (TypeError, ValueError):
+            pass
+        try:
+            cost_usd += float(metrics.get("cost_usd", 0) or 0)
+        except (TypeError, ValueError):
+            pass
+        try:
+            runtime_seconds += int(metrics.get("runtime_seconds", 0) or 0)
+        except (TypeError, ValueError):
+            pass
+    return {
+        "token_count": token_count,
+        "cost_usd": round(cost_usd, 6),
+        "runtime_seconds": runtime_seconds,
+    }
+
+
+def fleet_status_bar(
+    config: ProjectConfig,
+    *,
+    status: str,
+    payload_counts: dict[str, int],
+    total: int,
+    usage_metrics: dict[str, object] | None = None,
+) -> str:
     reviewer = agent_routing_role_payload(config, "reviewer")
     executor = agent_routing_role_payload(config, "executor")
     done = sum(payload_counts.get(key, 0) for key in ["accepted", "current", "skipped", "human-review"])
     blocked = payload_counts.get("blocked", 0) + payload_counts.get("failed", 0)
+    usage = usage_metrics if isinstance(usage_metrics, dict) else {}
+    tokens = int(usage.get("token_count", 0) or 0)
+    cost = float(usage.get("cost_usd", 0) or 0)
     return (
         f"Sula: fleet/{status} | Projects: {done}/{total} done"
         f"{' / ' + str(blocked) + ' blocked' if blocked else ''} | "
         f"Main: {role_compact_label(config, reviewer, provider_default='codex')} | "
         f"Executor: {role_compact_label(config, executor, include_runner_effort=True)} | "
+        f"Tokens: {tokens} | Cost: ${cost:.4f} | "
         "Guard: executor-required | Next: review report"
     )
 
@@ -2692,6 +2733,7 @@ def fleet_upgrade_payload(
         status = normalize_optional_text(result.get("status", "unknown")) or "unknown"
         counts[status] = counts.get(status, 0) + 1
     blocked = any(normalize_optional_text(item.get("status", "")) in {"blocked", "failed"} for item in results)
+    usage_metrics = fleet_usage_metrics(results)
     payload = {
         "command": "fleet.upgrade",
         "status": "blocked" if blocked else "ok",
@@ -2711,9 +2753,16 @@ def fleet_upgrade_payload(
             "counts": counts,
             "active": sum(1 for item in discovered if item.get("classification") == "active"),
             "skipped": sum(1 for item in results if item.get("status") == "skipped"),
+            "usage": usage_metrics,
         },
         "projects": results,
-        "status_bar": fleet_status_bar(config, status="blocked" if blocked else "ok", payload_counts=counts, total=len(results)),
+        "status_bar": fleet_status_bar(
+            config,
+            status="blocked" if blocked else "ok",
+            payload_counts=counts,
+            total=len(results),
+            usage_metrics=usage_metrics,
+        ),
     }
     write_fleet_latest(config, payload)
     return payload, 1 if blocked else 0

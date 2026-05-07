@@ -15,6 +15,7 @@ Track why Sula changed, how sync impact was evaluated, what was verified, and ho
 
 ## Index
 
+- 2026-05-07 - [Add fleet token and cost status metrics](docs/change-records/2026-05-07-add-fleet-token-and-cost-status-metrics.md) - Added fleet usage aggregation and compact status display for executor-reported token and cost metrics.
 - 2026-05-07 - [Add autopilot intent router and fleet executor guard](docs/change-records/2026-05-07-add-autopilot-intent-router-and-fleet-executor-guard.md) - Added natural-language maintenance routing, executor-required fleet Sula upgrades, compact fleet status, and managed AI instructions that keep host models in supervisor mode for mechanical work.
 - 2026-05-06 - [Add supervised executor retry loop](docs/change-records/2026-05-06-add-supervised-executor-retry-loop.md) - Added reviewer feedback, retry dispatch, failure classification, execution summaries, and runner health for low-cost executor supervision.
 - 2026-05-06 - [Document local executor wrapper contract](docs/change-records/2026-05-06-document-local-executor-wrapper-contract.md) - Added discoverable guidance for project-local executor wrappers to consume Sula execution packets and return structured evidence/metrics.

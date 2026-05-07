@@ -10,6 +10,7 @@
 ### 2026-05-07
 
 - Implemented Sula 0.18.12 autopilot maintenance routing with executor-required fleet upgrades, compact fleet status, managed AI instruction updates, release metadata, and targeted tests.
+- Released Sula 0.18.13 fleet token and cost status metrics: compact fleet status now shows executor-reported token count and cost, with usage aggregation tests and docs.
 
 ### 2026-05-06
 
@@ -150,14 +151,14 @@
 ## Handoff
 
 - ready: yes
-- start here: `docs/change-records/2026-05-07-add-autopilot-intent-router-and-fleet-executor-guard.md`; `STATUS.md`
-- latest record: `docs/change-records/2026-05-07-add-autopilot-intent-router-and-fleet-executor-guard.md`
-- next action: review `docs/change-records/2026-05-07-add-autopilot-intent-router-and-fleet-executor-guard.md`; run `git tag v0.18.12`; run `git push origin main v0.18.12`
+- start here: `docs/change-records/2026-05-07-add-fleet-token-and-cost-status-metrics.md`; `STATUS.md`
+- latest record: `docs/change-records/2026-05-07-add-fleet-token-and-cost-status-metrics.md`
+- next action: review `docs/change-records/2026-05-07-add-fleet-token-and-cost-status-metrics.md`; run `git tag v0.18.13`; run `git push origin main v0.18.13`
 - next owner: Sula Core maintainers
 - next due: 2026-05-08
 - done when: result `SULA CHECK OK`; result `doctor strict passed`; result `handoff updated`
 - blockers: none
-- source of truth: `STATUS.md`; `docs/change-records/2026-05-07-add-autopilot-intent-router-and-fleet-executor-guard.md`
+- source of truth: `STATUS.md`; `docs/change-records/2026-05-07-add-fleet-token-and-cost-status-metrics.md`
 - source freshness: current
 - verification command: `python3 scripts/sula.py check --project-root . --json`; `python3 scripts/sula.py doctor --project-root . --strict --json`; `python3 -m unittest discover -s tests -v`
 - verification result: pass

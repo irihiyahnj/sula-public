@@ -2086,6 +2086,10 @@ Canary verification fixtures need at least one non-placeholder change record so 
             projects = {item["project_root"]: item for item in payload["autopilot"]["projects"]}
             self.assertEqual(projects[str(child_root.resolve())]["status"], "accepted")
             self.assertEqual(projects[str(child_root.resolve())]["after_version"], VERSION)
+            self.assertEqual(payload["autopilot"]["summary"]["usage"]["token_count"], 321)
+            self.assertEqual(payload["autopilot"]["summary"]["usage"]["cost_usd"], 0.004)
+            self.assertIn("Tokens: 321", payload["autopilot"]["status_bar"])
+            self.assertIn("Cost: $0.0040", payload["autopilot"]["status_bar"])
             self.assertTrue(request_path.exists())
             request_payload = json.loads(request_path.read_text(encoding="utf-8"))
             self.assertTrue(request_payload["executor_required"])

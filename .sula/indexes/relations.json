@@ -1,5 +1,5 @@
 {
-  "version": "0.18.12",
+  "version": "0.18.13",
   "profile": "sula-core",
   "relations": [
     {
@@ -123,8 +123,13 @@
       "type": "derived-from"
     },
     {
-      "from": "task:handoff:review-docs-change-records-2026-05-07-add-autopilot-intent-router-and-fleet-executor-guard-md-run-git-tag-v0-18-12-run-git-push-origin-main-v0-18-12",
+      "from": "task:handoff:review-docs-change-records-2026-05-07-add-fleet-token-and-cost-status-metrics-md-run-git-tag-v0-18-13-run-git-push-origin-main-v0-18-13",
       "to": "source:status-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "change:2026-05-07-add-fleet-token-and-cost-status-metrics",
+      "to": "source:docs-change-records-2026-05-07-add-fleet-token-and-cost-status-metrics-md",
       "type": "derived-from"
     },
     {
@@ -480,6 +485,26 @@
     {
       "from": "change:2026-04-11-add-adoption-agent-flow-for-one-sentence-onboarding",
       "to": "source:docs-change-records-2026-04-11-add-adoption-agent-flow-for-one-sentence-onboarding-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "release:2026-05-07-release-sula-0-18-13-fleet-token-cost-status",
+      "to": "source:docs-releases-2026-05-07-release-sula-0-18-13-fleet-token-cost-status-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "milestone:2026-05-07-release-sula-0-18-13-fleet-token-cost-status",
+      "to": "source:docs-releases-2026-05-07-release-sula-0-18-13-fleet-token-cost-status-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "risk:docs-releases-2026-05-07-release-sula-0-18-13-fleet-token-cost-status-md:metrics-depend-on-wrapper-reporting-sula-displays-reported-usage-and-does-not",
+      "to": "source:docs-releases-2026-05-07-release-sula-0-18-13-fleet-token-cost-status-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "risk:docs-releases-2026-05-07-release-sula-0-18-13-fleet-token-cost-status-md:dry-run-or-already-current-projects-correctly-show-zero-usage",
+      "to": "source:docs-releases-2026-05-07-release-sula-0-18-13-fleet-token-cost-status-md",
       "type": "derived-from"
     },
     {
@@ -1548,6 +1573,11 @@
       "type": "derived-from"
     },
     {
+      "from": "object:source:docs-change-records-2026-05-07-add-fleet-token-and-cost-status-metrics-md",
+      "to": "source:docs-change-records-2026-05-07-add-fleet-token-and-cost-status-metrics-md",
+      "type": "derived-from"
+    },
+    {
       "from": "object:source:docs-change-records-readme-md",
       "to": "source:docs-change-records-readme-md",
       "type": "derived-from"
@@ -1955,6 +1985,11 @@
     {
       "from": "object:source:docs-releases-2026-05-07-release-sula-0-18-12-autopilot-fleet-executor-guard-md",
       "to": "source:docs-releases-2026-05-07-release-sula-0-18-12-autopilot-fleet-executor-guard-md",
+      "type": "derived-from"
+    },
+    {
+      "from": "object:source:docs-releases-2026-05-07-release-sula-0-18-13-fleet-token-cost-status-md",
+      "to": "source:docs-releases-2026-05-07-release-sula-0-18-13-fleet-token-cost-status-md",
       "type": "derived-from"
     },
     {
@@ -2505,16 +2540,6 @@
     {
       "from": "object:source:examples-okoktoto-src-app-tsx",
       "to": "source:examples-okoktoto-src-app-tsx",
-      "type": "derived-from"
-    },
-    {
-      "from": "object:source:examples-okoktoto-src-api-erpnext-ts",
-      "to": "source:examples-okoktoto-src-api-erpnext-ts",
-      "type": "derived-from"
-    },
-    {
-      "from": "object:source:examples-okoktoto-src-store-usestore-ts",
-      "to": "source:examples-okoktoto-src-store-usestore-ts",
       "type": "derived-from"
     }
   ]

@@ -118,10 +118,11 @@ Fleet runs write `.sula/state/fleet/latest.json` and expose a compact line:
 python3 scripts/sula.py fleet status --project-root . --compact
 ```
 
-The line follows the Sula visible-status style:
+The line follows the Sula visible-status style and includes reported executor
+usage when wrappers return metrics:
 
 ```text
-Sula: fleet/ok | Projects: 3/3 done | Main: codex/unknown/unknown | Executor: deepseek/deepseek-v4-flash/xhigh/max | Guard: executor-required | Next: review report
+Sula: fleet/ok | Projects: 3/3 done | Main: codex/unknown/unknown | Executor: deepseek/deepseek-v4-flash/xhigh/max | Tokens: 12000 | Cost: $0.0200 | Guard: executor-required | Next: review report
 ```
 
 This is the user-visible closure: they can see the active workflow, the supervising model, the executor route, whether the executor guard is active, and what needs attention next.
