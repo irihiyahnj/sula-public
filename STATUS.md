@@ -1,12 +1,17 @@
 # STATUS
 
-- last updated: 2026-05-07
+- last updated: 2026-05-23
 ## Summary
+### 2026-05-23
+
+- Restored Sula working session consistency by returning the repository from detached HEAD to main and refreshing project memory/check state after a stale handoff was detected.
+
 ### 2026-05-07
 
 - Implemented Sula 0.18.12 autopilot maintenance routing with executor-required fleet upgrades, compact fleet status, managed AI instruction updates, release metadata, and targeted tests.
 - Released Sula 0.18.13 fleet token and cost status metrics: compact fleet status now shows executor-reported token count and cost, with usage aggregation tests and docs.
 - Implemented Sula 0.18.14 deterministic fleet upgrades: Sula maintenance upgrades now use zero-model sync/doctor/digest/check execution when target projects lack model runners, with shell fallback and status evidence.
+- Implemented autopilot code-task dispatch via Sula-supervised DeepSeek Flash executor. Added code.task routing for scoped implementation/fix goals and .sula/local goal references, reviewed and corrected the executor patch, documented the contract, and recorded runner isolation/status follow-up gaps. Executor metrics: first permission-blocked run 51,335 tokens, USD 0.149971; successful retry 1,753,144 tokens, USD 1.489388; total observed executor cost USD 1.639359.
 
 ### 2026-05-06
 
@@ -147,18 +152,18 @@
 
 
 - ready: yes
-- start here: `docs/change-records/2026-05-07-add-fleet-token-and-cost-status-metrics.md`; `STATUS.md`
+- start here: `STATUS.md`; `.sula/memory-digest.md`
 - latest record: `docs/change-records/2026-05-07-add-fleet-token-and-cost-status-metrics.md`
-- next action: review `docs/change-records/2026-05-07-add-fleet-token-and-cost-status-metrics.md`; run `git tag v0.18.13`; run `git push origin main v0.18.13`
+- next action: review `STATUS.md`; review `.sula/memory-digest.md`; run `git status --short`
 - next owner: Sula Core maintainers
-- next due: 2026-05-08
+- next due: 2026-05-23
 - done when: result `SULA CHECK OK`; result `doctor strict passed`; result `handoff updated`
 - blockers: none
 - source of truth: `STATUS.md`; `docs/change-records/2026-05-07-add-fleet-token-and-cost-status-metrics.md`
 - source freshness: current
 - verification command: `python3 scripts/sula.py check --project-root . --json`; `python3 scripts/sula.py doctor --project-root . --strict --json`; `python3 -m unittest discover -s tests -v`
 - verification result: pass
-- verification date: 2026-05-07
+- verification date: 2026-05-23
 - git branch: main
 - git commit: any
 - git working tree: dirty

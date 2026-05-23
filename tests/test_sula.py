@@ -2131,6 +2131,102 @@ Canary verification fixtures need at least one non-placeholder change record so 
             self.assertEqual(child["executor_result"]["metrics"]["token_count"], 0)
             self.assertEqual(child["executor_result"]["metrics"]["cost_usd"], 0)
 
+    def test_auto_code_task_intent_dispatches_to_orchestration(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            project_root = Path(tmpdir)
+            self.create_generic_project(project_root)
+            adopt_result = run_cli("adopt", "--project-root", str(project_root), "--approve")
+            self.assertEqual(adopt_result.returncode, 0, adopt_result.stderr)
+
+            # Test 1: --dry-run returns a planned orchestration task
+            dry_run_result = run_cli(
+                "auto",
+                "--project-root",
+                str(project_root),
+                "--intent",
+                "implement user login feature",
+                "--dry-run",
+                "--json",
+            )
+            self.assertEqual(dry_run_result.returncode, 0, dry_run_result.stderr)
+            dry_payload = json.loads(dry_run_result.stdout)
+            self.assertEqual(dry_payload["routed_intent"], "code.task")
+            self.assertEqual(dry_payload["status"], "planned")
+            self.assertEqual(dry_payload["risk"], "low")
+            self.assertIn("task", dry_payload)
+            self.assertEqual(dry_payload["task"]["risk"], "low")
+
+            # Test 2: Chinese implementation intent also routes to code.task
+            chinese_impl_result = run_cli(
+                "auto",
+                "--project-root",
+                str(project_root),
+                "--intent",
+                "实现一个用户登录功能",
+                "--dry-run",
+                "--json",
+            )
+            self.assertEqual(chinese_impl_result.returncode, 0, chinese_impl_result.stderr)
+            chinese_payload = json.loads(chinese_impl_result.stdout)
+            self.assertEqual(chinese_payload["routed_intent"], "code.task")
+
+            # Test 3: Fix intent routes to code.task
+            fix_result = run_cli(
+                "auto",
+                "--project-root",
+                str(project_root),
+                "--intent",
+                "fix the login validation bug",
+                "--dry-run",
+                "--json",
+            )
+            self.assertEqual(fix_result.returncode, 0, fix_result.stderr)
+            fix_payload = json.loads(fix_result.stdout)
+            self.assertEqual(fix_payload["routed_intent"], "code.task")
+
+            # Test 4: Non-dry-run dispatches through orchestration (dry-run runner)
+            dispatch_result = run_cli(
+                "auto",
+                "--project-root",
+                str(project_root),
+                "--intent",
+                "implement notification system",
+                "--json",
+            )
+            self.assertEqual(dispatch_result.returncode, 0, dispatch_result.stderr)
+            dispatch_payload = json.loads(dispatch_result.stdout)
+            self.assertEqual(dispatch_payload["routed_intent"], "code.task")
+            self.assertIn("dispatch", dispatch_payload)
+            self.assertIn("status", dispatch_payload)
+            self.assertIn(dispatch_payload["status"], {"dispatched", "queued"})
+
+    def test_auto_upgrade_intent_unchanged_by_code_task_routing(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            scope = Path(tmpdir)
+            controller_root = scope / "controller"
+            child_root = scope / "child"
+            self.create_generic_project(controller_root)
+            self.create_generic_project(child_root)
+            self.assertEqual(run_cli("adopt", "--project-root", str(controller_root), "--approve").returncode, 0)
+            self.assertEqual(run_cli("adopt", "--project-root", str(child_root), "--approve").returncode, 0)
+            (child_root / ".sula" / "version.lock").write_text('sula_version = "0.18.10"\n', encoding="utf-8")
+
+            result = run_cli(
+                "auto",
+                "--project-root",
+                str(controller_root),
+                "--intent",
+                "升级这个目录所有 Sula 项目",
+                "--scope",
+                str(scope),
+                "--target-version",
+                VERSION,
+                "--json",
+            )
+            self.assertEqual(result.returncode, 0, result.stderr)
+            payload = json.loads(result.stdout)
+            self.assertEqual(payload["routed_intent"], "fleet.upgrade", "fleet upgrade routing must remain unchanged")
+
     def test_orchestration_trigger_and_shell_command_runner_collect_evidence(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
             project_root = Path(tmpdir)
@@ -2529,6 +2625,61 @@ Canary verification fixtures need at least one non-placeholder change record so 
             manual_failed_check = run_cli("check", "--project-root", str(project_root))
             self.assertEqual(manual_failed_check.returncode, 1)
             self.assertIn("manual-non-automation-task", manual_failed_check.stdout)
+
+    def test_check_ignores_superseded_retry_runs_after_acceptance(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            project_root = Path(tmpdir)
+            self.create_generic_project(project_root)
+
+            adopt_result = run_cli("adopt", "--project-root", str(project_root), "--approve")
+            self.assertEqual(adopt_result.returncode, 0, adopt_result.stderr)
+
+            tasks_path = project_root / "docs" / "workflows" / "tasks.json"
+            tasks_path.parent.mkdir(parents=True, exist_ok=True)
+            tasks_path.write_text(
+                json.dumps(
+                    {
+                        "version": "test",
+                        "tasks": [
+                            {
+                                "id": "retry-task",
+                                "source_kind": "local-task",
+                                "identifier": "retry-task",
+                                "title": "Retry task",
+                                "state": "accepted",
+                                "acceptance_criteria": ["Accepted retry closes the chain"],
+                                "validation_requirements": [],
+                                "labels": [],
+                                "blocked_by": [],
+                                "risk": "low",
+                            }
+                        ],
+                    }
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            runs_path = project_root / ".sula" / "state" / "orchestration" / "runs.jsonl"
+            runs_path.parent.mkdir(parents=True, exist_ok=True)
+            runs_path.write_text(
+                "\n".join(
+                    json.dumps(item)
+                    for item in [
+                        {"run_id": "run-1", "task_id": "retry-task", "status": "human-review"},
+                        {"run_id": "run-2", "task_id": "retry-task", "status": "failed"},
+                        {"run_id": "run-3", "task_id": "retry-task", "status": "accepted"},
+                    ]
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+
+            digest_result = run_cli("memory", "digest", "--project-root", str(project_root))
+            self.assertEqual(digest_result.returncode, 0, digest_result.stderr)
+            check_result = run_cli("check", "--project-root", str(project_root), "--json")
+            self.assertEqual(check_result.returncode, 0, check_result.stdout)
+            payload = json.loads(check_result.stdout)
+            self.assertFalse(any("run(s) not yet accepted" in issue for issue in payload["issues"]))
 
     def test_automation_default_dispatches_low_risk_intent_to_dry_run(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:

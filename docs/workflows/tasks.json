@@ -196,7 +196,41 @@
       "trigger_event_kind": "cli-intent",
       "created_at": "2026-05-06T17:14:10Z",
       "updated_at": "2026-05-06T17:32:00Z"
+    },
+    {
+      "id": "cli:completion-first-auto-code-task-dispatch",
+      "source_kind": "cli-intent",
+      "source_url": "",
+      "identifier": "completion-first-auto-code-task-dispatch",
+      "title": "Implement auto code-task dispatch",
+      "description": "Extend Sula auto so non-fleet implementation goals, including goals that reference .sula/local goal files, are routed into a low-risk code-task orchestration packet and dispatched through the configured executor instead of returning unknown. Preserve fleet upgrade routing and approval gates. Keep output compact and machine-readable.",
+      "state": "accepted",
+      "priority": "high",
+      "labels": [
+        "automation",
+        "agent-routing",
+        "code-task"
+      ],
+      "blocked_by": [],
+      "project_slug": "sula",
+      "acceptance_criteria": [
+        "auto classifies implementation/fix/\u843d\u5730/\u5b9e\u73b0 goals as code.task",
+        "auto --dry-run for a code task returns a planned orchestration task without executor mutation",
+        "auto without --dry-run dispatches eligible low-risk code tasks through orchestration run",
+        "fleet upgrade routing remains unchanged"
+      ],
+      "validation_requirements": [
+        "python3 -m unittest tests.test_sula.SulaCliTests.test_auto_code_task_intent_dispatches_to_orchestration -v",
+        "python3 -m unittest tests.test_sula.SulaCliTests.test_auto_upgrade_intent_delegates_project_upgrade_to_executor -v"
+      ],
+      "risk_hints": [
+        "low"
+      ],
+      "risk": "low",
+      "trigger_event_kind": "cli-intent",
+      "created_at": "2026-05-07T05:18:37Z",
+      "updated_at": "2026-05-07T05:34:46Z"
     }
   ],
-  "updated_at": "2026-05-06T17:32:00Z"
+  "updated_at": "2026-05-07T05:18:37Z"
 }

@@ -1,56 +1,6 @@
 <!-- sula-vector-priority -->
 > **Active host protocol:** see the "Sula Vector — Host Operating Protocol"
-> section below (after the `<!-- sula-vector -->` sentinel). It is the authoritative
-> protocol for any LLM operating in this project. Any rules above the sentinel
-> that conflict with the protocol below are legacy from prior project conventions
-> and are superseded.
-
-# AGENTS.md
-
-This file is the primary instruction source for AI agents working in this project.
-
-If a tool-specific instruction file exists, treat it as a thin adapter to this file.
-If any tool-specific file conflicts with this file, `AGENTS.md` wins.
-
-## Project Identity
-
-- Project root is `Client Service Drive Canary`.
-- Project slug: `client-service-drive-canary`.
-- Description: Client-service canary with Google Drive adapter metadata
-- Default agent: `Codex`
-
-## Highest Rule
-
-- `Preserve project-owned truth while using Sula as a removable operating kernel.`
-
-## Mandatory Working Rules
-
-- Read this file before making changes.
-- Preserve project-owned truth and use Sula as a removable operating kernel.
-- Keep current human-readable state in [STATUS.md](STATUS.md).
-- Keep detailed change reasoning in [CHANGE-RECORDS.md](CHANGE-RECORDS.md).
-- Keep machine-owned kernel state under `.sula/`.
-- If work touches `STATUS.md`, `CHANGE-RECORDS.md`, `docs/change-records/*`, `.sula/state/current.md`, `.sula/events/log.jsonl`, or `.sula/memory-digest.md`, finish by running `python3 scripts/sula.py check --project-root .`.
-- Treat `SULA CHECK OK` as the completion gate for state-sync work, and prefer rebuilding generated `.sula/*` files through Sula commands instead of hand-editing them.
-- If the project uses Git, prefer working branches with the `codex/*` prefix.
-- If this project enables deeper visible Sula docs later, keep their maps and operating docs updated in the same change.
-
-## Current Anchors
-
-- Project entry: [README.md](README.md)
-- Current execution lane: [README.md](README.md)
-- Current state snapshot: [.sula/state/current.md](.sula/state/current.md)
-
-## Commands
-
-```bash
-n/a
-n/a
-n/a
-n/a
-```
-
-Commands may remain `n/a` until the project defines stronger local automation.
+> section below (after the `
 
 ---
 
@@ -67,12 +17,36 @@ in this project must follow the protocol below.
 2. Run `python3 tools/sula_vector/render.py . --for-agent` and read the output.
 3. Treat that output as authoritative project context (Tier A–E principles + recent activity + open goals).
 
-## Throughout the turn
+## Throughout the turn — when to append a fragment
 
-- Append new fragments under `fragments/` for any decision, intent, goal, fact, artifact, annotation, or turn worth preserving (Tier B8).
+**Append a fragment without being asked** whenever any of these triggers fires:
+
+| Trigger | kind |
+|---|---|
+| You make or revise a non-trivial architectural / design / direction choice | `decision` |
+| You commit to a measurable outcome with stop conditions | `goal` (with `done_when` + `verifier_ref`, B9) |
+| You observe a real-world state change (deploy, build passed, contract signed, external event) | `fact` |
+| You produce or register a deliverable (code module, doc, deck, design, artifact) | `artifact` (with `pointer`) |
+| A verifier ran and produced a result | `verification-fact` (with `passed: true/false` + `refs` to the goal/intent) |
+| You discover a real error, stale claim, or contradiction in a prior fragment | `correction` (with `refs` to it) |
+| Someone (or you) makes a comment / markup on a fragment or artifact | `annotation` |
+| You take a deliberate project-state snapshot for handoff or audit | `snapshot` |
+
+**Do NOT append** for any of:
+
+- Routine code formatting / style fixes that carry no decision content
+- Cosmetic refactors that change neither behaviour nor contract
+- Re-running idempotent operations with zero net effect (C7)
+- Repetitive scheduler / cron firings (already handled inside skills)
+- Internal reasoning that did not land in a concrete decision or artefact
+
+If unsure, lean toward appending — but skip if it would only be churn (C7).
+
+## Append rules
+
 - Filename: `<ISO-8601-time-Z>--<short-slug>.md`. Required frontmatter: `id`, `time`, `kind`.
 - Append, never edit (Tier B1). To revise a previous decision or principle, append a new `kind: decision` whose `refs` includes the old fragment's id.
-- Do not append if nothing meaningful changed (Tier C7).
+- Reference upstream context with `refs` so the graph stays connected.
 
 ## At end of turn
 

@@ -2853,6 +2853,10 @@ def classify_auto_intent(intent: str) -> str:
         return "fleet.upgrade"
     if ("升级" in intent or "更新" in intent or "同步" in intent) and ("sula" in lowered or "sulia" in lowered):
         return "fleet.upgrade"
+    if re.search(r"\b(implement|implementation|fix)\b", lowered) or any(word in intent for word in ["落地", "实现"]):
+        return "code.task"
+    if ".sula/local/" in lowered:
+        return "code.task"
     return "unknown"
 
 
@@ -2878,6 +2882,73 @@ def auto_intent(config: ProjectConfig, args: argparse.Namespace) -> int:
         print(payload["status_bar"])
         print(f"Routed intent: {routed}")
         return code
+    if routed == "code.task":
+        task_id = f"code-task:{hashlib.sha256(intent.encode('utf-8')).hexdigest()[:12]}"
+        code_task = {
+            "command": "auto",
+            "routed_intent": "code.task",
+            "intent": intent,
+            "risk": "low",
+            "task": {"id": task_id, "title": intent, "description": intent, "risk": "low"},
+            "status": "planned",
+        }
+        if bool(getattr(args, "dry_run", False)):
+            if json_output_requested(args):
+                emit_json(code_task)
+                return 0
+            print("Sula autopilot: planned")
+            print(f"  Routed intent: code.task")
+            print(f"  Risk: low")
+            print("  (dry-run, no executor mutation)")
+            return 0
+        if not config.orchestration_enabled:
+            payload = {"command": "auto", "routed_intent": "code.task", "intent": intent, "status": "blocked", "reason": "orchestration is disabled"}
+            if json_output_requested(args):
+                emit_json(payload)
+                return 1
+            print("Sula autopilot: blocked")
+            print(f"  Reason: orchestration is disabled")
+            return 1
+        intent_payload = {
+            "task_id": task_id,
+            "source_kind": "auto",
+            "source_url": "",
+            "identity_key": f"auto:code.task:{task_id}",
+            "title": intent,
+            "description": intent,
+            "state": "open",
+            "priority": "normal",
+            "risk": "low",
+            "labels": ["auto", "code.task"],
+            "acceptance_criteria": [],
+            "validation_requirements": [],
+            "created_at": current_utc_timestamp(),
+            "updated_at": current_utc_timestamp(),
+        }
+        stored_intent, created = automation_append_intent(config, intent_payload)
+        if not created:
+            payload = {"command": "auto", "routed_intent": "code.task", "intent": intent, "status": "blocked", "reason": "intent already exists"}
+            if json_output_requested(args):
+                emit_json(payload)
+                return 1
+            print("Sula autopilot: blocked")
+            print(f"  Reason: intent already exists")
+            return 1
+        dispatch = automation_dispatch_intent(config, stored_intent)
+        dispatch_status = dispatch.get("status", "dispatch-failed")
+        code_task["status"] = dispatch_status
+        code_task["dispatch"] = dispatch
+        if json_output_requested(args):
+            emit_json(code_task)
+            return 0 if dispatch_status in {"dispatched", "queued"} else 1
+        print(f"Sula autopilot: {dispatch_status}")
+        print(f"  Routed intent: code.task")
+        if dispatch.get("run_id"):
+            print(f"  Run: {dispatch['run_id']}")
+        if dispatch.get("dispatch_blocked_reasons"):
+            for reason in dispatch["dispatch_blocked_reasons"]:
+                print(f"  Blocked: {reason}")
+        return 0 if dispatch_status in {"dispatched", "queued"} else 1
     payload = {
         "command": "auto",
         "status": "blocked",
@@ -7346,7 +7417,13 @@ def build_memory_digest(config: ProjectConfig, output_path: Path) -> str:
             lines.append(f"- {localized_string('none', config.content_locale)}")
         try:
             runs = read_orchestration_runs(config)
-            pending_runs = [r for r in runs if r.get("status") not in {"accepted", "failed", "cancelled"}]
+            accepted_task_ids = accepted_orchestration_task_ids(runs)
+            pending_runs = [
+                r
+                for r in runs
+                if r.get("status") not in {"accepted", "failed", "cancelled"}
+                and normalize_optional_text(r.get("task_id", "")) not in accepted_task_ids
+            ]
             if pending_runs:
                 lines.append("")
                 lines.append(f"### {localized_section_name('Pending Runs', config.content_locale)}")
@@ -7662,11 +7739,13 @@ def collect_orchestration_check_errors(config: ProjectConfig) -> list[str]:
     try:
         runs = read_orchestration_runs(config)
         ignored_task_ids = sula_check_automation_task_ids(config)
+        accepted_task_ids = accepted_orchestration_task_ids(runs)
         pending_runs = [
             r
             for r in runs
             if r.get("status") in {"planned", "running", "human-review"}
             and normalize_optional_text(r.get("task_id", "")) not in ignored_task_ids
+            and normalize_optional_text(r.get("task_id", "")) not in accepted_task_ids
         ]
         if pending_runs:
             errors.append(f"orchestration: {len(pending_runs)} run(s) not yet accepted/closed.")
@@ -13667,6 +13746,15 @@ def write_jsonl_objects(path: Path, payloads: list[dict[str, object]]) -> None:
 def read_orchestration_runs(config: ProjectConfig) -> list[dict[str, object]]:
     path = orchestration_runs_path(config)
     return read_jsonl_objects(path)
+
+
+def accepted_orchestration_task_ids(runs: list[dict[str, object]]) -> set[str]:
+    return {
+        normalize_optional_text(run.get("task_id", ""))
+        for run in runs
+        if normalize_optional_text(run.get("task_id", ""))
+        and normalize_optional_text(run.get("status", "")).lower() == "accepted"
+    }
 
 
 def append_orchestration_run(config: ProjectConfig, run: dict[str, object]) -> None:

@@ -35,6 +35,7 @@ Sula manages the cross-project operational layer so this repository can benefit 
 - `reference/agent-execution-quality-policy.md`: Sula-native contract for portable agent behavior quality inspired by reusable coding-guidance skills
 - `reference/local-executor-wrapper-contract.md`: project-local runner wrapper contract for consuming Sula executor packets, supervised retry feedback, and returning structured metrics/evidence
 - `reference/autopilot-intent-router.md`: natural-language maintenance routing, executor-required fleet upgrades, and the fleet status bar contract
+- `reference/completion-first-agent-operating-system-whitepaper.md`: full design whitepaper for completion-first execution, deterministic maintenance, low-cost code executors, permission preflight/repair, fleet durability, project locks, progress monitoring, and evidence/cost visibility
 
 ### 5. Workflow Plans
 

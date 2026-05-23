@@ -75,8 +75,8 @@ event_sources = ["sula-cli", "provider", "status", "artifact", "workflow", "exte
 enabled = true
 mode = "ticket-runner"
 task_source = "local"
-runner = "dry-run"
-runner_command = ""
+runner = "shell-command"
+runner_command = "/home/jing/Project/projectdev/sula/.sula/local/deepseek-flash-executor.sh"
 runner_endpoint = ""
 runner_token_env = "SULA_CODEX_APP_SERVER_TOKEN"
 tasks_path = "docs/workflows/tasks.json"
@@ -84,7 +84,7 @@ provider_task_item_id = ""
 provider_task_item_kind = ""
 provider_task_item_url = ""
 workspace_root = ".sula/local/workspaces"
-workspace_mode = "none"
+workspace_mode = "copy"
 trust_profile = "local-sandboxed"
 allow_project_root_runner = false
 max_concurrent_runs = 1
@@ -107,6 +107,64 @@ complexity_policy = "simplicity-first"
 require_verification = true
 forbid_drive_by_refactors = true
 
+[agent_routing]
+enabled = true
+mode = "assist"
+visibility = "always"
+default_budget_policy = "cost-aware"
+budget_breach_behavior = "ask"
+max_review_cycles = 3
+on_review_fail = "return-to-executor"
+require_final_acceptance = true
+executor_context_mode = "bounded"
+executor_output_contract = "json"
+executor_default_reasoning_effort = "xhigh"
+executor_max_turns = 8
+executor_max_run_minutes = 60
+executor_max_cost_cents = 0
+
+[agent_routing.roles.host]
+provider = "unknown"
+model = "unknown"
+reasoning_effort = ""
+write_access = false
+workspace_mode = "none"
+
+[agent_routing.roles.planner]
+provider = "host"
+model = "current-session"
+reasoning_effort = "high"
+write_access = false
+workspace_mode = "none"
+
+[agent_routing.roles.executor]
+provider = "deepseek"
+model = "deepseek-v4-flash"
+reasoning_effort = "xhigh"
+write_access = true
+workspace_mode = "copy"
+
+[agent_routing.roles.verifier]
+provider = "local"
+model = "shell"
+reasoning_effort = ""
+write_access = false
+workspace_mode = "none"
+
+[agent_routing.roles.reviewer]
+provider = "host"
+model = "current-session"
+reasoning_effort = "high"
+write_access = false
+workspace_mode = "none"
+
+[agent_routing.roles.acceptor]
+provider = "human"
+model = "operator"
+reasoning_effort = ""
+write_access = false
+workspace_mode = "none"
+
 [document_design]
 principles_path = "docs/ops/document-design-principles.md"
 source_first = true
@@ -117,3 +175,7 @@ proposal_bundle = "problem-solution-workplan-raci"
 report_bundle = "executive-findings-actions"
 process_bundle = "purpose-workflow-controls-records"
 training_bundle = "outcomes-agenda-delivery-assessment-followup"
+
+[projection]
+mode = "governed"
+enabled_packs = ["project-memory", "record-templates", "document-design", "ops-core", "profile-architecture", "profile-runbooks", "ai-tooling"]

@@ -4,7 +4,7 @@
 
 Sula Autopilot is the commandless entry layer for project maintenance. A user can state a goal in natural language, and every Sula-aware coding CLI should first ask Sula how that goal should be routed instead of immediately spending the host chat model on mechanical work.
 
-The initial shipped slice focuses on Sula fleet upgrades because they are repetitive, easy to validate, and expensive when a high-end host model performs them directly.
+The initial shipped slices cover Sula fleet upgrades and low-risk code-task dispatch. Fleet upgrades are repetitive, easy to validate, and often best handled by Sula's deterministic executor. Low-risk implementation and fix goals are routed into orchestration so the configured executor can do the long patch loop while the host model supervises, reviews, and accepts.
 
 ## Entry Contract
 
@@ -25,9 +25,33 @@ python3 scripts/sula.py auto --project-root . \
 Sula returns either:
 
 - a routed autopilot workflow, such as `fleet.upgrade`
+- a low-risk code task packet, such as `code.task`
 - a blocked result when the goal is not classified yet
 
 Unknown goals must stay blocked. Sula should not pretend to understand open-ended natural language before a portable workflow exists.
+
+## Code Task Dispatch
+
+Implementation and fix goals are classified as `code.task` when the user intent includes English action words such as `implement`, `implementation`, or `fix`, Chinese action words such as `实现` or `落地`, or a reference to a local Sula goal file under `.sula/local/`.
+
+Dry-run mode only plans the task:
+
+```bash
+python3 scripts/sula.py auto --project-root . \
+  --intent "执行 .sula/local/goal-file.md 中的落地任务" \
+  --dry-run --json
+```
+
+Non-dry-run mode stores a low-risk automation intent and dispatches it through the existing orchestration pipeline when policy allows. That means the same risk ceiling, approval categories, runner route, executor contract, retry loop, status surface, and closeout checks apply to code tasks.
+
+The host model remains responsible for:
+
+- deciding whether the task is actually safe to treat as low-risk
+- repairing runner permission or wrapper failures
+- reviewing executor diffs and validation evidence
+- closing or rejecting the run
+
+The executor is expected to mutate only the scoped files required by the task and return JSON with touched files, validation evidence, token metrics, and cost metrics.
 
 ## Fleet Upgrade Guard
 
@@ -131,4 +155,4 @@ This is the user-visible closure: they can see the active workflow, the supervis
 
 Existing projects remain compatible.
 
-After syncing this release, Sula-managed `AGENTS.md`, `CODEX.md`, `CLAUDE.md`, `GEMINI.md`, and the docs map tell any AI coding CLI to route natural-language maintenance goals through `auto` first. Projects only need local executor configuration when they want real delegated execution instead of a blocked supervisor-only report.
+After syncing this release, Sula-managed `AGENTS.md`, `CODEX.md`, `CLAUDE.md`, `GEMINI.md`, and the docs map tell any AI coding CLI to route natural-language maintenance and low-risk implementation goals through `auto` first. Projects only need local executor configuration when they want real delegated execution instead of a blocked supervisor-only report or deterministic Sula maintenance path.
