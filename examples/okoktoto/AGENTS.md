@@ -14,8 +14,9 @@ in this project must follow the protocol below.
 ## At session start
 
 1. Note the current ISO-8601 UTC time as your `session_start`.
-2. Run `python3 tools/sula_vector/render.py . --for-agent` and read the output.
-3. Treat that output as authoritative project context (Tier A–E principles + recent activity + open goals).
+2. Run `python3 tools/sula_vector/skills/auto-update-from-canonical.py --project-root . --quiet` (best-effort tooling refresh; silent on no-op or unreachable network; emits a `kind: operation` fragment only on actual update).
+3. Run `python3 tools/sula_vector/render.py . --for-agent` and read the output.
+4. Treat that output as authoritative project context (Tier A–E principles + recent activity + open goals).
 
 ## Throughout the turn — when to append a fragment
 
