@@ -343,8 +343,8 @@ supersession trail remains visible in every subsequent render.
 
 The convention deliberately keeps the core minimal: one folder of fragments
 plus one render function. New capabilities — verifiers, voice transcription,
-browser automation, scheduled refreshes, code-task dispatchers, anything
-—live **outside** the core, as **skills**.
+browser automation, scheduled refreshes, code-task dispatchers, anything an
+agent might want to add — live **outside** the core, as **skills**.
 
 A skill is a small, independent program that:
 
