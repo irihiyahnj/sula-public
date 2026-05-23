@@ -343,6 +343,7 @@ def install_tooling(root: Path, canonical_tools: Path) -> dict[str, int]:
         "skills/verifier-shell.py",
         "skills/scheduler.py",
         "skills/llm-dispatcher.py",
+        "skills/auto-update-from-canonical.py",
     ]
     target.mkdir(parents=True, exist_ok=True)
     (target / "skills").mkdir(exist_ok=True)
