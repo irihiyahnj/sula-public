@@ -1,9 +1,21 @@
 __pycache__/
 *.pyc
 .DS_Store
+.claude/
+
+# Legacy Sula 0.18.x runtime state: derived/cache, never committed
 **/.sula/cache/*
 !**/.sula/cache/README.md
 **/.sula/local/*
-**/.sula/state/automation/*
-**/.sula/state/orchestration/*
-.claude/
+**/.sula/state/*
+**/.sula/events/*
+**/.sula/indexes/*
+**/.sula/objects/*
+**/.sula/sources/*
+**/.sula/exports/*
+**/.sula/projections/*
+**/.sula/adapters/*
+**/.sula/memory-digest.md
+
+# Sula Vector caches (none currently, but reserve)
+**/fragments/.cache/

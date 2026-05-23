@@ -96,3 +96,37 @@ Every AI session in a Sula-adopted project follows this flow:
 - automatic GitHub app integration
 - remote sync service
 - stack profiles not yet backed by real project use
+
+---
+
+<!-- sula-vector -->
+# Sula Vector — Host Operating Protocol
+
+This project has migrated to the Sula Vector convention. The full
+template lives at `tools/sula_vector/AGENTS.md`. Any LLM operating
+in this project must follow the protocol below.
+
+## At session start
+
+1. Note the current ISO-8601 UTC time as your `session_start`.
+2. Run `python3 tools/sula_vector/render.py . --for-agent` and read the output.
+3. Treat that output as authoritative project context (Tier A–E principles + recent activity + open goals).
+
+## Throughout the turn
+
+- Append new fragments under `fragments/` for any decision, intent, goal, fact, artifact, annotation, or turn worth preserving (Tier B8).
+- Filename: `<ISO-8601-time-Z>--<short-slug>.md`. Required frontmatter: `id`, `time`, `kind`.
+- Append, never edit (Tier B1). To revise a previous decision or principle, append a new `kind: decision` whose `refs` includes the old fragment's id.
+- Do not append if nothing meaningful changed (Tier C7).
+
+## At end of turn
+
+If you appended any fragments this turn, end your reply with the
+output of:
+
+```
+python3 tools/sula_vector/render.py . --view changes-summary --since <session_start>
+```
+
+Display the full multi-line `[sula] +N this turn:` block to the
+user. If the output is `[sula] no changes`, do not display it.

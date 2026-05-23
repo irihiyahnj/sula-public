@@ -1,0 +1,62 @@
+---
+id: 2026-05-06T14-13-53Z--snapshot-legacy-status
+time: 2026-05-06T14:13:53Z
+kind: snapshot
+tags: [migrated-from-sula, status-snapshot]
+source_path: STATUS.md
+---
+# STATUS
+
+- last updated: 2026-05-02
+## Summary
+### 2026-05-06
+
+- Sync canary to Sula 0.18.5 compact orchestration status release.
+
+### 2026-05-05
+
+- Aligned the client-service Drive canary with Sula 0.17.0 release verification.
+## Health
+
+- status: green
+- reason: the canary currently exercises local provider metadata paths without requiring live Google access.
+
+## Current Focus
+
+- keep the `client-service` workflow pack and Google Drive manifest defaults verifiable through a local canary
+- use the canary for rollout checks before changing provider-backed artifact behavior
+
+## Blockers
+
+- none
+
+## Recent Decisions
+
+- 2026-04-16: promoted this example into a client-service rollout canary for local Sula verification
+
+- 2026-04-16: added [Promote client service drive example into canary](docs/change-records/2026-04-16-promote-client-service-drive-example-into-canary.md)
+## Next Review
+
+- owner: Sula Core maintainers
+- date: 2026-04-23
+- trigger: review again before changing client-service workflow defaults or Google Drive adapter contracts
+
+## Handoff
+
+
+- ready: yes
+- start here: `docs/change-records/2026-04-16-promote-client-service-drive-example-into-canary.md`; `STATUS.md`
+- latest record: `docs/change-records/2026-04-16-promote-client-service-drive-example-into-canary.md`
+- next action: review `docs/change-records/2026-04-16-promote-client-service-drive-example-into-canary.md`; run `python3 scripts/sula.py check --project-root .`
+- next owner: Sula Core maintainers
+- next due: 2026-04-22
+- done when: result `SULA CHECK OK`; artifact `STATUS.md`
+- blockers: none
+- source of truth: `STATUS.md`; `docs/change-records/2026-04-16-promote-client-service-drive-example-into-canary.md`
+- source freshness: n/a
+- verification command: `python3 scripts/sula.py check --project-root .`
+- verification result: n/a
+- verification date: 2026-05-06
+- git branch: main
+- git commit: any
+- git working tree: dirty

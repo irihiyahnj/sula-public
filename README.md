@@ -1,673 +1,243 @@
 # Sula
 
-Sula is a reusable project operating system for AI-native software teams.
+> A pure-function project operating system for AI-native teams.
+> Cross-LLM, cross-device, byte-stable, principle-enforced.
 
-It standardizes how projects define rules, accept requests, execute work, verify changes, ship releases, and keep durable traceability across repositories.
+**Sula Vector v1.0** — General Availability, ship-frozen 2026-05-23.
 
-Sula is not a product template for one stack. It is a coordination layer with:
+A project's truth is an ordered, append-only folder of typed text fragments.
+Every view (status, progress, AI context, audit trail) is `render(fragments,
+conventions)`. No daemon, no kernel directory, no cache-as-truth. The same
+shape works for code projects, governance projects, client-service projects,
+and creative projects.
 
-- a reusable documentation and operations core
-- a namespaced `.sula/` kernel with governed-by-default visible projection packs
-- profile-specific templates for project families
-- a project manifest that captures each repository's facts
-- a guided zero-memory onboarding flow for first-time setup
-- a site-launch contract with a canonical URL and downloadable bootstrap launcher
-- machine-readable CLI outputs for external tools and adapters
-- an inspect-report-approve adoption flow for one-sentence onboarding
-- scripts to initialize, sync, and audit project adoption
-- a governed rollout path for sync impact and release discipline
-- a feedback-bundle workflow so reusable fixes can move upstream into Sula Core and then back downstream through versioned sync
-- a single-project memory model for durable status, decisions, releases, and incidents
-- workflow packs, artifact routing, and portfolio registration for non-code client projects
-- a natural-language autopilot router for project maintenance, including executor-required fleet upgrades that keep the host model in supervisor mode
+---
 
-Long-term direction:
+## Quick adoption
 
-- a `generic-project` kernel that can attach to unknown project types first and specialize later through adapter bundles
-- removable, namespaced machine state so portability also means easy detachment
-- structured indexing and recall that stay reproducible instead of depending on prior chat context
-- explicit adapter contracts so kernel sources can be mapped to stable operating capabilities
-- rebuildable local SQLite cache layers so query quality can improve without turning the cache into project truth
+### New project
 
-## What Sula Solves
+```bash
+git clone https://github.com/irihiyahnj/sula-public.git
+mkdir -p my-project/fragments
+cp -r sula-public/tools/sula_vector/ my-project/tools/sula_vector/
+cp sula-public/tools/sula_vector/AGENTS.md my-project/AGENTS.md
+cp sula-public/tools/sula_vector/principles/*.md my-project/fragments/
+cd my-project
+python3 tools/sula_vector/render.py . --for-agent
+```
 
-Without a system, every repository drifts:
+That's the entire onboarding. Output of the last command is the boot context
+every future agent (any LLM) reads.
 
-- AI tools each get slightly different instructions
-- release checks live in people's heads
-- architecture rules are implicit until they are violated
-- status and change records become inconsistent
-- improvements made in one project do not reach the others
+### Legacy Sula 0.18.x project
 
-Sula makes those concerns portable.
+```bash
+git clone https://github.com/irihiyahnj/sula-public.git
+python3 sula-public/tools/sula_vector/migrate.py --project-root /path/to/legacy-project
+```
 
-## User Experience Contract
+Idempotent. Leaves legacy `.sula/`, `STATUS.md`, and `docs/change-records/`
+untouched (preserved for rollback). Each project becomes self-contained with
+its own `tools/sula_vector/`.
 
-Sula should trend toward a zero-memory user model:
+---
 
-- the user should not need to remember commands, paths, file slots, or project-state rules
-- onboarding should ask the missing questions, not expect the user to preload Sula's internal model
-- once onboarding answers are captured, Sula should tell the user what it will manage, where files will go, and which commands or automations become available
+## What v1.0 gives any project
 
-This means adapters, workflow packs, and portfolio registration are not just technical metadata. They are the basis for a guided setup flow that turns a live project into an understandable operating system.
+1. **Cross-LLM continuity** — same project context works with Claude, Codex, Kiro, Gemini, any future model. Switch cost = 0.
+2. **Cross-device portability** — folder syncs through git, Drive, Dropbox, or local; any device that reads text files is a workspace.
+3. **Append-only project memory** — every decision, fact, goal preserved forever; supersession via refs, never deletion.
+4. **Mechanical goal closure** — `done_when` + `verifier_ref` + skill = automatic closure. No human asking "is it done?".
+5. **Tier A–E principles enforced at every boot** — no drift in design standards.
+6. **Zero install for new agents** — hand a folder path. No SDK, no daemon, no Python package required.
+7. **Domain-agnostic** — code, governance, client services, creative work — same `render(fragments, conventions)`.
+8. **byte-stable replay** — reproducible views; auditable.
+9. **Skill ecosystem** — Codex-style superpowers (durable threads, voice, browser, automation, verifiers) drop in as ~100-line scripts. Core never grows.
+10. **Visible turn-mark** — multi-line `[sula] +N this turn:` block at end of any turn that appended fragments.
+11. **No technical-debt accumulation** — append-only means no maintenance burden.
+12. **Free fork/branch** — copy the folder = full project history; subset = a derivative.
 
-## Core Concepts
+---
 
-### 1. Sula Core
+## The one-line model
 
-Reusable kernel state and orchestration that should evolve once and benefit many projects:
+```
+project_view  =  render(fragments, conventions)
+```
 
-- `.sula/project.toml`
-- `.sula/version.lock`
-- `.sula/state/*`
-- `.sula/indexes/*`
-- `.sula/objects/*`
-- `.sula/cache/*`
-- `scripts/sula.py`
+`fragments` is a folder of text files. `conventions` is the spec (ship-frozen at v1.0). `render` is a pure function. Everything else is derived and disposable.
 
-### 2. Projection Packs
+This is the same shape as MadCut's `EDL = render(transcript, intelligence, master, instructions[])` — generalised to arbitrary project domains.
 
-Optional repo-visible surfaces rendered from the same kernel:
+---
 
-- `CODEX.md`
-- `CLAUDE.md`
-- `GEMINI.md`
-- `.github/copilot-instructions.md`
-- `.cursor/rules/project.mdc`
-- `docs/README.md`
-- `docs/ops/*`
-- `docs/architecture/*`
-- `docs/runbooks/*`
-- `README.md`
-- `AGENTS.md`
-- `STATUS.md`
-- `CHANGE-RECORDS.md`
-- `docs/change-records/*`
-- `docs/releases/*`
-- `docs/incidents/*`
+## Tier A–E principles (enforced at every agent boot)
 
-New adoptions default to `governed`, so the full visible operating surface is available immediately.
+The full principle set ships as `kind: principle` fragments inside every
+adopting project. `render --for-agent` prepends them to every boot.
 
-### 3. Profile
+### Tier A — Highest rule
 
-A profile is a reusable project-family layer.
+> A project's truth is an ordered, append-only folder of typed fragments.
+> Every view is `render(fragments, conventions)`. No mutation, no implicit
+> state, no truth outside this convention. If anything else conflicts with
+> this rule, this rule wins.
 
-Current profiles:
+### Tier B — Invariants (B1–B9)
 
-- `generic-project`
-- `react-frontend-erpnext`
-- `sula-core`
+Append-only · No implicit state · `kind` is open · No daemon/kernel/cache-as-truth · byte-stable replay · Two-step boot for any LLM · Substrate handles concurrency · Important context lands in fragments · Goals must carry a verifier.
 
-Profiles provide:
+### Tier C — Aesthetics (C1–C7)
 
-- optional architecture projections
-- optional runbook projections
-- scaffold starters for project-owned files
+找到本质的维度 · 不搏斗站上去 · 几何 > 尺寸 · 越过界限 · 极简交互 · 隐喻贯穿 · 不要 churn.
 
-### 4. Project Manifest
+### Tier D — Implementation discipline (D1–D5)
 
-Each adopted project keeps a local `.sula/project.toml` that defines:
+Standard library only · Zero comments unless WHY non-obvious · No TODO/placeholders/half-implementations · No backwards-compatibility shims · No "done" without verification.
 
-- project identity
-- branch model
-- highest architecture rule
-- build and verification commands
-- key source paths
-- deploy expectations
-- auth/session semantics
-- projection mode and enabled visible packs
-- workflow pack, storage adapter, and portfolio registration metadata
+### Tier E — Anti-patterns (E1–E9)
 
-### 5. Kernel, Projections, And Project-Owned Files
+Storing derived as truth · State directories beside `fragments/` · Editing past fragments · Centralising `kind` enum · Inventing new substrate · SaaS-shape wrappers · Splits to satisfy line counts · Chat-only context · Goals without verifier.
 
-Sula distinguishes three surfaces:
+Full text: [`docs/sula-vector-convention.md`](docs/sula-vector-convention.md) and [`tools/sula_vector/principles/`](tools/sula_vector/principles/).
 
-- kernel files: namespaced state under `.sula/`
-- projection files: visible docs and tool instructions rendered only for enabled packs
-- scaffold files: generated once if missing, then owned by the project
+---
 
-This keeps the core system portable while avoiding accidental ownership grabs over project truth.
+## Skills (the extension model)
 
-## Repository Layout
+Skills are independent scripts under `tools/sula_vector/skills/`. Each takes
+`--project-root <path>`, reads fragments, does work, appends new fragments,
+exits. The "registry" is `ls skills/` — no manifest, no plugin descriptor,
+no SDK.
 
-```text
+Three reference skills ship in v1.0:
+
+| Skill | Role | Lines |
+| ----- | ---- | ----: |
+| `verifier-shell.py` | Closes goals via shell-command verifier; emits `kind: verification-fact`. | 122 |
+| `scheduler.py` | Fires `kind: cadence-tick` when a recurring intent's interval has elapsed. | 145 |
+| `llm-dispatcher.py` | Routes `kind: intent` fragments with `executor_command` to a configured shell executor (Claude/Codex/Gemini/DeepSeek CLI, OpenAI/Anthropic API call, etc.); captures stdout into a `kind: turn` fragment. | 168 |
+
+Skills contract: [`tools/sula_vector/skills/README.md`](tools/sula_vector/skills/README.md).
+
+Every Codex superpower (durable threads, voice, steering, queuing, goals,
+automations, browser/computer-use, MCP, side-panel artifacts) implements as
+a skill of this shape. The core renderer never grows.
+
+---
+
+## Trust model
+
+Sula does not, and cannot, prevent a fragment from making a false claim.
+What it does is structural:
+
+1. Append-only — false claims cannot be deleted (B1).
+2. byte-stable replay — claim/counter-claim trail is reproducible (B5).
+3. refs graph — claims, evidence, disputes, corrections all reference each other (open `kind`).
+4. Substrate handles concurrency (B7).
+
+Together: any deception leaves a permanent trace. Readers traverse the refs
+graph and judge for themselves. **Trust is a property of the reader, not of
+the convention.** Identity signing, evidence-density audits, dispute
+resolution — all layer on as future skills, never as core enforcement.
+
+See [`fragments/2026-05-23T05-50-10Z--decision-trust-is-reader-side.md`](fragments/2026-05-23T05-50-10Z--decision-trust-is-reader-side.md) for the full crystallised meta-principle.
+
+---
+
+## Repository layout
+
+```
 docs/
-  philosophy.md
-  adoption-playbook.md
-  versioning.md
-  reference/
-schema/
-registry/
-scripts/
-tests/
-templates/
-  core/
-    managed/
-    scaffold/
-  profiles/
-    generic-project/
-      managed/
-      scaffold/
-    react-frontend-erpnext/
-      managed/
-      scaffold/
-    sula-core/
-      managed/
-      scaffold/
-examples/
+  sula-vector-convention.md    ← authoritative v1.0 spec (ship-frozen)
+tools/
+  sula_vector/                 ← canonical tooling. Each adopting project
+                                 receives its own copy of this folder.
+    render.py                  ← pure-function renderer, 8 views
+    migrate.py                 ← idempotent legacy → vector migrator
+    AGENTS.md                  ← host operating protocol template
+    README.md
+    RELEASE-NOTES.md           ← v1.0 release notes
+    principles/                ← canonical Tier A–E principle fragments
+    skills/                    ← reference skills (verifier-shell, scheduler, llm-dispatcher)
+    tests/                     ← stdlib unittest suite (34 tests)
+fragments/                     ← Sula's own project memory as a Sula vector
+                                 (340+ fragments — decisions, releases,
+                                 chronicles, corrections, the v1.0 GA event)
+README.md                      ← this file
+AGENTS.md                      ← Sula's own host operating protocol
+CHANGELOG.md                   ← legacy Sula 0.18.x release log
+docs/                          ← additional reference and runbook docs
 ```
 
-## Quick Start
+The legacy Sula 0.18.x runtime (`scripts/sula.py`, `.sula/`, etc.) is
+preserved in this repo as historical reference. The recommended path
+forward is Sula Vector v1.0.
 
-### Onboard A Project With Questions
+---
 
-For first-time setup, prefer the guided onboarding flow:
+## Verification evidence (Tier D5)
+
+| Check | Result |
+| ----- | ------ |
+| Test suite (`tools.sula_vector.tests.test_sula_vector`) | **34/34 PASS** |
+| Standard library only | ✓ no third-party deps |
+| `render.py` byte-stable replay (Sula self) | ✓ |
+| `render.py` byte-stable replay (1terminal) | ✓ |
+| `migrate.py` 3rd-run idempotence | ✓ 0 net change |
+| All 3 reference skills exercised end-to-end on real fragments | ✓ |
+| Tier A–E principles installed and surfaced at every boot | ✓ |
+| Host operating protocol installed in AGENTS.md | ✓ |
+| Real-world adoption | 14 projects on this device migrated to v1.0 |
+| Project portability test (move folder, re-run boot) | ✓ |
+
+---
+
+## Convention freeze and semantic versioning
+
+- **v1.x** — convention frozen. Any fragment file written against v1.0 will continue to parse and render identically across all v1.x releases.
+- **v1.x.y minor** — may add new views, new recommended kinds, new skills, new optional frontmatter fields. Never invalidates existing fragments.
+- **v2.0** — only if a previously-valid fragment file would no longer parse. No current plan.
+
+---
+
+## Documentation
+
+| Document | Purpose |
+| -------- | ------- |
+| [`docs/sula-vector-convention.md`](docs/sula-vector-convention.md) | Authoritative convention spec — read first. |
+| [`tools/sula_vector/RELEASE-NOTES.md`](tools/sula_vector/RELEASE-NOTES.md) | v1.0 release notes, verification evidence, adoption guide. |
+| [`tools/sula_vector/AGENTS.md`](tools/sula_vector/AGENTS.md) | Host operating protocol template. |
+| [`tools/sula_vector/skills/README.md`](tools/sula_vector/skills/README.md) | Skills contract. |
+| [`tools/sula_vector/principles/README.md`](tools/sula_vector/principles/README.md) | Principles adoption guide. |
+| [`fragments/`](fragments/) | Sula's own project memory in vector form (chronicle, decisions, releases). |
+
+---
+
+## Legacy Sula 0.18.x
+
+The earlier Sula runtime (945 KB single Python file `scripts/sula.py`, 12
+parallel state directories under `.sula/`, 30+ subcommands) is preserved in
+this repository as historical reference. Documentation for the legacy
+release process lives at:
+
+- [`CHANGELOG.md`](CHANGELOG.md) — release history through 0.18.14
+- [`docs/release-process.md`](docs/release-process.md) — legacy release flow
+- [`docs/change-records/`](docs/change-records/) — legacy change records
+
+Existing 0.18.x adopted projects can migrate to v1.0 via:
 
 ```bash
-python3 scripts/sula.py onboard --project-root /path/to/project
-python3 scripts/sula.py onboard --project-root /path/to/project --accept-suggested --approve
+python3 tools/sula_vector/migrate.py --project-root /path/to/legacy-project
 ```
 
-`onboard` asks the missing questions, including the default language for generated docs and records, proposes workflow/storage/portfolio answers, explains the initial projection depth, and can apply adoption immediately after confirmation.
+The migrator is idempotent and never touches legacy `.sula/`, `STATUS.md`,
+or `docs/change-records/`.
 
-New projects start in `governed` mode by default, so the `.sula/` kernel, operating docs, AI-tool projections, and profile docs are available immediately. Projects can still intentionally reduce visible surface later with `projection mode` or `projection disable`.
+---
 
-### Launch From The Site Contract
-
-The final startup direction is a URL-first launch flow:
-
-```text
-请按 https://sula.1stp.monster/launch/ 的启动协议接管当前项目。
-```
-
-or
-
-```text
-Please take over the current project using the launch contract at https://sula.1stp.monster/launch/.
-```
-
-The site now exposes:
-
-- `/launch/` as the human-readable launch contract
-- `/sula.json` as the machine-readable launcher descriptor
-- `/launch/bootstrap.py` as the canonical bootstrap shim when local Sula tooling is missing
-
-### Low-Level Adoption Report
-
-In a live agent session, the target request should be as short as:
-
-```text
-Please take over this repository using the Sula bootstrap protocol: first read https://sula.1stp.monster/, inspect the repo and produce an adoption report, wait for my approval, then adopt it and report the changes, risks, and how to use it.
-```
-
-The CLI equivalent is:
-
-```bash
-python3 scripts/sula.py adopt --project-root /path/to/project
-python3 scripts/sula.py adopt --project-root /path/to/project --approve
-```
-
-The first command inspects the repository, detects the likely profile, and prints an approval-ready report. Unknown project types now fall back to the safe `generic-project` baseline instead of blocking adoption. The second command applies the adoption, validates the result with `doctor --strict`, creates initial traceability, and prints the follow-up usage commands.
-
-Use `init` only when you need low-level manual control over manifest values before the approval-based adoption flow can infer them safely.
-
-### Bootstrap site assets
-
-The public bootstrap site lives in this repository under `site/`:
-
-- `site/index.html`: landing page with the canonical copyable bootstrap lines
-- `site/bootstrap/index.html`: behavioral contract for inspect, report, approve, adopt
-- `site/sula.json`: machine-readable bootstrap descriptor
-
-The canonical public source is at `https://github.com/irihiyahnj/sula-public`.
-The machine-readable protocol descriptor is in `site/sula.json` within the repository.
-
-### Sync improvements into an existing project
-
-```bash
-python3 scripts/sula.py sync --project-root /path/to/project --dry-run
-python3 scripts/sula.py sync --project-root /path/to/project
-python3 scripts/sula.py doctor --project-root /path/to/project
-python3 scripts/sula.py doctor --project-root /path/to/project --strict
-python3 scripts/sula.py check --project-root /path/to/project
-```
-
-Use `--dry-run` before every real sync so you can review which managed files would change and how risky they are.
-Use `check` as the daily close-out gate after changing `STATUS.md`, `CHANGE-RECORDS.md`, `docs/change-records/*`, or generated `.sula/*` state; only `SULA CHECK OK` counts as a finished state-sync update.
-
-### Upgrade From The Published Git Release
-
-When Sula is already published, prefer a tagged Git checkout over an arbitrary local source path:
-
-```bash
-SULA_DESCRIPTOR_DIR="$(mktemp -d)"
-git clone --depth 1 https://github.com/irihiyahnj/sula-public.git "$SULA_DESCRIPTOR_DIR"
-SULA_REF="$(python3 - "$SULA_DESCRIPTOR_DIR/site/sula.json" <<'PY'
-import json, sys
-with open(sys.argv[1], encoding="utf-8") as handle:
-    print(json.load(handle)["source_ref"])
-PY
-)"
-rm -rf "$SULA_DESCRIPTOR_DIR"
-git clone --branch "$SULA_REF" --depth 1 https://github.com/irihiyahnj/sula-public.git "/opt/sula/$SULA_REF"
-export SULA_ROOT="/opt/sula/$SULA_REF"
-export PROJECT_ROOT=/path/to/project
-
-python3 "$SULA_ROOT/scripts/sula.py" sync --project-root "$PROJECT_ROOT" --dry-run
-python3 "$SULA_ROOT/scripts/sula.py" sync --project-root "$PROJECT_ROOT"
-python3 "$SULA_ROOT/scripts/sula.py" memory digest --project-root "$PROJECT_ROOT"
-python3 "$SULA_ROOT/scripts/sula.py" doctor --project-root "$PROJECT_ROOT" --strict
-python3 "$SULA_ROOT/scripts/sula.py" check --project-root "$PROJECT_ROOT"
-```
-
-For one-to-many rollout across scattered repositories, use the standard runbook:
-
-- [docs/runbooks/git-release-upgrade.md](docs/runbooks/git-release-upgrade.md)
-
-If you want a large model to perform the release upgrade from one instruction, use the standard prompt set:
-
-- [docs/reference/model-upgrade-prompts.md](docs/reference/model-upgrade-prompts.md)
-
-### Control Visible Projections
-
-```bash
-python3 scripts/sula.py projection list --project-root /path/to/project
-python3 scripts/sula.py projection mode --project-root /path/to/project --set collaborative
-python3 scripts/sula.py projection mode --project-root /path/to/project --set governed
-python3 scripts/sula.py projection enable --project-root /path/to/project --pack ai-tooling
-python3 scripts/sula.py projection disable --project-root /path/to/project --pack ai-tooling
-```
-
-Projection modes describe how much repo-visible governance Sula should materialize, not which kernel abilities exist:
-
-- `detached`: keep the kernel plus minimal project-facing memory files and record templates
-- `collaborative`: add reusable operating docs, document-design rules, architecture maps, and runbooks
-- `governed`: add AI tool instruction projections and the deepest visible governance surface
-
-All modes keep the same kernel-level capabilities such as `doctor`, `check`, `query`, `artifact`, `portfolio`, `feedback`, and `remove`.
-
-### Remove Sula from a project
-
-```bash
-python3 scripts/sula.py remove --project-root /path/to/project
-python3 scripts/sula.py remove --project-root /path/to/project --approve
-```
-
-The report shows which namespaced kernel files and registered visible projections will be removed, and which scaffold files will stay project-owned.
-
-### Create durable project memory
-
-```bash
-python3 scripts/sula.py record new \
-  --project-root /path/to/project \
-  --title "Explain the non-trivial change"
-
-python3 scripts/sula.py memory digest --project-root /path/to/project
-
-python3 scripts/sula.py memory capture \
-  --project-root /path/to/project \
-  --title "Rule candidate from current work" \
-  --summary "Refresh provider-backed artifacts before latest-version answers."
-
-python3 scripts/sula.py memory review --project-root /path/to/project --json
-
-python3 scripts/sula.py memory promote \
-  --project-root /path/to/project \
-  --capture-id <capture-id> \
-  --to rule
-
-python3 scripts/sula.py memory jobs --project-root /path/to/project --json
-```
-
-This creates durable project memory without mixing managed operating-system files with project-owned history. Staged captures stay temporary until review and promotion move them into a durable project-owned source.
-
-Recommended loop: `memory capture` -> `memory review` -> `memory promote` -> `query` -> `memory clear --reviewed-captures`.
-Common promotion targets in the stable surface are `rule`, `state`, `decision`, `risk`, `task`, and `workflow-artifact`.
-
-### Read machine-usable project state
-
-```bash
-python3 scripts/sula.py status --project-root /path/to/project
-python3 scripts/sula.py status --project-root /path/to/project --json
-python3 scripts/sula.py doctor --project-root /path/to/project --strict --json
-python3 scripts/sula.py check --project-root /path/to/project --json
-```
-
-These commands expose the same project kernel to humans and to external software. When `--json` is used, Sula becomes a local machine protocol instead of a text-only CLI.
-
-### Capture reusable feedback from adopted projects
-
-```bash
-python3 scripts/sula.py feedback capture \
-  --project-root /path/to/project \
-  --title "Route reusable managed fix upstream" \
-  --summary "Captured a reusable fix from local Sula drift." \
-  --shared-rationale "This issue affects more than one adopted project." \
-  --json
-
-python3 scripts/sula.py feedback ingest \
-  --project-root /path/to/sula-core \
-  --bundle-path /path/to/project/.sula/feedback/outbox/archives/<feedback-id>.zip \
-  --json
-
-python3 scripts/sula.py feedback decide \
-  --project-root /path/to/sula-core \
-  --feedback-id <feedback-id> \
-  --decision accepted \
-  --note "Absorb this into the shared release path." \
-  --target-version <next-sula-version> \
-  --json
-```
-
-This keeps project-owned truth local while still giving Sula Core a governed intake path for reusable fixes. Projects may patch their local managed files to stay productive, but upstream adoption happens only after Sula Core review and a later versioned rollout.
-
-### Create and track project artifacts
-
-```bash
-python3 scripts/sula.py artifact create \
-  --project-root /path/to/project \
-  --kind agreement \
-  --title "Hospital Service Contract"
-
-python3 scripts/sula.py artifact register \
-  --project-root /path/to/project \
-  --kind report \
-  --title "Hospital Intake Report" \
-  --project-relative-path delivery/2026-04-12-hospital-intake-report-v1 \
-  --provider-item-id doc-abc123 \
-  --provider-item-kind google-doc \
-  --provider-item-url https://docs.google.com/document/d/doc-abc123/edit \
-  --source-of-truth provider-native \
-  --collaboration-mode multi-editor \
-  --last-provider-sync-at 2026-04-12T10:00:00Z
-
-python3 scripts/sula.py artifact materialize \
-  --project-root /path/to/project \
-  --source-path drafts/hospital-intake.md \
-  --target-format docx \
-  --kind report \
-  --title "Hospital Intake Report"
-
-python3 scripts/sula.py artifact materialize \
-  --project-root /path/to/project \
-  --source-path planning/shoot-schedule.csv \
-  --target-format xlsx \
-  --kind schedule \
-  --title "Shoot Schedule Export"
-
-python3 scripts/sula.py artifact import-plan \
-  --project-root /path/to/project \
-  --source-path drafts/hospital-intake.md \
-  --provider-item-kind google-doc \
-  --json
-
-python3 scripts/sula.py artifact import-plan \
-  --project-root /path/to/project \
-  --artifact-id artifact:path-planning-shoot-schedule-csv \
-  --provider-item-kind google-sheet \
-  --json
-
-python3 scripts/sula.py artifact locate \
-  --project-root /path/to/project \
-  --kind agreement --json
-
-python3 scripts/sula.py artifact refresh \
-  --project-root /path/to/project \
-  --artifact-id artifact-provider-google-drive-hospital-root-google-doc-doc-abc123 \
-  --json
-```
-
-Artifacts are routed through the active workflow pack and stored under the project's artifacts root, then registered in `.sula/artifacts/catalog.json`.
-
-Workflow policy is now also a first-class manifest surface:
-
-- `.sula/project.toml` can record `execution_mode`, `design_gate`, `plan_gate`, `review_policy`, `workspace_isolation`, `testing_policy`, and `closeout_policy` under `[workflow]`
-- durable source-first workflow documents now live under `workflow.docs_root`, which defaults to `docs/workflows`
-- `python3 scripts/sula.py workflow assess --project-root /path/to/project --task "Refactor auth and rollout provider sync"` reports whether the task should carry a `spec`, `plan`, or `review`
-- `python3 scripts/sula.py workflow scaffold --project-root /path/to/project --kind spec --title "Auth Sync Spec"` creates a durable workflow source document and registers it in the artifact catalog
-
-Orchestration is now a first-class control-plane surface:
-
-- `.sula/project.toml` records `[orchestration]` policy, and `enabled = true` is the default with the non-mutating `dry-run` runner
-- `.sula/project.toml` records `[automation]` policy with `mode = "execute"` and `auto_dispatch = true` by default, so Sula can observe normal commands, classify useful follow-up intent, and dispatch eligible low-risk work without a manual trigger
-- the safe built-in adapter pair is `task_source = "local"` and `runner = "dry-run"`
-- default automatic dispatch lands in the non-mutating dry-run runner; real mutation still requires an explicitly configured real runner and must pass risk ceiling plus human-approval category gates
-- local tasks are read from `orchestration.tasks_path`, defaulting to `docs/workflows/tasks.json`
-- external/provider task documents can be mirrored with `task_source = "provider-task-document"` and parsed from Markdown checklist or JSON task files at `tasks_path`
-- provider-native task sources can use `task_source = "provider-api"` with `provider_task_item_id`, `provider_task_item_kind`, and `provider_task_item_url` to read tasks through the configured storage provider adapter
-- `python3 scripts/sula.py orchestration intake --project-root /path/to/project --title "Check handoff" --acceptance "handoff is structured" --validation "sula check passes" --json` captures a CLI/user intent as an auditable task
-- `python3 scripts/sula.py orchestration trigger --project-root /path/to/project --source-kind sula-command --identity-key check-2026-05-01 --title "Run daily check" --acceptance "Sula check passes" --validation "python3 scripts/sula.py check --json passes" --json` lets any Sula-connected surface create deduped task intent
-- normal Sula entrypoints such as `check`, `doctor`, `status`, `query`, `sync`, and artifact freshness operations also create automation events under `.sula/state/automation/`; failed checks or doctor runs become queued intents automatically when `[automation].auto_intake = true`
-- human-readable commands print a short Sula activity line after Sula records an event, creates or resolves an intent, or attempts automatic dispatch; JSON output keeps the same machine-readable envelope
-- `python3 scripts/sula.py orchestration tasks --project-root /path/to/project --json` normalizes task intent, risk, blockers, and acceptance criteria
-- `python3 scripts/sula.py session start --project-root /path/to/project` prints a Sula-owned startup banner with the memory digest, active tasks, current stage, host model metadata when known, and planner/executor/verifier/reviewer routing assignments
-- `python3 scripts/sula.py agent-routing status --project-root /path/to/project --json` reports `[agent_routing]` policy plus local provider readiness without printing secrets
-- `python3 scripts/sula.py agent-routing doctor --project-root /path/to/project --json` validates local model-provider routing configuration from `.sula/local/agent-providers.json`
-- `python3 scripts/sula.py agent-routing configure --project-root /path/to/project` asks for the executor CLI/model/reasoning effort once and remembers it; later runs reuse the saved route unless the operator passes `--replace` or explicit new values
-- `python3 scripts/sula.py orchestration run --project-root /path/to/project --task-id local:example --json` records a dry-run scheduling result under `.sula/state/orchestration/`
-- `python3 scripts/sula.py orchestration status --project-root /path/to/project --compact` prints a single English tool line with run state, task completion count, risk, main model/depth, context placeholder, executor model/depth/runner effort, workspace, elapsed time, cost, last event, and next action
-- `python3 scripts/sula.py orchestration timeline --project-root /path/to/project` shows recent role/stage events from `.sula/state/orchestration/events.jsonl`
-- `python3 scripts/sula.py orchestration close --project-root /path/to/project --run-id run-id --evidence "sula check passed and acceptance criteria satisfied" --accept --json` accepts a run only after closeout evidence exists beyond dry-run scheduling
-- accepted closeout validates task-specific requirements, touched-file references, links/artifacts, and requested `sula check` evidence before marking a run accepted
-- `orchestration.verification_adapters` controls dependency-light closeout reference checks for local files, artifact catalog entries, provider metadata, PR URLs, and ordinary URLs
-- `python3 scripts/sula.py orchestration doctor --project-root /path/to/project --json` checks the local orchestration policy before real adapters are introduced
-- `runner = "shell-command"` is implemented as a real adapter for controlled local execution; it requires `runner_command`, should normally use `workspace_mode = "copy"`, and records command evidence plus touched files before human review
-- `runner = "codex-sdk"` runs a configured JSON-over-stdin command, and `runner = "codex-app-server"` posts the same request to a configured HTTP endpoint
-- `remote_verification_policy = "opportunistic"` lets closeout verify PR/provider references through fixtures or credentials when present without making credentials mandatory
-- PR closeout evidence now includes structured CI state, unresolved review-thread count, comments requiring action, and a closeout state when fixtures or remote metadata provide those fields
-
-### Agent-native control surface
-
-Sula 0.17.0 adds an optional dependency-light MCP-compatible surface. It is a control surface over Sula's existing CLI and project state, not a replacement for the CLI.
-
-```bash
-python3 scripts/sula.py mcp tools --json
-python3 scripts/sula.py mcp call \
-  --tool sula.project.bootstrap \
-  --project-root /path/to/project \
-  --arguments-json '{}'
-
-python3 scripts/sula.py mcp call \
-  --tool sula.report.create \
-  --project-root /path/to/project \
-  --allow-project-root /path/to/project \
-  --enable-write-class record \
-  --arguments-json '{"summary":"Finished the work unit.","lightweight":true}'
-```
-
-The first tool set is read-only: project bootstrap, status, check, doctor, query, memory digest, rules, artifacts, workflow assessment, orchestration tasks/runs, portfolio list/status, and provider capabilities.
-
-Controlled write tools are available for `report.create`, `workflow.scaffold`, `orchestration.intake`, `orchestration.close`, `artifact.register`, `artifact.materialize`, and `artifact.refresh`. Write tools require an allowlisted project root and an enabled write class such as `record` or `generate`; they route writes through Sula and append audit evidence under `.sula/events/log.jsonl`.
-
-For long-running agents, `python3 scripts/sula.py mcp serve` provides a minimal stdio JSON-RPC loop with `tools/list` and `tools/call`. Machine-local policy can live in `.sula/local/mcp-policy.json`; it is intentionally not project truth.
-
-Agent execution quality is also a first-class policy surface:
-
-- `.sula/project.toml` can record `[agent_behavior]` policy for portable agent execution behavior
-- the default `quality_policy = "sula-karpathy-inspired"` absorbs reusable guidance around assumptions, simplicity, surgical diffs, success criteria, and verification without vendoring an editor-specific plugin
-- orchestration run records include the resolved agent behavior and a quality checklist for future runner adapters
-- accepted orchestration closeout must include verification and acceptance evidence when the policy requires it
-
-Agent routing is now a first-class visibility and runner-contract surface:
-
-- `.sula/project.toml` can record `[agent_routing]` policy for `host`, `planner`, `executor`, `verifier`, `reviewer`, and `acceptor` roles
-- the current host/chat model is reported as `unknown` unless the CLI, environment, or MCP metadata provides it
-- `.sula/local/agent-providers.json` is machine-local and may name `endpoint_env`, `api_key_env`, and `allowed_roles`, but must not contain raw provider keys
-- runner requests for `codex-sdk` and `codex-app-server` now include `role`, `model_hint`, `write_access`, `routing_cycle`, and the resolved routing policy while keeping provider API mechanics outside Sula Core
-- runner requests for `codex-sdk` and `codex-app-server`, plus shell-command runner environment variables, now expose both the Sula reasoning effort and the runner-native effort; Claude-style `xhigh` routes map to runner effort `max`
-- `agent-routing configure` can remember a local executor command such as a Claude Code or Hermes wrapper backed by DeepSeek, including the desired executor reasoning effort; Sula dispatches that command and records status, while the wrapper remains responsible for its own model/API configuration
-- local executor wrappers should follow [docs/reference/local-executor-wrapper-contract.md](docs/reference/local-executor-wrapper-contract.md): consume `SULA_EXECUTOR_CONTRACT_JSON`, `SULA_EXECUTION_PACKET_JSON`, and retry feedback when present; call the local model CLI non-interactively; and return one Sula JSON object with status, summary, touched files, validation evidence, and usage/cost metrics
-
-Autopilot routing is the commandless entry surface for mechanical maintenance:
-
-- `python3 scripts/sula.py auto --project-root /path/to/controller --intent "upgrade all Sula projects under this directory" --scope /path/to/scope` classifies the user goal and routes recognized fleet maintenance to the guarded fleet runner
-- `python3 scripts/sula.py fleet upgrade --project-root /path/to/controller --scope /path/to/scope --target-version <version> --json` discovers adopted projects, skips backup/archive/workspace/release-output directories, and upgrades old active projects through the cheapest available executor
-- fleet upgrades use Sula's deterministic zero-model executor when the target project has no real local model runner; configured shell executors can still run first, but Sula falls back to deterministic sync/doctor/digest/check if they do not complete the upgrade
-- `python3 scripts/sula.py fleet status --project-root /path/to/controller --compact` prints the Sula-owned one-line fleet status bar with project counts, main model, executor model, reported tokens, reported cost, and next action
-- first shipped executor support for fleet work is `runner = "shell-command"` with `runner_command`; the wrapper receives `SULA_FLEET_TASK_JSON`, `SULA_AUTOPILOT_INTENT_JSON`, `SULA_MODEL_*`, and `SULA_RUNNER_EFFORT`
-- detailed behavior is documented in [docs/reference/autopilot-intent-router.md](docs/reference/autopilot-intent-router.md)
-
-Provider-backed artifacts can also be registered without a local materialized file path by supplying a stable project-relative path and provider item metadata. This lets Drive-synced and provider-native deliverables survive device-specific local path differences.
-
-Collaborative provider-backed artifacts can now also carry truth-source and freshness metadata:
-
-- `artifact register` accepts `--source-of-truth`, `--collaboration-mode`, `--artifact-role`, `--last-refreshed-at`, and `--last-provider-sync-at`
-- artifact families keep `workspace-source`, `provider-native-source`, and `exported-derivative` entries traceable under one `family_key`
-- when a multi-editor artifact points at a Google Doc or Google Sheet, Sula treats the provider-native item as the default fact source instead of silently trusting a local copy
-- if provider metadata is incomplete, Sula reports the missing `provider_root_url`, `provider_root_id`, `provider_item_id`, `provider_item_kind`, and `provider_item_url` fields instead of assuming that the local file is current
-
-Formal planning, proposal, report, process, and training documents now have a first-class design contract:
-
-- projects can declare that contract in `[document_design]` inside `.sula/project.toml`
-- managed projects receive `docs/ops/document-design-principles.md` as the reusable rulebook
-- `artifact create` renders genre-specific source-document bundles for `schedule`, `proposal` / `plan`, `report`, `process`, and `training`
-- source files remain the editable truth; `.docx`, `.html`, `.xlsx`, and provider-native outputs stay derived artifacts with traceable lineage
-
-`artifact materialize` lets a project-owned source file produce import-friendly deliverables without requiring Google OAuth first:
-
-- `.md` / `.txt` / `.html` -> `.html`
-- `.md` / `.txt` / `.html` -> `.docx` on macOS via `textutil`
-- `.csv` / `.tsv` / `.json` -> `.xlsx`
-
-That supports a practical workflow where Sula keeps Markdown and tabular files as project truth, then Google Docs or Google Sheets import the generated `.docx` or `.xlsx` when a native Google file is needed.
-
-`artifact import-plan` is the next bridge layer for external software:
-
-- it accepts a project source file or an existing artifact id
-- it reuses an import-ready `.docx`, `.html`, or `.xlsx` when one already exists
-- otherwise it materializes the required bridge file automatically
-- it writes a machine-readable plan to `.sula/exports/provider-imports/*.json`
-- it returns the follow-up `artifact register` shape that should be used after the real provider item id and URL exist
-- it treats `project_relative_path` as the provider-native target path under the recorded `provider_root_id`
-- it now also emits `provider_parent_relative_path` so external Google import or create steps know which folder path to use instead of defaulting to the provider root folder
-
-Natural-language freshness checks are now part of the retrieval contract:
-
-- `python3 scripts/sula.py query --project-root /path/to/project --q "先看最新版本再继续" --json`
-- `python3 scripts/sula.py artifact locate --project-root /path/to/project --q "共享文档为准" --json`
-- `python3 scripts/sula.py status --project-root /path/to/project --json`
-
-Those outputs now expose the current `truth_source_type`, `last_refreshed_at`, `last_provider_sync_at`, `local_copy_stale_risk`, and any missing provider metadata for collaborative artifact families.
-
-When provider metadata is complete and read-only Google access is available, freshness intent now triggers a real provider refresh before results are returned:
-
-- set `SULA_GOOGLE_ACCESS_TOKEN` to a read-only Google API bearer token
-- or, for local testing, point `SULA_PROVIDER_FIXTURE_DIR` at JSON fixtures consumed by the Google provider adapter
-
-For a durable local setup, you can do one browser-based consent and let Sula refresh access tokens from a stored refresh token afterward:
-
-```bash
-python3 scripts/sula_google_auth.py \
-  --project-root /path/to/project \
-  --client-secrets-file /path/to/client_secret_desktop.json \
-  --print-shell
-```
-
-When `--project-root` is present, the OAuth store defaults to `PROJECT/.sula/local/google-oauth.json`. Without it, the fallback remains `~/.config/sula/google-oauth.json`. During provider refresh, Sula now tries the project-local OAuth store first and then falls back to the global store, so other sessions only need the project root to find the right token file.
-
-For provider-native Docs or Sheets, Sula now treats the saved location as:
-
-- `provider_root_id` or `provider_root_url`: the project container in Drive
-- `project_relative_path`: the provider-native target path inside that container
-- `provider_parent_relative_path`: the folder path that should contain the native item
-
-If you do not set `--project-relative-path` explicitly, Sula defaults it from the workflow slot, record date, and title slug, for example `delivery/2026-04-12-hospital-intake-draft`. That avoids ambiguous “save it at the root” behavior.
-
-`artifact refresh` is the explicit operational surface for the same workflow:
-
-- `--artifact-id` refreshes one registered family
-- `--family-key` refreshes one whole artifact family
-- `--q` refreshes matching provider-native families before a focused operation
-- `--all-collaborative` refreshes every collaborative provider-native family in the project
-
-Successful refreshes persist read-only provider metadata such as revision id, modified time, fetch status, and a cached normalized provider snapshot under `.sula/cache/provider-snapshots/`.
-
-### Register projects in a portfolio
-
-```bash
-python3 scripts/sula.py portfolio register \
-  --project-root /path/to/project \
-  --portfolio-root /path/to/portfolio
-
-python3 scripts/sula.py portfolio list --portfolio-root /path/to/portfolio --json
-python3 scripts/sula.py portfolio query --portfolio-root /path/to/portfolio --q "contract" --json
-python3 scripts/sula.py portfolio status --portfolio-root /path/to/portfolio --json
-python3 scripts/sula.py portfolio orchestration --portfolio-root /path/to/portfolio --json
-```
-
-The portfolio registry lets one Sula workspace track many adopted projects, including non-Git client-service projects stored in Google Drive local-sync folders. `portfolio status` reports project grouping and health metadata, while the MCP `sula.portfolio.status` tool adds high-signal blocker, open-task, pending-run, stale-memory, and stale-artifact summaries. `portfolio orchestration` reports blocked tasks, runs awaiting review, failed runs, triggers, and promotion candidates across registered projects.
-
-### Query the project kernel
-
-```bash
-python3 scripts/sula.py query --project-root /path/to/project --q "contract"
-python3 scripts/sula.py query --project-root /path/to/project --q "deploy" --kind change
-python3 scripts/sula.py query --project-root /path/to/project --q "review" --kind task --adapter memory
-python3 scripts/sula.py query --project-root /path/to/project --q "" --timeline --since 2026-04-01 --limit 20
-```
-
-This searches the local kernel object catalog, source registry, and event timeline using exact, structured, and lexical matching. Query now prefers the rebuildable `.sula/cache/kernel.db` cache when present, prefers richer object hits over lower-signal duplicate source/document hits, and by default compacts same-path family results into one primary hit plus `related_kinds`. If you pass `--kind`, that family compaction is skipped so the query stays literal to the requested kind.
-
-## Current Version
-
-The authoritative version is recorded in [VERSION](VERSION), [.sula/version.lock](.sula/version.lock), and [site/sula.json](site/sula.json).
-
-Versioning rules are in [docs/versioning.md](docs/versioning.md).
-
-## Operating Sula Core
-
-Sula itself is a maintained project. Before releasing changes that will later sync into adopted repositories:
-
-1. Run `python3 -m unittest discover -s tests -v`
-2. Review [CHANGELOG.md](CHANGELOG.md) and capture sync impact
-3. Review [registry/adopted-projects.toml](registry/adopted-projects.toml)
-4. Review [registry/feedback/catalog.json](registry/feedback/catalog.json)
-5. Dry-run sync against canary projects before broad rollout
-6. Regenerate committed canary memory digests if the project policy uses them
-
-Release discipline and impact rules live in:
-
-- [docs/README.md](docs/README.md)
-- [docs/release-process.md](docs/release-process.md)
-- [docs/reference/feedback-bundle-lifecycle.md](docs/reference/feedback-bundle-lifecycle.md)
-- [docs/reference/project-memory-model.md](docs/reference/project-memory-model.md)
-- [docs/reference/sync-impact-model.md](docs/reference/sync-impact-model.md)
-- [docs/reference/adoption-registry.md](docs/reference/adoption-registry.md)
-
-## Recommended Adoption Order
-
-1. Adopt Sula Core
-2. Run `adopt` to inspect and report
-3. Approve the adoption and review scaffold files
-4. Commit the generated operating system to the project
-5. Use `sync --dry-run` for future shared improvements
-
-## References
-
-- [docs/sula-overview.md](docs/sula-overview.md)
-- [docs/philosophy.md](docs/philosophy.md)
-- [docs/README.md](docs/README.md)
-- [docs/reference/sula-0-17-0-agent-native-project-os-whitepaper.md](docs/reference/sula-0-17-0-agent-native-project-os-whitepaper.md)
-- [docs/reference/sula-vnext-project-kernel.md](docs/reference/sula-vnext-project-kernel.md)
-- [docs/reference/feedback-bundle-lifecycle.md](docs/reference/feedback-bundle-lifecycle.md)
-- [docs/reference/portfolio-adapter-workflow-contract.md](docs/reference/portfolio-adapter-workflow-contract.md)
-- [docs/adoption-playbook.md](docs/adoption-playbook.md)
-- [docs/reference/adoption-agent.md](docs/reference/adoption-agent.md)
-- [docs/reference/public-release-readiness.md](docs/reference/public-release-readiness.md)
-- [docs/release-process.md](docs/release-process.md)
-- [docs/versioning.md](docs/versioning.md)
-- [docs/reference/project-memory-model.md](docs/reference/project-memory-model.md)
-- [docs/reference/sync-impact-model.md](docs/reference/sync-impact-model.md)
-- [docs/reference/adoption-registry.md](docs/reference/adoption-registry.md)
-- [docs/reference/project-manifest.md](docs/reference/project-manifest.md)
-- [schema/project.schema.json](schema/project.schema.json)
-- [schema/project.example.toml](schema/project.example.toml)
-- [registry/adopted-projects.toml](registry/adopted-projects.toml)
-- [site/index.html](site/index.html)
-- [site/bootstrap/index.html](site/bootstrap/index.html)
-- [site/sula.json](site/sula.json)
-
-## Project Governance
+## Project governance
 
 - [CONTRIBUTING.md](CONTRIBUTING.md)
 - [SECURITY.md](SECURITY.md)
