@@ -20,9 +20,9 @@ and creative projects.
 ```bash
 git clone https://github.com/irihiyahnj/sula-vector.git
 mkdir -p my-project/fragments
-cp -r sula-public/tools/sula_vector/ my-project/tools/sula_vector/
-cp sula-public/tools/sula_vector/AGENTS.md my-project/AGENTS.md
-cp sula-public/tools/sula_vector/principles/*.md my-project/fragments/
+cp -r sula-vector/tools/sula_vector/ my-project/tools/sula_vector/
+cp sula-vector/tools/sula_vector/AGENTS.md my-project/AGENTS.md
+cp sula-vector/tools/sula_vector/principles/*.md my-project/fragments/
 cd my-project
 python3 tools/sula_vector/render.py . --for-agent
 ```
@@ -34,7 +34,7 @@ every future agent (any LLM) reads.
 
 ```bash
 git clone https://github.com/irihiyahnj/sula-vector.git
-python3 sula-public/tools/sula_vector/migrate.py --project-root /path/to/legacy-project
+python3 sula-vector/tools/sula_vector/migrate.py --project-root /path/to/legacy-project
 ```
 
 Idempotent. Leaves legacy `.sula/`, `STATUS.md`, and `docs/change-records/`
