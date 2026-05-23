@@ -41,6 +41,26 @@ Idempotent. Leaves legacy `.sula/`, `STATUS.md`, and `docs/change-records/`
 untouched (preserved for rollback). Each project becomes self-contained with
 its own `tools/sula_vector/`.
 
+### Updating an already-adopted project
+
+`migrate.py` is also the **update** path. Re-running it on a project that has
+already been migrated does the right thing:
+
+- refreshes `tools/sula_vector/render.py` and skills to the canonical version
+- adds any missing AGENTS.md sentinels (e.g. the priority notice)
+- never duplicates existing fragments (sentinel/content idempotence throughout)
+
+A one-line wrapper for the common case (refresh from GitHub):
+
+```bash
+sula-vector/tools/sula_vector/update-from-canonical.sh \
+  --project-root /path/to/your-project
+```
+
+This is operator-level (not a per-project skill). Each project decides when
+to update — there is no automatic central push. If you want a project to
+stay on its current tooling version, simply do not run the update.
+
 ---
 
 ## What v1.0 gives any project
