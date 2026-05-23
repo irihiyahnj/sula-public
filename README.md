@@ -18,7 +18,7 @@ and creative projects.
 ### New project
 
 ```bash
-git clone https://github.com/irihiyahnj/sula-public.git
+git clone https://github.com/irihiyahnj/sula-vector.git
 mkdir -p my-project/fragments
 cp -r sula-public/tools/sula_vector/ my-project/tools/sula_vector/
 cp sula-public/tools/sula_vector/AGENTS.md my-project/AGENTS.md
@@ -33,7 +33,7 @@ every future agent (any LLM) reads.
 ### Legacy Sula 0.18.x project
 
 ```bash
-git clone https://github.com/irihiyahnj/sula-public.git
+git clone https://github.com/irihiyahnj/sula-vector.git
 python3 sula-public/tools/sula_vector/migrate.py --project-root /path/to/legacy-project
 ```
 
