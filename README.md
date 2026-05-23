@@ -53,7 +53,7 @@ its own `tools/sula_vector/`.
 6. **Zero install for new agents** — hand a folder path. No SDK, no daemon, no Python package required.
 7. **Domain-agnostic** — code, governance, client services, creative work — same `render(fragments, conventions)`.
 8. **byte-stable replay** — reproducible views; auditable.
-9. **Skill ecosystem** — Codex-style superpowers (durable threads, voice, browser, automation, verifiers) drop in as ~100-line scripts. Core never grows.
+9. **Skill ecosystem** — agent superpowers (durable threads, voice, browser, automation, verifiers) drop in as ~100-line scripts. Core never grows.
 10. **Visible turn-mark** — multi-line `[sula] +N this turn:` block at end of any turn that appended fragments.
 11. **No technical-debt accumulation** — append-only means no maintenance burden.
 12. **Free fork/branch** — copy the folder = full project history; subset = a derivative.
@@ -121,7 +121,7 @@ Three reference skills ship in v1.0:
 
 Skills contract: [`tools/sula_vector/skills/README.md`](tools/sula_vector/skills/README.md).
 
-Every Codex superpower (durable threads, voice, steering, queuing, goals,
+Every agent superpower (durable threads, voice, steering, queuing, goals,
 automations, browser/computer-use, MCP, side-panel artifacts) implements as
 a skill of this shape. The core renderer never grows.
 

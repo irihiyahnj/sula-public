@@ -72,7 +72,7 @@ dependencies. No daemon, no kernel directory, no cache-as-truth.
 6. **Zero install for new agents** — hand a folder path; no SDK, no daemon, no Python package required by readers.
 7. **Domain-agnostic** — code projects, governance, client services, creative work — same `render(fragments, conventions)` shape.
 8. **byte-stable replay** — reproducible views from the same fragments; auditable.
-9. **Skill-based extensibility** — Codex superpowers (durable threads, voice, browser, automation) drop in as ~100-line scripts each. Core never grows when capabilities are added.
+9. **Skill-based extensibility** — agent superpowers (durable threads, voice, browser, automation) drop in as ~100-line scripts each. Core never grows when capabilities are added.
 10. **Visible "感知" via turn-mark** — multi-line `[sula] +N this turn:` block at end of any turn that appended fragments.
 11. **No technical-debt accumulation** — append-only means no maintenance burden.
 12. **Free fork/branch** — copy the folder = full history; copy a subset = a derivative.

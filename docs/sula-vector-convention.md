@@ -202,12 +202,12 @@ composes (multiple vectors merge by union of fragments).
 
 ---
 
-## Codex-style superpowers, expressed in this convention
+## Agent superpowers, expressed in this convention
 
-Each Codex capability is a fragment kind plus an optional adapter. No new
+Each capability is a fragment kind plus an optional adapter. No new
 dimension is required.
 
-| Codex capability                     | fragment realisation                                                       |
+| Capability                           | fragment realisation                                                       |
 | ------------------------------------ | -------------------------------------------------------------------------- |
 | Durable threads                      | `kind: turn` with shared `thread_id`                                       |
 | Pinned threads                       | a turn fragment with `pinned: true` (surfaces in digest)                   |
@@ -344,7 +344,7 @@ supersession trail remains visible in every subsequent render.
 The convention deliberately keeps the core minimal: one folder of fragments
 plus one render function. New capabilities — verifiers, voice transcription,
 browser automation, scheduled refreshes, code-task dispatchers, anything
-Codex-style — live **outside** the core, as **skills**.
+—live **outside** the core, as **skills**.
 
 A skill is a small, independent program that:
 
