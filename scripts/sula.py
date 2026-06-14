@@ -5271,6 +5271,28 @@ def is_git_repository(project_root: Path) -> bool:
     return result is not None and result.returncode == 0 and result.stdout.strip() == "true"
 
 
+# Legacy 0.18.x per-run telemetry is rewritten on every command and is
+# ephemeral/rebuildable. A worktree-cleanliness check must be read-only with
+# respect to state it can itself mutate, so these paths are excluded from the
+# pathspec used by clean-worktree assertions.
+#
+# automation/orchestration: per-run automation intent + orchestration task state.
+# events/log.jsonl:          append-only event log written by automation_observe_event.
+# indexes/catalog.json:      kernel index catalog re-stamped on digest/check.
+# state/jobs/*:               job history/latest re-stamped on digest/check.
+# Without the latter four, a project that tracks .sula/ in git can never hold a
+# stable `SULA CHECK OK`: each check rewrites these tracked files, so the STATUS
+# `git working tree: clean` handoff field never matches the live worktree.
+EPHEMERAL_TELEMETRY_PATHSPEC_EXCLUDES = [
+    ":(exclude).sula/state/automation",
+    ":(exclude).sula/state/orchestration",
+    ":(exclude).sula/events/log.jsonl",
+    ":(exclude).sula/indexes/catalog.json",
+    ":(exclude).sula/state/jobs/history.jsonl",
+    ":(exclude).sula/state/jobs/latest.json",
+]
+
+
 def run_git(project_root: Path, args: list[str]) -> subprocess.CompletedProcess[str] | None:
     try:
         return subprocess.run(
@@ -5284,7 +5306,7 @@ def run_git(project_root: Path, args: list[str]) -> subprocess.CompletedProcess[
 
 
 def is_clean_git_worktree(project_root: Path) -> bool:
-    result = run_git(project_root, ["status", "--short"])
+    result = run_git(project_root, ["status", "--short", *EPHEMERAL_TELEMETRY_PATHSPEC_EXCLUDES])
     return result is not None and result.returncode == 0 and not result.stdout.strip()
 
 
@@ -5569,7 +5591,7 @@ def release_readiness_payload(project_root: Path) -> dict[str, object]:
     issues.extend(f"missing canary profile coverage: {item}" for item in missing_profiles)
     if not canaries_ok:
         issues.append("one or more canary verification runs failed")
-    status_result = run_git(project_root, ["status", "--short"]) if is_git_repository(project_root) else None
+    status_result = run_git(project_root, ["status", "--short", *EPHEMERAL_TELEMETRY_PATHSPEC_EXCLUDES]) if is_git_repository(project_root) else None
     clean_worktree = bool(status_result is None or (status_result.returncode == 0 and not status_result.stdout.strip()))
     if not clean_worktree:
         issues.append("working tree is not clean")

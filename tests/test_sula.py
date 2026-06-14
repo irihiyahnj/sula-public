@@ -5430,6 +5430,78 @@ notes = "Fixture"
             self.assertIn("cannot declare `ready: yes` while blockers are still present", failed.stdout)
             self.assertIn("cannot declare `ready: yes` while verification result is not pass", failed.stdout)
 
+    def test_check_is_idempotent_and_stable_despite_telemetry_writes(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            project_root = Path(tmpdir)
+            self.create_generic_project(project_root)
+            adopt_result = run_cli("adopt", "--project-root", str(project_root), "--approve")
+            self.assertEqual(adopt_result.returncode, 0, adopt_result.stderr)
+            self.init_git_repo(project_root)
+
+            def non_telemetry_dirty() -> str:
+                return subprocess.run(
+                    [
+                        "git", "status", "--short",
+                        "--",
+                        ":(exclude).sula/state/automation", ":(exclude).sula/state/orchestration",
+                        ":(exclude).sula/events/log.jsonl", ":(exclude).sula/indexes/catalog.json",
+                        ":(exclude).sula/state/jobs/history.jsonl", ":(exclude).sula/state/jobs/latest.json",
+                    ],
+                    cwd=project_root, check=True, capture_output=True, text=True,
+                ).stdout.strip()
+
+            self.assertEqual(non_telemetry_dirty(), "")
+            for _ in range(3):
+                result = run_cli("check", "--project-root", str(project_root))
+                # The worktree-cleanliness assertion must never fire on telemetry
+                # the check itself wrote: it is read-only with respect to
+                # ephemeral runtime state.
+                self.assertNotIn("git working tree is clean, but the repo is", result.stdout)
+                self.assertNotIn("working tree is not clean", result.stdout)
+                # And running check introduces no real (non-telemetry) changes.
+                self.assertEqual(non_telemetry_dirty(), "")
+
+    def test_clean_worktree_ignores_ephemeral_telemetry_writes(self) -> None:
+        import importlib.util
+        import sys as _sys
+
+        if "sula" in _sys.modules:
+            sula_mod = _sys.modules["sula"]
+        else:
+            spec = importlib.util.spec_from_file_location("sula", SULA_SCRIPT)
+            assert spec and spec.loader
+            _sys.path.insert(0, str(SULA_SCRIPT.parent))
+            sula_mod = importlib.util.module_from_spec(spec)
+            _sys.modules["sula"] = sula_mod
+            spec.loader.exec_module(sula_mod)
+        with tempfile.TemporaryDirectory() as tmpdir:
+            project_root = Path(tmpdir)
+            (project_root / "a.txt").write_text("x", encoding="utf-8")
+            self.init_git_repo(project_root)
+            telemetry = project_root / ".sula" / "state" / "automation"
+            telemetry.mkdir(parents=True)
+            (telemetry / "events.jsonl").write_text('{"event_kind":"check.passed"}\n', encoding="utf-8")
+            orchestration = project_root / ".sula" / "state" / "orchestration"
+            orchestration.mkdir(parents=True)
+            (orchestration / "tasks.json").write_text("{}\n", encoding="utf-8")
+            # Generated kernel state that check/digest re-stamp on every run.
+            # These are git-tracked in real adopted projects, so the
+            # clean-worktree probe must stay read-only with respect to them too.
+            events = project_root / ".sula" / "events"
+            events.mkdir(parents=True)
+            (events / "log.jsonl").write_text('{"event_kind":"check.passed"}\n', encoding="utf-8")
+            indexes = project_root / ".sula" / "indexes"
+            indexes.mkdir(parents=True)
+            (indexes / "catalog.json").write_text("{}\n", encoding="utf-8")
+            jobs = project_root / ".sula" / "state" / "jobs"
+            jobs.mkdir(parents=True)
+            (jobs / "history.jsonl").write_text('{"job":"digest"}\n', encoding="utf-8")
+            (jobs / "latest.json").write_text("{}\n", encoding="utf-8")
+            self.assertTrue(sula_mod.is_clean_git_worktree(project_root))
+            self.assertEqual(sula_mod.detect_git_worktree_state(project_root), "clean")
+            (project_root / "a.txt").write_text("y", encoding="utf-8")
+            self.assertFalse(sula_mod.is_clean_git_worktree(project_root))
+
     def test_check_fails_when_handoff_git_state_mismatches_repo(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
             project_root = Path(tmpdir)

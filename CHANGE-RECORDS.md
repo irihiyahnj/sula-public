@@ -15,6 +15,7 @@ Track why Sula changed, how sync impact was evaluated, what was verified, and ho
 
 ## Index
 
+- 2026-06-14 - [Exclude generated kernel state from clean-worktree assertion](docs/change-records/2026-06-14-exclude-generated-state-from-clean-worktree.md) - Finished the 2026-06-06 self-invalidation fix by also excluding `.sula/events/log.jsonl`, `.sula/indexes/catalog.json`, and `.sula/state/jobs/{history.jsonl,latest.json}` from the clean-worktree pathspec, so git-tracked-`.sula/` projects can hold a stable `SULA CHECK OK`. Sync impact: reaches all thin-wrapper projects via the shared canonical runtime immediately.
 - 2026-05-07 - [Add deterministic fleet upgrade executor](docs/change-records/2026-05-07-add-deterministic-fleet-upgrade-executor.md) - Changed Sula fleet upgrades to use zero-model deterministic sync/doctor/digest/check execution when target projects lack local model runners, with fallback from incomplete shell executors.
 - 2026-05-07 - [Add fleet token and cost status metrics](docs/change-records/2026-05-07-add-fleet-token-and-cost-status-metrics.md) - Added fleet usage aggregation and compact status display for executor-reported token and cost metrics.
 - 2026-05-07 - [Add autopilot intent router and fleet executor guard](docs/change-records/2026-05-07-add-autopilot-intent-router-and-fleet-executor-guard.md) - Added natural-language maintenance routing, executor-required fleet Sula upgrades, compact fleet status, and managed AI instructions that keep host models in supervisor mode for mechanical work.
