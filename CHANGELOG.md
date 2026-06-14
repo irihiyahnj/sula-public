@@ -6,6 +6,30 @@ All notable changes to Sula Core should be recorded here with explicit sync impa
 
 - no entries yet
 
+## 0.18.15 - 2026-06-14
+
+### Fixed
+
+- `sula check` no longer self-invalidates on projects that track `.sula/` in
+  git. The clean-worktree assertion now also excludes the generated kernel
+  state that `check`/`memory digest` re-stamp on every run:
+  `.sula/events/log.jsonl`, `.sula/indexes/catalog.json`,
+  `.sula/state/jobs/history.jsonl`, and `.sula/state/jobs/latest.json`.
+- This completes the 2026-06-06 root-cause fix, which had only excluded
+  `.sula/state/automation` and `.sula/state/orchestration` and had remained
+  uncommitted in the working tree.
+
+### Sync Impact
+
+- Existing adopted projects remain compatible; no migration required.
+- Behavior change is strictly a widening of which paths the clean-worktree probe
+  treats as ephemeral. Real (non-generated) changes still register as dirty, so
+  handoff and release-readiness cleanliness checks keep their meaning.
+- Projects that track `.sula/` in git can now hold a stable `SULA CHECK OK`
+  fixed point. Thin-wrapper projects pick this up immediately via the shared
+  canonical runtime; projects with a vendored `scripts/sula.py` pick it up on
+  next sync.
+
 ## 0.18.14 - 2026-05-07
 
 ### Changed

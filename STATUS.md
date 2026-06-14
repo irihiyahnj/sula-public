@@ -1,7 +1,11 @@
 # STATUS
 
-- last updated: 2026-05-23
+- last updated: 2026-06-14
 ## Summary
+### 2026-06-14
+
+- Released Sula 0.18.15: fixed `sula check` self-invalidation by also excluding the generated kernel state (`.sula/events/log.jsonl`, `.sula/indexes/catalog.json`, `.sula/state/jobs/{history,latest}`) from the clean-worktree assertion, completing the 2026-06-06 root-cause fix that had remained uncommitted. Projects tracking `.sula/` in git can now hold a stable `SULA CHECK OK`.
+
 ### 2026-05-23
 
 - Restored Sula working session consistency by returning the repository from detached HEAD to main and refreshing project memory/check state after a stale handoff was detected.
@@ -153,17 +157,17 @@
 
 - ready: yes
 - start here: `STATUS.md`; `.sula/memory-digest.md`
-- latest record: `docs/change-records/2026-05-07-add-fleet-token-and-cost-status-metrics.md`
+- latest record: `docs/change-records/2026-06-14-exclude-generated-state-from-clean-worktree.md`
 - next action: review `STATUS.md`; review `.sula/memory-digest.md`; run `git status --short`
 - next owner: Sula Core maintainers
-- next due: 2026-05-23
+- next due: 2026-06-14
 - done when: result `SULA CHECK OK`; result `doctor strict passed`; result `handoff updated`
 - blockers: none
-- source of truth: `STATUS.md`; `docs/change-records/2026-05-07-add-fleet-token-and-cost-status-metrics.md`
+- source of truth: `STATUS.md`; `docs/change-records/2026-06-14-exclude-generated-state-from-clean-worktree.md`
 - source freshness: current
 - verification command: `python3 scripts/sula.py check --project-root . --json`; `python3 scripts/sula.py doctor --project-root . --strict --json`; `python3 -m unittest discover -s tests -v`
 - verification result: pass
-- verification date: 2026-05-23
+- verification date: 2026-06-14
 - git branch: main
 - git commit: any
 - git working tree: dirty
