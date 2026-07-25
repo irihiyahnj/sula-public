@@ -130,6 +130,33 @@ def scan_tree(root: Path, patterns: list[str]) -> dict[str, tuple[str, int]]:
     return out
 
 
+def _encode_path(rel: str) -> str:
+    """One file must be one line, or folding cannot round-trip.
+
+    A newline in a filename is legal on every POSIX substrate and does occur in
+    documents synced from other tools. Left raw it splits the delta line, the
+    path folds back truncated, and the file is reported added and removed on
+    every run forever. Only control characters are escaped, so CJK paths stay
+    readable.
+    """
+    return rel.replace("\\", "\\\\").replace("\n", "\\n").replace("\r", "\\r")
+
+
+def _decode_path(rel: str) -> str:
+    out: list[str] = []
+    i = 0
+    while i < len(rel):
+        if rel[i] == "\\" and i + 1 < len(rel):
+            nxt = rel[i + 1]
+            if nxt in {"n", "r", "\\"}:
+                out.append({"n": "\n", "r": "\r", "\\": "\\"}[nxt])
+                i += 2
+                continue
+        out.append(rel[i])
+        i += 1
+    return "".join(out)
+
+
 def fold_witnessed(frags: list) -> tuple[dict[str, tuple[str, int]], int]:
     """Replay every prior witness delta into the last known tree state."""
     state: dict[str, tuple[str, int]] = {}
@@ -143,6 +170,7 @@ def fold_witnessed(frags: list) -> tuple[dict[str, tuple[str, int]], int]:
             if len(parts) != 4 or parts[0] not in {"+", "~", "-"}:
                 continue
             marker, digest, size, rel = parts
+            rel = _decode_path(rel)
             if marker == "-":
                 state.pop(rel, None)
             else:
@@ -288,12 +316,12 @@ def write_witness(
     body.append("## delta")
     for rel in added:
         digest, size = tree[rel]
-        body.append(f"+ {digest} {size} {rel}")
+        body.append(f"+ {digest} {size} {_encode_path(rel)}")
     for rel in changed:
         digest, size = tree[rel]
-        body.append(f"~ {digest} {size} {rel}")
+        body.append(f"~ {digest} {size} {_encode_path(rel)}")
     for rel in removed:
-        body.append(f"- - - {rel}")
+        body.append(f"- - - {_encode_path(rel)}")
 
     target.write_text("\n".join(lines + body) + "\n", encoding="utf-8")
     return target

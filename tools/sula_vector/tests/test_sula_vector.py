@@ -860,6 +860,18 @@ class TestWitnessSkill(unittest.TestCase):
             text=True,
         )
 
+    def test_newline_in_filename_does_not_churn(self):
+        """A newline in a filename must not break the delta round-trip.
+
+        Found on an iCloud folder of documents synced from another tool: the
+        path split the delta line, folded back truncated, and the file was
+        reported added and removed on every run forever.
+        """
+        (self.root / "note\nwith newline.md").write_text("x", encoding="utf-8")
+        self.assertEqual(self._witness().returncode, 0)
+        second = self._witness()
+        self.assertIn("no change", second.stdout)
+
     def test_captures_added_changed_removed(self):
         (self.root / "notes.md").write_text("one", encoding="utf-8")
         self.assertEqual(self._witness().returncode, 0)
