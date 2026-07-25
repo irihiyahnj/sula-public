@@ -26,6 +26,8 @@ is checkable without knowing the intent, which retires that whole class.
 
 **Release date:** 2026-07-25
 **Convention version:** 1.1 (unchanged; renderer defect fix)
+**Never tagged standalone.** The gap notice introduced alongside it had a
+systematic false positive; both ship together as v1.1.2.
 
 `view_digest` capped all three lanes at the same `n=10`, so `--for-agent`
 showed only the ten most recent judgments. On Sula's own vector that meant 92
