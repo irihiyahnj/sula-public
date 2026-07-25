@@ -5,7 +5,7 @@ on:
   pull_request:
 
 jobs:
-  test:
+  vector:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -16,13 +16,24 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
-      - name: Run CLI tests
-        run: python -m unittest discover -s tests -v
-      - name: Verify self-managed root
+      - name: Sula Vector test suite
+        run: python -m unittest tools.sula_vector.tests.test_sula_vector -v
+      - name: Vector integrity (doctor must exit 0)
+        run: python tools/sula_vector/render.py . --view doctor
+      - name: Boot context renders
+        run: python tools/sula_vector/render.py . --for-agent > /dev/null
+      - name: Byte-stable replay
         run: |
-          python scripts/sula.py memory digest --project-root .
-          python scripts/sula.py doctor --project-root . --strict
-      - name: Verify in-repo canary
-        run: |
-          python scripts/sula.py memory digest --project-root examples/okoktoto
-          python scripts/sula.py doctor --project-root examples/okoktoto --strict
+          python tools/sula_vector/render.py . --for-agent > /tmp/a.txt
+          python tools/sula_vector/render.py . --for-agent > /tmp/b.txt
+          diff /tmp/a.txt /tmp/b.txt
+
+  legacy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Legacy Sula 0.18.x CLI tests (historical reference, archived under legacy/)
+        run: python -m unittest discover -s legacy/tests -v

@@ -3,7 +3,8 @@
 > A pure-function project operating system for AI-native teams.
 > Cross-LLM, cross-device, byte-stable, principle-enforced.
 
-**Sula Vector v1.0** — General Availability, ship-frozen 2026-05-23.
+**Sula Vector v1.1** — capture as invariant, errors made unrepresentable.
+Convention backwards-compatible with v1.0 (2026-05-23 GA).
 
 A project's truth is an ordered, append-only folder of typed text fragments.
 Every view (status, progress, AI context, audit trail) is `render(fragments,
@@ -131,13 +132,19 @@ Skills are independent scripts under `tools/sula_vector/skills/`. Each takes
 exits. The "registry" is `ls skills/` — no manifest, no plugin descriptor,
 no SDK.
 
-Three reference skills ship in v1.0:
+Reference skills:
 
-| Skill | Role | Lines |
-| ----- | ---- | ----: |
-| `verifier-shell.py` | Closes goals via shell-command verifier; emits `kind: verification-fact`. | 122 |
-| `scheduler.py` | Fires `kind: cadence-tick` when a recurring intent's interval has elapsed. | 145 |
-| `llm-dispatcher.py` | Routes `kind: intent` fragments with `executor_command` to a configured shell executor (Claude/Codex/Gemini/DeepSeek CLI, OpenAI/Anthropic API call, etc.); captures stdout into a `kind: turn` fragment. | 168 |
+| Skill | Role |
+| ----- | ---- |
+| `witness.py` | Mechanical evidence on any substrate: diffs the project folder against state folded from prior witness fragments, records path + content hash per changed file (plus commits on git), emits `kind: artifact` per new document. Silent when nothing changed. |
+| `verifier-shell.py` | Closes goals via shell-command verifier; emits `kind: verification-fact`. |
+| `scheduler.py` | Fires `kind: cadence-tick` when a recurring intent's interval has elapsed. |
+| `llm-dispatcher.py` | Routes `kind: intent` fragments with `executor_command` to a configured shell executor; captures stdout into a `kind: turn`. |
+
+`witness.py` is what makes capture an invariant rather than a habit — wire it
+once with `hooks/install.py` (git `post-commit`, Kiro `agentStop`, or cron).
+Record judgments with `note.py`, which derives id/time from the clock and
+refuses dangling references or goals without verifiers.
 
 Skills contract: [`tools/sula_vector/skills/README.md`](tools/sula_vector/skills/README.md).
 
@@ -169,31 +176,35 @@ See [`fragments/2026-05-23T05-50-10Z--decision-trust-is-reader-side.md`](fragmen
 ## Repository layout
 
 ```
+AGENTS.md                      ← authoritative host operating protocol
+CLAUDE.md CODEX.md GEMINI.md   ← thin pointers to AGENTS.md
+README.md                      ← this file
 docs/
-  sula-vector-convention.md    ← authoritative v1.0 spec (ship-frozen)
+  sula-vector-convention.md    ← authoritative convention spec (v1.1)
 tools/
   sula_vector/                 ← canonical tooling. Each adopting project
                                  receives its own copy of this folder.
-    render.py                  ← pure-function renderer, 8 views
+    render.py                  ← pure-function renderer (digest, journal,
+                                 effective, doctor, goals, …)
+    note.py                    ← append a judgment; id/time derived, refs checked
     migrate.py                 ← idempotent legacy → vector migrator
     AGENTS.md                  ← host operating protocol template
-    README.md
-    RELEASE-NOTES.md           ← v1.0 release notes
+    RELEASE-NOTES.md
     principles/                ← canonical Tier A–E principle fragments
-    skills/                    ← reference skills (verifier-shell, scheduler, llm-dispatcher)
-    tests/                     ← stdlib unittest suite (34 tests)
+    hooks/install.py           ← wire witness to git / Kiro / cron
+    skills/                    ← witness, verifier-shell, scheduler, llm-dispatcher
+    tests/                     ← stdlib unittest suite (65 tests)
 fragments/                     ← Sula's own project memory as a Sula vector
-                                 (340+ fragments — decisions, releases,
-                                 chronicles, corrections, the v1.0 GA event)
-README.md                      ← this file
-AGENTS.md                      ← Sula's own host operating protocol
-CHANGELOG.md                   ← legacy Sula 0.18.x release log
-docs/                          ← additional reference and runbook docs
+                                 (370+ fragments — decisions, releases,
+                                 corrections, the v1.0 GA and v1.1 events)
+legacy/                        ← Sula 0.18.x runtime, archived for reference:
+                                 scripts/sula.py, .sula/, STATUS.md, tests/,
+                                 CHANGELOG.md, docs/change-records/, examples/, …
 ```
 
-The legacy Sula 0.18.x runtime (`scripts/sula.py`, `.sula/`, etc.) is
-preserved in this repo as historical reference. The recommended path
-forward is Sula Vector v1.0.
+The entire legacy Sula 0.18.x runtime now lives under `legacy/`, kept for
+history and rollback. Nothing at the repository root except `legacy/` predates
+the vector convention. The recommended path forward is Sula Vector v1.1.
 
 ---
 
@@ -201,7 +212,8 @@ forward is Sula Vector v1.0.
 
 | Check | Result |
 | ----- | ------ |
-| Test suite (`tools.sula_vector.tests.test_sula_vector`) | **34/34 PASS** |
+| Test suite (`tools.sula_vector.tests.test_sula_vector`) | **65/65 PASS** |
+| `render.py --view doctor` on Sula's own vector | ✓ 0 problems, 375 fragments |
 | Standard library only | ✓ no third-party deps |
 | `render.py` byte-stable replay (Sula self) | ✓ |
 | `render.py` byte-stable replay (1terminal) | ✓ |
@@ -227,7 +239,7 @@ forward is Sula Vector v1.0.
 | Document | Purpose |
 | -------- | ------- |
 | [`docs/sula-vector-convention.md`](docs/sula-vector-convention.md) | Authoritative convention spec — read first. |
-| [`tools/sula_vector/RELEASE-NOTES.md`](tools/sula_vector/RELEASE-NOTES.md) | v1.0 release notes, verification evidence, adoption guide. |
+| [`tools/sula_vector/RELEASE-NOTES.md`](tools/sula_vector/RELEASE-NOTES.md) | v1.1 and v1.0 release notes, verification evidence, adoption guide. |
 | [`tools/sula_vector/AGENTS.md`](tools/sula_vector/AGENTS.md) | Host operating protocol template. |
 | [`tools/sula_vector/skills/README.md`](tools/sula_vector/skills/README.md) | Skills contract. |
 | [`tools/sula_vector/principles/README.md`](tools/sula_vector/principles/README.md) | Principles adoption guide. |
@@ -238,22 +250,21 @@ forward is Sula Vector v1.0.
 ## Legacy Sula 0.18.x
 
 The earlier Sula runtime (945 KB single Python file `scripts/sula.py`, 12
-parallel state directories under `.sula/`, 30+ subcommands) is preserved in
-this repository as historical reference. Documentation for the legacy
-release process lives at:
+parallel state directories under `.sula/`, 30+ subcommands) is archived under
+`legacy/` as historical reference:
 
-- [`CHANGELOG.md`](CHANGELOG.md) — release history through 0.18.14
-- [`docs/release-process.md`](docs/release-process.md) — legacy release flow
-- [`docs/change-records/`](docs/change-records/) — legacy change records
+- [`legacy/CHANGELOG.md`](legacy/CHANGELOG.md) — release history through 0.18.14
+- [`legacy/docs/release-process.md`](legacy/docs/release-process.md) — legacy release flow
+- [`legacy/docs/change-records/`](legacy/docs/change-records/) — legacy change records
 
-Existing 0.18.x adopted projects can migrate to v1.0 via:
+Existing 0.18.x adopted projects can migrate to the vector via:
 
 ```bash
 python3 tools/sula_vector/migrate.py --project-root /path/to/legacy-project
 ```
 
-The migrator is idempotent and never touches legacy `.sula/`, `STATUS.md`,
-or `docs/change-records/`.
+The migrator is idempotent and never touches a project's own legacy `.sula/`,
+`STATUS.md`, or `docs/change-records/`.
 
 ---
 

@@ -1,17 +1,17 @@
 # GitHub Copilot Instructions
 
-Read [AGENTS.md](AGENTS.md) before proposing or generating changes.
+This project runs on the Sula Vector convention. **[AGENTS.md](AGENTS.md) is
+the authoritative protocol** — read it first and follow it exactly.
 
-## Repository Rules
+Boot (two steps): note the current UTC time as your session start, then run
 
-- Repository root is `Sula`.
-- Highest rule: `Preserve the split between centrally managed operating-system files and project-owned business truth.`
-- GitHub is the durable source of truth. Approved work should be committed and pushed, not left only locally.
-- Working branches use `codex/*`.
-- Deployment branch is `main`.
-- Keep primary integration logic centralized in [scripts/sula.py](scripts/sula.py).
-- Use [docs/README.md](docs/README.md) as the documentation map.
-- If the project enables formal document design rules, follow them for planning, proposal, report, process, and training documents.
-- For substantial changes, validate with `python3 -m unittest discover -s tests -v`.
+```bash
+python3 tools/sula_vector/render.py . --for-agent
+```
 
-If these instructions conflict with `AGENTS.md`, `AGENTS.md` wins.
+Record judgments with `tools/sula_vector/note.py`. Mechanical evidence (files
+produced, commits made) is captured by `tools/sula_vector/skills/witness.py`;
+do not narrate it by hand.
+
+Nothing in this file overrides AGENTS.md. Legacy Sula 0.18.x instructions
+(`scripts/sula.py`, `.sula/`, `STATUS.md`) are historical reference only.

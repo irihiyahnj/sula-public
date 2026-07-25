@@ -27,17 +27,24 @@ sys.path.insert(0, str(TOOLS))
 
 from render import (  # type: ignore  # noqa: E402
     CONVENTION_VERSION,
+    LANE_TITLES,
     Fragment,
     _parse_frontmatter,
+    derive_identity,
     filter_fragments,
+    lane_of,
     load_fragments,
+    load_report,
     render_changes_summary_block,
     render_for_agent,
     render_principles_block,
     view_changes_summary,
     view_digest,
+    view_doctor,
+    view_effective,
     view_family,
     view_goals,
+    view_journal,
     view_list,
     view_principles,
     view_progress,
@@ -128,13 +135,18 @@ class TestFragmentLoading(unittest.TestCase):
     def tearDown(self):
         shutil.rmtree(self.root)
 
-    def test_skip_no_frontmatter(self):
+    def test_never_drops_file_without_frontmatter(self):
         (self.frags / "junk.md").write_text("just text", encoding="utf-8")
-        self.assertEqual(load_fragments(self.frags), [])
+        frags, problems = load_report(self.frags)
+        self.assertEqual(len(frags), 1)
+        self.assertIn("no-frontmatter", {p.code for p in problems})
 
-    def test_skip_missing_required(self):
+    def test_never_drops_file_missing_kind(self):
         (self.frags / "broken.md").write_text("---\nid: x\n---\nbody", encoding="utf-8")
-        self.assertEqual(load_fragments(self.frags), [])
+        frags, problems = load_report(self.frags)
+        self.assertEqual(len(frags), 1)
+        self.assertEqual(frags[0].kind, "unknown")
+        self.assertIn("missing-kind", {p.code for p in problems})
 
     def test_loads_valid(self):
         _write(self.frags, time="2026-05-23T00:00:00Z", slug="d", kind="decision")
@@ -269,15 +281,20 @@ class TestForAgentRender(unittest.TestCase):
 
     def test_principles_prepended(self):
         out = render_for_agent(load_fragments(self.frags), project_name="T")
-        # principle text appears before recent activity
         self.assertIn("Principles in force", out)
-        self.assertLess(out.index("Highest rule body."), out.index("Recent activity"))
+        self.assertLess(
+            out.index("Highest rule body."), out.index(LANE_TITLES["evidence"])
+        )
 
     def test_principles_excluded_from_activity(self):
         out = render_for_agent(load_fragments(self.frags))
-        # principle fragment must not appear under Recent activity bullets
-        ra = out.split("## Recent activity", 1)[1]
-        self.assertNotIn("principle", ra)
+        position = out.split(f"## {LANE_TITLES['evidence']}", 1)[1]
+        self.assertNotIn("principle", position)
+
+    def test_three_lanes_present(self):
+        out = render_for_agent(load_fragments(self.frags))
+        for lane in ("judgment", "direction", "evidence"):
+            self.assertIn(f"## {LANE_TITLES[lane]}", out)
 
     def test_byte_stable(self):
         a = render_for_agent(load_fragments(self.frags))
@@ -531,8 +548,392 @@ class TestLLMDispatcherSkill(unittest.TestCase):
 
 
 class TestConventionVersion(unittest.TestCase):
-    def test_version_is_one_zero(self):
-        self.assertEqual(CONVENTION_VERSION, "1.0")
+    def test_version_is_one_one(self):
+        self.assertEqual(CONVENTION_VERSION, "1.1")
+
+
+class TestDerivedIdentity(unittest.TestCase):
+    def setUp(self):
+        self.root, self.frags = _make_root()
+
+    def tearDown(self):
+        shutil.rmtree(self.root)
+
+    def test_identity_comes_from_filename(self):
+        stem = "2026-07-01T09-08-07Z--decision-x"
+        (self.frags / f"{stem}.md").write_text(
+            "---\nkind: decision\n---\nonly kind was authored\n", encoding="utf-8"
+        )
+        frags, problems = load_report(self.frags)
+        self.assertEqual(problems, [])
+        self.assertEqual(frags[0].id, stem)
+        self.assertEqual(frags[0].time, "2026-07-01T09:08:07Z")
+
+    def test_derive_identity_helper(self):
+        fid, time = derive_identity(Path("2026-07-01T09-08-07Z--goal-y.md"))
+        self.assertEqual(fid, "2026-07-01T09-08-07Z--goal-y")
+        self.assertEqual(time, "2026-07-01T09:08:07Z")
+
+    def test_frontmatter_disagreement_is_reported_filename_wins(self):
+        stem = "2026-07-01T09-08-07Z--decision-x"
+        (self.frags / f"{stem}.md").write_text(
+            "---\nid: wrong-id\ntime: 2020-01-01T00:00:00Z\nkind: decision\n---\nb\n",
+            encoding="utf-8",
+        )
+        frags, problems = load_report(self.frags)
+        codes = [p.code for p in problems]
+        self.assertEqual(codes.count("header-disagreement"), 2)
+        self.assertEqual(frags[0].id, stem)
+        self.assertEqual(frags[0].time, "2026-07-01T09:08:07Z")
+
+
+class TestDoctor(unittest.TestCase):
+    def setUp(self):
+        self.root, self.frags = _make_root()
+
+    def tearDown(self):
+        shutil.rmtree(self.root)
+
+    def _doctor(self):
+        frags, problems = load_report(self.frags)
+        return view_doctor(frags, problems)
+
+    def test_clean_vector_is_ok(self):
+        _write(self.frags, time="2026-05-23T00:00:00Z", slug="d", kind="decision", body="x")
+        report = self._doctor()
+        self.assertTrue(report["ok"])
+        self.assertEqual(report["problems"], [])
+
+    def test_dangling_ref_detected(self):
+        _write(
+            self.frags,
+            time="2026-05-23T00:00:00Z",
+            slug="d",
+            kind="decision",
+            body="x",
+            refs=["2026-01-01T00-00-00Z--does-not-exist"],
+        )
+        self.assertIn("dangling-ref", self._doctor()["by_code"])
+
+    def test_dangling_ref_acknowledged_by_correction(self):
+        missing = "2026-01-01T00-00-00Z--does-not-exist"
+        _write(
+            self.frags,
+            time="2026-05-23T00:00:00Z",
+            slug="d",
+            kind="decision",
+            body="x",
+            refs=[missing],
+        )
+        _write(
+            self.frags,
+            time="2026-05-24T00:00:00Z",
+            slug="correction-ack",
+            kind="correction",
+            body="that id never existed",
+            extras={"broken_ref": missing},
+        )
+        self.assertTrue(self._doctor()["ok"])
+
+    def test_goal_without_verifier_detected(self):
+        _write(self.frags, time="2026-05-23T00:00:00Z", slug="g", kind="goal", body="x")
+        self.assertIn("goal-without-verifier", self._doctor()["by_code"])
+
+    def test_symbolic_refs_are_not_dangling(self):
+        _write(
+            self.frags,
+            time="2026-05-23T00:00:00Z",
+            slug="d",
+            kind="decision",
+            body="x",
+            refs=["family:acme-intake"],
+        )
+        self.assertTrue(self._doctor()["ok"])
+
+    def test_cli_exit_code(self):
+        _write(
+            self.frags,
+            time="2026-05-23T00:00:00Z",
+            slug="d",
+            kind="decision",
+            body="x",
+            refs=["nope"],
+        )
+        result = subprocess.run(
+            [sys.executable, str(TOOLS / "render.py"), str(self.root), "--view", "doctor"],
+            capture_output=True,
+            text=True,
+        )
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("dangling-ref", result.stdout)
+
+
+class TestSupersessionAndClosure(unittest.TestCase):
+    def setUp(self):
+        self.root, self.frags = _make_root()
+        self.old = _write(
+            self.frags, time="2026-05-01T00:00:00Z", slug="d-old", kind="decision", body="old way"
+        )
+        self.new = _write(
+            self.frags,
+            time="2026-05-02T00:00:00Z",
+            slug="d-new",
+            kind="decision",
+            body="new way",
+            extras={"supersedes": f"[{self.old}]"},
+        )
+
+    def tearDown(self):
+        shutil.rmtree(self.root)
+
+    def test_effective_splits_in_force_and_retired(self):
+        result = view_effective(load_fragments(self.frags))
+        self.assertEqual([f["id"] for f in result["in_force"]], [self.new])
+        self.assertEqual([f["id"] for f in result["retired"]], [self.old])
+        self.assertEqual(result["retired"][0]["superseded_by"][0]["id"], self.new)
+
+    def test_superseded_judgment_hidden_from_boot(self):
+        out = render_for_agent(load_fragments(self.frags))
+        self.assertIn(self.new, out)
+        self.assertNotIn(self.old, out)
+        self.assertIn("superseded judgment", out)
+
+    def test_closes_removes_open_direction(self):
+        intent = _write(
+            self.frags, time="2026-05-03T00:00:00Z", slug="i", kind="intent", body="do a thing"
+        )
+        digest = view_digest(load_fragments(self.frags))
+        self.assertIn(intent, [d["id"] for d in digest["open_intents"]])
+        _write(
+            self.frags,
+            time="2026-05-04T00:00:00Z",
+            slug="f",
+            kind="fact",
+            body="thing done",
+            extras={"closes": f"[{intent}]"},
+        )
+        digest = view_digest(load_fragments(self.frags))
+        self.assertEqual(digest["open_intents"], [])
+
+    def test_superseded_principle_leaves_force(self):
+        p_old = _write(
+            self.frags,
+            time="2026-05-05T00:00:00Z",
+            slug="principle-old",
+            kind="principle",
+            body="old principle",
+            extras={"tier": "aesthetic"},
+        )
+        _write(
+            self.frags,
+            time="2026-05-06T00:00:00Z",
+            slug="principle-new",
+            kind="principle",
+            body="new principle",
+            extras={"tier": "aesthetic", "supersedes": f"[{p_old}]"},
+        )
+        bodies = [
+            p["body"] for p in view_principles(load_fragments(self.frags))["aesthetic"]
+        ]
+        self.assertEqual(bodies, ["new principle"])
+
+
+class TestLanesAndJournal(unittest.TestCase):
+    def setUp(self):
+        self.root, self.frags = _make_root()
+
+    def tearDown(self):
+        shutil.rmtree(self.root)
+
+    def test_lane_defaults(self):
+        cases = {
+            "decision": "judgment",
+            "correction": "judgment",
+            "goal": "direction",
+            "intent": "direction",
+            "witness": "evidence",
+            "artifact": "evidence",
+            "some-new-kind": "evidence",
+        }
+        for kind, lane in cases.items():
+            self.assertEqual(lane_of(Fragment(id="x", time="t", kind=kind)), lane)
+
+    def test_explicit_lane_overrides(self):
+        f = Fragment(id="x", time="t", kind="artifact", extra={"lane": "judgment"})
+        self.assertEqual(lane_of(f), "judgment")
+
+    def test_lane_filter(self):
+        _write(self.frags, time="2026-05-01T00:00:00Z", slug="d", kind="decision", body="d")
+        _write(self.frags, time="2026-05-02T00:00:00Z", slug="w", kind="witness", body="w")
+        frags = load_fragments(self.frags)
+        self.assertEqual(len(filter_fragments(frags, lane="judgment")), 1)
+        self.assertEqual(len(filter_fragments(frags, lane="evidence")), 1)
+
+    def test_journal_groups_by_day(self):
+        _write(self.frags, time="2026-05-01T09:00:00Z", slug="d", kind="decision", body="chose X")
+        _write(
+            self.frags,
+            time="2026-05-01T10:00:00Z",
+            slug="a",
+            kind="artifact",
+            body="proposal",
+            extras={"pointer": "docs/p.pdf"},
+        )
+        _write(self.frags, time="2026-05-02T09:00:00Z", slug="w", kind="witness", body="+1 file")
+        journal = view_journal(load_fragments(self.frags))
+        self.assertEqual([d["day"] for d in journal], ["2026-05-01", "2026-05-02"])
+        self.assertEqual(len(journal[0]["judgment"]), 1)
+        self.assertEqual(journal[0]["evidence"][0]["pointer"], "docs/p.pdf")
+
+
+class TestNoteCli(unittest.TestCase):
+    def setUp(self):
+        self.root, self.frags = _make_root()
+
+    def tearDown(self):
+        shutil.rmtree(self.root)
+
+    def _note(self, *args: str) -> subprocess.CompletedProcess:
+        return subprocess.run(
+            [sys.executable, str(TOOLS / "note.py"), str(self.root), *args],
+            capture_output=True,
+            text=True,
+        )
+
+    def test_appends_clean_fragment(self):
+        result = self._note("--kind", "decision", "--title", "pick A", "because faster")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        frags, problems = load_report(self.frags)
+        self.assertEqual(problems, [])
+        self.assertEqual(len(frags), 1)
+        self.assertEqual(frags[0].kind, "decision")
+        self.assertEqual(frags[0].get("summary"), "pick A")
+        self.assertEqual(frags[0].id, Path(frags[0].path).stem)
+
+    def test_rejects_unknown_ref(self):
+        result = self._note("--kind", "decision", "--refs", "nope", "body")
+        self.assertEqual(result.returncode, 2)
+        self.assertEqual(list(self.frags.glob("*.md")), [])
+
+    def test_rejects_goal_without_verifier(self):
+        result = self._note("--kind", "goal", "--title", "ship it", "body")
+        self.assertEqual(result.returncode, 2)
+
+    def test_non_ascii_body_yields_safe_filename(self):
+        result = self._note("--kind", "decision", "对 Acme 采用月度交付节奏")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        name = next(self.frags.glob("*.md")).name
+        self.assertTrue(name.isascii(), name)
+
+    def test_same_second_appends_do_not_collide(self):
+        for _ in range(3):
+            self.assertEqual(self._note("--kind", "fact", "--title", "same", "x").returncode, 0)
+        frags, problems = load_report(self.frags)
+        self.assertEqual(len(frags), 3)
+        self.assertNotIn("duplicate-id", view_doctor(frags, problems)["by_code"])
+
+
+class TestWitnessSkill(unittest.TestCase):
+    def setUp(self):
+        self.root, self.frags = _make_root()
+
+    def tearDown(self):
+        shutil.rmtree(self.root)
+
+    def _witness(self, *args: str) -> subprocess.CompletedProcess:
+        return subprocess.run(
+            [
+                sys.executable,
+                str(TOOLS / "skills" / "witness.py"),
+                "--project-root",
+                str(self.root),
+                *args,
+            ],
+            capture_output=True,
+            text=True,
+        )
+
+    def test_captures_added_changed_removed(self):
+        (self.root / "notes.md").write_text("one", encoding="utf-8")
+        self.assertEqual(self._witness().returncode, 0)
+        witnesses = [f for f in load_fragments(self.frags) if f.kind == "witness"]
+        self.assertEqual(len(witnesses), 1)
+        self.assertEqual(witnesses[0].get("files_added"), "1")
+
+        (self.root / "notes.md").write_text("two", encoding="utf-8")
+        self._witness()
+        (self.root / "notes.md").unlink()
+        self._witness()
+        witnesses = [f for f in load_fragments(self.frags) if f.kind == "witness"]
+        self.assertEqual(len(witnesses), 3)
+        self.assertEqual(witnesses[1].get("files_changed"), "1")
+        self.assertEqual(witnesses[2].get("files_removed"), "1")
+
+    def test_idempotent_when_nothing_changed(self):
+        (self.root / "notes.md").write_text("one", encoding="utf-8")
+        self._witness()
+        before = len(list(self.frags.glob("*.md")))
+        result = self._witness()
+        self.assertIn("no change", result.stdout)
+        self.assertEqual(len(list(self.frags.glob("*.md"))), before)
+
+    def test_documents_become_artifact_fragments(self):
+        (self.root / "proposal.pdf").write_text("pdf", encoding="utf-8")
+        (self.root / "script.py").write_text("code", encoding="utf-8")
+        self._witness()
+        frags = load_fragments(self.frags)
+        artifacts = [f for f in frags if f.kind == "artifact"]
+        self.assertEqual([f.get("pointer") for f in artifacts], ["proposal.pdf"])
+
+    def test_state_is_folded_not_stored(self):
+        (self.root / "a.md").write_text("a", encoding="utf-8")
+        self._witness()
+        self.assertFalse((self.root / ".sula").exists())
+        self.assertEqual(
+            sorted(p.name for p in self.root.iterdir()), ["a.md", "fragments"]
+        )
+
+    def test_output_is_clean_for_doctor(self):
+        (self.root / "proposal.pdf").write_text("pdf", encoding="utf-8")
+        self._witness("--label", "定稿")
+        frags, problems = load_report(self.frags)
+        self.assertTrue(view_doctor(frags, problems)["ok"])
+
+    def test_rejects_unknown_refs(self):
+        (self.root / "a.md").write_text("a", encoding="utf-8")
+        result = self._witness("--refs", "nope")
+        self.assertEqual(result.returncode, 2)
+
+
+class TestHostPointers(unittest.TestCase):
+    def setUp(self):
+        self.root = Path(tempfile.mkdtemp(prefix="sula-test-host-"))
+
+    def tearDown(self):
+        shutil.rmtree(self.root)
+
+    def test_projects_all_hosts_and_is_idempotent(self):
+        sys.path.insert(0, str(TOOLS))
+        from migrate import HOST_POINTER_TARGETS, install_host_pointers  # type: ignore
+
+        written = install_host_pointers(self.root)
+        self.assertEqual(written, len(HOST_POINTER_TARGETS))
+        for rel in HOST_POINTER_TARGETS:
+            text = (self.root / rel).read_text(encoding="utf-8")
+            self.assertIn("AGENTS.md", text)
+            self.assertIn("--for-agent", text)
+        self.assertEqual(install_host_pointers(self.root), 0)
+
+    def test_agents_protocol_is_projected_from_template(self):
+        sys.path.insert(0, str(TOOLS))
+        from migrate import install_agents_template  # type: ignore
+
+        (self.root / "AGENTS.md").write_text("# legacy rules\n", encoding="utf-8")
+        install_agents_template(self.root, TOOLS / "AGENTS.md")
+        text = (self.root / "AGENTS.md").read_text(encoding="utf-8")
+        self.assertIn("<!-- sula-vector -->", text)
+        self.assertIn("Three lanes", text)
+        self.assertNotIn("path/to/", text)
 
 
 if __name__ == "__main__":

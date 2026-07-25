@@ -1,8 +1,9 @@
 <!-- sula-vector -->
 # AGENTS.md — Sula Vector
 
-This project's truth lives in `fragments/` as a folder of typed text files.
-Everything else (status, progress, agent context) is rendered from those files.
+This project's truth lives in `fragments/` as an append-only folder of typed
+text files. Every view — status, progress, agent context, audit trail — is
+`render(fragments, conventions)`.
 
 ## Highest rule (Tier A)
 
@@ -12,89 +13,112 @@ Everything else (status, progress, agent context) is rendered from those files.
 >
 > If anything else conflicts with this rule, this rule wins.
 
-## Tier B–E in force
+Tier B (invariants), C (aesthetics), D (discipline) and E (anti-patterns) ship
+as `kind: principle` fragments inside this project. `render --for-agent`
+prepends them to every boot. `render . --view principles` prints them in full.
 
-The full Tier B (invariants), Tier C (aesthetics), Tier D (discipline), and
-Tier E (anti-patterns) ship as `kind: principle` fragments inside this
-project's `fragments/` folder. `render --for-agent` prepends them to every
-agent boot. Run `python3 path/to/render.py . --view principles` to read them
-in full at any time.
+## Boot — two steps (B6)
 
-## Boot
-
-Before doing anything, run:
+1. Note the current ISO-8601 UTC time as your `session_start`.
+2. Run and read:
 
 ```bash
-python3 path/to/render.py . --for-agent
+python3 tools/sula_vector/render.py . --for-agent
 ```
 
-Optionally read the latest few `fragments/*.md` directly for detail.
+That output is authoritative project context. Nothing else is required —
+no install, no network, no daemon.
 
-## Adopt principles into a new project
+## Three lanes
+
+Every fragment falls into one of three lanes. `kind` stays a free-form string
+(B3); the lane is a render-time projection, not a validated enum.
+
+| lane | question | who supplies it |
+| --- | --- | --- |
+| `judgment` | **why** — decisions, corrections, assessments, principles | you, deliberately |
+| `evidence` | **what** — files produced, commits made, external facts | `skills/witness.py`, mechanically |
+| `direction` | **where to** — goals and intents, each closable | you, with a verifier |
+
+The division is the whole protocol: **you are responsible for judgment, the
+runtime is responsible for evidence.** Do not narrate mechanical facts by
+hand — witness already has them, with hashes.
+
+## During the turn
+
+Record a judgment whenever you choose a direction, revise one, correct a past
+claim, or assess state. One append per judgment (C5):
+
+```bash
+python3 tools/sula_vector/note.py . --kind decision --title "<one line>" "<why>"
+python3 tools/sula_vector/note.py . --kind correction --supersedes <id> "<what was wrong>"
+python3 tools/sula_vector/note.py . --kind goal --title "<outcome>" \
+  --done-when "<condition>" --verifier "shell: <command>" "<context>"
+python3 tools/sula_vector/note.py . --kind fact --closes <intent-id> "<what closed it>"
+```
+
+`note.py` derives `id` and `time` from the clock, rejects unknown `--refs` /
+`--closes` / `--supersedes` targets, and refuses a goal without a verifier.
+Never hand-write a fragment file: a wrong id, a wrong timestamp, or a dangling
+reference should be unrepresentable, not merely detectable.
+
+## Never
+
+- Edit or delete a past fragment (B1, E3). Append a `correction` that names it
+  in `--supersedes` instead.
+- Append when nothing meaningful changed (C7).
+- Declare a goal without a verifier (B9, E9).
+- Add a state directory, cache, index, or daemon beside `fragments/` (B4, E1, E2).
+
+## End of turn
+
+If you appended anything, show the user the mark:
+
+```bash
+python3 tools/sula_vector/render.py . --view changes-summary --since <session_start>
+```
+
+Display the full multi-line `[sula] +N this turn:` block. If the output is
+`[sula] no changes`, display nothing (C7).
+
+Before claiming a task is done (D5), the vector must be structurally clean:
+
+```bash
+python3 tools/sula_vector/render.py . --view doctor   # must exit 0
+```
+
+## Views
+
+```bash
+python3 tools/sula_vector/render.py . --for-agent            # boot context
+python3 tools/sula_vector/render.py . --view journal         # day by day: decided / produced
+python3 tools/sula_vector/render.py . --view effective       # judgments in force + supersession trail
+python3 tools/sula_vector/render.py . --view goals           # goals + verification status
+python3 tools/sula_vector/render.py . --view doctor          # structural integrity
+python3 tools/sula_vector/render.py . --lane evidence --view list
+```
+
+## Mechanical capture
+
+```bash
+python3 tools/sula_vector/hooks/install.py --project-root .   # once per project
+python3 tools/sula_vector/skills/witness.py --project-root .  # or run by hand
+```
+
+The installer wires whatever the substrate already offers: a git `post-commit`
+hook, a Kiro `agentStop` hook, or the cron line to paste for a Drive/Dropbox
+folder. Sula never schedules anything itself (B7).
+
+## Adopt into a new project
 
 ```bash
 mkdir -p new-project/fragments
-cp path/to/AGENTS.md new-project/AGENTS.md
-cp path/to/principles/*.md new-project/fragments/
+cp -r tools/sula_vector new-project/tools/sula_vector
+cp tools/sula_vector/AGENTS.md new-project/AGENTS.md
+cp tools/sula_vector/principles/*.md new-project/fragments/
+python3 new-project/tools/sula_vector/hooks/install.py --project-root new-project
 ```
 
-After this, `render --for-agent` will surface every Tier A–E principle in
-that project's boot context.
-
-## Append, never edit
-
-Every change is one new fragment file. Never edit a past fragment. To
-change a previous decision (or supersede a principle), append a new
-`kind: decision` whose `refs` includes the old fragment's id.
-
-Filename:
-
-```
-<ISO-8601-time-Z>--<short-slug>.md
-```
-
-Example: `2026-05-23T04-21-56Z--decision-monthly-cadence.md`
-
-Required frontmatter:
-
-```
----
-id:   <filename stem>
-time: <ISO-8601 UTC>
-kind: <decision | intent | fact | goal | turn | artifact | annotation | …>
----
-```
-
-Common optional fields: `refs`, `tags`, `thread_id`, `family_key`,
-`artifact_role`, `pointer`, `done_when`, `verifier_ref`, `passed`, `cadence`,
-`interrupt`, `after`, `pinned`, `author`.
-
-## Operating rules
-
-- Treat the substrate (git / Drive / local folder) as the storage and
-  concurrency layer. Do not invent your own.
-- Refer to other fragments by `id` in `refs`. Render computes joins.
-- Mark goals with `done_when` and `verifier_ref`. Append a
-  `kind: verification-fact` with `passed: true` and `refs: [<goal-id>]` when
-  the verifier passes.
-- Steering: append `kind: intent` with `interrupt: true`.
-- Queuing: append `kind: intent` with `after: <run-or-intent-id>`.
-- If nothing meaningful changed, do not append a fragment. No churn (C7).
-
-## Optional: turn-mark for user visibility
-
-If you are a host LLM operating this vector and you appended any fragments
-this turn, end your reply with a one-line mark generated by:
-
-```bash
-python3 path/to/render.py . --view changes-summary --since <your-session-start-ISO>
-```
-
-Example output: `[sula] +3 (2 decision, 1 verification-fact)`
-
-If output is `[sula] no changes`, do not display it. The session-start
-timestamp is your own (host-local) — Sula is stateless about session
-boundaries.
-
-The full convention is at `docs/sula-vector-convention.md` (in the Sula
-repository) or in whichever location you copied it from.
+Works the same for a code repository, a company folder of documents on Drive,
+or a personal project. The full convention is
+`docs/sula-vector-convention.md`.

@@ -335,11 +335,14 @@ def install_tooling(root: Path, canonical_tools: Path) -> dict[str, int]:
         return {"copied": 0, "skipped_self": 1}
     files = [
         "render.py",
+        "note.py",
         "AGENTS.md",
         "README.md",
         "RELEASE-NOTES.md",
         "principles/README.md",
+        "hooks/install.py",
         "skills/README.md",
+        "skills/witness.py",
         "skills/verifier-shell.py",
         "skills/scheduler.py",
         "skills/llm-dispatcher.py",
@@ -348,6 +351,7 @@ def install_tooling(root: Path, canonical_tools: Path) -> dict[str, int]:
     target.mkdir(parents=True, exist_ok=True)
     (target / "skills").mkdir(exist_ok=True)
     (target / "principles").mkdir(exist_ok=True)
+    (target / "hooks").mkdir(exist_ok=True)
     copied = 0
     for rel in files:
         src = canonical_tools / rel
@@ -365,60 +369,23 @@ def install_agents_template(root: Path, template: Path) -> str:
     sentinel = "<!-- sula-vector -->"
     priority = "<!-- sula-vector-priority -->"
     rel_tools = "tools/sula_vector"
+    # The notice must not quote the sentinel literally: the idempotence checks
+    # below test for the sentinel's presence in the file.
     priority_notice = (
         f"{priority}\n"
-        "> **Active host protocol:** see the \"Sula Vector — Host Operating Protocol\"\n"
-        f"> section below (after the `{sentinel}` sentinel). It is the authoritative\n"
-        "> protocol for any LLM operating in this project. Any rules above the sentinel\n"
-        "> that conflict with the protocol below are legacy from prior project conventions\n"
-        "> and are superseded.\n\n"
+        "> **Active host protocol:** the \"Sula Vector — Host Operating Protocol\"\n"
+        "> section at the end of this file is authoritative for any LLM operating\n"
+        "> in this project. Any rules above it that conflict with it are legacy\n"
+        "> from prior project conventions and are superseded.\n\n"
     )
-    suffix = (
-        "\n\n---\n\n"
-        f"{sentinel}\n"
-        "# Sula Vector — Host Operating Protocol\n\n"
-        "This project has migrated to the Sula Vector convention. The full\n"
-        f"template lives at `{rel_tools}/AGENTS.md`. Any LLM operating\n"
-        "in this project must follow the protocol below.\n\n"
-        "## At session start\n\n"
-        "1. Note the current ISO-8601 UTC time as your `session_start`.\n"
-        f"2. Run `python3 {rel_tools}/skills/auto-update-from-canonical.py --project-root . --quiet` (best-effort tooling refresh; silent on no-op or unreachable network; emits a `kind: operation` fragment only on actual update).\n"
-        f"3. Run `python3 {rel_tools}/render.py . --for-agent` and read the output.\n"
-        "4. Treat that output as authoritative project context (Tier A–E principles + recent activity + open goals).\n\n"
-        "## Throughout the turn — when to append a fragment\n\n"
-        "**Append a fragment without being asked** whenever any of these triggers fires:\n\n"
-        "| Trigger | kind |\n"
-        "|---|---|\n"
-        "| You make or revise a non-trivial architectural / design / direction choice | `decision` |\n"
-        "| You commit to a measurable outcome with stop conditions | `goal` (with `done_when` + `verifier_ref`, B9) |\n"
-        "| You observe a real-world state change (deploy, build passed, contract signed, external event) | `fact` |\n"
-        "| You produce or register a deliverable (code module, doc, deck, design, artifact) | `artifact` (with `pointer`) |\n"
-        "| A verifier ran and produced a result | `verification-fact` (with `passed: true/false` + `refs` to the goal/intent) |\n"
-        "| You discover a real error, stale claim, or contradiction in a prior fragment | `correction` (with `refs` to it) |\n"
-        "| Someone (or you) makes a comment / markup on a fragment or artifact | `annotation` |\n"
-        "| You take a deliberate project-state snapshot for handoff or audit | `snapshot` |\n\n"
-        "**Do NOT append** for any of:\n\n"
-        "- Routine code formatting / style fixes that carry no decision content\n"
-        "- Cosmetic refactors that change neither behaviour nor contract\n"
-        "- Re-running idempotent operations with zero net effect (C7)\n"
-        "- Repetitive scheduler / cron firings (already handled inside skills)\n"
-        "- Internal reasoning that did not land in a concrete decision or artefact\n\n"
-        "If unsure, lean toward appending — but skip if it would only be churn (C7).\n\n"
-        "## Append rules\n\n"
-        "- Filename: `<ISO-8601-time-Z>--<short-slug>.md`. Required frontmatter: `id`, `time`, `kind`.\n"
-        "- Append, never edit (Tier B1). To revise a previous decision or principle, append a new `kind: decision` whose `refs` includes the old fragment's id.\n"
-        "- Reference upstream context with `refs` so the graph stays connected.\n\n"
-        "## At end of turn\n\n"
-        "If you appended any fragments this turn, end your reply with the\n"
-        "output of:\n\n"
-        "```\n"
-        f"python3 {rel_tools}/render.py . --view changes-summary --since <session_start>\n"
-        "```\n\n"
-        "Display the full multi-line `[sula] +N this turn:` block to the\n"
-        "user. If the output is `[sula] no changes`, do not display it.\n"
+    template_body = template.read_text(encoding="utf-8").replace(
+        "path/to/", f"{rel_tools}/"
     )
+    protocol = template_body.split(sentinel, 1)[-1].lstrip("\n")
+    suffix = f"\n\n---\n\n{sentinel}\n{protocol}"
+
     if not target.exists():
-        body = template.read_text(encoding="utf-8").replace("path/to/", f"{rel_tools}/")
+        body = template_body
         if sentinel not in body:
             body = sentinel + "\n" + body
         if priority not in body:
@@ -439,6 +406,53 @@ def install_agents_template(root: Path, template: Path) -> str:
     if changed:
         target.write_text(existing, encoding="utf-8")
     return status
+
+
+HOST_POINTER_TARGETS = {
+    "CLAUDE.md": "CLAUDE.md",
+    "CODEX.md": "CODEX.md",
+    "GEMINI.md": "GEMINI.md",
+    ".github/copilot-instructions.md": "GitHub Copilot Instructions",
+    ".cursor/rules/project.mdc": "Cursor — project rules",
+}
+
+CURSOR_FRONTMATTER = (
+    "---\ndescription: Sula Vector project rules\nglobs:\nalwaysApply: true\n---\n\n"
+)
+
+
+def host_pointer_text(title: str) -> str:
+    return (
+        f"# {title}\n\n"
+        "This project runs on the Sula Vector convention. **[AGENTS.md](AGENTS.md) is\n"
+        "the authoritative protocol** — read it first and follow it exactly.\n\n"
+        "Boot (two steps): note the current UTC time as your session start, then run\n\n"
+        "```bash\n"
+        "python3 tools/sula_vector/render.py . --for-agent\n"
+        "```\n\n"
+        "Record judgments with `tools/sula_vector/note.py`. Mechanical evidence (files\n"
+        "produced, commits made) is captured by `tools/sula_vector/skills/witness.py`;\n"
+        "do not narrate it by hand.\n\n"
+        "Nothing in this file overrides AGENTS.md. Legacy Sula 0.18.x instructions\n"
+        "(`scripts/sula.py`, `.sula/`, `STATUS.md`) are historical reference only.\n"
+    )
+
+
+def install_host_pointers(root: Path) -> int:
+    """Every host entrypoint must boot into the same protocol, or continuity is a claim
+    rather than a property."""
+    written = 0
+    for rel, title in HOST_POINTER_TARGETS.items():
+        text = host_pointer_text(title)
+        if rel.endswith(".mdc"):
+            text = CURSOR_FRONTMATTER + text
+        target = root / rel
+        if target.exists() and target.read_text(encoding="utf-8") == text:
+            continue
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_text(text, encoding="utf-8")
+        written += 1
+    return written
 
 
 def emit_migration_decision(out: Path, total: int) -> None:
@@ -475,6 +489,11 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--agents-template", default=str(AGENTS_TEMPLATE_DEFAULT))
     p.add_argument("--no-agents", action="store_true")
     p.add_argument("--no-principles", action="store_true")
+    p.add_argument(
+        "--no-host-pointers",
+        action="store_true",
+        help="Do not project CLAUDE.md / CODEX.md / GEMINI.md / Cursor / Copilot pointers.",
+    )
     p.add_argument(
         "--dry-run",
         action="store_true",
@@ -526,6 +545,8 @@ def main(argv: list[str] | None = None) -> int:
         )
     elif args.dry_run:
         counts["agents_template"] = "skipped (dry-run)"
+    if not args.no_host_pointers and not args.dry_run:
+        counts["host_pointers"] = install_host_pointers(root)
 
     emit_migration_decision(out, total)
 

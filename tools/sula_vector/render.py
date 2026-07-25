@@ -3,18 +3,23 @@
 
 Pure function from a folder of typed text fragments to a project view.
 Standard library only. See ../../docs/sula-vector-convention.md for the spec.
+
+Identity is derived from the filename, never from hand-written frontmatter:
+a fragment cannot carry a wrong id or a wrong timestamp, and no fragment is
+ever silently dropped. Structural problems surface through `--view doctor`.
 """
 
 from __future__ import annotations
 
 import argparse
 import json
+import re
 import sys
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Iterable
 
-CONVENTION_VERSION = "1.0"
+CONVENTION_VERSION = "1.1"
 
 TIER_ORDER = ["highest", "invariant", "aesthetic", "discipline", "anti-pattern"]
 TIER_TITLES = {
@@ -24,6 +29,31 @@ TIER_TITLES = {
     "discipline": "D — Implementation discipline",
     "anti-pattern": "E — Anti-patterns",
 }
+
+LANES = ("evidence", "judgment", "direction")
+LANE_TITLES = {
+    "evidence": "Position — what happened",
+    "judgment": "Direction — judgments in force",
+    "direction": "Heading — open directions",
+}
+LANE_BY_KIND = {
+    "decision": "judgment",
+    "correction": "judgment",
+    "principle": "judgment",
+    "assessment": "judgment",
+    "annotation": "judgment",
+    "preference": "judgment",
+    "pitfall": "judgment",
+    "chronicle": "judgment",
+    "skill": "judgment",
+    "intent": "direction",
+    "goal": "direction",
+}
+
+FILENAME_TIME_RE = re.compile(
+    r"^(\d{4}-\d{2}-\d{2})T(\d{2})-(\d{2})-(\d{2})Z(?:--(.*))?$"
+)
+FRONTMATTER_TIME_RE = re.compile(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$")
 
 
 @dataclass
@@ -41,6 +71,30 @@ class Fragment:
         if key in {"id", "time", "kind", "refs", "tags", "body", "path"}:
             return getattr(self, key)
         return self.extra.get(key, default)
+
+    def id_list(self, key: str) -> list[str]:
+        raw = self.get(key)
+        if raw is None or raw == "":
+            return []
+        if isinstance(raw, list):
+            return [str(x).strip() for x in raw if str(x).strip()]
+        return [str(raw).strip()]
+
+
+@dataclass
+class Problem:
+    code: str
+    fragment: str
+    path: str
+    detail: str = ""
+
+    def as_dict(self) -> dict[str, str]:
+        return {
+            "code": self.code,
+            "fragment": self.fragment,
+            "path": self.path,
+            "detail": self.detail,
+        }
 
 
 def _parse_scalar(value: str) -> Any:
@@ -107,48 +161,114 @@ def _parse_frontmatter(text: str) -> tuple[dict[str, Any], str]:
     return out, body.strip()
 
 
-def _fragment_from_meta(
-    meta: dict[str, Any], body: str, path: Path
-) -> Fragment | None:
-    fid = meta.get("id")
-    time = meta.get("time")
-    kind = meta.get("kind")
-    if not fid or not time or not kind:
-        return None
-    refs = meta.get("refs") or []
-    tags = meta.get("tags") or []
-    extra = {
-        k: v
-        for k, v in meta.items()
-        if k not in {"id", "time", "kind", "refs", "tags"}
-    }
-    return Fragment(
-        id=str(fid),
-        time=str(time),
-        kind=str(kind),
-        refs=[str(x) for x in refs],
-        tags=[str(x) for x in tags],
-        extra=extra,
-        body=body,
-        path=str(path),
-    )
+def derive_identity(path: Path) -> tuple[str, str | None]:
+    """Fragment id and time as derived from the filename. Filename is truth."""
+    stem = path.stem
+    match = FILENAME_TIME_RE.match(stem)
+    if not match:
+        return stem, None
+    day, hh, mm, ss, _slug = match.groups()
+    return stem, f"{day}T{hh}:{mm}:{ss}Z"
 
 
-def load_fragments(folder: Path) -> list[Fragment]:
-    out: list[Fragment] = []
+def load_report(folder: Path) -> tuple[list[Fragment], list[Problem]]:
+    """Load every fragment file. Nothing is ever skipped silently."""
+    frags: list[Fragment] = []
+    problems: list[Problem] = []
     for path in sorted(folder.rglob("*.md")):
         if path.name in {"AGENTS.md", "README.md"}:
             continue
         try:
             text = path.read_text(encoding="utf-8")
-        except OSError:
+        except OSError as exc:
+            problems.append(Problem("unreadable", path.stem, str(path), str(exc)))
             continue
+
         meta, body = _parse_frontmatter(text)
-        frag = _fragment_from_meta(meta, body, path)
-        if frag is not None:
-            out.append(frag)
-    out.sort(key=lambda f: f.time)
-    return out
+        fid, derived_time = derive_identity(path)
+
+        if not meta:
+            problems.append(
+                Problem("no-frontmatter", fid, str(path), "no `---` header block")
+            )
+
+        declared_time = str(meta.get("time", "")).strip()
+        time = derived_time or declared_time
+        if derived_time is None:
+            problems.append(
+                Problem(
+                    "unparsable-filename",
+                    fid,
+                    str(path),
+                    "filename must start with <YYYY-MM-DDTHH-MM-SSZ>--",
+                )
+            )
+            if declared_time and not FRONTMATTER_TIME_RE.match(declared_time):
+                problems.append(
+                    Problem("unparsable-time", fid, str(path), declared_time)
+                )
+                time = ""
+        elif declared_time and declared_time != derived_time:
+            problems.append(
+                Problem(
+                    "header-disagreement",
+                    fid,
+                    str(path),
+                    f"frontmatter time {declared_time} != filename time {derived_time}",
+                )
+            )
+
+        declared_id = str(meta.get("id", "")).strip()
+        if declared_id and declared_id != fid:
+            problems.append(
+                Problem(
+                    "header-disagreement",
+                    fid,
+                    str(path),
+                    f"frontmatter id {declared_id} != filename stem {fid}",
+                )
+            )
+
+        kind = str(meta.get("kind", "")).strip()
+        if not kind:
+            problems.append(
+                Problem("missing-kind", fid, str(path), "`kind` is required")
+            )
+            kind = "unknown"
+
+        refs = meta.get("refs") or []
+        tags = meta.get("tags") or []
+        extra = {
+            k: v
+            for k, v in meta.items()
+            if k not in {"id", "time", "kind", "refs", "tags"}
+        }
+        frags.append(
+            Fragment(
+                id=fid,
+                time=time,
+                kind=kind,
+                refs=[str(x) for x in refs],
+                tags=[str(x) for x in tags],
+                extra=extra,
+                body=body,
+                path=str(path),
+            )
+        )
+
+    frags.sort(key=lambda f: (f.time, f.id))
+    return frags, problems
+
+
+def load_fragments(folder: Path) -> list[Fragment]:
+    return load_report(folder)[0]
+
+
+def lane_of(f: Fragment) -> str:
+    declared = str(f.get("lane", "")).strip()
+    if declared in LANES:
+        return declared
+    return LANE_BY_KIND.get(f.kind, "evidence")
 
 
 def _matches(
@@ -161,6 +281,7 @@ def _matches(
     ref: str | None = None,
     thread: str | None = None,
     family: str | None = None,
+    lane: str | None = None,
 ) -> bool:
     if kind and f.kind != kind:
         return False
@@ -176,6 +297,8 @@ def _matches(
         return False
     if family and f.get("family_key") != family:
         return False
+    if lane and lane_of(f) != lane:
+        return False
     return True
 
 
@@ -184,8 +307,21 @@ def filter_fragments(frags: Iterable[Fragment], **q: Any) -> list[Fragment]:
 
 
 def _summarize(f: Fragment, max_chars: int = 200) -> str:
-    first = f.body.strip().split("\n", 1)[0] if f.body else ""
-    return first[:max_chars]
+    declared = str(f.get("summary", "")).strip()
+    text = declared or " ".join(
+        line.strip()
+        for line in f.body.strip().split("\n\n", 1)[0].splitlines()
+        if line.strip()
+    )
+    text = text.lstrip("# ").strip()
+    if len(text) <= max_chars:
+        return text
+    window = text[:max_chars]
+    for stop in ("。", ". ", "；", "; ", "，", ", ", " "):
+        cut = window.rfind(stop)
+        if cut > max_chars // 2:
+            return window[: cut + (1 if stop in "。；，" else 0)].strip() + "…"
+    return window.strip() + "…"
 
 
 def _to_dict(f: Fragment) -> dict[str, Any]:
@@ -193,6 +329,7 @@ def _to_dict(f: Fragment) -> dict[str, Any]:
         "id": f.id,
         "time": f.time,
         "kind": f.kind,
+        "lane": lane_of(f),
         "refs": f.refs,
         "tags": f.tags,
     }
@@ -202,7 +339,29 @@ def _to_dict(f: Fragment) -> dict[str, Any]:
     return base
 
 
+def supersession_map(frags: Iterable[Fragment]) -> dict[str, list[str]]:
+    """id -> ids of later fragments that explicitly supersede it."""
+    out: dict[str, list[str]] = {}
+    for f in frags:
+        for target in f.id_list("supersedes"):
+            if target != f.id:
+                out.setdefault(target, []).append(f.id)
+    return out
+
+
+def closure_map(frags: Iterable[Fragment]) -> dict[str, list[str]]:
+    """id -> ids of fragments that declare it closed."""
+    out: dict[str, list[str]] = {}
+    for f in frags:
+        for target in f.id_list("closes"):
+            if target != f.id:
+                out.setdefault(target, []).append(f.id)
+    return out
+
+
 def _is_satisfied(intent: Fragment, frags: list[Fragment]) -> bool:
+    if closure_map(frags).get(intent.id):
+        return True
     back_refs = [f for f in frags if intent.id in f.refs]
     if intent.kind == "goal":
         return any(
@@ -244,13 +403,20 @@ def view_list(frags: list[Fragment]) -> list[dict[str, Any]]:
 
 
 def view_digest(frags: list[Fragment], n: int = 10) -> dict[str, Any]:
-    decisions = [f for f in frags if f.kind == "decision"][-n:]
+    superseded = supersession_map(frags)
+    decisions = [
+        f
+        for f in frags
+        if lane_of(f) == "judgment"
+        and f.kind != "principle"
+        and f.id not in superseded
+    ][-n:]
     open_intents = [
         f
         for f in frags
-        if f.kind in {"intent", "goal"} and not _is_satisfied(f, frags)
+        if lane_of(f) == "direction" and not _is_satisfied(f, frags)
     ][-n:]
-    recent = frags[-n:]
+    recent = [f for f in frags if lane_of(f) == "evidence"][-n:]
     return {
         "decisions": [_to_dict(f) for f in decisions],
         "open_intents": [_to_dict(f) for f in open_intents],
@@ -319,15 +485,107 @@ def view_goals(frags: list[Fragment]) -> list[dict[str, Any]]:
 
 def view_principles(frags: list[Fragment]) -> dict[str, list[dict[str, Any]]]:
     grouped: dict[str, list[dict[str, Any]]] = {tier: [] for tier in TIER_ORDER}
+    superseded = supersession_map(frags)
     for f in frags:
         if f.kind != "principle":
             continue
         tier = str(f.get("tier", "")).strip()
-        if tier in grouped:
+        if tier in grouped and f.id not in superseded:
             entry = _to_dict(f)
             entry["body"] = f.body
             grouped[tier].append(entry)
     return grouped
+
+
+def view_effective(frags: list[Fragment]) -> dict[str, Any]:
+    """Judgments in force, with the supersession trail attached."""
+    superseded = supersession_map(frags)
+    by_id = {f.id: f for f in frags}
+    in_force: list[dict[str, Any]] = []
+    retired: list[dict[str, Any]] = []
+    for f in frags:
+        if lane_of(f) != "judgment":
+            continue
+        entry = _to_dict(f)
+        if f.id in superseded:
+            entry["superseded_by"] = [
+                {
+                    "id": sid,
+                    "time": by_id[sid].time if sid in by_id else "",
+                    "summary": _summarize(by_id[sid]) if sid in by_id else "",
+                }
+                for sid in superseded[f.id]
+            ]
+            retired.append(entry)
+        else:
+            in_force.append(entry)
+    return {"in_force": in_force, "retired": retired}
+
+
+def view_journal(frags: list[Fragment]) -> list[dict[str, Any]]:
+    """Day-by-day project journal: what was decided, what was produced."""
+    days: dict[str, dict[str, list[dict[str, Any]]]] = {}
+    for f in frags:
+        if f.kind == "principle":
+            continue
+        day = f.time[:10] or "unknown"
+        bucket = days.setdefault(day, {lane: [] for lane in LANES})
+        entry = _to_dict(f)
+        bucket[lane_of(f)].append(entry)
+    return [
+        {
+            "day": day,
+            "judgment": days[day]["judgment"],
+            "evidence": days[day]["evidence"],
+            "direction": days[day]["direction"],
+        }
+        for day in sorted(days)
+    ]
+
+
+def view_doctor(frags: list[Fragment], problems: list[Problem]) -> dict[str, Any]:
+    """Structural integrity of the vector. Pure function, no side effects."""
+    found = [p.as_dict() for p in problems]
+    ids = {f.id for f in frags}
+
+    seen: dict[str, str] = {}
+    for f in frags:
+        if f.id in seen:
+            found.append(
+                Problem("duplicate-id", f.id, f.path, f"also at {seen[f.id]}").as_dict()
+            )
+        seen[f.id] = f.path
+
+    acknowledged = {
+        str(f.get("broken_ref", "")).strip()
+        for f in frags
+        if str(f.get("broken_ref", "")).strip()
+    }
+    for f in frags:
+        for target in f.refs + f.id_list("supersedes") + f.id_list("closes"):
+            if ":" in target and not target.startswith("20"):
+                continue
+            if target in ids or target in acknowledged:
+                continue
+            found.append(
+                Problem("dangling-ref", f.id, f.path, f"-> {target}").as_dict()
+            )
+
+    for f in frags:
+        if f.kind == "goal" and not str(f.get("verifier_ref", "")).strip():
+            found.append(
+                Problem("goal-without-verifier", f.id, f.path, "B9/E9").as_dict()
+            )
+
+    by_code: dict[str, int] = {}
+    for p in found:
+        by_code[p["code"]] = by_code.get(p["code"], 0) + 1
+    return {
+        "fragments": len(frags),
+        "problems": found,
+        "by_code": dict(sorted(by_code.items(), key=lambda x: (-x[1], x[0]))),
+        "ok": not found,
+    }
 
 
 def view_changes_summary(frags: list[Fragment]) -> dict[str, Any]:
@@ -339,6 +597,7 @@ def view_changes_summary(frags: list[Fragment]) -> dict[str, Any]:
             "id": f.id,
             "time": f.time,
             "kind": f.kind,
+            "lane": lane_of(f),
             "summary": _summarize(f, max_chars=120),
             "refs": list(f.refs),
         }
@@ -402,18 +661,44 @@ def render_principles_block(frags: list[Fragment]) -> str:
     return "\n".join(lines).rstrip() + "\n"
 
 
+def render_doctor_block(report: dict[str, Any]) -> str:
+    if report["ok"]:
+        return f"[sula] doctor OK — {report['fragments']} fragments, 0 problems\n"
+    lines = [
+        f"[sula] doctor found {len(report['problems'])} problem(s) "
+        f"in {report['fragments']} fragments:"
+    ]
+    for code, count in report["by_code"].items():
+        lines.append(f"  {count:4d}  {code}")
+    lines.append("")
+    for p in report["problems"]:
+        lines.append(f"  {p['code']}: {p['fragment']}")
+        if p["detail"]:
+            lines.append(f"      {p['detail']}")
+    return "\n".join(lines) + "\n"
+
+
 def render_for_agent(
     frags: list[Fragment], project_name: str = "", n: int = 10
 ) -> str:
     non_principle = [f for f in frags if f.kind != "principle"]
     digest = view_digest(non_principle, n=n)
+    superseded = supersession_map(non_principle)
     lines: list[str] = []
-    header = f"# {project_name} (Sula vector)" if project_name else "# Project context (Sula vector)"
+    header = (
+        f"# {project_name} (Sula vector)"
+        if project_name
+        else "# Project context (Sula vector)"
+    )
     lines.append(header)
     lines.append("")
     lines.append(f"Convention: v{CONVENTION_VERSION}")
     latest = non_principle[-1].time if non_principle else "n/a"
-    lines.append(f"Fragments: {len(non_principle)} activity, {len(frags) - len(non_principle)} principle, latest activity at {latest}")
+    lines.append(
+        f"Fragments: {len(non_principle)} activity, "
+        f"{len(frags) - len(non_principle)} principle, "
+        f"latest activity at {latest}"
+    )
     lines.append("")
 
     lines.append(render_principles_block(frags).rstrip())
@@ -427,21 +712,26 @@ def render_for_agent(
             )
         lines.append("")
 
-    lines.append("## Recent decisions")
+    retired = sum(1 for f in non_principle if f.id in superseded)
+    lines.append(f"## {LANE_TITLES['judgment']}")
     if not digest["decisions"]:
         lines.append("- (none)")
     for d in digest["decisions"]:
-        lines.append(f"- [{d['time']}] {d['id']}: {d['summary']}")
+        lines.append(f"- [{d['time']}] {d['kind']} {d['id']}: {d['summary']}")
+    if retired:
+        lines.append(
+            f"- ({retired} superseded judgment(s) hidden — `--view effective` to see the trail)"
+        )
     lines.append("")
 
-    lines.append("## Open intents and goals")
+    lines.append(f"## {LANE_TITLES['direction']}")
     if not digest["open_intents"]:
         lines.append("- (none)")
     for i in digest["open_intents"]:
         lines.append(f"- [{i['time']}] {i['kind']} {i['id']}: {i['summary']}")
     lines.append("")
 
-    lines.append("## Recent activity")
+    lines.append(f"## {LANE_TITLES['evidence']}")
     if not digest["recent"]:
         lines.append("- (none)")
     for r in digest["recent"]:
@@ -449,9 +739,20 @@ def render_for_agent(
     lines.append("")
 
     lines.append("## How to act")
-    lines.append("Append one new fragment per change. Never edit past fragments.")
     lines.append(
-        "Filename: <ISO-8601-time-Z>--<short-slug>.md. Required frontmatter: id, time, kind."
+        "Append one new fragment per judgment. Never edit past fragments. "
+        "Use `note.py` so id and time are machine-derived:"
+    )
+    lines.append("")
+    lines.append(
+        '    python3 tools/sula_vector/note.py . --kind decision "<what and why>"'
+    )
+    lines.append("")
+    lines.append(
+        "Mechanical evidence (files produced, commits made) is captured by "
+        "`skills/witness.py`; you do not need to describe it by hand. "
+        "Supersede a past judgment with `--supersedes <id>`; close an open "
+        "direction with `--closes <id>`."
     )
     return "\n".join(lines).rstrip() + "\n"
 
@@ -510,6 +811,29 @@ def _format_human(view: str, result: Any, out: Any) -> None:
                 f"{item.get('pointer','-')}\n"
             )
         return
+    if view == "effective":
+        out.write(f"## in force ({len(result['in_force'])})\n")
+        for it in result["in_force"]:
+            out.write(f"- [{it['time']}] {it['kind']}: {it.get('summary','')}\n")
+        out.write(f"\n## retired ({len(result['retired'])})\n")
+        for it in result["retired"]:
+            out.write(f"- [{it['time']}] {it['kind']}: {it.get('summary','')}\n")
+            for s in it.get("superseded_by", []):
+                out.write(f"    ↳ superseded by [{s['time']}] {s['summary']}\n")
+        return
+    if view == "journal":
+        for day in result:
+            out.write(f"## {day['day']}\n")
+            for it in day["judgment"]:
+                out.write(f"  ◆ {it['kind']}: {it.get('summary','')}\n")
+            for it in day["direction"]:
+                out.write(f"  → {it['kind']}: {it.get('summary','')}\n")
+            for it in day["evidence"]:
+                pointer = it.get("pointer")
+                tail = f"  [{pointer}]" if pointer else ""
+                out.write(f"  · {it['kind']}: {it.get('summary','')}{tail}\n")
+            out.write("\n")
+        return
     for it in result:
         out.write(
             f"[{it['time']}] {it.get('kind','?')} {it.get('id','')}: "
@@ -517,14 +841,25 @@ def _format_human(view: str, result: Any, out: Any) -> None:
         )
 
 
+VIEWS = [
+    "digest",
+    "list",
+    "progress",
+    "thread",
+    "family",
+    "goals",
+    "principles",
+    "changes-summary",
+    "effective",
+    "journal",
+    "doctor",
+]
+
+
 def main(argv: list[str] | None = None) -> int:
     p = argparse.ArgumentParser(description="Render a Sula vector folder.")
     p.add_argument("folder", help="path to a folder containing fragments/")
-    p.add_argument(
-        "--view",
-        default="digest",
-        choices=["digest", "list", "progress", "thread", "family", "goals", "principles", "changes-summary"],
-    )
+    p.add_argument("--view", default="digest", choices=VIEWS)
     p.add_argument("--kind")
     p.add_argument("--since")
     p.add_argument("--until")
@@ -532,6 +867,7 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--ref")
     p.add_argument("--thread")
     p.add_argument("--family")
+    p.add_argument("--lane", choices=LANES)
     p.add_argument("--for-agent", action="store_true")
     p.add_argument("--json", action="store_true")
     p.add_argument("--project-name", default="")
@@ -543,7 +879,7 @@ def main(argv: list[str] | None = None) -> int:
         print(f"folder not found: {fragments_dir}", file=sys.stderr)
         return 2
 
-    frags = load_fragments(fragments_dir)
+    frags, problems = load_report(fragments_dir)
     filtered = filter_fragments(
         frags,
         kind=args.kind,
@@ -553,11 +889,21 @@ def main(argv: list[str] | None = None) -> int:
         ref=args.ref,
         thread=args.thread,
         family=args.family,
+        lane=args.lane,
     )
 
     if args.for_agent:
         sys.stdout.write(render_for_agent(filtered, args.project_name))
         return 0
+
+    if args.view == "doctor":
+        report = view_doctor(frags, problems)
+        if args.json:
+            json.dump(report, sys.stdout, indent=2, ensure_ascii=False)
+            sys.stdout.write("\n")
+        else:
+            sys.stdout.write(render_doctor_block(report))
+        return 0 if report["ok"] else 1
 
     if args.view == "digest":
         result: Any = view_digest(filtered)
@@ -577,9 +923,15 @@ def main(argv: list[str] | None = None) -> int:
         result = view_family(filtered, args.family)
     elif args.view == "goals":
         result = view_goals(filtered)
+    elif args.view == "effective":
+        result = view_effective(filtered)
+    elif args.view == "journal":
+        result = view_journal(filtered)
     elif args.view == "principles":
         if args.json:
-            json.dump(view_principles(filtered), sys.stdout, indent=2, ensure_ascii=False)
+            json.dump(
+                view_principles(filtered), sys.stdout, indent=2, ensure_ascii=False
+            )
             sys.stdout.write("\n")
         else:
             sys.stdout.write(render_principles_block(filtered))
@@ -587,7 +939,9 @@ def main(argv: list[str] | None = None) -> int:
     elif args.view == "changes-summary":
         activity = [f for f in filtered if f.kind != "principle"]
         if args.json:
-            json.dump(view_changes_summary(activity), sys.stdout, ensure_ascii=False)
+            json.dump(
+                view_changes_summary(activity), sys.stdout, ensure_ascii=False
+            )
             sys.stdout.write("\n")
         else:
             sys.stdout.write(render_changes_summary_block(activity) + "\n")

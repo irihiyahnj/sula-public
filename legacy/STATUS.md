@@ -1,11 +1,15 @@
-# Current State Snapshot
+# STATUS
 
-- generated on: 2026-05-23
-- project: Sula
-- profile: `sula-core`
-- source priority: STATUS.md and project records override this generated snapshot
+> **Legacy — do not act on this file.** This is a Sula 0.18.x generated
+> snapshot, kept for historical reference. The authoritative protocol is
+> [AGENTS.md](AGENTS.md) and the authoritative project state is
+> `python3 tools/sula_vector/render.py . --for-agent`.
 
+- last updated: 2026-06-14
 ## Summary
+### 2026-06-14
+
+- Released Sula 0.18.15: fixed `sula check` self-invalidation by also excluding the generated kernel state (`.sula/events/log.jsonl`, `.sula/indexes/catalog.json`, `.sula/state/jobs/{history,latest}`) from the clean-worktree assertion, completing the 2026-06-06 root-cause fix that had remained uncommitted. Projects tracking `.sula/` in git can now hold a stable `SULA CHECK OK`.
 
 ### 2026-05-23
 
@@ -114,7 +118,6 @@
 - Sula orchestration now has a `provider-api` task source contract with provider task item identity, provider adapter task fetching, and fixture-backed Google Drive task ingestion.
 - Sula orchestration now has policy-controlled remote verification for PR/provider closeout references plus `codex-sdk` and `codex-app-server` runner adapters behind explicit project settings.
 - Sula now has a first-class automation kernel above orchestration: normal `check`, `doctor`, `status`, `query`, `sync`, and artifact freshness entrypoints can create events and intents automatically, so users do not need to remember a manual trigger command before Sula can plan follow-up work.
-
 ## Health
 
 - status: green
@@ -122,17 +125,18 @@
 
 ## Current Focus
 
+
 - keep the public bootstrap contract aligned with real consumer behavior and protocol failures seen in live use
 - run credentialed real-project canaries for GitHub PR verification, provider-backed artifact verification, and Codex runner endpoints before broad orchestration rollout
 - add authenticated provider task adapters beyond the current Google Drive document/checklist contract when a real provider task API target is selected
 - harden long-running remote runner cancellation and streamed event capture after the first real app-server canary
 - expand automation classifiers after real projects reveal recurring provider, status, and workflow failure patterns
-
 ## Blockers
 
 - none
 
 ## Recent Decisions
+
 
 - 2026-05-01: added [Add Closeout Verification Adapters](docs/change-records/2026-05-01-zz-add-closeout-verification-adapters.md)
 - 2026-05-01: added [Strengthen Orchestration Closeout Evaluator](docs/change-records/2026-05-01-z-strengthen-orchestration-closeout-evaluator.md)
@@ -147,7 +151,6 @@
 - 2026-05-06: added release record [Release Sula 0.18.3 noncached GitHub upgrade descriptor](docs/releases/2026-05-06-release-sula-0-18-3-noncached-github-upgrade-descriptor.md)
 - 2026-05-06: added release record [Release Sula 0.18.4 Git-cloned upgrade descriptor](docs/releases/2026-05-06-release-sula-0-18-4-git-cloned-upgrade-descriptor.md)
 - 2026-05-06: added release record [Release Sula 0.18.5 compact orchestration status](docs/releases/2026-05-06-release-sula-0-18-5-compact-orchestration-status.md)
-
 ## Next Review
 
 - owner: Sula Core maintainers
@@ -156,19 +159,20 @@
 
 ## Handoff
 
+
 - ready: yes
 - start here: `STATUS.md`; `.sula/memory-digest.md`
-- latest record: `docs/change-records/2026-05-07-add-fleet-token-and-cost-status-metrics.md`
+- latest record: `docs/change-records/2026-06-14-exclude-generated-state-from-clean-worktree.md`
 - next action: review `STATUS.md`; review `.sula/memory-digest.md`; run `git status --short`
 - next owner: Sula Core maintainers
-- next due: 2026-05-23
+- next due: 2026-06-14
 - done when: result `SULA CHECK OK`; result `doctor strict passed`; result `handoff updated`
 - blockers: none
-- source of truth: `STATUS.md`; `docs/change-records/2026-05-07-add-fleet-token-and-cost-status-metrics.md`
+- source of truth: `STATUS.md`; `docs/change-records/2026-06-14-exclude-generated-state-from-clean-worktree.md`
 - source freshness: current
 - verification command: `python3 scripts/sula.py check --project-root . --json`; `python3 scripts/sula.py doctor --project-root . --strict --json`; `python3 -m unittest discover -s tests -v`
 - verification result: pass
-- verification date: 2026-05-23
+- verification date: 2026-06-14
 - git branch: main
 - git commit: any
 - git working tree: dirty

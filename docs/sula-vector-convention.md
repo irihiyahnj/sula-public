@@ -8,7 +8,13 @@
 > The same shape works for code projects, governance projects, client-service
 > projects, and creative projects (e.g. video edits).
 
-Convention version: `1.0`
+Convention version: `1.1`
+
+v1.1 adds three things and invalidates no v1.0 fragment: **derived identity**
+(id and time come from the filename, never from hand-written frontmatter),
+**three lanes** (a render-time projection of every fragment into judgment /
+evidence / direction), and **mechanical evidence** (the `witness` skill
+captures what changed instead of asking an agent to describe it).
 
 ---
 
@@ -82,17 +88,59 @@ Decided: monthly delivery cadence for hospital-acme.
 Rationale: matches their procurement cycle and intake report rhythm.
 ```
 
-### Required fields
+### Identity is derived, not declared (v1.1)
 
-| field  | meaning                                                              |
-| ------ | -------------------------------------------------------------------- |
-| `id`   | stable unique identifier (filename stem is the recommended default)  |
-| `time` | ISO-8601 UTC timestamp; the canonical sort key                       |
-| `kind` | a short string describing the role of this fragment                  |
+| field  | source of truth                                                     |
+| ------ | ------------------------------------------------------------------- |
+| `id`   | **the filename stem** — always                                       |
+| `time` | **parsed from the filename** — always                                |
+| `kind` | frontmatter; the only field that must be authored                    |
+
+`id` and `time` may still appear in frontmatter (every v1.0 fragment has
+them). They are then treated as a redundant copy: render ignores them for
+identity and reports any disagreement as a `header-disagreement` problem. A
+fragment can therefore never carry a wrong id or a wrong timestamp.
+
+A fragment is **never silently dropped**. A file missing `kind`, or with an
+unparsable filename, still loads and surfaces through `--view doctor`. Silent
+loss is the one failure an append-only store cannot recover from.
+
+Use `note.py` rather than writing files by hand — it derives identity from the
+clock and refuses unknown `refs` / `closes` / `supersedes` targets, so a
+dangling reference cannot be created in the first place.
 
 `kind` is a free-form string. The convention does **not** enumerate kinds
 centrally. Projects add new kinds whenever they need them. Render functions
 operate generically by filtering on `kind` strings supplied at query time.
+
+### Three lanes (v1.1)
+
+Every fragment projects into exactly one lane. The lane is computed from
+`kind` at render time (override with an explicit `lane:` field). This is a
+projection for readers, not a validated enumeration — B3 and E4 still hold.
+
+| lane        | question    | metaphor | typical kinds                                              |
+| ----------- | ----------- | -------- | ---------------------------------------------------------- |
+| `judgment`  | **why**     | 方向     | `decision`, `correction`, `principle`, `assessment`, `annotation`, `preference`, `pitfall` |
+| `evidence`  | **what**    | 位置     | `witness`, `fact`, `verification-fact`, `artifact`, `release`, `operation` |
+| `direction` | **where to**| 去向     | `intent`, `goal`                                            |
+
+The division carries the operating rule: **a human or agent supplies judgment;
+the runtime supplies evidence.** Anything mechanical (a file appeared, a commit
+landed, a hash changed) must not be narrated by hand — see *Mechanical
+evidence* below.
+
+### Supersession and closure (v1.1)
+
+Two optional list fields make the append-only graph resolvable:
+
+| field        | meaning                                                             |
+| ------------ | ------------------------------------------------------------------- |
+| `supersedes` | ids of judgments this fragment replaces; render hides them from `--for-agent` and shows the trail in `--view effective` |
+| `closes`     | ids of directions this fragment closes; closed directions leave the open list |
+
+Supersession is explicit only. Referencing a fragment in `refs` never implies
+replacing it, so context links stay free of side effects.
 
 ### Common optional fields
 
@@ -164,18 +212,135 @@ when.
 The reference renderer exposes a small set of named views. Each view is a
 deterministic function of the fragments and a query.
 
-| view       | what it returns                                                              |
-| ---------- | ---------------------------------------------------------------------------- |
-| `list`     | all fragments matching the filter, sorted by `time`                          |
-| `digest`   | recent decisions, open intents/goals, recent facts, pinned threads' last turn — the default agent context |
-| `progress` | intents/goals matched against evidence facts via `refs`                      |
-| `thread`   | turns in a single thread, time-ordered                                       |
-| `family`   | artifact family with members and latest entry per `artifact_role`            |
-| `goals`    | goals + their verification status                                            |
+| view              | what it returns                                                       |
+| ----------------- | --------------------------------------------------------------------- |
+| `list`            | all fragments matching the filter, sorted by `time`                   |
+| `digest`          | judgments in force, open directions, recent evidence, pinned threads — the default agent context |
+| `journal`         | day by day: what was decided, what was produced (the human/company view) |
+| `effective`       | judgments in force plus the retired ones and what superseded them     |
+| `doctor`          | structural integrity of the vector; exit code 1 when problems exist   |
+| `progress`        | directions matched against evidence via `refs`                        |
+| `goals`           | goals + their verification status                                     |
+| `principles`      | Tier A–E currently in force                                           |
+| `thread`          | turns in a single thread, time-ordered                                |
+| `family`          | artifact family with members and latest entry per `artifact_role`     |
+| `changes-summary` | what was appended in a window (used for the turn-mark)                |
 
-All filters are open: `--kind`, `--since`, `--until`, `--tag`, `--ref`,
-`--thread`, `--family`. New views are added by writing a new function; they
-never require a new on-disk format.
+All filters are open: `--kind`, `--lane`, `--since`, `--until`, `--tag`,
+`--ref`, `--thread`, `--family`. New views are added by writing a new function;
+they never require a new on-disk format.
+
+### `--view doctor`
+
+Doctor is a pure function of the fragments — no state, no network, no writes.
+It reports: `no-frontmatter`, `missing-kind`, `unparsable-filename`,
+`unparsable-time`, `header-disagreement`, `duplicate-id`, `dangling-ref`,
+`goal-without-verifier`. Exit code is 1 when anything is found, so the same
+command works as a CI gate and as a goal verifier
+(`verifier_ref: shell: python3 tools/sula_vector/render.py . --view doctor`).
+
+A dangling reference is treated as acknowledged when some fragment records it
+in a `broken_ref` field — the append-only repair path, since the broken
+fragment itself can never be edited (B1, E3).
+
+---
+
+---
+
+## Mechanical evidence (v1.1)
+
+Asking an agent to remember to write down what it did is a prompt-layer
+enforcement of a data-layer invariant: it fails silently and unobservably.
+The `witness` skill removes the discretion.
+
+```bash
+python3 tools/sula_vector/skills/witness.py --project-root .
+```
+
+It scans the project folder, compares against the last witnessed state, and
+appends one `kind: witness` fragment recording the delta — path, content hash,
+size for every added, changed, and removed file. On a git repository it also
+records `commit` and `branch` and lists the commits since the previous witness,
+which gives sha-level traceability for free. Newly appeared documents
+(`.pdf`, `.docx`, `.xlsx`, `.pptx`, `.pages`, `.key`, …) additionally get one
+`kind: artifact` fragment each with a `pointer`, so they show up in
+`--view journal`.
+
+Two properties matter:
+
+- **No state directory.** The previous state is not cached anywhere; it is
+  folded out of the prior witness fragments, each of which carries only its own
+  delta. Truth stays in `fragments/` (B2, B4, E1, E2).
+- **Silent when nothing changed.** Running it twice appends nothing (C7).
+
+Ignore patterns come from the defaults plus any fragment carrying a
+`witness_ignore` field — configuration is itself a fragment, so it obeys B2.
+
+### Capture triggers
+
+```bash
+python3 tools/sula_vector/hooks/install.py --project-root .
+```
+
+The installer wires whichever mechanical trigger the substrate already
+provides, and nothing else:
+
+| substrate | trigger installed |
+| --------- | ----------------- |
+| git repository | `.git/hooks/post-commit` |
+| Kiro workspace | `.kiro/hooks/sula-witness.kiro.hook` (`agentStop`) |
+| Drive / Dropbox / plain folder | prints the cron line to paste |
+
+Sula still starts and schedules nothing itself (B7, E5). Every trigger belongs
+to a system that already exists.
+
+---
+
+## Worked example: a company, not a codebase
+
+A client-service folder on Drive. No git, no code, no build.
+
+```bash
+mkdir -p acme/fragments
+cp -r tools/sula_vector acme/tools/sula_vector
+cp tools/sula_vector/AGENTS.md acme/AGENTS.md
+cp tools/sula_vector/principles/*.md acme/fragments/
+```
+
+Work happens the way it already happens — someone writes a proposal, someone
+exports a quote sheet:
+
+```bash
+# a judgment: why, in one append
+python3 acme/tools/sula_vector/note.py acme --kind decision \
+  --title "对 Acme 采用月度交付节奏" --tags acme cadence "理由：匹配他们的采购周期。"
+
+# the evidence: mechanical, no narration
+python3 acme/tools/sula_vector/skills/witness.py --project-root acme \
+  --label "Acme 提案与报价定稿"
+```
+
+```
+$ python3 acme/tools/sula_vector/render.py acme --view journal
+## 2026-07-25
+  ◆ decision: 对 Acme 采用月度交付节奏
+  · artifact: acme-提案-v1.pdf  [客户资料/acme-提案-v1.pdf]
+  · artifact: acme-报价.xlsx  [客户资料/acme-报价.xlsx]
+  · witness: Acme 提案与报价定稿
+```
+
+Later, the proposal is revised and the quote sheet withdrawn. Nobody records
+that by hand:
+
+```
+$ python3 acme/tools/sula_vector/skills/witness.py --project-root acme
+[witness] + witness  2026-07-25T11-15-35Z--witness.md  (+0 ~1 -1, 0 commit(s))
+$ python3 acme/tools/sula_vector/skills/witness.py --project-root acme
+[witness] no change
+```
+
+Any LLM handed the `acme/` folder now boots into the same context, on any
+device, with no install and no network.
 
 ---
 
@@ -400,9 +565,14 @@ This pattern is principle-compatible:
 ## Reference renderer
 
 A pure-Python reference implementation lives at `tools/sula_vector/render.py`.
-It is standard library only, under 500 lines, and demonstrates every
-standard view. Reimplement it in any language; given the same `(fragments,
-conventions)`, the rendered view is byte-stable.
+It is standard library only and demonstrates every standard view. Reimplement
+it in any language; given the same `(fragments, conventions)`, the rendered
+view is byte-stable.
+
+The write path is `tools/sula_vector/note.py` (judgment) and
+`tools/sula_vector/skills/witness.py` (evidence). Both are optional: a fragment
+is just a text file, and a project stays valid if no Sula tooling exists on the
+device.
 
 ---
 
@@ -413,7 +583,9 @@ no longer parse. Bumps are rare. Adding a recommended kind, a new view, or a
 new optional field is **not** a bump — projects add those locally without
 coordination.
 
-Current convention version: `1.0` (GA, ship-frozen 2026-05-23).
+Current convention version: `1.1` (2026-07-25). Every v1.0 fragment parses and
+renders unchanged; v1.1 only moves identity from the frontmatter copy to the
+filename, adds the lane projection, and adds `supersedes` / `closes`.
 
-See `tools/sula_vector/RELEASE-NOTES.md` for the v1.0 release notes,
-verification evidence, and the adoption guide.
+See `tools/sula_vector/RELEASE-NOTES.md` for release notes, verification
+evidence, and the adoption guide.

@@ -1,20 +1,23 @@
 ---
-description: Sula repository rules
+description: Sula Vector project rules
 globs:
 alwaysApply: true
 ---
 
-Read [AGENTS.md](AGENTS.md) before making changes.
+# Cursor — project rules
 
-Critical rules:
+This project runs on the Sula Vector convention. **[AGENTS.md](AGENTS.md) is
+the authoritative protocol** — read it first and follow it exactly.
 
-- Repository root = `Sula`.
-- Highest rule: `Preserve the split between centrally managed operating-system files and project-owned business truth.`
-- Keep primary integration logic centralized in [scripts/sula.py](scripts/sula.py).
-- Use [docs/README.md](docs/README.md) as the document map and [docs/ops/team-operating-model.md](docs/ops/team-operating-model.md) as the default execution flow.
-- If the project enables formal document design rules, follow them for planning, proposal, report, process, and training documents.
-- Working branches use `codex/*`.
-- Deployment branch = `main`.
-- Run `python3 -m unittest discover -s tests -v` before finishing substantial changes.
+Boot (two steps): note the current UTC time as your session start, then run
 
-If this file conflicts with `AGENTS.md`, `AGENTS.md` wins.
+```bash
+python3 tools/sula_vector/render.py . --for-agent
+```
+
+Record judgments with `tools/sula_vector/note.py`. Mechanical evidence (files
+produced, commits made) is captured by `tools/sula_vector/skills/witness.py`;
+do not narrate it by hand.
+
+Nothing in this file overrides AGENTS.md. Legacy Sula 0.18.x instructions
+(`scripts/sula.py`, `.sula/`, `STATUS.md`) are historical reference only.

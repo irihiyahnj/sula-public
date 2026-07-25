@@ -1,20 +1,17 @@
 # GEMINI.md
 
-Read [AGENTS.md](AGENTS.md) before making changes.
+This project runs on the Sula Vector convention. **[AGENTS.md](AGENTS.md) is
+the authoritative protocol** — read it first and follow it exactly.
 
-If this file conflicts with `AGENTS.md`, `AGENTS.md` wins.
+Boot (two steps): note the current UTC time as your session start, then run
 
-## Critical Reminders
+```bash
+python3 tools/sula_vector/render.py . --for-agent
+```
 
-- Repository root = `Sula`.
-- Highest rule: `Preserve the split between centrally managed operating-system files and project-owned business truth.`
-- Keep primary integration logic centralized in [scripts/sula.py](scripts/sula.py).
-- Use [docs/README.md](docs/README.md) as the documentation map.
-- Use [docs/ops/team-operating-model.md](docs/ops/team-operating-model.md) as the default execution flow.
-- If the project enables formal document design rules, follow them for planning, proposal, report, process, and training documents.
-- If a reusable Sula-managed issue is found and fixed locally, capture it with `python3 scripts/sula.py feedback capture --project-root . ...` before leaving the project on local drift alone.
-- Working branches use `codex/*`.
-- Deployment branch = `main`.
-- Validate substantial changes with `python3 -m unittest discover -s tests -v`.
-- Session lifecycle: start by reading `.sula/memory-digest.md` and running `python3 scripts/sula.py session start --project-root .`; end by running `python3 scripts/sula.py report --project-root . --summary "..."` and committing the result. See AGENTS.md Session Lifecycle section for the full flow.
-- Natural-language project-maintenance and fleet-maintenance goals must be routed through `python3 scripts/sula.py auto --project-root . --intent "<user goal>"` before doing the mechanical work yourself. If Sula classifies the goal as executor-required, stay in supervisor/reviewer mode and let the configured executor route run it.
+Record judgments with `tools/sula_vector/note.py`. Mechanical evidence (files
+produced, commits made) is captured by `tools/sula_vector/skills/witness.py`;
+do not narrate it by hand.
+
+Nothing in this file overrides AGENTS.md. Legacy Sula 0.18.x instructions
+(`scripts/sula.py`, `.sula/`, `STATUS.md`) are historical reference only.

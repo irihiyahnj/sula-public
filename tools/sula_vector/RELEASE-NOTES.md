@@ -1,3 +1,53 @@
+# Sula Vector — Release Notes
+
+## v1.1 — Capture as invariant, errors made unrepresentable
+
+**Release date:** 2026-07-25
+**Convention version:** 1.1 (backwards-compatible; every v1.0 fragment parses and renders unchanged)
+
+v1.1 answers a single audit finding: the two things a "record every
+interaction" system actually depends on — **capture fidelity** (what reaches
+`fragments/`) and **reader resolution** (what `render` resolves for the
+reader) — were both enforced at the prompt layer, where failure is silent.
+v1.1 moves them to the data and runtime layers.
+
+### Derived identity
+
+- `id` and `time` now come from the **filename**, always. Frontmatter copies are treated as redundant and any disagreement surfaces as a `header-disagreement` problem. A fragment can no longer carry a wrong id or timestamp.
+- No fragment is ever silently dropped. A file missing `kind` or with an unparsable name still loads and shows up in `--view doctor`. Silent loss is the one failure an append-only store cannot recover from.
+- `note.py` is the write path for judgments: it derives identity from the clock, rejects unknown `refs`/`closes`/`supersedes` targets, and refuses a goal without a verifier. A dangling reference cannot be created through it.
+
+### Three lanes
+
+- Every fragment projects at render time into `judgment` (why), `evidence` (what), or `direction` (where to). `kind` stays a free-form string (B3/E4 intact); the lane is a projection, not an enum. `--for-agent` and `--view journal` are organised by lane; filter with `--lane`.
+
+### Supersession and closure
+
+- `supersedes: [id]` — a judgment replaces earlier ones; superseded judgments (and principles) leave the boot context and the supersession trail appears in `--view effective`.
+- `closes: [id]` — any fragment closes an open direction, so intents no longer accumulate forever.
+
+### Mechanical evidence
+
+- `skills/witness.py` captures what changed on **any substrate** — git repo, Drive/Dropbox folder, or plain folder of documents — recording path + content hash per file, plus commit-level detail on git. Prior state is folded out of previous witness fragments; no state directory (B2/B4/E1/E2). Silent when nothing changed (C7). New documents become `kind: artifact` fragments.
+- `hooks/install.py` wires the capture trigger the substrate already offers: git `post-commit`, Kiro `agentStop`, or a printed cron line.
+
+### Reader resolution
+
+- New views: `journal` (day-by-day decided/produced — the human/company view), `effective` (judgments in force + retirement trail), `doctor` (structural integrity, exit 1 on problems; usable as a CI gate and as a goal verifier).
+
+### Boot back to two steps
+
+- Boot is `note session_start` + `render --for-agent`. Tooling auto-update is no longer part of boot (B6); it is an explicit operator action.
+
+### Host convergence
+
+- All five host entrypoints (`CLAUDE.md`, `CODEX.md`, `GEMINI.md`, Cursor, Copilot) are thin pointers to `AGENTS.md`, projected idempotently by `migrate.py`. Legacy Sula 0.18.x files carry a "do not act on this" banner.
+
+Test suite: 65 tests, standard library only. `--view doctor` exits 0 on
+Sula's own vector (373 fragments).
+
+---
+
 # Sula Vector v1.0 — Release Notes
 
 **Release date:** 2026-05-23
