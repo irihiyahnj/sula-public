@@ -904,6 +904,25 @@ class TestWitnessSkill(unittest.TestCase):
         result = self._witness("--refs", "nope")
         self.assertEqual(result.returncode, 2)
 
+    def test_fragment_only_commits_do_not_loop(self):
+        def git(*cmd):
+            subprocess.run(["git", *cmd], cwd=str(self.root), check=True,
+                           capture_output=True, text=True)
+        git("init", "-q")
+        git("config", "user.email", "t@example.com")
+        git("config", "user.name", "t")
+        (self.root / "report.md").write_text("v1", encoding="utf-8")
+        git("add", "-A")
+        git("commit", "-qm", "add report")
+        self.assertEqual(self._witness().returncode, 0)
+        # commit the witness fragment itself, then witness again: no churn
+        git("add", "-A")
+        git("commit", "-qm", "capture")
+        before = len(list(self.frags.glob("*.md")))
+        result = self._witness()
+        self.assertIn("no change", result.stdout)
+        self.assertEqual(len(list(self.frags.glob("*.md"))), before)
+
 
 class TestHostPointers(unittest.TestCase):
     def setUp(self):

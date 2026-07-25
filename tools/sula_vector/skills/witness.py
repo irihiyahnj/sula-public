@@ -182,9 +182,19 @@ def git_info(root: Path) -> dict[str, str]:
 def git_commits_since(root: Path, since_commit: str) -> list[str]:
     if not (root / ".git").exists() or not since_commit:
         return []
+    # `%x00` separates hash+subject from the file list so a commit that only
+    # touched fragments/ (e.g. committing a previous witness) is dropped —
+    # otherwise the post-commit hook would witness its own commits forever (C7).
     try:
         result = subprocess.run(
-            ["git", "log", "--oneline", "--no-decorate", f"{since_commit}..HEAD"],
+            [
+                "git",
+                "log",
+                "--no-decorate",
+                "--name-only",
+                "--format=%x00%h %s",
+                f"{since_commit}..HEAD",
+            ],
             cwd=str(root),
             capture_output=True,
             text=True,
@@ -194,7 +204,17 @@ def git_commits_since(root: Path, since_commit: str) -> list[str]:
         return []
     if result.returncode != 0:
         return []
-    return [line for line in result.stdout.strip().splitlines() if line]
+    out: list[str] = []
+    for block in result.stdout.split("\x00"):
+        block = block.strip("\n")
+        if not block:
+            continue
+        header, _, files = block.partition("\n")
+        paths = [p for p in files.splitlines() if p.strip()]
+        if paths and all(p.startswith("fragments/") for p in paths):
+            continue
+        out.append(header.strip())
+    return out
 
 
 def last_witness_commit(frags: list) -> str:
