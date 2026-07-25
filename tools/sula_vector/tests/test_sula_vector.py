@@ -1080,15 +1080,32 @@ class TestJudgmentGap(unittest.TestCase):
             [f.id for f in judgment_gap(load_fragments(self.frags))], [wid]
         )
 
-    def test_earlier_judgment_does_not_cover_later_change(self):
+    def test_judgment_before_hook_fired_witness_is_not_a_gap(self):
+        """The hook fires at turn end, so the witness lands after the judgment.
+
+        Keying on timestamps alone flags every well-behaved turn. The window
+        between two captures is the unit, not the instant.
+        """
         _write(
             self.frags,
-            time="2026-05-01T00:00:00Z",
+            time="2026-05-02T00:00:00Z",
             slug="d",
             kind="decision",
-            body="why",
+            body="why I changed those files",
         )
-        wid = self._witness("2026-05-02T00:00:00Z", "witness-a")
+        self._witness("2026-05-02T00:00:05Z", "witness-a")
+        self.assertEqual(judgment_gap(load_fragments(self.frags)), [])
+
+    def test_second_turn_without_judgment_is_a_gap(self):
+        _write(
+            self.frags,
+            time="2026-05-02T00:00:00Z",
+            slug="d",
+            kind="decision",
+            body="why turn one changed files",
+        )
+        self._witness("2026-05-02T00:00:05Z", "witness-a")
+        wid = self._witness("2026-05-03T00:00:00Z", "witness-b")
         self.assertEqual(
             [f.id for f in judgment_gap(load_fragments(self.frags))], [wid]
         )

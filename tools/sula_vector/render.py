@@ -409,30 +409,39 @@ def _int_field(f: Fragment, key: str) -> int:
         return 0
 
 
+def _witnessed_change(f: Fragment) -> bool:
+    return f.get("baseline") not in {True, "true"} and any(
+        _int_field(f, k) for k in ("files_added", "files_changed", "files_removed")
+    )
+
+
 def judgment_gap(frags: list[Fragment]) -> list[Fragment]:
     """Witnessed change that nothing deliberate accounts for (B8/E8).
 
     Mechanical capture proves work happened; only a judgment or a direction says
     why. Evidence is the one lane a machine can write, so evidence alone leaves
-    the why nowhere. The asymmetry is computable, so the omission is reported
-    instead of trusted to discipline. It is never an error: forcing an append
-    would buy E8 with C7.
+    the why nowhere.
+
+    The unit is the window between two captures, not the instant: a capture hook
+    fires at the end of a turn, so the judgment that explains a change is
+    normally written *before* the witness that records it. Comparing timestamps
+    would flag every well-behaved turn, and a notice that cries wolf is worse
+    than no notice.
+
+    Never an error: forcing an append would buy E8 with C7.
     """
-    latest_deliberate = ""
-    for f in frags:
-        if lane_of(f) in {"judgment", "direction"}:
-            latest_deliberate = max(latest_deliberate, f.time)
-    return [
-        f
-        for f in frags
-        if f.kind == "witness"
-        and f.time > latest_deliberate
-        and f.get("baseline") not in {True, "true"}
-        and any(
-            _int_field(f, k)
-            for k in ("files_added", "files_changed", "files_removed")
-        )
+    deliberate = [
+        f.time for f in frags if lane_of(f) in {"judgment", "direction"}
     ]
+    gap: list[Fragment] = []
+    previous_capture = ""
+    for f in frags:
+        if f.kind != "witness":
+            continue
+        if _witnessed_change(f) and not any(t > previous_capture for t in deliberate):
+            gap.append(f)
+        previous_capture = f.time
+    return gap
 
 
 def view_digest(frags: list[Fragment], n: int = 10) -> dict[str, Any]:

@@ -1,6 +1,6 @@
 # Sula Vector
 
-A pure-function project operating system: a folder of typed text fragments
+A pure-function project memory layer: a folder of typed text fragments
 plus a tiny renderer.
 
 - Spec: [`../../docs/sula-vector-convention.md`](../../docs/sula-vector-convention.md)

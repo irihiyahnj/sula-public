@@ -6,8 +6,8 @@ Thanks for improving Sula.
 
 - read [AGENTS.md](AGENTS.md)
 - read [README.md](README.md)
-- review the current [STATUS.md](STATUS.md) and [CHANGE-RECORDS.md](CHANGE-RECORDS.md)
-- keep the split between centrally managed operating-system files and project-owned truth intact
+- run `python3 tools/sula_vector/render.py . --for-agent` to see the current project context
+- keep a project's truth in `fragments/` as an append-only folder of typed fragments; every view is `render(fragments, conventions)` (Tier A)
 
 ## Development Flow
 

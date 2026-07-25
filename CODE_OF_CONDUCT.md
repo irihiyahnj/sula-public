@@ -24,4 +24,4 @@ Maintainers may remove or moderate content and participation that violates this 
 
 ## Project Context
 
-Sula is an operating system for project collaboration. That means repo hygiene, reasoning quality, and rollout discipline are part of community behavior, not optional polish.
+Sula is a record of reasoning. That means repo hygiene, reasoning quality, and rollout discipline are part of community behavior, not optional polish.

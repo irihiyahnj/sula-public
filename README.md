@@ -1,6 +1,6 @@
 # Sula
 
-> A pure-function project operating system for AI-native teams.
+> Append-only project memory: what was decided, why, and what changed.
 > Cross-LLM, cross-device, byte-stable, principle-enforced.
 
 **Sula Vector v1.1** — capture as invariant, errors made unrepresentable.
@@ -11,6 +11,12 @@ Every view (status, progress, AI context, audit trail) is `render(fragments,
 conventions)`. No daemon, no kernel directory, no cache-as-truth. The same
 shape works for code projects, governance projects, client-service projects,
 and creative projects.
+
+Sula is a memory and rationale layer, not an operating system. It does not
+schedule, assign, track effort, resolve dependencies, or coordinate actors —
+the substrate and your existing tools keep doing that. It answers one question
+those tools cannot: **why is this project in the state it is in, and what is
+the evidence?**
 
 ---
 
