@@ -553,7 +553,7 @@ def main(argv: list[str] | None = None) -> int:
     print(f"  output dir       : {out}")
     for k, v in counts.items():
         print(f"  {k:18}: {v}")
-    print(f"  total fragments  : {sum(v for v in counts.values() if isinstance(v, int))}")
+    print(f"  total written    : {sum(v for v in counts.values() if isinstance(v, int))}")
     print(
         "\nNext: python3 tools/sula_vector/render.py "
         f"{out.parent} --for-agent"
