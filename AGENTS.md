@@ -89,6 +89,12 @@ python3 tools/sula_vector/render.py . --view changes-summary --since <session_st
 Display the full multi-line `[sula] +N this turn:` block. If the output is
 `[sula] no changes`, display nothing (C7).
 
+If the mark ends with `! N file change(s) witnessed, no judgment recorded`, the
+turn changed files and left no why behind. Append the missing judgment before
+you finish — witness has the what, and only you have the reason. The same
+notice appears in the next agent's boot under `## Unexplained change`, so the
+omission is inherited, not forgotten.
+
 Before claiming a task is done (D5), the vector must be structurally clean:
 
 ```bash

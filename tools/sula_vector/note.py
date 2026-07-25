@@ -22,9 +22,14 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from render import LANES, load_fragments  # type: ignore
+from render import LANE_BY_KIND, LANES, load_fragments  # type: ignore
 
 SLUG_KEEP = re.compile(r"[^a-z0-9]+")
+
+
+def lane_of_kind(kind: str, fields: dict) -> str:
+    declared = str(fields.get("lane", "")).strip()
+    return declared if declared in LANES else LANE_BY_KIND.get(kind, "evidence")
 
 
 def now_utc() -> datetime:
@@ -177,7 +182,7 @@ def main(argv: list[str] | None = None) -> int:
         return 0
 
     target.write_text(text, encoding="utf-8")
-    print(f"[sula] + {args.kind}  {target.name}")
+    print(f"[sula] + {args.kind} → {lane_of_kind(args.kind, fields)}  {target.name}")
     return 0
 
 

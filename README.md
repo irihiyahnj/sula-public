@@ -228,7 +228,7 @@ the vector convention. The recommended path forward is Sula Vector v1.1.
 
 ## Convention freeze and semantic versioning
 
-- **v1.x** — convention frozen. Any fragment file written against v1.0 will continue to parse and render identically across all v1.x releases.
+- **v1.x** — convention frozen. Any fragment file written against v1.0 continues to parse, and keeps the same meaning, across all v1.x releases. The freeze covers fragment validity and semantics, not the exact bytes of a rendered view: a view that loses live state is a defect and gets fixed.
 - **v1.x.y minor** — may add new views, new recommended kinds, new skills, new optional frontmatter fields. Never invalidates existing fragments.
 - **v2.0** — only if a previously-valid fragment file would no longer parse. No current plan.
 

@@ -32,6 +32,7 @@ from render import (  # type: ignore  # noqa: E402
     _parse_frontmatter,
     derive_identity,
     filter_fragments,
+    judgment_gap,
     lane_of,
     load_fragments,
     load_report,
@@ -810,6 +811,12 @@ class TestNoteCli(unittest.TestCase):
         self.assertEqual(frags[0].get("summary"), "pick A")
         self.assertEqual(frags[0].id, Path(frags[0].path).stem)
 
+    def test_echoes_derived_lane(self):
+        result = self._note("--kind", "decision", "--title", "pick A", "why")
+        self.assertIn("→ judgment", result.stdout)
+        result = self._note("--kind", "event", "--title", "a thing happened", "what")
+        self.assertIn("→ evidence", result.stdout)
+
     def test_rejects_unknown_ref(self):
         result = self._note("--kind", "decision", "--refs", "nope", "body")
         self.assertEqual(result.returncode, 2)
@@ -922,6 +929,181 @@ class TestWitnessSkill(unittest.TestCase):
         result = self._witness()
         self.assertIn("no change", result.stdout)
         self.assertEqual(len(list(self.frags.glob("*.md"))), before)
+
+
+class TestBootCompleteness(unittest.TestCase):
+    """A lane's cutoff must be its own semantics, never a shared recency cap."""
+
+    def setUp(self):
+        self.root, self.frags = _make_root()
+
+    def tearDown(self):
+        shutil.rmtree(self.root)
+
+    def _many(self, kind: str, count: int = 25) -> list[str]:
+        return [
+            _write(
+                self.frags,
+                time=f"2026-05-{day:02d}T00:00:00Z",
+                slug=f"{kind}-{day}",
+                kind=kind,
+                body="body",
+            )
+            for day in range(1, count + 1)
+        ]
+
+    def test_every_in_force_judgment_reaches_boot(self):
+        ids = self._many("decision")
+        out = render_for_agent(load_fragments(self.frags))
+        self.assertEqual([i for i in ids if i not in out], [])
+
+    def test_supersession_is_the_only_way_out_of_boot(self):
+        ids = self._many("decision")
+        retired = ids[0]
+        newest = _write(
+            self.frags,
+            time="2026-06-01T00:00:00Z",
+            slug="correction-x",
+            kind="correction",
+            body="wrong",
+            extras={"supersedes": f"[{retired}]"},
+        )
+        out = render_for_agent(load_fragments(self.frags))
+        self.assertNotIn(retired, out)
+        self.assertIn(newest, out)
+        self.assertEqual([i for i in ids[1:] if i not in out], [])
+
+    def test_every_open_direction_reaches_boot(self):
+        ids = self._many("goal")
+        digest = view_digest(load_fragments(self.frags))
+        self.assertEqual([d["id"] for d in digest["open_intents"]], ids)
+
+    def test_evidence_stays_capped_by_recency(self):
+        ids = self._many("event")
+        digest = view_digest(load_fragments(self.frags))
+        self.assertEqual([d["id"] for d in digest["recent"]], ids[-10:])
+
+    def test_boot_membership_matches_effective(self):
+        """No two views may disagree about the same lane's membership.
+
+        The n=10 defect was invisible to every test because the tests shared its
+        belief. Cross-view agreement is checkable without knowing the intent.
+        """
+        ids = self._many("decision")
+        retired = ids[3]
+        _write(
+            self.frags,
+            time="2026-06-02T00:00:00Z",
+            slug="correction-y",
+            kind="correction",
+            body="wrong",
+            extras={"supersedes": f"[{retired}]"},
+        )
+        frags = load_fragments(self.frags)
+        out = render_for_agent(frags)
+        effective = view_effective(frags)
+        for f in effective["in_force"]:
+            if f["kind"] != "principle":
+                self.assertIn(f["id"], out)
+        for f in effective["retired"]:
+            self.assertNotIn(f["id"], out)
+
+
+class TestJudgmentGap(unittest.TestCase):
+    """Witnessed change without a judgment must be visible, never fatal."""
+
+    def setUp(self):
+        self.root, self.frags = _make_root()
+
+    def tearDown(self):
+        shutil.rmtree(self.root)
+
+    def _witness(self, time: str, slug: str, **extras: object) -> str:
+        fields: dict[str, object] = {
+            "files_added": 0,
+            "files_changed": 2,
+            "files_removed": 0,
+        }
+        fields.update(extras)
+        return _write(
+            self.frags,
+            time=time,
+            slug=slug,
+            kind="witness",
+            body="+0 ~2 -0 file(s).",
+            extras=fields,
+        )
+
+    def test_change_without_judgment_is_reported(self):
+        wid = self._witness("2026-05-02T00:00:00Z", "witness-a")
+        frags = load_fragments(self.frags)
+        self.assertEqual([f.id for f in judgment_gap(frags)], [wid])
+        self.assertIn("Unexplained change", render_for_agent(frags))
+        self.assertIn("no judgment recorded", render_changes_summary_block(frags))
+
+    def test_later_judgment_clears_the_gap(self):
+        self._witness("2026-05-02T00:00:00Z", "witness-a")
+        _write(
+            self.frags,
+            time="2026-05-03T00:00:00Z",
+            slug="d",
+            kind="decision",
+            body="why it changed",
+        )
+        frags = load_fragments(self.frags)
+        self.assertEqual(judgment_gap(frags), [])
+        self.assertNotIn("Unexplained change", render_for_agent(frags))
+
+    def test_later_direction_also_clears_the_gap(self):
+        self._witness("2026-05-02T00:00:00Z", "witness-a")
+        _write(
+            self.frags,
+            time="2026-05-03T00:00:00Z",
+            slug="g",
+            kind="goal",
+            body="where this is going",
+            extras={"verifier_ref": "shell: true"},
+        )
+        self.assertEqual(judgment_gap(load_fragments(self.frags)), [])
+
+    def test_evidence_alone_never_clears_the_gap(self):
+        wid = self._witness("2026-05-02T00:00:00Z", "witness-a")
+        _write(
+            self.frags,
+            time="2026-05-03T00:00:00Z",
+            slug="vf",
+            kind="verification-fact",
+            body="passed",
+            extras={"passed": "true"},
+        )
+        self.assertEqual(
+            [f.id for f in judgment_gap(load_fragments(self.frags))], [wid]
+        )
+
+    def test_earlier_judgment_does_not_cover_later_change(self):
+        _write(
+            self.frags,
+            time="2026-05-01T00:00:00Z",
+            slug="d",
+            kind="decision",
+            body="why",
+        )
+        wid = self._witness("2026-05-02T00:00:00Z", "witness-a")
+        self.assertEqual(
+            [f.id for f in judgment_gap(load_fragments(self.frags))], [wid]
+        )
+
+    def test_baseline_and_silent_witness_are_not_gaps(self):
+        self._witness(
+            "2026-05-02T00:00:00Z", "witness-baseline", files_added=300, baseline="true"
+        )
+        self._witness("2026-05-03T00:00:00Z", "witness-quiet", files_changed=0)
+        self.assertEqual(judgment_gap(load_fragments(self.frags)), [])
+
+    def test_gap_is_not_a_doctor_problem(self):
+        self._witness("2026-05-02T00:00:00Z", "witness-a")
+        frags, problems = load_report(self.frags)
+        self.assertTrue(view_doctor(frags, problems)["ok"])
 
 
 class TestHostPointers(unittest.TestCase):

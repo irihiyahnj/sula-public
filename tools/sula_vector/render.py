@@ -402,7 +402,43 @@ def view_list(frags: list[Fragment]) -> list[dict[str, Any]]:
     return [_to_dict(f) for f in frags]
 
 
+def _int_field(f: Fragment, key: str) -> int:
+    try:
+        return int(str(f.get(key, 0) or 0))
+    except ValueError:
+        return 0
+
+
+def judgment_gap(frags: list[Fragment]) -> list[Fragment]:
+    """Witnessed change that nothing deliberate accounts for (B8/E8).
+
+    Mechanical capture proves work happened; only a judgment or a direction says
+    why. Evidence is the one lane a machine can write, so evidence alone leaves
+    the why nowhere. The asymmetry is computable, so the omission is reported
+    instead of trusted to discipline. It is never an error: forcing an append
+    would buy E8 with C7.
+    """
+    latest_deliberate = ""
+    for f in frags:
+        if lane_of(f) in {"judgment", "direction"}:
+            latest_deliberate = max(latest_deliberate, f.time)
+    return [
+        f
+        for f in frags
+        if f.kind == "witness"
+        and f.time > latest_deliberate
+        and f.get("baseline") not in {True, "true"}
+        and any(
+            _int_field(f, k)
+            for k in ("files_added", "files_changed", "files_removed")
+        )
+    ]
+
+
 def view_digest(frags: list[Fragment], n: int = 10) -> dict[str, Any]:
+    # Each lane ends by its own semantics: a judgment ends when superseded, a
+    # direction when closed, evidence only recedes into the past. Capping the
+    # first two by recency drops live state with no fragment recording it (B2).
     superseded = supersession_map(frags)
     decisions = [
         f
@@ -410,12 +446,12 @@ def view_digest(frags: list[Fragment], n: int = 10) -> dict[str, Any]:
         if lane_of(f) == "judgment"
         and f.kind != "principle"
         and f.id not in superseded
-    ][-n:]
+    ]
     open_intents = [
         f
         for f in frags
         if lane_of(f) == "direction" and not _is_satisfied(f, frags)
-    ][-n:]
+    ]
     recent = [f for f in frags if lane_of(f) == "evidence"][-n:]
     return {
         "decisions": [_to_dict(f) for f in decisions],
@@ -635,6 +671,18 @@ def render_changes_summary_block(frags: list[Fragment]) -> str:
             status = "PASS" if passed else "FAIL"
             summary = f"{status}  {short_target}"
         lines.append(f"  {marker} {f.kind.ljust(width)}  {summary}")
+    gap = judgment_gap(frags)
+    if gap:
+        changed = sum(
+            _int_field(f, k)
+            for f in gap
+            for k in ("files_added", "files_changed", "files_removed")
+        )
+        lines.append("")
+        lines.append(
+            f"  ! {changed} file change(s) witnessed, no judgment recorded — "
+            "why is not in the vector (B8/E8)"
+        )
     return "\n".join(lines)
 
 
@@ -737,6 +785,19 @@ def render_for_agent(
     for r in digest["recent"]:
         lines.append(f"- [{r['time']}] {r['kind']}: {r['summary']}")
     lines.append("")
+
+    gap = judgment_gap(non_principle)
+    if gap:
+        lines.append("## Unexplained change")
+        for f in gap:
+            lines.append(
+                f"- [{f.time}] {f.id}: {_summarize(f, max_chars=120)}"
+            )
+        lines.append(
+            "- No judgment follows this change. Whoever knows why should append "
+            "one; it cannot be recovered from the files."
+        )
+        lines.append("")
 
     lines.append("## How to act")
     lines.append(

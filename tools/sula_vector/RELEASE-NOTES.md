@@ -1,9 +1,53 @@
 # Sula Vector — Release Notes
 
+## v1.1.2 — The missing why is inherited, not forgotten
+
+**Release date:** 2026-07-25
+**Convention version:** 1.1 (unchanged; new notice in two existing views)
+
+Evidence capture was mechanical from v1.1; judgment capture was not, and could
+not be. But the *omission* is computable: `judgment_gap()` returns every
+witness fragment recording real change that no judgment and no direction
+follows. Evidence is the one lane a machine can write, so evidence alone leaves
+the why nowhere.
+
+- The end-of-turn mark gains `! N file change(s) witnessed, no judgment recorded`, so the human sees it in-band at the moment it happens.
+- `--for-agent` gains `## Unexplained change`, so a gap left by one session is inherited by the next agent instead of evaporating with the transcript.
+- `--view doctor` is deliberately unchanged. A missing judgment is not malformation, and forcing an append would buy E8 with C7. In an append-only store the strongest available enforcement is permanent visibility — the same shape as the trust model: it cannot prevent a false claim, it makes one permanently traceable.
+
+Baseline witnesses and silent witnesses are not gaps.
+
+A cross-view invariant is now pinned by test: no two views may disagree about
+one lane's membership. The `n=10` defect fixed in v1.1.1 was invisible to 65
+passing tests because those tests shared its belief; view-to-view disagreement
+is checkable without knowing the intent, which retires that whole class.
+
+## v1.1.1 — Boot carries all live state
+
+**Release date:** 2026-07-25
+**Convention version:** 1.1 (unchanged; renderer defect fix)
+
+`view_digest` capped all three lanes at the same `n=10`, so `--for-agent`
+showed only the ten most recent judgments. On Sula's own vector that meant 92
+judgments were in force and 10 reached the boot context — and the line
+`(N superseded judgment(s) hidden)` attributed the loss to supersession, which
+accounted for 2 of them. Cross-model handover reads the boot; a boot missing
+most of the live state makes "switch cost = 0" false for older decisions.
+
+The fix is dimensional, not a knob: a lane's cutoff must be its own semantics.
+A judgment ends when superseded, a direction when closed, evidence only
+recedes into the past. `n` now means what it always meant — how much recent
+evidence to show — and the two other caps are gone. Nothing became
+configurable, so no implicit state was traded for a setting (B2).
+
+`note.py` now echoes the derived lane when it appends (`+ decision → judgment`),
+so a `kind` that lands in the wrong lane is visible at write time rather than
+silently absent from the boot's in-force list.
+
 ## v1.1 — Capture as invariant, errors made unrepresentable
 
 **Release date:** 2026-07-25
-**Convention version:** 1.1 (backwards-compatible; every v1.0 fragment parses and renders unchanged)
+**Convention version:** 1.1 (backwards-compatible; every v1.0 fragment parses and keeps its meaning)
 
 v1.1 answers a single audit finding: the two things a "record every
 interaction" system actually depends on — **capture fidelity** (what reaches
@@ -159,7 +203,7 @@ untouched (preserved for rollback).
 
 ## Convention freeze and semantic versioning
 
-- **v1.x** — convention is **frozen**. Existing fragment files written against v1.0 will continue to parse and render identically across all v1.x releases.
+- **v1.x** — convention is **frozen**. Existing fragment files written against v1.0 continue to parse, and keep the same meaning, across all v1.x releases. The freeze covers fragment validity and semantics, not the exact bytes of a rendered view: a view that loses live state is a defect and gets fixed.
 - **v1.x.y minor releases** may add: new views, new recommended kinds, new skills, new optional frontmatter fields. They will not invalidate existing fragments.
 - **v2.0** would only ship if a previously-valid fragment file would no longer parse. There is no current plan for v2.0.
 
