@@ -22,12 +22,15 @@ from typing import Any, Iterable
 CONVENTION_VERSION = "1.1"
 
 TIER_ORDER = ["highest", "invariant", "aesthetic", "discipline", "anti-pattern"]
+PROJECT_TIER = "project"
+PRINCIPLE_ORDER = TIER_ORDER + [PROJECT_TIER]
 TIER_TITLES = {
-    "highest": "A — Highest rule",
-    "invariant": "B — Invariants",
-    "aesthetic": "C — Aesthetics",
-    "discipline": "D — Implementation discipline",
-    "anti-pattern": "E — Anti-patterns",
+    "highest": "Tier A — Highest rule",
+    "invariant": "Tier B — Invariants",
+    "aesthetic": "Tier C — Aesthetics",
+    "discipline": "Tier D — Implementation discipline",
+    "anti-pattern": "Tier E — Anti-patterns",
+    PROJECT_TIER: "Project principles",
 }
 
 LANES = ("evidence", "judgment", "direction")
@@ -529,16 +532,18 @@ def view_goals(frags: list[Fragment]) -> list[dict[str, Any]]:
 
 
 def view_principles(frags: list[Fragment]) -> dict[str, list[dict[str, Any]]]:
-    grouped: dict[str, list[dict[str, Any]]] = {tier: [] for tier in TIER_ORDER}
+    # `tier` groups principles, it never filters them. A project's own
+    # principles carry no Tier A–E label, and dropping them made the most
+    # load-bearing judgment in a real project invisible in every view.
+    grouped: dict[str, list[dict[str, Any]]] = {t: [] for t in PRINCIPLE_ORDER}
     superseded = supersession_map(frags)
     for f in frags:
-        if f.kind != "principle":
+        if f.kind != "principle" or f.id in superseded:
             continue
         tier = str(f.get("tier", "")).strip()
-        if tier in grouped and f.id not in superseded:
-            entry = _to_dict(f)
-            entry["body"] = f.body
-            grouped[tier].append(entry)
+        entry = _to_dict(f)
+        entry["body"] = f.body
+        grouped[tier if tier in grouped else PROJECT_TIER].append(entry)
     return grouped
 
 
@@ -704,11 +709,11 @@ def render_principles_block(frags: list[Fragment]) -> str:
             "tools/sula_vector/principles/*.md into fragments/)\n"
         )
     lines: list[str] = ["## Principles in force", ""]
-    for tier in TIER_ORDER:
+    for tier in PRINCIPLE_ORDER:
         items = grouped[tier]
         if not items:
             continue
-        lines.append(f"### Tier {TIER_TITLES[tier]}")
+        lines.append(f"### {TIER_TITLES[tier]}")
         lines.append("")
         for p in items:
             body = (p.get("body") or "").strip()

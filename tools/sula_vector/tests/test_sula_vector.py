@@ -995,6 +995,29 @@ class TestBootCompleteness(unittest.TestCase):
         digest = view_digest(load_fragments(self.frags))
         self.assertEqual([d["id"] for d in digest["recent"]], ids[-10:])
 
+    def test_untiered_project_principle_reaches_every_view(self):
+        """`tier` groups principles, it never filters them.
+
+        A project's own principle carries no Tier A–E label. Dropping it made
+        the most load-bearing judgment in a real project invisible in both
+        --for-agent and --view principles while the file sat in fragments/.
+        """
+        _write(
+            self.frags,
+            time="2026-05-09T00:00:00Z",
+            slug="principle-house-rule",
+            kind="principle",
+            body="Never haggle over her cost price.",
+        )
+        frags = load_fragments(self.frags)
+        grouped = view_principles(frags)
+        self.assertEqual(
+            [p["body"] for p in grouped["project"]],
+            ["Never haggle over her cost price."],
+        )
+        self.assertIn("Never haggle", render_principles_block(frags))
+        self.assertIn("Never haggle", render_for_agent(frags))
+
     def test_boot_membership_matches_effective(self):
         """No two views may disagree about the same lane's membership.
 
