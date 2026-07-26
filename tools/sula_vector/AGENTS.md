@@ -111,9 +111,15 @@ python3 tools/sula_vector/hooks/install.py --project-root .   # once per project
 python3 tools/sula_vector/skills/witness.py --project-root .  # or run by hand
 ```
 
-The installer wires whatever the substrate already offers: a git `post-commit`
-hook, a Kiro `agentStop` hook, or the cron line to paste for a Drive/Dropbox
-folder. Sula never schedules anything itself (B7).
+The installer wires whatever the substrate already offers, and names the host
+each trigger actually reaches: a git `post-commit` hook, a Kiro CLI agent
+config (`agentSpawn` injects this boot, `stop` witnesses the turn), a Kiro IDE
+hook, and on a folder or Drive substrate a launchd timer on macOS or the cron
+line to paste. Sula never schedules anything itself (B7).
+
+The Kiro CLI agent is written but not activated: a custom agent replaces the
+built-in default agent's prompt, which is not a change to make on someone's
+behalf. Activate it with `kiro-cli settings chat.defaultAgent sula`.
 
 ## Adopt into a new project
 

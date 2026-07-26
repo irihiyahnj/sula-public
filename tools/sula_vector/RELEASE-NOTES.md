@@ -1,5 +1,28 @@
 # Sula Vector — Release Notes
 
+## v1.1.3 — Capture is wired to hosts that actually read it
+
+**Release date:** 2026-07-26
+**Convention version:** 1.1 (unchanged; installer and docs)
+
+`hooks/install.py` wrote `.kiro/hooks/sula-witness.kiro.hook` with trigger
+`agentStop` and reported `kiro installed`. Kiro CLI reads hooks only from a
+`hooks` field inside an agent configuration, and its trigger set is
+`agentSpawn`, `userPromptSubmit`, `preToolUse`, `postToolUse`, `stop` — there is
+no `agentStop`, and `.kiro/hooks/` is the IDE's location. So on every substrate
+without git, mechanical capture had been dead since v1.1 while the installer
+claimed success. A tool whose purpose is an honest record must not misreport its
+own wiring.
+
+- Kiro CLI now gets `.kiro/agents/sula.json`: `agentSpawn` runs the boot and its stdout is added to the session context, `stop` witnesses the turn. Written but deliberately **not** activated — a custom agent replaces the built-in default agent's prompt, which is not a change to make on a user's behalf. Activate with `kiro-cli settings chat.defaultAgent sula`.
+- The IDE hook is still written, now labelled as IDE-only.
+- A folder or Drive substrate on macOS gets a **launchd** timer every 900s instead of a printed cron line. cron needs Full Disk Access to read `~/Library/Mobile Documents`; launchd runs in the user session and does not. Verified end to end on an iCloud project: a file change produced a witness fragment.
+- launchd labels carry a path digest. The readable part of a CJK-only folder name reduces to nothing, and two such projects would otherwise share one label and evict each other.
+
+`install.py` had no test coverage at all, which is why a false success report
+survived two releases. It now has four tests, one of which pins the documented
+trigger set.
+
 ## v1.1.2 — The missing why is inherited, not forgotten
 
 **Release date:** 2026-07-25
@@ -75,7 +98,7 @@ v1.1 moves them to the data and runtime layers.
 ### Mechanical evidence
 
 - `skills/witness.py` captures what changed on **any substrate** — git repo, Drive/Dropbox folder, or plain folder of documents — recording path + content hash per file, plus commit-level detail on git. Prior state is folded out of previous witness fragments; no state directory (B2/B4/E1/E2). Silent when nothing changed (C7). New documents become `kind: artifact` fragments.
-- `hooks/install.py` wires the capture trigger the substrate already offers: git `post-commit`, Kiro `agentStop`, or a printed cron line.
+- `hooks/install.py` wires the capture trigger the substrate already offers: git `post-commit`, a Kiro CLI agent config, a Kiro IDE hook, or a scheduled timer.
 
 ### Reader resolution
 

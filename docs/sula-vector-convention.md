@@ -288,8 +288,9 @@ provides, and nothing else:
 | substrate | trigger installed |
 | --------- | ----------------- |
 | git repository | `.git/hooks/post-commit` |
-| Kiro workspace | `.kiro/hooks/sula-witness.kiro.hook` (`agentStop`) |
-| Drive / Dropbox / plain folder | prints the cron line to paste |
+| Kiro CLI | `.kiro/agents/sula.json` — `agentSpawn` injects the boot, `stop` witnesses the turn (written, not activated) |
+| Kiro IDE | `.kiro/hooks/sula-witness.kiro.hook` |
+| Drive / Dropbox / plain folder | launchd timer on macOS, else the cron line to paste |
 
 Sula still starts and schedules nothing itself (B7, E5). Every trigger belongs
 to a system that already exists.

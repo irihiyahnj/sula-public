@@ -1158,6 +1158,72 @@ class TestJudgmentGap(unittest.TestCase):
         self.assertTrue(view_doctor(frags, problems)["ok"])
 
 
+class TestCaptureInstaller(unittest.TestCase):
+    """The installer must only claim installs the host actually reads."""
+
+    KIRO_CLI_TRIGGERS = {
+        "agentSpawn",
+        "userPromptSubmit",
+        "preToolUse",
+        "postToolUse",
+        "stop",
+    }
+
+    def setUp(self):
+        self.root, self.frags = _make_root()
+
+    def tearDown(self):
+        shutil.rmtree(self.root)
+
+    def _install(self, *args: str) -> subprocess.CompletedProcess:
+        return subprocess.run(
+            [
+                sys.executable,
+                str(TOOLS / "hooks" / "install.py"),
+                "--project-root",
+                str(self.root),
+                "--skip-schedule",
+                *args,
+            ],
+            capture_output=True,
+            text=True,
+        )
+
+    def test_cli_agent_uses_only_documented_triggers(self):
+        """Kiro CLI has no agentStop trigger and never reads .kiro/hooks/.
+
+        The installer shipped an agentStop hook for two releases and reported it
+        as installed, so capture was silently dead on every non-git substrate.
+        """
+        self.assertEqual(self._install().returncode, 0)
+        config = json.loads(
+            (self.root / ".kiro" / "agents" / "sula.json").read_text(encoding="utf-8")
+        )
+        triggers = set(config["hooks"])
+        self.assertTrue(triggers)
+        self.assertEqual(triggers - self.KIRO_CLI_TRIGGERS, set())
+        self.assertIn("agentSpawn", triggers)
+        self.assertIn("stop", triggers)
+
+    def test_ide_hook_is_labelled_as_ide_only(self):
+        out = self._install().stdout
+        self.assertIn("Kiro IDE only", out)
+        self.assertRegex(out, r"kiro-cli\s+.*sula\.json")
+
+    def test_cli_agent_reported_inactive_until_selected(self):
+        self.assertIn("NOT active", self._install().stdout)
+        (self.root / ".kiro" / "settings").mkdir(parents=True, exist_ok=True)
+        (self.root / ".kiro" / "settings" / "cli.json").write_text(
+            json.dumps({"chat.defaultAgent": "sula"}), encoding="utf-8"
+        )
+        self.assertIn("active", self._install().stdout)
+
+    def test_install_is_idempotent(self):
+        self._install()
+        second = self._install()
+        self.assertIn("already installed", second.stdout)
+
+
 class TestHostPointers(unittest.TestCase):
     def setUp(self):
         self.root = Path(tempfile.mkdtemp(prefix="sula-test-host-"))

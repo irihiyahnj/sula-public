@@ -148,7 +148,8 @@ Reference skills:
 | `llm-dispatcher.py` | Routes `kind: intent` fragments with `executor_command` to a configured shell executor; captures stdout into a `kind: turn`. |
 
 `witness.py` is what makes capture an invariant rather than a habit — wire it
-once with `hooks/install.py` (git `post-commit`, Kiro `agentStop`, or cron).
+once with `hooks/install.py` (git `post-commit`, a Kiro CLI agent config, a
+Kiro IDE hook, or a launchd/cron timer).
 Record judgments with `note.py`, which derives id/time from the clock and
 refuses dangling references or goals without verifiers.
 
