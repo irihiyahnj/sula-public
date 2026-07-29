@@ -84,7 +84,20 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--verifier", default="", help="e.g. 'shell: python3 -m unittest ...'")
     p.add_argument("--field", action="append", default=[], metavar="KEY=VALUE")
     p.add_argument("--dry-run", action="store_true")
-    args = p.parse_args(argv)
+    args, extra = p.parse_known_args(argv)
+
+    # Python <= 3.12's argparse cannot match a trailing optional positional that
+    # appears AFTER optionals, so `note.py . --kind decision "body"` loses the
+    # body there while it parses fine on 3.13+. Recover it from the leftovers.
+    # Strictness is preserved: anything that still looks like a flag is an error,
+    # because a mistyped option must never silently become body text.
+    if extra:
+        flagged = [x for x in extra if x.startswith("-")]
+        if flagged:
+            p.error("unrecognized arguments: " + " ".join(flagged))
+        if args.body:
+            p.error("body given more than once: " + " ".join([args.body, *extra]))
+        args.body = " ".join(extra)
 
     root = Path(args.project_root).resolve()
     fragments_dir = root / "fragments"
