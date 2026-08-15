@@ -1447,6 +1447,169 @@ class TestJudgmentDecay(unittest.TestCase):
         self.assertNotIn("decay", json.dumps(view_doctor(frags, problems)["by_code"]))
 
 
+class TestBrokenRefRepair(unittest.TestCase):
+    """The repair path for a dangling ref has to scale, or the gate never reopens.
+
+    A fragment holding a bad ref can never be edited (B1), so acknowledgement is
+    the only route. One project carries 483 of them from hand-written v1.0-era
+    fragments; one fragment per ref is a path nobody walks.
+    """
+
+    def setUp(self):
+        self.root, self.frags = _make_root()
+
+    def tearDown(self):
+        shutil.rmtree(self.root)
+
+    def _doctor(self):
+        frags, problems = load_report(self.frags)
+        return view_doctor(frags, problems)
+
+    def _dangling(self, slug: str, target: str) -> None:
+        _write(
+            self.frags,
+            time=f"2026-05-01T00:00:0{slug[-1]}Z",
+            slug=slug,
+            kind="decision",
+            body="points at something that never existed",
+            refs=[target],
+        )
+
+    def test_one_fragment_acknowledges_many(self):
+        missing = [f"2026-01-01T00-00-0{i}Z--gone" for i in range(3)]
+        for i, target in enumerate(missing):
+            self._dangling(f"d{i}", target)
+        self.assertEqual(self._doctor()["by_code"]["dangling-ref"], 3)
+        _write(
+            self.frags,
+            time="2026-06-01T00:00:00Z",
+            slug="correction-bulk",
+            kind="correction",
+            body="none of these ids were ever written",
+            extras={"broken_ref": f"[{', '.join(missing)}]"},
+        )
+        self.assertTrue(self._doctor()["ok"])
+
+    def test_scalar_form_still_acknowledges(self):
+        """v1.0-era fragments wrote a single id; they must keep working."""
+        missing = "2026-01-01T00-00-00Z--gone"
+        self._dangling("d0", missing)
+        _write(
+            self.frags,
+            time="2026-06-01T00:00:00Z",
+            slug="correction-scalar",
+            kind="correction",
+            body="that id never existed",
+            extras={"broken_ref": missing},
+        )
+        self.assertTrue(self._doctor()["ok"])
+
+    def test_partial_acknowledgement_leaves_the_rest(self):
+        self._dangling("d0", "2026-01-01T00-00-00Z--gone")
+        self._dangling("d1", "2026-01-01T00-00-01Z--also-gone")
+        _write(
+            self.frags,
+            time="2026-06-01T00:00:00Z",
+            slug="correction-partial",
+            kind="correction",
+            body="only the first is accounted for",
+            extras={"broken_ref": "[2026-01-01T00-00-00Z--gone]"},
+        )
+        self.assertEqual(self._doctor()["by_code"]["dangling-ref"], 1)
+
+    def test_note_does_not_validate_broken_refs(self):
+        """They are broken because nothing carries them; validating is impossible."""
+        result = subprocess.run(
+            [
+                sys.executable,
+                str(TOOLS / "note.py"),
+                str(self.root),
+                "--kind",
+                "correction",
+                "--broken-ref",
+                "2026-01-01T00-00-00Z--gone,2026-01-01T00-00-01Z--also-gone",
+                "neither id was ever written",
+            ],
+            capture_output=True,
+            text=True,
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        written = next(f for f in load_fragments(self.frags) if f.kind == "correction")
+        self.assertEqual(
+            written.id_list("broken_ref"),
+            ["2026-01-01T00-00-00Z--gone", "2026-01-01T00-00-01Z--also-gone"],
+        )
+
+
+class TestVerifierDiscrimination(unittest.TestCase):
+    """B9 requires a verifier, never that the verifier tests the claim.
+
+    Whether a command proves a `done_when` is undecidable in general. One
+    subclass is a fact about the fragments: the same command behind several
+    unrelated claims cannot discriminate any of them.
+    """
+
+    def setUp(self):
+        self.root, self.frags = _make_root()
+
+    def tearDown(self):
+        shutil.rmtree(self.root)
+
+    def _goal(self, slug: str, verifier: str, satisfied: bool = True) -> str:
+        gid = _write(
+            self.frags,
+            time=f"2026-05-0{slug[-1]}T00:00:00Z",
+            slug=slug,
+            kind="goal",
+            body="a claim",
+            extras={"done_when": f"{slug} holds", "verifier_ref": verifier},
+        )
+        if satisfied:
+            _write(
+                self.frags,
+                time=f"2026-05-0{slug[-1]}T01:00:00Z",
+                slug=f"vf-{slug}",
+                kind="verification-fact",
+                body="passed",
+                refs=[gid],
+                extras={"passed": "true"},
+            )
+        return gid
+
+    def test_shared_verifier_is_flagged_on_every_sharer(self):
+        a = self._goal("g1", "shell: make test")
+        b = self._goal("g2", "shell: make test")
+        rows = {r["goal"]["id"]: r for r in view_goals(load_fragments(self.frags))}
+        self.assertEqual(rows[a]["verifier_shared_with"], [b])
+        self.assertEqual(rows[b]["verifier_shared_with"], [a])
+
+    def test_distinct_verifier_is_not_flagged(self):
+        a = self._goal("g1", "shell: make test-a")
+        self._goal("g2", "shell: make test-b")
+        rows = {r["goal"]["id"]: r for r in view_goals(load_fragments(self.frags))}
+        self.assertEqual(rows[a]["verifier_shared_with"], [])
+
+    def test_boot_surfaces_a_satisfied_goal_closed_on_a_shared_verifier(self):
+        self._goal("g1", "shell: make test")
+        self._goal("g2", "shell: make test")
+        out = render_for_agent(load_fragments(self.frags))
+        self.assertIn("Verification to re-read", out)
+
+    def test_boot_stays_quiet_while_the_goals_are_still_open(self):
+        """Nothing is being relied on yet, so there is no false ✓ to re-read."""
+        self._goal("g1", "shell: make test", satisfied=False)
+        self._goal("g2", "shell: make test", satisfied=False)
+        out = render_for_agent(load_fragments(self.frags))
+        self.assertNotIn("Verification to re-read", out)
+
+    def test_shared_verifier_is_never_a_doctor_problem(self):
+        """A question about discrimination is not a malformed vector."""
+        self._goal("g1", "shell: make test")
+        self._goal("g2", "shell: make test")
+        frags, problems = load_report(self.frags)
+        self.assertTrue(view_doctor(frags, problems)["ok"])
+
+
 class TestCaptureInstaller(unittest.TestCase):
     """The installer must only claim installs the host actually reads."""
 

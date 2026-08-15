@@ -219,7 +219,7 @@ tools/
     principles/                ← canonical Tier A–E principle fragments
     hooks/install.py           ← wire witness to git / Kiro / cron
     skills/                    ← witness, verifier-shell, scheduler, llm-dispatcher
-    tests/                     ← stdlib unittest suite (98 tests)
+    tests/                     ← stdlib unittest suite (113 tests)
 fragments/                     ← Sula's own project memory as a Sula vector
                                  (370+ fragments — decisions, releases,
                                  corrections, the v1.0 GA and v1.1 events)
@@ -238,8 +238,8 @@ the vector convention. The recommended path forward is Sula Vector v1.1.
 
 | Check | Result |
 | ----- | ------ |
-| Test suite (`tools.sula_vector.tests.test_sula_vector`) | **98/98 PASS** |
-| `render.py --view doctor` on Sula's own vector | ✓ 0 problems, 423 fragments |
+| Test suite (`tools.sula_vector.tests.test_sula_vector`) | **113/113 PASS** |
+| `render.py --view doctor` on Sula's own vector | ✓ 0 problems, 429 fragments |
 | Standard library only | ✓ no third-party deps |
 | `render.py` byte-stable replay (Sula self) | ✓ |
 | `render.py` byte-stable replay (1terminal) | ✓ |

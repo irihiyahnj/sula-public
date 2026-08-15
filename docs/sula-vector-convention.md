@@ -257,7 +257,18 @@ why the gate and not the notice is the right place for them.
 
 A dangling reference is treated as acknowledged when some fragment records it
 in a `broken_ref` field — the append-only repair path, since the broken
-fragment itself can never be edited (B1, E3).
+fragment itself can never be edited (B1, E3). `broken_ref` takes one id or a
+list, so a project that inherited hundreds of bad references from hand-written
+fragments settles them in one append:
+
+```bash
+python3 tools/sula_vector/render.py . --view doctor --json \
+  | python3 -c "import json,sys;print(','.join(sorted({p['detail'][3:] for p in json.load(sys.stdin)['problems'] if p['code']=='dangling-ref'})))"
+python3 tools/sula_vector/note.py . --kind correction --broken-ref <the ids> "<what was lost>"
+```
+
+`--broken-ref` is the one write flag `note.py` does not validate: those ids are
+broken precisely because nothing carries them.
 
 ---
 
@@ -321,6 +332,24 @@ What is mechanizable is the **demand**:
 
 Neither mechanism writes a judgment. They make its absence and its decay
 expensive, which is the most a convention can honestly do.
+
+### A verifier is required, not proven
+
+B9 makes a goal carry a verifier. Nothing checks that the verifier tests the
+claim, and in general nothing can: whether a command proves a `done_when` is not
+decidable from the fragments.
+
+One subclass is decidable, because it is a fact about the fragments rather than
+about the code: **the same verifier standing behind several unrelated goals
+cannot discriminate any of them.** It passes for reasons that have nothing to do
+with a particular `done_when`, so the resulting ✓ carries less than it appears
+to. `--view goals` marks every goal that shares its verifier, and `--for-agent`
+lists the *satisfied* ones — those are where a hollow ✓ is already being relied
+on.
+
+This never gates. Two goals may legitimately assert the same condition. The
+notice asks a question; judging the answer stays with the reader, the same
+boundary the trust model draws.
 
 ### Capture triggers
 

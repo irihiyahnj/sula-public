@@ -21,6 +21,17 @@ state by B2. Every proximity rule errs on one side.
 - **`governs` gives a judgment a subject, and `--view decay` reports when the evidence lane says that subject is gone.** `direction` ends when its verifier passes; `evidence` only recedes into the past; `judgment` had no ending at all and accumulated until boot weight inverted. Positive evidence of removal is required — "never witnessed" is not "gone" — and decay is never a doctor problem.
 - **`--view unexplained`** lists witnessed change nothing claims.
 
+### Two holes the gate would otherwise have left open
+
+Adding a gate creates an obligation to make sure it can be reopened honestly,
+and to look for the places where a green result still means nothing.
+
+- **`broken_ref` takes a list.** It was scalar, so acknowledging a dangling reference cost one fragment per reference. One project on this device carries 483 of them from hand-written v1.0-era fragments — a repair path nobody walks, which would have left that project's done-gate shut forever. That is the same failure as having no gate, which is the argument this release used to add one. `note.py --broken-ref a,b,c` is the one write flag that does **not** validate its targets: those ids are broken precisely because nothing carries them.
+- **A reused verifier is now questioned.** B9 requires a verifier, never that the verifier tests the claim — and whether a command proves a `done_when` is not decidable from the fragments. One subclass is: the same verifier behind several unrelated goals cannot discriminate any of them. On this vector, 4 of 5 goals shared one `unittest && doctor` command, `goal-b8` among them — the goal whose `done_when` promised inheritance while its verifier only ran a test suite that never checked it. `--view goals` marks every sharer; `--for-agent` lists the satisfied ones, where a hollow ✓ is already load-bearing. Never a gate: two goals may legitimately assert the same condition.
+
+Neither of these mechanises judgment. They mark the places where a green result
+is worth reading twice.
+
 Applied to this vector: 11 historical captures were never explicitly claimed
 (4 carry a commit subject, 7 carry nothing) and are settled by one `annotation`
 that records the debt as uncollectible rather than explained. 60 judgments in
@@ -56,7 +67,7 @@ by hand instead if you know what those changes were. Until captures are settled,
 
 No fragment changes meaning and nothing needs rewriting.
 
-104 tests (up from 87).
+113 tests (up from 87).
 
 ## v1.1.3 — Capture is wired to hosts that actually read it
 

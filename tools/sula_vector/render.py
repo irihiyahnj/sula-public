@@ -529,18 +529,44 @@ def view_family(frags: list[Fragment], family_key: str) -> dict[str, Any]:
     }
 
 
+def shared_verifiers(frags: Iterable[Fragment]) -> dict[str, list[str]]:
+    """verifier command -> the goal ids that reuse it, when more than one does.
+
+    B9 makes a goal carry a verifier; nothing checks that the verifier tests the
+    claim. In general that is undecidable — whether a command proves a
+    `done_when` is the halting-shaped question this convention must not pretend
+    to answer. One subclass is a plain fact about the fragments: the same command
+    standing behind several unrelated claims cannot discriminate between them, so
+    it passes for reasons that have nothing to do with any single one.
+
+    A question, not a verdict. Two goals may legitimately share a verifier when
+    they assert the same condition, which is why this never gates.
+    """
+    by_command: dict[str, list[str]] = {}
+    for f in frags:
+        if f.kind != "goal":
+            continue
+        command = str(f.get("verifier_ref", "")).strip()
+        if command:
+            by_command.setdefault(command, []).append(f.id)
+    return {c: ids for c, ids in by_command.items() if len(ids) > 1}
+
+
 def view_goals(frags: list[Fragment]) -> list[dict[str, Any]]:
     goals = [f for f in frags if f.kind == "goal"]
+    shared = shared_verifiers(frags)
     out = []
     for g in goals:
         verifications = [
             f for f in frags if g.id in f.refs and f.kind == "verification-fact"
         ]
+        siblings = shared.get(str(g.get("verifier_ref", "")).strip(), [])
         out.append(
             {
                 "goal": _to_dict(g),
                 "verifications": [_to_dict(f) for f in verifications],
                 "met": _is_satisfied(g, frags),
+                "verifier_shared_with": [i for i in siblings if i != g.id],
             }
         )
     return out
@@ -684,10 +710,11 @@ def view_doctor(frags: list[Fragment], problems: list[Problem]) -> dict[str, Any
             )
         seen[f.id] = f.path
 
+    # A list, not a scalar: one project carried 483 dangling refs from
+    # hand-written v1.0-era fragments, and one-fragment-per-ref is a repair path
+    # nobody walks. A gate that cannot be reopened is the same as no gate.
     acknowledged = {
-        str(f.get("broken_ref", "")).strip()
-        for f in frags
-        if str(f.get("broken_ref", "")).strip()
+        target for f in frags for target in f.id_list("broken_ref")
     }
     for f in frags:
         for target in f.refs + f.id_list("supersedes") + f.id_list("closes"):
@@ -917,6 +944,26 @@ def render_for_agent(
         )
         lines.append("")
 
+    hollow = [
+        row
+        for row in view_goals(non_principle)
+        if row["met"] and row["verifier_shared_with"]
+    ]
+    if hollow:
+        lines.append("## Verification to re-read")
+        for row in hollow:
+            g = row["goal"]
+            lines.append(
+                f"- [{g['time']}] {g['id']}: {g['summary']} "
+                f"(verifier shared with {len(row['verifier_shared_with'])} other goal(s))"
+            )
+        lines.append(
+            "- These closed on a verifier that also stands behind other goals, so "
+            "the ✓ may not be about this goal's `done_when`. B9 requires a "
+            "verifier, not a discriminating one — that part is still on the reader."
+        )
+        lines.append("")
+
     decay = view_decay(non_principle)
     if decay:
         lines.append("## Judgments whose subject is gone")
@@ -996,6 +1043,12 @@ def _format_human(view: str, result: Any, out: Any) -> None:
                 out.write(
                     f"    {'PASS' if passed else 'FAIL'} [{v['time']}]: "
                     f"{v.get('summary','')}\n"
+                )
+            if row["verifier_shared_with"]:
+                out.write(
+                    f"    ? verifier also stands behind "
+                    f"{len(row['verifier_shared_with'])} other goal(s) — it may "
+                    "not discriminate this one\n"
                 )
         return
     if view == "family":

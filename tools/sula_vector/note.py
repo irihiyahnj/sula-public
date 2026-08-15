@@ -10,6 +10,7 @@ file is written. A malformed or dangling fragment cannot be produced this way.
     python3 note.py . --kind artifact --pointer docs/proposal.pdf "客户提案 v2"
     python3 note.py . --kind decision --supersedes <id> "改回月度节奏"
     python3 note.py . --kind decision --explains <witness-id> "为什么改了这些文件"
+    python3 note.py . --kind correction --broken-ref <id>,<id> "这些 id 从未存在"
     echo "长正文" | python3 note.py . --kind assessment --title "季度复盘"
 """
 
@@ -85,6 +86,17 @@ def main(argv: list[str] | None = None) -> int:
         default=[],
         help="ids of witnessed changes this accounts for",
     )
+    # Deliberately outside the existence check below: these ids are broken
+    # precisely because nothing carries them. Validating them would make the
+    # repair path for a dangling reference impossible to use.
+    p.add_argument(
+        "--broken-ref",
+        action="append",
+        default=[],
+        help="ids that do not exist and cannot be recovered; acknowledges the "
+        "dangling references pointing at them (the fragments holding them can "
+        "never be edited — B1)",
+    )
     p.add_argument("--pointer", default="", help="path or URL of the artifact")
     p.add_argument("--author", default="")
     p.add_argument("--done-when", default="", help="goal success condition")
@@ -120,6 +132,7 @@ def main(argv: list[str] | None = None) -> int:
     args.closes = items(args.closes)
     args.supersedes = items(args.supersedes)
     args.explains = items(args.explains)
+    args.broken_ref = items(args.broken_ref)
 
     body = args.body.strip()
     if not body and not sys.stdin.isatty():
@@ -184,6 +197,7 @@ def main(argv: list[str] | None = None) -> int:
     fields["closes"] = list(args.closes)
     fields["supersedes"] = list(args.supersedes)
     fields["explains"] = list(args.explains)
+    fields["broken_ref"] = list(args.broken_ref)
     if args.title:
         fields["summary"] = args.title
     if args.pointer:
