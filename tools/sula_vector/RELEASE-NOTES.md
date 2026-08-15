@@ -26,7 +26,7 @@ state by B2. Every proximity rule errs on one side.
 Adding a gate creates an obligation to make sure it can be reopened honestly,
 and to look for the places where a green result still means nothing.
 
-- **`broken_ref` takes a list.** It was scalar, so acknowledging a dangling reference cost one fragment per reference. One project on this device carries 483 of them from hand-written v1.0-era fragments — a repair path nobody walks, which would have left that project's done-gate shut forever. That is the same failure as having no gate, which is the argument this release used to add one. `note.py --broken-ref a,b,c` is the one write flag that does **not** validate its targets: those ids are broken precisely because nothing carries them.
+- **`broken_ref` takes a list.** It was scalar, so acknowledging a dangling reference cost one fragment per reference. One adopted project carries 483 of them from hand-written v1.0-era fragments — a repair path nobody walks, which would have left that project's done-gate shut forever. That is the same failure as having no gate, which is the argument this release used to add one. `note.py --broken-ref a,b,c` is the one write flag that does **not** validate its targets: those ids are broken precisely because nothing carries them.
 - **A reused verifier is now questioned.** B9 requires a verifier, never that the verifier tests the claim — and whether a command proves a `done_when` is not decidable from the fragments. One subclass is: the same verifier behind several unrelated goals cannot discriminate any of them. On this vector, 4 of 5 goals shared one `unittest && doctor` command, `goal-b8` among them — the goal whose `done_when` promised inheritance while its verifier only ran a test suite that never checked it. `--view goals` marks every sharer; `--for-agent` lists the satisfied ones, where a hollow ✓ is already load-bearing. Never a gate: two goals may legitimately assert the same condition.
 
 Neither of these mechanises judgment. They mark the places where a green result
@@ -48,7 +48,7 @@ fleet rollout:
 
 - **It never refreshed the protocol.** Any project already carrying the `sula-vector` sentinel got `already-vector` and no change, so every project on the fleet would have kept v1.1 protocol text — including the "inherited, not forgotten" claim this release disproves — while running v1.2 tools. An agent booting on instructions the tools no longer implement is the exact failure recorded in `correction-agents-md-legacy-vs-vector-ambiguity`. The region from the sentinel to EOF is now rewritten from canonical; anything above it is untouched, and a region that does not look like a protocol this tool wrote is left alone and reported rather than overwritten.
 - **Two lists of tooling files had drifted.** `auto-update-from-canonical.py` compared hashes over its own copy of the list, which had lost `note.py` and `skills/witness.py` — so a release touching only those files would have reported every project already up to date. The list now lives once, in `migrate.py`, and the skill imports it.
-- **It reported what it copied, not whether the result was usable.** Migrate now prints a doctor summary, which matters because some fleet projects carry hand-written v1.0-era fragments whose dangling refs keep the gate shut regardless of tooling.
+- **It reported what it copied, not whether the result was usable.** Migrate now prints a doctor summary, which matters because some adopted projects carry hand-written v1.0-era fragments whose dangling refs keep the gate shut regardless of tooling.
 
 **Updating an existing project:**
 
@@ -241,12 +241,12 @@ dependencies. No daemon, no kernel directory, no cache-as-truth.
 |---|---|
 | Test suite (`tools.sula_vector.tests.test_sula_vector`) | 34/34 PASS, 1.8s |
 | `render.py` byte-stable replay (Sula self) | OK, 5849 bytes constant |
-| `render.py` byte-stable replay (1terminal) | OK, 4803 bytes constant |
-| `migrate.py` idempotence (3rd run = 0 net change) | OK on Sula self (327 fragments) and 1terminal (28 fragments) |
+| `render.py` byte-stable replay (a second adopted project) | OK, 4803 bytes constant |
+| `migrate.py` idempotence (3rd run = 0 net change) | OK on this project (327 fragments) and a second adopted project (28 fragments) |
 | `verifier-shell.py` end-to-end | Closed real goal; idempotent on second run |
 | `scheduler.py` end-to-end | Fired real cadence-tick on backdated intent; skipped fresh intent |
 | `llm-dispatcher.py` end-to-end | Dispatched intent with `cat` executor; appended `kind: turn` with body captured; idempotent |
-| AGENTS.md host protocol | Installed in Sula self and 1terminal with sentinel; idempotent |
+| AGENTS.md host protocol | Installed in Sula self and a second adopted project with sentinel; idempotent |
 
 ---
 
