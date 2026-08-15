@@ -25,6 +25,7 @@ from pathlib import Path
 TOOLS = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(TOOLS))
 
+from migrate import PROTOCOL_HEADING  # type: ignore  # noqa: E402
 from render import (  # type: ignore  # noqa: E402
     CONVENTION_VERSION,
     LANE_TITLES,
@@ -40,6 +41,7 @@ from render import (  # type: ignore  # noqa: E402
     render_for_agent,
     render_principles_block,
     view_changes_summary,
+    view_decay,
     view_digest,
     view_doctor,
     view_effective,
@@ -383,6 +385,124 @@ class TestMigrateIdempotence(unittest.TestCase):
         self.assertTrue(
             (self.root / "docs" / "change-records" / "2026-05-01-foo.md").exists()
         )
+
+
+class TestFleetUpdate(unittest.TestCase):
+    """migrate.py is the update path, so a fleet rollout is only as good as it.
+
+    An already-adopted project must come out of an update with the protocol its
+    tools actually implement, and with a usable done-gate.
+    """
+
+    SENTINEL = "<!-- sula-vector -->"
+
+    def setUp(self):
+        self.root, self.frags = _make_root()
+        sys.path.insert(0, str(TOOLS))
+
+    def tearDown(self):
+        shutil.rmtree(self.root)
+
+    def _migrate(self, *args: str) -> subprocess.CompletedProcess:
+        result = subprocess.run(
+            [
+                sys.executable,
+                str(TOOLS / "migrate.py"),
+                "--project-root",
+                str(self.root),
+                *args,
+            ],
+            capture_output=True,
+            text=True,
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        return result
+
+    def _stale_agents(self) -> None:
+        (self.root / "AGENTS.md").write_text(
+            "# Project's own notes\n\nKeep this line.\n\n---\n\n"
+            f"{self.SENTINEL}\n# AGENTS.md — Sula Vector\n\n"
+            "Stale protocol: the omission is inherited, not forgotten.\n",
+            encoding="utf-8",
+        )
+
+    def _unclaimed_capture(self, time: str, slug: str, body: str) -> str:
+        return _write(
+            self.frags,
+            time=time,
+            slug=slug,
+            kind="witness",
+            body=body,
+            extras={"files_changed": 1},
+        )
+
+    def test_stale_protocol_is_refreshed(self):
+        """Stale protocol is worse than none: the agent boots on a moved contract."""
+        self._stale_agents()
+        self._migrate()
+        text = (self.root / "AGENTS.md").read_text(encoding="utf-8")
+        self.assertIn("Keep this line.", text)
+        self.assertNotIn("inherited, not forgotten", text)
+        self.assertIn("--explains", text)
+
+    def test_protocol_refresh_is_idempotent(self):
+        self._stale_agents()
+        self._migrate()
+        first = (self.root / "AGENTS.md").read_text(encoding="utf-8")
+        result = self._migrate()
+        self.assertEqual((self.root / "AGENTS.md").read_text(encoding="utf-8"), first)
+        self.assertIn("unchanged", result.stdout)
+
+    def test_foreign_text_after_sentinel_is_left_alone(self):
+        """Deleting a project's own text is the worse failure of the two."""
+        own = f"# Notes\n\n{self.SENTINEL}\n\nSomething this project wrote itself.\n"
+        (self.root / "AGENTS.md").write_text(own, encoding="utf-8")
+        result = self._migrate()
+        text = (self.root / "AGENTS.md").read_text(encoding="utf-8")
+        self.assertIn("Something this project wrote itself.", text)
+        self.assertNotIn(PROTOCOL_HEADING, text)
+        self.assertIn("protocol-foreign-left-alone", result.stdout)
+
+    def test_unclaimed_captures_are_reported_not_settled(self):
+        wid = self._unclaimed_capture("2026-06-01T00:00:00Z", "witness-a", "+0 ~1 -0.")
+        result = self._migrate()
+        self.assertIn("--settle-legacy-captures", result.stdout)
+        frags, problems = load_report(self.frags)
+        self.assertEqual(
+            view_doctor(frags, problems)["by_code"].get("unexplained-change"), 1
+        )
+        self.assertEqual([f.id for f in judgment_gap(load_fragments(self.frags))], [wid])
+
+    def test_settlement_claims_every_capture_and_is_idempotent(self):
+        self._unclaimed_capture(
+            "2026-06-01T00:00:00Z",
+            "witness-a",
+            "+0 ~1 -0.\n\n## commits\n  abc1234 earlier work\n",
+        )
+        self._unclaimed_capture("2026-06-02T00:00:00Z", "witness-b", "+0 ~1 -0.")
+        self._migrate("--settle-legacy-captures")
+        frags, problems = load_report(self.frags)
+        self.assertTrue(view_doctor(frags, problems)["ok"])
+        settlement = next(f for f in frags if f.kind == "annotation")
+        self.assertEqual(len(settlement.id_list("explains")), 2)
+        self.assertEqual(settlement.get("author"), "migrate.py")
+        self.assertIn("1 of 2 carry a commit subject", settlement.body)
+
+        before = sorted(p.name for p in self.frags.glob("*.md"))
+        self._migrate("--settle-legacy-captures")
+        self.assertEqual(sorted(p.name for p in self.frags.glob("*.md")), before)
+
+    def test_installed_tooling_matches_the_updater_hash_list(self):
+        """Two lists of tooling files drift; the updater then reports up to date."""
+        sys.path.insert(0, str(TOOLS))
+        from migrate import TOOLING_FILES  # type: ignore
+
+        skill = (TOOLS / "skills" / "auto-update-from-canonical.py").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn("from migrate import TOOLING_FILES", skill)
+        for rel in ("note.py", "skills/witness.py", "render.py"):
+            self.assertIn(rel, TOOLING_FILES)
 
 
 class TestVerifierShellSkill(unittest.TestCase):
@@ -839,6 +959,27 @@ class TestNoteCli(unittest.TestCase):
         self.assertEqual(len(frags), 3)
         self.assertNotIn("duplicate-id", view_doctor(frags, problems)["by_code"])
 
+    def test_rejects_unknown_explains_target(self):
+        result = self._note("--kind", "decision", "--explains", "nope", "body")
+        self.assertEqual(result.returncode, 2)
+        self.assertEqual(list(self.frags.glob("*.md")), [])
+
+    def test_explains_lands_in_frontmatter(self):
+        wid = _write(
+            self.frags,
+            time="2026-05-02T00:00:00Z",
+            slug="witness-a",
+            kind="witness",
+            body="+0 ~2 -0 file(s).",
+            extras={"files_changed": 2},
+        )
+        result = self._note("--kind", "decision", "--explains", wid, "why those files changed")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        frags = load_fragments(self.frags)
+        judgment = next(f for f in frags if f.kind == "decision")
+        self.assertEqual(judgment.id_list("explains"), [wid])
+        self.assertEqual(judgment_gap(frags), [])
+
 
 class TestWitnessSkill(unittest.TestCase):
     def setUp(self):
@@ -887,6 +1028,37 @@ class TestWitnessSkill(unittest.TestCase):
         self.assertEqual(len(witnesses), 3)
         self.assertEqual(witnesses[1].get("files_changed"), "1")
         self.assertEqual(witnesses[2].get("files_removed"), "1")
+
+    def _note(self, *args: str) -> subprocess.CompletedProcess:
+        return subprocess.run(
+            [sys.executable, str(TOOLS / "note.py"), str(self.root), *args],
+            capture_output=True,
+            text=True,
+        )
+
+    def test_capture_records_the_judgments_of_its_window(self):
+        """Only the runtime knows the window, so the runtime writes it down."""
+        (self.root / "a.md").write_text("one", encoding="utf-8")
+        self.assertEqual(self._witness().returncode, 0)
+        self.assertEqual(
+            self._note("--kind", "decision", "why I am changing a.md").returncode, 0
+        )
+        (self.root / "a.md").write_text("two", encoding="utf-8")
+        self.assertEqual(self._witness().returncode, 0)
+        frags = load_fragments(self.frags)
+        decision = next(f for f in frags if f.kind == "decision")
+        latest = [f for f in frags if f.kind == "witness"][-1]
+        self.assertEqual(latest.id_list("explained_by"), [decision.id])
+        self.assertEqual(judgment_gap(frags), [])
+
+    def test_capture_without_a_judgment_says_how_to_settle(self):
+        (self.root / "a.md").write_text("one", encoding="utf-8")
+        self.assertEqual(self._witness().returncode, 0)
+        (self.root / "a.md").write_text("two", encoding="utf-8")
+        result = self._witness()
+        witnesses = [f for f in load_fragments(self.frags) if f.kind == "witness"]
+        self.assertEqual(witnesses[-1].id_list("explained_by"), [])
+        self.assertIn(f"--explains {witnesses[-1].id}", result.stdout)
 
     def test_idempotent_when_nothing_changed(self):
         (self.root / "notes.md").write_text("one", encoding="utf-8")
@@ -1045,7 +1217,12 @@ class TestBootCompleteness(unittest.TestCase):
 
 
 class TestJudgmentGap(unittest.TestCase):
-    """Witnessed change without a judgment must be visible, never fatal."""
+    """Witnessed change nothing claims must be inherited, not merely visible.
+
+    Pairing is an explicit fact from one side or the other. Any proximity rule
+    is discharged by the next unrelated append, which is the failure these
+    tests exist to prevent.
+    """
 
     def setUp(self):
         self.root, self.frags = _make_root()
@@ -1069,37 +1246,59 @@ class TestJudgmentGap(unittest.TestCase):
             extras=fields,
         )
 
-    def test_change_without_judgment_is_reported(self):
+    def test_change_nothing_claims_is_reported(self):
         wid = self._witness("2026-05-02T00:00:00Z", "witness-a")
         frags = load_fragments(self.frags)
         self.assertEqual([f.id for f in judgment_gap(frags)], [wid])
-        self.assertIn("Unexplained change", render_for_agent(frags))
-        self.assertIn("no judgment recorded", render_changes_summary_block(frags))
+        boot = render_for_agent(frags)
+        self.assertIn("Unexplained change", boot)
+        self.assertIn(f"--explains {wid}", boot)
+        self.assertIn("nothing claims them", render_changes_summary_block(frags))
 
-    def test_later_judgment_clears_the_gap(self):
-        self._witness("2026-05-02T00:00:00Z", "witness-a")
+    def test_judgment_naming_the_capture_settles_it(self):
+        wid = self._witness("2026-05-02T00:00:00Z", "witness-a")
         _write(
             self.frags,
             time="2026-05-03T00:00:00Z",
             slug="d",
             kind="decision",
             body="why it changed",
+            extras={"explains": f"[{wid}]"},
         )
         frags = load_fragments(self.frags)
         self.assertEqual(judgment_gap(frags), [])
         self.assertNotIn("Unexplained change", render_for_agent(frags))
 
-    def test_later_direction_also_clears_the_gap(self):
-        self._witness("2026-05-02T00:00:00Z", "witness-a")
+    def test_capture_recording_its_window_settles_it(self):
+        """The normal order: the judgment is written, then the hook fires."""
+        did = _write(
+            self.frags,
+            time="2026-05-02T00:00:00Z",
+            slug="d",
+            kind="decision",
+            body="why I changed those files",
+        )
+        self._witness("2026-05-02T00:00:05Z", "witness-a", explained_by=f"[{did}]")
+        self.assertEqual(judgment_gap(load_fragments(self.frags)), [])
+
+    def test_unrelated_later_judgment_does_not_settle_it(self):
+        """The property the whole notice exists for: omissions are inherited.
+
+        A judgment about something else must not discharge someone else's
+        missing why — otherwise a single well-behaved turn erases the record of
+        the turn that left nothing behind.
+        """
+        wid = self._witness("2026-05-02T00:00:00Z", "witness-a")
         _write(
             self.frags,
             time="2026-05-03T00:00:00Z",
-            slug="g",
-            kind="goal",
-            body="where this is going",
-            extras={"verifier_ref": "shell: true"},
+            slug="d",
+            kind="decision",
+            body="an unrelated decision about something else entirely",
         )
-        self.assertEqual(judgment_gap(load_fragments(self.frags)), [])
+        self.assertEqual(
+            [f.id for f in judgment_gap(load_fragments(self.frags))], [wid]
+        )
 
     def test_evidence_alone_never_clears_the_gap(self):
         wid = self._witness("2026-05-02T00:00:00Z", "witness-a")
@@ -1115,31 +1314,15 @@ class TestJudgmentGap(unittest.TestCase):
             [f.id for f in judgment_gap(load_fragments(self.frags))], [wid]
         )
 
-    def test_judgment_before_hook_fired_witness_is_not_a_gap(self):
-        """The hook fires at turn end, so the witness lands after the judgment.
-
-        Keying on timestamps alone flags every well-behaved turn. The window
-        between two captures is the unit, not the instant.
-        """
-        _write(
-            self.frags,
-            time="2026-05-02T00:00:00Z",
-            slug="d",
-            kind="decision",
-            body="why I changed those files",
-        )
-        self._witness("2026-05-02T00:00:05Z", "witness-a")
-        self.assertEqual(judgment_gap(load_fragments(self.frags)), [])
-
     def test_second_turn_without_judgment_is_a_gap(self):
-        _write(
+        did = _write(
             self.frags,
             time="2026-05-02T00:00:00Z",
             slug="d",
             kind="decision",
             body="why turn one changed files",
         )
-        self._witness("2026-05-02T00:00:05Z", "witness-a")
+        self._witness("2026-05-02T00:00:05Z", "witness-a", explained_by=f"[{did}]")
         wid = self._witness("2026-05-03T00:00:00Z", "witness-b")
         self.assertEqual(
             [f.id for f in judgment_gap(load_fragments(self.frags))], [wid]
@@ -1152,10 +1335,116 @@ class TestJudgmentGap(unittest.TestCase):
         self._witness("2026-05-03T00:00:00Z", "witness-quiet", files_changed=0)
         self.assertEqual(judgment_gap(load_fragments(self.frags)), [])
 
-    def test_gap_is_not_a_doctor_problem(self):
-        self._witness("2026-05-02T00:00:00Z", "witness-a")
+    def test_gap_shuts_the_done_gate(self):
+        """B8 is an invariant, and doctor is the gate that enforces invariants."""
+        wid = self._witness("2026-05-02T00:00:00Z", "witness-a")
+        frags, problems = load_report(self.frags)
+        report = view_doctor(frags, problems)
+        self.assertFalse(report["ok"])
+        self.assertEqual(report["by_code"].get("unexplained-change"), 1)
+        self.assertEqual(
+            [p["fragment"] for p in report["problems"]
+             if p["code"] == "unexplained-change"],
+            [wid],
+        )
+
+    def test_settling_reopens_the_done_gate(self):
+        wid = self._witness("2026-05-02T00:00:00Z", "witness-a")
+        _write(
+            self.frags,
+            time="2026-05-03T00:00:00Z",
+            slug="d",
+            kind="decision",
+            body="the why, recorded late",
+            extras={"explains": f"[{wid}]"},
+        )
         frags, problems = load_report(self.frags)
         self.assertTrue(view_doctor(frags, problems)["ok"])
+
+
+class TestJudgmentDecay(unittest.TestCase):
+    """A judgment that names its subject retires when the subject does."""
+
+    def setUp(self):
+        self.root, self.frags = _make_root()
+
+    def tearDown(self):
+        shutil.rmtree(self.root)
+
+    def _witness(self, time: str, slug: str, delta: str) -> str:
+        return _write(
+            self.frags,
+            time=time,
+            slug=slug,
+            kind="witness",
+            body=f"changed.\n\n## delta\n{delta}",
+            extras={"files_changed": 1},
+        )
+
+    def _decision(self, time: str, slug: str, governs: str) -> str:
+        return _write(
+            self.frags,
+            time=time,
+            slug=slug,
+            kind="decision",
+            body="a judgment about a subject",
+            extras={"governs": f"[{governs}]"},
+        )
+
+    def test_removed_subject_surfaces(self):
+        did = self._decision("2026-05-01T00:00:00Z", "d", "scripts/old.py")
+        self._witness("2026-05-02T00:00:00Z", "w1", "+ aa 10 scripts/old.py")
+        self._witness("2026-05-03T00:00:00Z", "w2", "- - - scripts/old.py")
+        frags = load_fragments(self.frags)
+        decayed = view_decay(frags)
+        self.assertEqual([d["id"] for d in decayed], [did])
+        self.assertEqual(decayed[0]["gone"], ["scripts/old.py"])
+        self.assertIn("Judgments whose subject is gone", render_for_agent(frags))
+
+    def test_directory_prefix_counts_as_the_subject(self):
+        did = self._decision("2026-05-01T00:00:00Z", "d", "legacy/")
+        self._witness("2026-05-02T00:00:00Z", "w1", "+ aa 10 legacy/a.py")
+        self._witness("2026-05-03T00:00:00Z", "w2", "- - - legacy/a.py")
+        self.assertEqual(
+            [d["id"] for d in view_decay(load_fragments(self.frags))], [did]
+        )
+
+    def test_present_subject_is_not_decay(self):
+        self._decision("2026-05-01T00:00:00Z", "d", "scripts/live.py")
+        self._witness("2026-05-02T00:00:00Z", "w1", "+ aa 10 scripts/live.py")
+        self.assertEqual(view_decay(load_fragments(self.frags)), [])
+
+    def test_never_witnessed_subject_is_not_decay(self):
+        """Absence of evidence is not evidence of removal."""
+        self._decision("2026-05-01T00:00:00Z", "d", "docs/never-seen.md")
+        self._witness("2026-05-02T00:00:00Z", "w1", "+ aa 10 other.md")
+        self.assertEqual(view_decay(load_fragments(self.frags)), [])
+
+    def test_readded_subject_leaves_decay(self):
+        self._decision("2026-05-01T00:00:00Z", "d", "scripts/old.py")
+        self._witness("2026-05-02T00:00:00Z", "w1", "- - - scripts/old.py")
+        self._witness("2026-05-03T00:00:00Z", "w2", "+ bb 12 scripts/old.py")
+        self.assertEqual(view_decay(load_fragments(self.frags)), [])
+
+    def test_superseded_judgment_is_not_reported_twice(self):
+        did = self._decision("2026-05-01T00:00:00Z", "d", "scripts/old.py")
+        self._witness("2026-05-02T00:00:00Z", "w1", "- - - scripts/old.py")
+        _write(
+            self.frags,
+            time="2026-05-04T00:00:00Z",
+            slug="c",
+            kind="correction",
+            body="retired",
+            extras={"supersedes": f"[{did}]"},
+        )
+        self.assertEqual(view_decay(load_fragments(self.frags)), [])
+
+    def test_decay_is_never_a_doctor_problem(self):
+        """The subject is gone, not the fragment. Nothing is malformed."""
+        self._decision("2026-05-01T00:00:00Z", "d", "scripts/old.py")
+        self._witness("2026-05-02T00:00:00Z", "w1", "- - - scripts/old.py")
+        frags, problems = load_report(self.frags)
+        self.assertNotIn("decay", json.dumps(view_doctor(frags, problems)["by_code"]))
 
 
 class TestCaptureInstaller(unittest.TestCase):

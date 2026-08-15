@@ -55,7 +55,13 @@ python3 tools/sula_vector/note.py . --kind correction --supersedes <id> "<what w
 python3 tools/sula_vector/note.py . --kind goal --title "<outcome>" \
   --done-when "<condition>" --verifier "shell: <command>" "<context>"
 python3 tools/sula_vector/note.py . --kind fact --closes <intent-id> "<what closed it>"
+python3 tools/sula_vector/note.py . --kind decision --explains <witness-id> "<why those files changed>"
 ```
+
+Give a judgment a subject with `--field governs=<path>` when it governs
+something on disk. When a witness later records that path removed, the judgment
+surfaces in boot as decayed instead of staying in force forever — the signal a
+direction gets from its verifier (B9), which judgment otherwise lacks.
 
 `note.py` derives `id` and `time` from the clock, rejects unknown `--refs` /
 `--closes` / `--supersedes` targets, and refuses a goal without a verifier.
@@ -81,17 +87,30 @@ python3 tools/sula_vector/render.py . --view changes-summary --since <session_st
 Display the full multi-line `[sula] +N this turn:` block. If the output is
 `[sula] no changes`, display nothing (C7).
 
-If the mark ends with `! N file change(s) witnessed, no judgment recorded`, the
+If the mark ends with `! N file change(s) witnessed, nothing claims them`, the
 turn changed files and left no why behind. Append the missing judgment before
-you finish — witness has the what, and only you have the reason. The same
-notice appears in the next agent's boot under `## Unexplained change`, so the
-omission is inherited, not forgotten.
+you finish, naming the capture it accounts for — witness has the what, and only
+you have the reason:
 
-Before claiming a task is done (D5), the vector must be structurally clean:
+```bash
+python3 tools/sula_vector/note.py . --kind decision --explains <witness-id> "<why>"
+```
+
+Pairing is an explicit fact, never inferred from timestamps. Capture writes
+`explained_by` for the judgments it already found in its window, so the normal
+order (record the judgment, then commit) needs nothing extra. What is left over
+is a real omission: it appears in the next agent's boot under
+`## Unexplained change` and does not expire, because no unrelated append can
+discharge it.
+
+Before claiming a task is done (D5), the vector must be clean:
 
 ```bash
 python3 tools/sula_vector/render.py . --view doctor   # must exit 0
 ```
+
+Doctor counts an unexplained change as a problem. A turn that changed files and
+recorded no why is not finished, so the gate stays shut until the why lands.
 
 ## Views
 
@@ -100,6 +119,8 @@ python3 tools/sula_vector/render.py . --for-agent            # boot context
 python3 tools/sula_vector/render.py . --view journal         # day by day: decided / produced
 python3 tools/sula_vector/render.py . --view effective       # judgments in force + supersession trail
 python3 tools/sula_vector/render.py . --view goals           # goals + verification status
+python3 tools/sula_vector/render.py . --view unexplained     # witnessed change nothing claims
+python3 tools/sula_vector/render.py . --view decay           # judgments whose subject is gone
 python3 tools/sula_vector/render.py . --view doctor          # structural integrity
 python3 tools/sula_vector/render.py . --lane evidence --view list
 ```

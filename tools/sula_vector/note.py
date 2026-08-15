@@ -3,12 +3,13 @@
 
 The whole point of this tool is that identity is never hand-written: id and
 time come from the clock and the filename, and every `--refs` / `--closes` /
-`--supersedes` target is checked against the vector before the file is
-written. A malformed or dangling fragment cannot be produced this way.
+`--supersedes` / `--explains` target is checked against the vector before the
+file is written. A malformed or dangling fragment cannot be produced this way.
 
     python3 note.py . --kind decision "选定 A 供应商，因为交付周期短一半"
     python3 note.py . --kind artifact --pointer docs/proposal.pdf "客户提案 v2"
     python3 note.py . --kind decision --supersedes <id> "改回月度节奏"
+    python3 note.py . --kind decision --explains <witness-id> "为什么改了这些文件"
     echo "长正文" | python3 note.py . --kind assessment --title "季度复盘"
 """
 
@@ -78,6 +79,12 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument(
         "--supersedes", action="append", default=[], help="ids of judgments this replaces"
     )
+    p.add_argument(
+        "--explains",
+        action="append",
+        default=[],
+        help="ids of witnessed changes this accounts for",
+    )
     p.add_argument("--pointer", default="", help="path or URL of the artifact")
     p.add_argument("--author", default="")
     p.add_argument("--done-when", default="", help="goal success condition")
@@ -112,6 +119,7 @@ def main(argv: list[str] | None = None) -> int:
     args.tags = items(args.tags)
     args.closes = items(args.closes)
     args.supersedes = items(args.supersedes)
+    args.explains = items(args.explains)
 
     body = args.body.strip()
     if not body and not sys.stdin.isatty():
@@ -123,7 +131,12 @@ def main(argv: list[str] | None = None) -> int:
     existing = {f.id for f in load_fragments(fragments_dir)}
     unknown = [
         target
-        for target in list(args.refs) + list(args.closes) + list(args.supersedes)
+        for target in (
+            list(args.refs)
+            + list(args.closes)
+            + list(args.supersedes)
+            + list(args.explains)
+        )
         if target not in existing
     ]
     if unknown:
@@ -170,6 +183,7 @@ def main(argv: list[str] | None = None) -> int:
     fields["tags"] = list(args.tags)
     fields["closes"] = list(args.closes)
     fields["supersedes"] = list(args.supersedes)
+    fields["explains"] = list(args.explains)
     if args.title:
         fields["summary"] = args.title
     if args.pointer:

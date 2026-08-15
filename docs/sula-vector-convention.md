@@ -130,17 +130,25 @@ the runtime supplies evidence.** Anything mechanical (a file appeared, a commit
 landed, a hash changed) must not be narrated by hand — see *Mechanical
 evidence* below.
 
-### Supersession and closure (v1.1)
+### Supersession, closure, explanation (v1.1)
 
-Two optional list fields make the append-only graph resolvable:
+Optional list fields make the append-only graph resolvable:
 
-| field        | meaning                                                             |
-| ------------ | ------------------------------------------------------------------- |
-| `supersedes` | ids of judgments this fragment replaces; render hides them from `--for-agent` and shows the trail in `--view effective` |
-| `closes`     | ids of directions this fragment closes; closed directions leave the open list |
+| field         | meaning                                                             |
+| ------------- | ------------------------------------------------------------------- |
+| `supersedes`  | ids of judgments this fragment replaces; render hides them from `--for-agent` and shows the trail in `--view effective` |
+| `closes`      | ids of directions this fragment closes; closed directions leave the open list |
+| `explains`    | ids of witnessed changes this judgment accounts for                 |
+| `explained_by`| ids of judgments a capture found in its own window; written by `witness`, never by hand |
 
-Supersession is explicit only. Referencing a fragment in `refs` never implies
-replacing it, so context links stay free of side effects.
+All three are explicit only. Referencing a fragment in `refs` never implies
+replacing, closing, or explaining it, so context links stay free of side
+effects.
+
+Explanation is two-directional for one reason: a judgment cannot name a capture
+that has not happened yet, and a capture cannot name a judgment written after it
+fired. Whichever side knows, states it. What neither side claims is a real
+omission — see *Judgment has no mechanical source* below.
 
 ### Common optional fields
 
@@ -154,6 +162,7 @@ replacing it, so context links stay free of side effects.
 | `pointer`      | URL or relative path to an external artifact (PDF, deck, sheet, code path, video)        |
 | `done_when`    | machine-readable success condition for goals/intents                                     |
 | `verifier_ref` | id of a fragment (or skill/test/recipe) that proves `done_when`                          |
+| `governs`      | paths a judgment is about; witnessed removal of all of them surfaces it in `--view decay` |
 | `passed`       | `true`/`false` on a `verification-fact` fragment                                         |
 | `cadence`      | for recurring intents (`every-30m`, `daily`, etc.)                                       |
 | `interrupt`    | `true` for steering: runners read latest intent before continuing                        |
@@ -222,6 +231,8 @@ deterministic function of the fragments and a query.
 | `progress`        | directions matched against evidence via `refs`                        |
 | `goals`           | goals + their verification status                                     |
 | `principles`      | Tier A–E currently in force                                           |
+| `unexplained`     | witnessed change that no judgment claims                              |
+| `decay`           | judgments in force whose `governs` subject the evidence says is gone  |
 | `thread`          | turns in a single thread, time-ordered                                |
 | `family`          | artifact family with members and latest entry per `artifact_role`     |
 | `changes-summary` | what was appended in a window (used for the turn-mark)                |
@@ -235,9 +246,14 @@ they never require a new on-disk format.
 Doctor is a pure function of the fragments — no state, no network, no writes.
 It reports: `no-frontmatter`, `missing-kind`, `unparsable-filename`,
 `unparsable-time`, `header-disagreement`, `duplicate-id`, `dangling-ref`,
-`goal-without-verifier`. Exit code is 1 when anything is found, so the same
-command works as a CI gate and as a goal verifier
+`goal-without-verifier`, `unexplained-change`. Exit code is 1 when anything is
+found, so the same command works as a CI gate and as a goal verifier
 (`verifier_ref: shell: python3 tools/sula_vector/render.py . --view doctor`).
+
+The last two codes are invariant violations rather than malformed files: a goal
+without a verifier is a wish (B9), and a witnessed change nothing claims has no
+why anywhere (B8). Both are things only an author can supply, which is exactly
+why the gate and not the notice is the right place for them.
 
 A dangling reference is treated as acknowledged when some fragment records it
 in a `broken_ref` field — the append-only repair path, since the broken
@@ -275,6 +291,36 @@ Two properties matter:
 
 Ignore patterns come from the defaults plus any fragment carrying a
 `witness_ignore` field — configuration is itself a fragment, so it obeys B2.
+
+### Judgment has no mechanical source
+
+Witness closes half of the asymmetry, not all of it:
+
+| lane | mechanical source | mechanical end |
+| --- | --- | --- |
+| `evidence` | `witness` | not needed; evidence only recedes into the past |
+| `direction` | authored | `verifier_ref` (B9) |
+| `judgment` | **authored — nothing can supply it** | `governs` decay, else supersession by hand |
+
+The supply of *why* is not mechanizable and must not be faked. Generating it
+from commit messages or chat transcripts would put a machine's inference into
+the one lane that exists to hold deliberate thought — E1 in a new costume, and
+worse than an empty lane because it reads as if someone had thought.
+
+What is mechanizable is the **demand**:
+
+- **Absence is counted.** A witnessed change that neither side claims is an
+  `unexplained-change` in `--view doctor`, so the done-gate (D5) stays shut
+  until the why lands. Explicit pairing is what makes this survive: any rule of
+  the form "some judgment came after the change" is discharged by the next
+  unrelated append, and the omission evaporates instead of being inherited.
+- **Obsolescence is surfaced.** A judgment with `governs` retires the moment the
+  evidence lane reports its subject removed. Without it, judgment is the only
+  lane with no ending: it accumulates until boot weight inverts and most of what
+  an agent reads at boot describes a system that no longer exists.
+
+Neither mechanism writes a judgment. They make its absence and its decay
+expensive, which is the most a convention can honestly do.
 
 ### Capture triggers
 

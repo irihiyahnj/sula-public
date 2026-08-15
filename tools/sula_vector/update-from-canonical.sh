@@ -17,20 +17,30 @@ usage() {
   cat <<EOF
 usage: $(basename "$0") --project-root <path> [--canonical <git-url-or-local-path>]
 
-Refreshes <project-root>/tools/sula_vector/ from the canonical Sula source.
+usage: $(basename "$0") --project-root <path> [--canonical <git-url-or-local-path>]
+       [--settle-legacy-captures]
+
+Refreshes <project-root>/tools/sula_vector/ from the canonical Sula source and
+rewrites the sula-vector protocol region of AGENTS.md.
 
 Default canonical: https://github.com/irihiyahnj/sula-vector.git
 Pass --canonical /local/path/to/sula-vector to update from a local clone instead.
+
+--settle-legacy-captures appends one annotation claiming witnessed changes that
+predate explicit pairing (pre-v1.2), so --view doctor can return to 0. Needed
+once per project, and only if the update reports any.
 EOF
 }
 
 PROJECT_ROOT=""
 CANONICAL="https://github.com/irihiyahnj/sula-vector.git"
+SETTLE=()
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --project-root) PROJECT_ROOT="$2"; shift 2;;
     --canonical)    CANONICAL="$2"; shift 2;;
+    --settle-legacy-captures) SETTLE=("--settle-legacy-captures"); shift;;
     -h|--help)      usage; exit 0;;
     *) echo "unknown arg: $1" >&2; usage; exit 1;;
   esac
@@ -55,10 +65,12 @@ MIGRATE="$CANONICAL_DIR/tools/sula_vector/migrate.py"
 
 echo
 echo "running migrate.py against $PROJECT_ROOT"
-echo "(idempotent: refreshes tooling and AGENTS.md sentinels; does not duplicate existing fragments)"
+echo "(idempotent: refreshes tooling and the AGENTS.md protocol; does not duplicate existing fragments)"
 echo
-python3 "$MIGRATE" --project-root "$PROJECT_ROOT"
+python3 "$MIGRATE" --project-root "$PROJECT_ROOT" ${SETTLE[@]+"${SETTLE[@]}"}
 
 echo
 echo "verify boot:"
 echo "  python3 $PROJECT_ROOT/tools/sula_vector/render.py $PROJECT_ROOT --for-agent"
+echo "verify gate:"
+echo "  python3 $PROJECT_ROOT/tools/sula_vector/render.py $PROJECT_ROOT --view doctor"

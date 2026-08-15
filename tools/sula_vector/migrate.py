@@ -19,6 +19,26 @@ from pathlib import Path
 
 PRINCIPLES_DIR_DEFAULT = Path(__file__).parent / "principles"
 AGENTS_TEMPLATE_DEFAULT = Path(__file__).parent / "AGENTS.md"
+PROTOCOL_HEADING = "# AGENTS.md — Sula Vector"
+
+# One list, because two lists drift silently: the update skill compared hashes
+# over its own copy that had lost note.py and skills/witness.py, so a release
+# touching only those would report a project already up to date.
+TOOLING_FILES = (
+    "render.py",
+    "note.py",
+    "AGENTS.md",
+    "README.md",
+    "RELEASE-NOTES.md",
+    "principles/README.md",
+    "hooks/install.py",
+    "skills/README.md",
+    "skills/witness.py",
+    "skills/verifier-shell.py",
+    "skills/scheduler.py",
+    "skills/llm-dispatcher.py",
+    "skills/auto-update-from-canonical.py",
+)
 
 DATE_PREFIX_RE = re.compile(r"^(\d{4})-(\d{2})-(\d{2})-(.+)\.md$")
 SLUG_RE = re.compile(r"[^a-zA-Z0-9-]+")
@@ -333,21 +353,7 @@ def install_tooling(root: Path, canonical_tools: Path) -> dict[str, int]:
     target = root / "tools" / "sula_vector"
     if target.resolve() == canonical_tools.resolve():
         return {"copied": 0, "skipped_self": 1}
-    files = [
-        "render.py",
-        "note.py",
-        "AGENTS.md",
-        "README.md",
-        "RELEASE-NOTES.md",
-        "principles/README.md",
-        "hooks/install.py",
-        "skills/README.md",
-        "skills/witness.py",
-        "skills/verifier-shell.py",
-        "skills/scheduler.py",
-        "skills/llm-dispatcher.py",
-        "skills/auto-update-from-canonical.py",
-    ]
+    files = TOOLING_FILES
     target.mkdir(parents=True, exist_ok=True)
     (target / "skills").mkdir(exist_ok=True)
     (target / "principles").mkdir(exist_ok=True)
@@ -394,7 +400,7 @@ def install_agents_template(root: Path, template: Path) -> str:
         return "installed"
     existing = target.read_text(encoding="utf-8")
     changed = False
-    status = "already-vector"
+    status = "unchanged"
     if priority not in existing:
         existing = priority_notice + existing
         changed = True
@@ -403,6 +409,20 @@ def install_agents_template(root: Path, template: Path) -> str:
         existing = existing.rstrip() + suffix
         changed = True
         status = "appended"
+    else:
+        # The region from the sentinel on is tooling-owned, and stale protocol
+        # text is worse than none: an agent reads instructions the tools no
+        # longer implement and boots on a contract that has moved. Everything
+        # the project wrote above the sentinel is preserved. Rewriting stops if
+        # that region does not look like a protocol this tool wrote, because
+        # silently deleting a project's own text is the worse failure.
+        head, _, current = existing.partition(sentinel)
+        if PROTOCOL_HEADING not in current:
+            status = "protocol-foreign-left-alone"
+        elif current.lstrip("\n") != protocol:
+            existing = head + sentinel + "\n" + protocol
+            changed = True
+            status = "protocol-refreshed"
     if changed:
         target.write_text(existing, encoding="utf-8")
     return status
@@ -455,6 +475,74 @@ def install_host_pointers(root: Path) -> int:
     return written
 
 
+def legacy_captures(out: Path) -> list:
+    sys.path.insert(0, str(Path(__file__).resolve().parent))
+    from render import judgment_gap, load_fragments  # type: ignore
+
+    return judgment_gap(load_fragments(out))
+
+
+def doctor_report(out: Path) -> dict:
+    """Whether the vector this update just produced is actually usable.
+
+    A fleet update that reports only what it copied hides the thing the operator
+    needs: several projects carry hand-written v1.0-era fragments whose dangling
+    refs and header disagreements keep the gate shut regardless of tooling.
+    """
+    sys.path.insert(0, str(Path(__file__).resolve().parent))
+    from render import load_report, view_doctor  # type: ignore
+
+    frags, problems = load_report(out)
+    return view_doctor(frags, problems)
+
+
+def settle_legacy_captures(out: Path, captures: list) -> Path | None:
+    """Claim captures that predate explicit pairing, as debt, not as answers.
+
+    Every one of these was adjudicated "explained" by the proximity rule that
+    shipped before v1.2, so they arrive unclaimed through no author's fault, and
+    a permanently shut done-gate is the same as no gate. What the tool may state
+    is only what it can check: how many captures, and how many carry a commit
+    subject. It must not invent a reason, which is why this needs an explicit
+    flag — the fragment is a judgment, and a judgment needs an author who chose
+    to make it.
+    """
+    if not captures:
+        return None
+    with_commits = [f for f in captures if "## commits" in f.body]
+    body = (
+        f"Settled {len(captures)} witnessed change(s) that no judgment claims.\n\n"
+        f"These captures predate explicit pairing (`explained_by` / `explains`, "
+        f"Sula Vector v1.2). Until then a proximity rule decided whether a change "
+        f"was accounted for, and that rule counted any later judgment — so these "
+        f"were treated as explained at the time and cannot now be attributed to "
+        f"the judgment each belonged to.\n\n"
+        f"What is recoverable: {len(with_commits)} of {len(captures)} carry a "
+        f"commit subject in the witness body, which records the change intent at "
+        f"the mechanical level. The remaining "
+        f"{len(captures) - len(with_commits)} carry neither a commit nor any "
+        f"judgment naming them; for those the why is not in this project and "
+        f"cannot be reconstructed from the files.\n\n"
+        f"This fragment claims the debt as uncollectible, not as answered. It is "
+        f"appended once, on operator authorization, so that `--view doctor` can "
+        f"return to 0 and the done-gate becomes meaningful again for work from "
+        f"here on.\n\n"
+        + "\n".join(f"- {f.id}" for f in captures)
+    )
+    return emit_fragment(
+        out,
+        time_iso=now_iso(),
+        slug="annotation-settle-legacy-captures",
+        kind="annotation",
+        body=body,
+        tags=["b8", "e8", "capture", "debt", "migration-event"],
+        extra={
+            "explains": "[" + ", ".join(f.id for f in captures) + "]",
+            "author": "migrate.py",
+        },
+    )
+
+
 def emit_migration_decision(out: Path, total: int) -> None:
     for _ in out.glob("*--decision-migrated-to-sula-vector.md"):
         return
@@ -493,6 +581,13 @@ def main(argv: list[str] | None = None) -> int:
         "--no-host-pointers",
         action="store_true",
         help="Do not project CLAUDE.md / CODEX.md / GEMINI.md / Cursor / Copilot pointers.",
+    )
+    p.add_argument(
+        "--settle-legacy-captures",
+        action="store_true",
+        help="Append one annotation claiming pre-v1.2 witnessed changes that no "
+        "judgment names, as uncollectible debt. Required once per project after "
+        "updating, or --view doctor stays at exit 1.",
     )
     p.add_argument(
         "--dry-run",
@@ -550,10 +645,37 @@ def main(argv: list[str] | None = None) -> int:
 
     emit_migration_decision(out, total)
 
+    captures = legacy_captures(out)
+    if args.settle_legacy_captures:
+        settled = settle_legacy_captures(out, captures)
+        counts["legacy_captures_settled"] = len(captures) if settled else 0
+        captures = legacy_captures(out)
+    else:
+        counts["legacy_captures_unsettled"] = len(captures)
+
     print(f"  output dir       : {out}")
     for k, v in counts.items():
         print(f"  {k:18}: {v}")
     print(f"  total written    : {sum(v for v in counts.values() if isinstance(v, int))}")
+
+    report = doctor_report(out)
+    if report["ok"]:
+        print(f"\n  doctor           : OK ({report['fragments']} fragments)")
+    else:
+        print(f"\n  doctor           : {len(report['problems'])} problem(s)")
+        for code, count in report["by_code"].items():
+            print(f"    {count:6d}  {code}")
+    if captures:
+        print(
+            f"\n{len(captures)} witnessed change(s) predate explicit pairing and "
+            "nothing claims them,\nso `--view doctor` exits 1 and the done-gate "
+            "stays shut. Settle them once:\n\n"
+            f"    python3 {Path(__file__).name} --project-root {root} "
+            "--settle-legacy-captures\n\n"
+            "Or write the claim yourself if you know what those changes were:\n\n"
+            "    python3 tools/sula_vector/note.py . --kind annotation \\\n"
+            "      --explains <id>,<id> \"<what is and is not recoverable>\""
+        )
     print(
         "\nNext: python3 tools/sula_vector/render.py "
         f"{out.parent} --for-agent"

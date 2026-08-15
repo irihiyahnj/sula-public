@@ -24,7 +24,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from render import load_fragments  # type: ignore
+from render import lane_of, load_fragments  # type: ignore
 
 DEFAULT_IGNORE = [
     ".git",
@@ -245,6 +245,36 @@ def git_commits_since(root: Path, since_commit: str) -> list[str]:
     return out
 
 
+def deliberate_since_last_capture(frags: list) -> list[str]:
+    """Judgments and directions written since the previous capture.
+
+    Recorded into the witness rather than inferred later, because only the
+    runtime knows the window. A renderer looking at finished fragments can only
+    guess from proximity, and every proximity rule is discharged by the next
+    unrelated append — which is how an omission evaporates instead of being
+    inherited.
+
+    The lower bound is inclusive because fragment time has second resolution: a
+    commit and the judgment behind it routinely land in the same second, and
+    dropping that judgment would report a change nothing claims while the why
+    sits right there. Judgments a previous capture already claimed are excluded,
+    so the inclusive bound cannot credit one judgment to two windows.
+    """
+    last_capture = ""
+    claimed: set[str] = set()
+    for f in frags:
+        if f.kind == "witness":
+            last_capture = f.time
+            claimed.update(f.id_list("explained_by"))
+    return [
+        f.id
+        for f in frags
+        if f.time >= last_capture
+        and f.id not in claimed
+        and lane_of(f) in {"judgment", "direction"}
+    ]
+
+
 def last_witness_commit(frags: list) -> str:
     for f in reversed(frags):
         if f.kind == "witness" and f.get("commit"):
@@ -273,6 +303,7 @@ def write_witness(
     git: dict[str, str],
     commits: list[str],
     baseline: bool,
+    explained_by: list[str],
 ) -> Path:
     slug = "witness-baseline" if baseline else "witness"
     # Folding deltas requires a strict order, and same-second filenames sort by
@@ -294,6 +325,8 @@ def write_witness(
     if refs:
         lines.append(f"refs: [{', '.join(refs)}]")
     lines.append("tags: [witness, skill]")
+    if explained_by:
+        lines.append(f"explained_by: [{', '.join(explained_by)}]")
     lines.append(f"summary: {headline}")
     lines.append(f"substrate: {substrate}")
     lines.append(f"files_added: {len(added)}")
@@ -391,6 +424,7 @@ def main(argv: list[str] | None = None) -> int:
     commits = git_commits_since(root, last_witness_commit(frags))
     substrate = "git" if git.get("commit") else "folder"
     baseline = witness_count == 0
+    explained_by = deliberate_since_last_capture(frags)
 
     if not (added or changed or removed or commits):
         print("[witness] no change")
@@ -418,11 +452,17 @@ def main(argv: list[str] | None = None) -> int:
         git=git,
         commits=commits,
         baseline=baseline,
+        explained_by=explained_by,
     )
     print(
         f"[witness] + witness  {target.name}  "
         f"(+{len(added)} ~{len(changed)} -{len(removed)}, {len(commits)} commit(s))"
     )
+    if not explained_by and not baseline and (added or changed or removed):
+        print(
+            f"[witness] nothing claims this change — settle it with "
+            f"`note.py {args.project_root} --kind decision --explains {target.stem} \"<why>\"`"
+        )
 
     if args.no_artifacts:
         return 0

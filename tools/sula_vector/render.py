@@ -362,6 +362,26 @@ def closure_map(frags: Iterable[Fragment]) -> dict[str, list[str]]:
     return out
 
 
+def explanation_map(frags: Iterable[Fragment]) -> dict[str, list[str]]:
+    """id -> ids of fragments that claim to explain it.
+
+    Both directions count. A judgment names the capture it accounts for with
+    `explains`; a capture names the judgments its window already contained with
+    `explained_by`. The runtime writes the second at capture time because only
+    it knows the window, and a judgment cannot name a witness that does not
+    exist yet.
+    """
+    out: dict[str, list[str]] = {}
+    for f in frags:
+        for target in f.id_list("explains"):
+            if target != f.id:
+                out.setdefault(target, []).append(f.id)
+        for source in f.id_list("explained_by"):
+            if source != f.id:
+                out.setdefault(f.id, []).append(source)
+    return out
+
+
 def _is_satisfied(intent: Fragment, frags: list[Fragment]) -> bool:
     if closure_map(frags).get(intent.id):
         return True
@@ -419,32 +439,27 @@ def _witnessed_change(f: Fragment) -> bool:
 
 
 def judgment_gap(frags: list[Fragment]) -> list[Fragment]:
-    """Witnessed change that nothing deliberate accounts for (B8/E8).
+    """Witnessed change that nothing deliberate claims (B8/E8).
 
     Mechanical capture proves work happened; only a judgment or a direction says
     why. Evidence is the one lane a machine can write, so evidence alone leaves
     the why nowhere.
 
-    The unit is the window between two captures, not the instant: a capture hook
-    fires at the end of a turn, so the judgment that explains a change is
-    normally written *before* the witness that records it. Comparing timestamps
-    would flag every well-behaved turn, and a notice that cries wolf is worse
-    than no notice.
-
-    Never an error: forcing an append would buy E8 with C7.
+    Pairing is an explicit fact, never a time-based inference. Inferring it from
+    proximity cannot deliver the property this notice exists for: any rule of
+    the form "no judgment after the change" is discharged by the next unrelated
+    append, so the omission evaporates instead of being inherited. Whoever knows
+    the window states it — the runtime at capture time, or a later judgment with
+    `explains`.
     """
-    deliberate = [
-        f.time for f in frags if lane_of(f) in {"judgment", "direction"}
+    explained = explanation_map(frags)
+    return [
+        f
+        for f in frags
+        if f.kind == "witness"
+        and _witnessed_change(f)
+        and not explained.get(f.id)
     ]
-    gap: list[Fragment] = []
-    previous_capture = ""
-    for f in frags:
-        if f.kind != "witness":
-            continue
-        if _witnessed_change(f) and not any(t > previous_capture for t in deliberate):
-            gap.append(f)
-        previous_capture = f.time
-    return gap
 
 
 def view_digest(frags: list[Fragment], n: int = 10) -> dict[str, Any]:
@@ -572,6 +587,69 @@ def view_effective(frags: list[Fragment]) -> dict[str, Any]:
     return {"in_force": in_force, "retired": retired}
 
 
+def witnessed_paths(frags: Iterable[Fragment]) -> tuple[set[str], set[str]]:
+    """Paths the evidence lane has seen: (present now, removed at some point).
+
+    Folded out of the witness deltas, so this stays a pure function of the
+    fragments — a renderer that stat()ed the working tree would answer
+    differently on two machines holding the same vector (B5).
+    """
+    present: set[str] = set()
+    removed: set[str] = set()
+    for f in frags:
+        if f.kind != "witness":
+            continue
+        for line in f.body.splitlines():
+            parts = line.split(None, 3)
+            if len(parts) != 4 or parts[0] not in {"+", "~", "-"}:
+                continue
+            rel = parts[3]
+            if parts[0] == "-":
+                present.discard(rel)
+                removed.add(rel)
+            else:
+                present.add(rel)
+    return present, removed
+
+
+def _covers(prefix: str, paths: Iterable[str]) -> bool:
+    stem = prefix.rstrip("/")
+    return any(p == stem or p.startswith(stem + "/") for p in paths)
+
+
+def view_decay(frags: list[Fragment]) -> list[dict[str, Any]]:
+    """Judgments in force whose declared subject the evidence says is gone.
+
+    A direction ends when its verifier passes (B9). A judgment had no such
+    signal: it stayed in force until someone remembered to supersede it, so
+    obsolete judgment accumulated and boot weight inverted. `governs` gives a
+    judgment a subject, and witness already reports when a subject disappears.
+
+    Positive evidence of removal is required. Treating "never witnessed" as
+    "gone" would retire judgments about anything the capture history does not
+    reach, which is the opposite of the intended failure.
+    """
+    present, removed = witnessed_paths(frags)
+    superseded = supersession_map(frags)
+    out: list[dict[str, Any]] = []
+    for f in frags:
+        if lane_of(f) != "judgment" or f.id in superseded:
+            continue
+        governs = f.id_list("governs")
+        if not governs:
+            continue
+        gone = [
+            g
+            for g in governs
+            if _covers(g, removed) and not _covers(g, present)
+        ]
+        if len(gone) == len(governs):
+            entry = _to_dict(f)
+            entry["gone"] = gone
+            out.append(entry)
+    return out
+
+
 def view_journal(frags: list[Fragment]) -> list[dict[str, Any]]:
     """Day-by-day project journal: what was decided, what was produced."""
     days: dict[str, dict[str, list[dict[str, Any]]]] = {}
@@ -626,6 +704,21 @@ def view_doctor(frags: list[Fragment], problems: list[Problem]) -> dict[str, Any
             found.append(
                 Problem("goal-without-verifier", f.id, f.path, "B9/E9").as_dict()
             )
+
+    # An unexplained change is not a malformed file, but B8 is an invariant and
+    # doctor is where invariants are enforced (`goal-without-verifier` is the
+    # same shape). Visibility alone left the omission optional; the done-gate
+    # makes the why part of finishing rather than a courtesy.
+    for f in judgment_gap(frags):
+        found.append(
+            Problem(
+                "unexplained-change",
+                f.id,
+                f.path,
+                "witnessed change no judgment claims — settle it with "
+                "`note.py --explains " + f.id + "` (B8/E8)",
+            ).as_dict()
+        )
 
     by_code: dict[str, int] = {}
     for p in found:
@@ -694,9 +787,10 @@ def render_changes_summary_block(frags: list[Fragment]) -> str:
         )
         lines.append("")
         lines.append(
-            f"  ! {changed} file change(s) witnessed, no judgment recorded — "
+            f"  ! {changed} file change(s) witnessed, nothing claims them — "
             "why is not in the vector (B8/E8)"
         )
+        lines.append(f"    settle with: --explains {gap[0].id}")
     return "\n".join(lines)
 
 
@@ -808,8 +902,32 @@ def render_for_agent(
                 f"- [{f.time}] {f.id}: {_summarize(f, max_chars=120)}"
             )
         lines.append(
-            "- No judgment follows this change. Whoever knows why should append "
-            "one; it cannot be recovered from the files."
+            "- Nothing claims these changes. Whoever knows why should append a "
+            "judgment naming them; it cannot be recovered from the files:"
+        )
+        lines.append("")
+        lines.append(
+            "      python3 tools/sula_vector/note.py . --kind decision "
+            f"--explains {gap[0].id} \"<why>\""
+        )
+        lines.append("")
+        lines.append(
+            "  These entries do not expire. `--view doctor` counts them, so the "
+            "done-gate stays shut until they are settled."
+        )
+        lines.append("")
+
+    decay = view_decay(non_principle)
+    if decay:
+        lines.append("## Judgments whose subject is gone")
+        for d in decay:
+            lines.append(
+                f"- [{d['time']}] {d['kind']} {d['id']}: {d['summary']}"
+            )
+            lines.append(f"    governs {', '.join(d['gone'])} — witnessed removed")
+        lines.append(
+            "- Still in force. Supersede or restate them; a judgment about "
+            "something that no longer exists still spends the next agent's attention."
         )
         lines.append("")
 
@@ -827,7 +945,9 @@ def render_for_agent(
         "Mechanical evidence (files produced, commits made) is captured by "
         "`skills/witness.py`; you do not need to describe it by hand. "
         "Supersede a past judgment with `--supersedes <id>`; close an open "
-        "direction with `--closes <id>`."
+        "direction with `--closes <id>`; account for a witnessed change with "
+        "`--explains <witness-id>`. Give a judgment `--field governs=<path>` so "
+        "it retires itself when its subject does."
     )
     return "\n".join(lines).rstrip() + "\n"
 
@@ -896,6 +1016,13 @@ def _format_human(view: str, result: Any, out: Any) -> None:
             for s in it.get("superseded_by", []):
                 out.write(f"    ↳ superseded by [{s['time']}] {s['summary']}\n")
         return
+    if view == "decay":
+        for it in result:
+            out.write(
+                f"- [{it['time']}] {it['kind']} {it['id']}: {it.get('summary','')}\n"
+            )
+            out.write(f"    governs {', '.join(it['gone'])} — witnessed removed\n")
+        return
     if view == "journal":
         for day in result:
             out.write(f"## {day['day']}\n")
@@ -928,6 +1055,8 @@ VIEWS = [
     "effective",
     "journal",
     "doctor",
+    "unexplained",
+    "decay",
 ]
 
 
@@ -1002,6 +1131,10 @@ def main(argv: list[str] | None = None) -> int:
         result = view_effective(filtered)
     elif args.view == "journal":
         result = view_journal(filtered)
+    elif args.view == "unexplained":
+        result = [_to_dict(f) for f in judgment_gap(filtered)]
+    elif args.view == "decay":
+        result = view_decay(filtered)
     elif args.view == "principles":
         if args.json:
             json.dump(

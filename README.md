@@ -3,8 +3,8 @@
 > Append-only project memory: what was decided, why, and what changed.
 > Cross-LLM, cross-device, byte-stable, principle-enforced.
 
-**Sula Vector v1.1** — capture as invariant, errors made unrepresentable.
-Convention backwards-compatible with v1.0 (2026-05-23 GA).
+**Sula Vector v1.2** — the missing why is demanded, and judgment can end.
+Convention 1.1, backwards-compatible with v1.0 (2026-05-23 GA).
 
 A project's truth is an ordered, append-only folder of typed text fragments.
 Every view (status, progress, AI context, audit trail) is `render(fragments,
@@ -57,11 +57,21 @@ already been migrated does the right thing:
 - adds any missing AGENTS.md sentinels (e.g. the priority notice)
 - never duplicates existing fragments (sentinel/content idempotence throughout)
 
+- rewrites the `sula-vector` protocol region of AGENTS.md from canonical, leaving everything the project wrote above it untouched
+- reports whether the resulting vector passes `--view doctor`
+
 A one-line wrapper for the common case (refresh from GitHub):
 
 ```bash
 sula-vector/tools/sula_vector/update-from-canonical.sh \
   --project-root /path/to/your-project
+```
+
+If the update reports witnessed changes that predate explicit pairing, settle
+them once — see [RELEASE-NOTES](tools/sula_vector/RELEASE-NOTES.md):
+
+```bash
+python3 tools/sula_vector/migrate.py --project-root <path> --settle-legacy-captures
 ```
 
 This is operator-level (not a per-project skill). Each project decides when
@@ -153,6 +163,15 @@ Kiro IDE hook, or a launchd/cron timer).
 Record judgments with `note.py`, which derives id/time from the clock and
 refuses dangling references or goals without verifiers.
 
+Evidence is mechanical; the *why* is not, and faking it would put a machine's
+inference into the one lane that exists for deliberate thought. What is
+mechanical is the demand for it: a witnessed change that neither
+`witness`'s `explained_by` nor a judgment's `explains` claims is an
+`unexplained-change` in `--view doctor`, so the done-gate stays shut until the
+why lands. A judgment that names its subject with `governs` shows up in
+`--view decay` once the evidence lane reports that subject removed — the ending
+a `direction` gets from its verifier, which `judgment` otherwise lacks.
+
 Skills contract: [`tools/sula_vector/skills/README.md`](tools/sula_vector/skills/README.md).
 
 Every agent superpower (durable threads, voice, steering, queuing, goals,
@@ -200,7 +219,7 @@ tools/
     principles/                ← canonical Tier A–E principle fragments
     hooks/install.py           ← wire witness to git / Kiro / cron
     skills/                    ← witness, verifier-shell, scheduler, llm-dispatcher
-    tests/                     ← stdlib unittest suite (65 tests)
+    tests/                     ← stdlib unittest suite (98 tests)
 fragments/                     ← Sula's own project memory as a Sula vector
                                  (370+ fragments — decisions, releases,
                                  corrections, the v1.0 GA and v1.1 events)
@@ -219,8 +238,8 @@ the vector convention. The recommended path forward is Sula Vector v1.1.
 
 | Check | Result |
 | ----- | ------ |
-| Test suite (`tools.sula_vector.tests.test_sula_vector`) | **65/65 PASS** |
-| `render.py --view doctor` on Sula's own vector | ✓ 0 problems, 375 fragments |
+| Test suite (`tools.sula_vector.tests.test_sula_vector`) | **98/98 PASS** |
+| `render.py --view doctor` on Sula's own vector | ✓ 0 problems, 423 fragments |
 | Standard library only | ✓ no third-party deps |
 | `render.py` byte-stable replay (Sula self) | ✓ |
 | `render.py` byte-stable replay (1terminal) | ✓ |

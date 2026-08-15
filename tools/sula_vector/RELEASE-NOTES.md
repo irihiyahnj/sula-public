@@ -1,5 +1,63 @@
 # Sula Vector — Release Notes
 
+## v1.2.0 — The missing why is demanded, and judgment can end
+
+**Release date:** 2026-08-15
+**Convention version:** 1.1 (unchanged; three optional fields, two new views)
+
+v1.1.2 claimed that an unexplained change is "inherited, not forgotten". It was
+not. `judgment_gap()` asked whether *any* judgment existed after the previous
+capture, unbounded, so the next unrelated append discharged someone else's
+omission and the notice vanished. Measured on this vector: one unrelated
+`decision` erased the outstanding 2026-07-29 entry entirely.
+
+Tightening the window could not fix it. Real data shows judgments landing both
+before a capture (16:50:15 → 16:51:01) and after it (19:15:07 → 19:15:35), and
+the vector has no turn boundary to bound them with — `session_start` is host
+state by B2. Every proximity rule errs on one side.
+
+- **Pairing is now an explicit fact, from whichever side knows it.** `witness` writes `explained_by` at capture time (only the runtime knows its own window); a later judgment writes `explains` via `note.py --explains <witness-id>`. What neither side claims is a real omission, and no unrelated append can settle it.
+- **`--view doctor` now counts `unexplained-change`**, reversing the v1.1.2 decision. That decision was correct while the gap set was inferred — a wrong guess cost a wasted append, buying E8 with C7. With explicit pairing the set is exact and `--explains` is a one-action escape for a genuinely mechanical change, so the done-gate (D5) can hold the why without churn. B8 now sits on the same gate as B9's `goal-without-verifier`.
+- **`governs` gives a judgment a subject, and `--view decay` reports when the evidence lane says that subject is gone.** `direction` ends when its verifier passes; `evidence` only recedes into the past; `judgment` had no ending at all and accumulated until boot weight inverted. Positive evidence of removal is required — "never witnessed" is not "gone" — and decay is never a doctor problem.
+- **`--view unexplained`** lists witnessed change nothing claims.
+
+Applied to this vector: 11 historical captures were never explicitly claimed
+(4 carry a commit subject, 7 carry nothing) and are settled by one `annotation`
+that records the debt as uncollectible rather than explained. 60 judgments in
+force were legacy 0.18.x change-records whose code moved to `legacy/` in v1.1;
+one `correction` retires them, and boot drops from 103 judgments in force to 48,
+all vector-era. The live language policy inside that batch was restated rather
+than dropped.
+
+### The update path itself had to be fixed first
+
+`migrate.py` is the documented way to update an adopted project, and it could
+not have delivered this release. Three defects, all found while preparing the
+fleet rollout:
+
+- **It never refreshed the protocol.** Any project already carrying the `sula-vector` sentinel got `already-vector` and no change, so every project on the fleet would have kept v1.1 protocol text — including the "inherited, not forgotten" claim this release disproves — while running v1.2 tools. An agent booting on instructions the tools no longer implement is the exact failure recorded in `correction-agents-md-legacy-vs-vector-ambiguity`. The region from the sentinel to EOF is now rewritten from canonical; anything above it is untouched, and a region that does not look like a protocol this tool wrote is left alone and reported rather than overwritten.
+- **Two lists of tooling files had drifted.** `auto-update-from-canonical.py` compared hashes over its own copy of the list, which had lost `note.py` and `skills/witness.py` — so a release touching only those files would have reported every project already up to date. The list now lives once, in `migrate.py`, and the skill imports it.
+- **It reported what it copied, not whether the result was usable.** Migrate now prints a doctor summary, which matters because some fleet projects carry hand-written v1.0-era fragments whose dangling refs keep the gate shut regardless of tooling.
+
+**Updating an existing project:**
+
+```bash
+python3 tools/sula_vector/migrate.py --project-root <path>                        # refresh tools + protocol
+python3 tools/sula_vector/migrate.py --project-root <path> --settle-legacy-captures  # once, if it reports any
+```
+
+The second command appends one `annotation` claiming pre-v1.2 captures that
+nothing names, recording how many carry a commit subject and how many carry
+nothing at all. It is behind a flag and not part of the update because that
+fragment is a judgment, and a judgment needs an author who chose to make it —
+the same reason the Kiro CLI agent is written but not activated. Write the claim
+by hand instead if you know what those changes were. Until captures are settled,
+`--view doctor` exits 1.
+
+No fragment changes meaning and nothing needs rewriting.
+
+104 tests (up from 87).
+
 ## v1.1.3 — Capture is wired to hosts that actually read it
 
 **Release date:** 2026-07-26

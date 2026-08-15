@@ -27,13 +27,5 @@ jobs:
           python tools/sula_vector/render.py . --for-agent > /tmp/a.txt
           python tools/sula_vector/render.py . --for-agent > /tmp/b.txt
           diff /tmp/a.txt /tmp/b.txt
-
-  legacy:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      - name: Legacy Sula 0.18.x CLI tests (historical reference, archived under legacy/)
-        run: python -m unittest discover -s legacy/tests -v
+      - name: Example vector renders and is clean
+        run: python tools/sula_vector/render.py tools/sula_vector/example --view doctor

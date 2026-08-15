@@ -10,6 +10,8 @@ Run from the repo root:
 python3 tools/sula_vector/render.py tools/sula_vector/example --for-agent
 python3 tools/sula_vector/render.py tools/sula_vector/example --view goals
 python3 tools/sula_vector/render.py tools/sula_vector/example --view progress
+python3 tools/sula_vector/render.py tools/sula_vector/example --view decay
+python3 tools/sula_vector/render.py tools/sula_vector/example --view unexplained
 python3 tools/sula_vector/render.py tools/sula_vector/example --view family --family hospital-acme-intake
 python3 tools/sula_vector/render.py tools/sula_vector/example --view thread --thread chief-of-staff
 ```

@@ -1,11 +1,16 @@
 #!/usr/bin/env python3
 """auto-update-from-canonical skill: pull tooling updates from the canonical Sula source.
 
-Aggregates SHA-256 of all 10 tooling files in tools/sula_vector/ both locally and
+Aggregates SHA-256 of the tooling files in tools/sula_vector/ both locally and
 on canonical (https://raw.githubusercontent.com/irihiyahnj/sula-vector/main/...).
+The file list comes from migrate.py, which installs them: two copies of the list
+drift, and this one had already lost note.py and skills/witness.py.
 If aggregate hashes differ, clones the canonical repo to a temp dir and runs
 migrate.py against this project (which idempotently refreshes tools/sula_vector/*
-and the AGENTS.md sentinel block).
+and the AGENTS.md protocol block).
+
+Does not settle pre-v1.2 unclaimed captures: that append is a judgment and needs
+an operator who chose to make it (`migrate.py --settle-legacy-captures`).
 
 Emits a `kind: operation` fragment ONLY on actual update (Tier C7 — no churn
 when already current; no fragment when network is unreachable).
@@ -33,18 +38,8 @@ DEFAULT_CANONICAL_RAW = (
 )
 DEFAULT_CANONICAL_GIT = "https://github.com/irihiyahnj/sula-vector.git"
 
-TOOLING_FILES = (
-    "render.py",
-    "AGENTS.md",
-    "README.md",
-    "RELEASE-NOTES.md",
-    "principles/README.md",
-    "skills/README.md",
-    "skills/verifier-shell.py",
-    "skills/scheduler.py",
-    "skills/llm-dispatcher.py",
-    "skills/auto-update-from-canonical.py",
-)
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+from migrate import TOOLING_FILES  # type: ignore
 
 
 def hash_file(path: Path) -> str:
