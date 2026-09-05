@@ -5,9 +5,10 @@
 
 ## Verification
 
-- [ ] `python3 -m unittest discover -s tests -v`
-- [ ] `python3 scripts/sula.py doctor --project-root . --strict`
-- [ ] `python3 scripts/sula.py doctor --project-root examples/okoktoto --strict`
+- [ ] `python3 -m unittest discover -s tools/sula_vector/tests -v`
+- [ ] `python3 tools/sula_vector/skills/finish.py --project-root .`
+- [ ] `python3 tools/sula_vector/render.py . --for-agent > /dev/null`
+- [ ] `python3 tools/sula_vector/render.py tools/sula_vector/example --view doctor`
 - [ ] other project-specific verification is described below
 
 ## Sync Impact
@@ -17,8 +18,8 @@
 
 ## Traceability
 
-- [ ] `STATUS.md` was reviewed
-- [ ] change record / release record / incident record updates were made if needed
+- [ ] fragments/ contains a judgment explaining this change (`note.py`)
+- [ ] mechanical capture was witnessed and doctor stays clean (`skills/witness.py`)
 
 ## Notes
 

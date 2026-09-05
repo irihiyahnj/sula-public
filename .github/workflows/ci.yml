@@ -17,7 +17,7 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
       - name: Sula Vector test suite
-        run: python -m unittest tools.sula_vector.tests.test_sula_vector -v
+        run: python -m unittest discover -s tools/sula_vector/tests -v
       - name: Vector integrity (doctor must exit 0)
         run: python tools/sula_vector/render.py . --view doctor
       - name: Boot context renders
@@ -29,3 +29,5 @@ jobs:
           diff /tmp/a.txt /tmp/b.txt
       - name: Example vector renders and is clean
         run: python tools/sula_vector/render.py tools/sula_vector/example --view doctor
+      - name: Copied code, document and media-sized handoffs
+        run: python tools/sula_vector/tests/handoff_scenarios.py

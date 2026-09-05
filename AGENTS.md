@@ -66,6 +66,11 @@ python3 tools/sula_vector/note.py . --kind fact --closes <intent-id> "<what clos
 python3 tools/sula_vector/note.py . --kind decision --explains <witness-id> "<why those files changed>"
 ```
 
+Use `--field scope=global` for judgments every focused view must retain,
+`--field review_after=YYYY-MM-DD` for date-based review, and
+`--field review_when="<business condition>"` for a reader-evaluated review trigger.
+Reviews are measured against recorded activity; they do not expire a judgment.
+
 Give a judgment a subject with `--field governs=<path>` when it governs
 something on disk. When a witness later records that path removed, the judgment
 surfaces in boot as decayed instead of staying in force forever — the signal a
@@ -111,11 +116,13 @@ is a real omission: it appears in the next agent's boot under
 `## Unexplained change` and does not expire, because no unrelated append can
 discharge it.
 
-Before claiming a task is done (D5), the vector must be clean:
+Before claiming a task is done (D5), capture the working tree and check both the vector and the observed file version:
 
 ```bash
-python3 tools/sula_vector/render.py . --view doctor   # must exit 0
+python3 tools/sula_vector/skills/finish.py --project-root .   # must exit 0
 ```
+
+finish runs witness, doctor, and a second scan to detect changes after capture. Doctor alone checks recorded fragments, not the live working tree.
 
 Doctor counts an unexplained change as a problem. A turn that changed files and
 recorded no why is not finished, so the gate stays shut until the why lands.
@@ -124,6 +131,7 @@ recorded no why is not finished, so the gate stays shut until the why lands.
 
 ```bash
 python3 tools/sula_vector/render.py . --for-agent            # boot context
+python3 tools/sula_vector/render.py . --for-agent --focus "<task terms or path>"  # after full boot
 python3 tools/sula_vector/render.py . --view journal         # day by day: decided / produced
 python3 tools/sula_vector/render.py . --view effective       # judgments in force + supersession trail
 python3 tools/sula_vector/render.py . --view goals           # goals + verification status
@@ -142,7 +150,7 @@ python3 tools/sula_vector/skills/witness.py --project-root .  # or run by hand
 
 The installer wires whatever the substrate already offers, and names the host
 each trigger actually reaches: a git `post-commit` hook, a Kiro CLI agent
-config (`agentSpawn` injects this boot, `stop` witnesses the turn), a Kiro IDE
+config (`agentSpawn` injects this boot, `stop` runs the completion check), a Kiro IDE
 hook, and on a folder or Drive substrate a launchd timer on macOS or the cron
 line to paste. Sula never schedules anything itself (B7).
 

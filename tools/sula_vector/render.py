@@ -16,10 +16,12 @@ import json
 import re
 import sys
 from dataclasses import dataclass, field
+from datetime import datetime
 from pathlib import Path
 from typing import Any, Iterable
+from capture import CaptureError, decode_path, capture_graph, fold_witnessed, select_tree, tree_digest
 
-CONVENTION_VERSION = "1.1"
+CONVENTION_VERSION = "1.2"
 
 TIER_ORDER = ["highest", "invariant", "aesthetic", "discipline", "anti-pattern"]
 PROJECT_TIER = "project"
@@ -54,9 +56,16 @@ LANE_BY_KIND = {
 }
 
 FILENAME_TIME_RE = re.compile(
-    r"^(\d{4}-\d{2}-\d{2})T(\d{2})-(\d{2})-(\d{2})Z(?:--(.*))?$"
+    r"^(\d{4}-\d{2}-\d{2})T(\d{2})-(\d{2})-(\d{2}(?:\.\d{1,6})?)Z(?:--(.*))?$"
 )
-FRONTMATTER_TIME_RE = re.compile(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$")
+FRONTMATTER_TIME_RE = re.compile(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,6})?Z$")
+
+
+def time_key(value: str) -> str:
+    try:
+        return datetime.fromisoformat(value.replace("Z", "+00:00")).isoformat(timespec="microseconds")
+    except ValueError:
+        return value
 
 
 @dataclass
@@ -79,6 +88,8 @@ class Fragment:
         raw = self.get(key)
         if raw is None or raw == "":
             return []
+        if key in {"governs", "verification_paths", "verification_scope", "capture_ignore"}:
+            return [str(x) for x in raw if str(x)] if isinstance(raw, list) else [str(raw)]
         if isinstance(raw, list):
             return [str(x).strip() for x in raw if str(x).strip()]
         return [str(raw).strip()]
@@ -107,6 +118,11 @@ def _parse_scalar(value: str) -> Any:
     if (value.startswith('"') and value.endswith('"')) or (
         value.startswith("'") and value.endswith("'")
     ):
+        if value.startswith('"'):
+            try:
+                return json.loads(value)
+            except json.JSONDecodeError:
+                pass
         return value[1:-1]
     low = value.lower()
     if low in {"true", "false"}:
@@ -121,6 +137,12 @@ def _parse_inline_list(value: str) -> list[Any]:
     inner = value[1:-1].strip()
     if not inner:
         return []
+    try:
+        parsed = json.loads(value)
+        if isinstance(parsed, list):
+            return parsed
+    except json.JSONDecodeError:
+        pass
     return [_parse_scalar(item) for item in inner.split(",")]
 
 
@@ -171,7 +193,12 @@ def derive_identity(path: Path) -> tuple[str, str | None]:
     if not match:
         return stem, None
     day, hh, mm, ss, _slug = match.groups()
-    return stem, f"{day}T{hh}:{mm}:{ss}Z"
+    timestamp = f"{day}T{hh}:{mm}:{ss}Z"
+    try:
+        datetime.fromisoformat(timestamp.replace("Z", "+00:00"))
+    except ValueError:
+        return stem, None
+    return stem, timestamp
 
 
 def load_report(folder: Path) -> tuple[list[Fragment], list[Problem]]:
@@ -183,7 +210,7 @@ def load_report(folder: Path) -> tuple[list[Fragment], list[Problem]]:
             continue
         try:
             text = path.read_text(encoding="utf-8")
-        except OSError as exc:
+        except (OSError, UnicodeError) as exc:
             problems.append(Problem("unreadable", path.stem, str(path), str(exc)))
             continue
 
@@ -259,7 +286,7 @@ def load_report(folder: Path) -> tuple[list[Fragment], list[Problem]]:
             )
         )
 
-    frags.sort(key=lambda f: (f.time, f.id))
+    frags.sort(key=lambda f: (time_key(f.time), f.id))
     return frags, problems
 
 
@@ -288,9 +315,9 @@ def _matches(
 ) -> bool:
     if kind and f.kind != kind:
         return False
-    if since and f.time < since:
+    if since and time_key(f.time) < time_key(since):
         return False
-    if until and f.time > until:
+    if until and time_key(f.time) > time_key(until):
         return False
     if tag and tag not in f.tags:
         return False
@@ -371,29 +398,74 @@ def explanation_map(frags: Iterable[Fragment]) -> dict[str, list[str]]:
     it knows the window, and a judgment cannot name a witness that does not
     exist yet.
     """
+    frags = list(frags)
+    by_id = {f.id: f for f in frags}
     out: dict[str, list[str]] = {}
     for f in frags:
         for target in f.id_list("explains"):
-            if target != f.id:
+            if (target in by_id and by_id[target].kind == "witness"
+                    and lane_of(f) in {"judgment", "direction"} and target != f.id):
                 out.setdefault(target, []).append(f.id)
         for source in f.id_list("explained_by"):
-            if source != f.id:
+            if (f.kind == "witness" and source in by_id
+                    and lane_of(by_id[source]) in {"judgment", "direction"} and source != f.id):
                 out.setdefault(f.id, []).append(source)
     return out
+
+
+def explanation_problems(frags: list[Fragment]) -> list[Problem]:
+    by_id = {f.id: f for f in frags}
+    retired = supersession_map(frags)
+    acknowledged = {t for f in frags for t in f.id_list("broken_ref")}
+    problems = []
+    for f in frags:
+        if f.id in retired:
+            continue
+        for relation in ("explains", "explained_by"):
+            for target in f.id_list(relation):
+                other = by_id.get(target)
+                if other is None:
+                    if target not in acknowledged:
+                        problems.append(Problem("dangling-ref", f.id, f.path, f"{relation} -> {target}"))
+                    continue
+                source, witness = (f, other) if relation == "explains" else (other, f)
+                if (target == f.id or witness.kind != "witness"
+                        or lane_of(source) not in {"judgment", "direction"}):
+                    problems.append(Problem("invalid-explanation", f.id, f.path,
+                                            f"{relation} -> {target}: needs a judgment/direction and a witness"))
+    return problems
 
 
 def _is_satisfied(intent: Fragment, frags: list[Fragment]) -> bool:
     if closure_map(frags).get(intent.id):
         return True
-    back_refs = [f for f in frags if intent.id in f.refs]
-    if intent.kind == "goal":
-        return any(
-            f.kind == "verification-fact" and f.get("passed") in {True, "true"}
-            for f in back_refs
-        )
-    if "done_when" in intent.extra:
-        return any(f.kind in {"fact", "verification-fact"} for f in back_refs)
-    return False
+    if intent.kind != "goal" and "done_when" not in intent.extra:
+        return False
+    results = [f for f in frags if intent.id in f.refs and f.kind == "verification-fact"]
+    if not results:
+        return False
+    latest_time = max(time_key(f.time) for f in results)
+    latest = [f for f in results if time_key(f.time) == latest_time]
+    return all(verification_status(f, frags) in {"current", "unbound"} for f in latest)
+
+
+def verification_status(f: Fragment, frags: list[Fragment]) -> str:
+    if f.get("passed") not in {True, "true"}:
+        return "failed"
+    digest = f.get("verified_tree_digest")
+    if not digest:
+        return "unbound"
+    _, heads, errors = capture_graph(frags)
+    if errors or len(heads) != 1:
+        return "unknown"
+    try:
+        tree, _ = fold_witnessed(frags)
+    except CaptureError:
+        return "unknown"
+    latest = next(x for x in frags if x.id == heads[0])
+    if latest.get("hash_method") != "sha256":
+        return "unknown"
+    return "current" if tree_digest(select_tree(tree, f.id_list("verification_scope"))) == digest else "stale"
 
 
 def _pinned_threads(frags: list[Fragment]) -> list[dict[str, Any]]:
@@ -408,7 +480,7 @@ def _pinned_threads(frags: list[Fragment]) -> list[dict[str, Any]]:
             pinned_ids.add(str(tid))
     out = []
     for tid in sorted(pinned_ids):
-        items = sorted(threads[tid], key=lambda f: f.time)
+        items = sorted(threads[tid], key=lambda f: (time_key(f.time), f.id))
         last = items[-1]
         out.append(
             {
@@ -520,7 +592,7 @@ def view_family(frags: list[Fragment], family_key: str) -> dict[str, Any]:
     by_role: dict[str, Fragment] = {}
     for f in members:
         role = str(f.get("artifact_role", "default"))
-        if role not in by_role or f.time > by_role[role].time:
+        if role not in by_role or (time_key(f.time), f.id) > (time_key(by_role[role].time), by_role[role].id):
             by_role[role] = f
     return {
         "family_key": family_key,
@@ -567,6 +639,7 @@ def view_goals(frags: list[Fragment]) -> list[dict[str, Any]]:
                 "verifications": [_to_dict(f) for f in verifications],
                 "met": _is_satisfied(g, frags),
                 "verifier_shared_with": [i for i in siblings if i != g.id],
+                "verification_states": {f.id: verification_status(f, frags) for f in verifications},
             }
         )
     return out
@@ -620,16 +693,21 @@ def witnessed_paths(frags: Iterable[Fragment]) -> tuple[set[str], set[str]]:
     fragments — a renderer that stat()ed the working tree would answer
     differently on two machines holding the same vector (B5).
     """
+    ordered, heads, errors = capture_graph(list(frags))
+    if errors or len(heads) > 1:
+        return set(), set()
     present: set[str] = set()
     removed: set[str] = set()
-    for f in frags:
-        if f.kind != "witness":
-            continue
+    for f in ordered:
+        legacy = f.get("capture_format") != "2"
+        if f.get("snapshot") in {True, "true"}:
+            removed.update(present)
+            present.clear()
         for line in f.body.splitlines():
             parts = line.split(None, 3)
             if len(parts) != 4 or parts[0] not in {"+", "~", "-"}:
                 continue
-            rel = parts[3]
+            rel = decode_path(parts[3], legacy)
             if parts[0] == "-":
                 present.discard(rel)
                 removed.add(rel)
@@ -697,9 +775,26 @@ def view_journal(frags: list[Fragment]) -> list[dict[str, Any]]:
     ]
 
 
+def is_symbolic_ref(target: str) -> bool:
+    """A ref whose target is a namespace key, not a fragment id.
+
+    Doctor skips these because `family:<key>` and `thread:<id>` are links in
+    the refs graph that can never resolve to a filename. Keep this predicate
+    single-sourced: note.py must accept exactly what doctor will not call
+    dangling.
+    """
+    return ":" in target and not target.startswith("20")
+
+
 def view_doctor(frags: list[Fragment], problems: list[Problem]) -> dict[str, Any]:
     """Structural integrity of the vector. Pure function, no side effects."""
     found = [p.as_dict() for p in problems]
+    found.extend(p.as_dict() for p in explanation_problems(frags))
+    _, heads, capture_errors = capture_graph(frags)
+    for error in capture_errors:
+        found.append(Problem("capture-ancestry", "", "", error).as_dict())
+    if len(heads) > 1:
+        found.append(Problem("capture-fork", "", "", ", ".join(heads)).as_dict())
     ids = {f.id for f in frags}
 
     seen: dict[str, str] = {}
@@ -718,7 +813,7 @@ def view_doctor(frags: list[Fragment], problems: list[Problem]) -> dict[str, Any
     }
     for f in frags:
         for target in f.refs + f.id_list("supersedes") + f.id_list("closes"):
-            if ":" in target and not target.startswith("20"):
+            if is_symbolic_ref(target):
                 continue
             if target in ids or target in acknowledged:
                 continue
@@ -788,7 +883,7 @@ def render_changes_summary_line(summary: dict[str, Any]) -> str:
     return f"[sula] +{summary['total']} ({parts})"
 
 
-def render_changes_summary_block(frags: list[Fragment]) -> str:
+def render_changes_summary_block(frags: list[Fragment], context: list[Fragment] | None = None) -> str:
     if not frags:
         return "[sula] no changes"
     width = max((len(f.kind) for f in frags), default=4)
@@ -805,7 +900,8 @@ def render_changes_summary_block(frags: list[Fragment]) -> str:
             status = "PASS" if passed else "FAIL"
             summary = f"{status}  {short_target}"
         lines.append(f"  {marker} {f.kind.ljust(width)}  {summary}")
-    gap = judgment_gap(frags)
+    selected = {f.id for f in frags}
+    gap = [f for f in judgment_gap(context if context is not None else frags) if f.id in selected]
     if gap:
         changed = sum(
             _int_field(f, k)
@@ -861,11 +957,67 @@ def render_doctor_block(report: dict[str, Any]) -> str:
     return "\n".join(lines) + "\n"
 
 
+def observation_lines(frags: list[Fragment]) -> list[str]:
+    _, heads, errors = capture_graph(frags)
+    if errors or len(heads) > 1:
+        return ["Observation: capture history is incomplete or forked; sync and reconcile before relying on file state.", ""]
+    if not heads:
+        return ["Observation: no file capture recorded; doctor only checks fragment integrity.", ""]
+    latest = next(f for f in frags if f.id == heads[0])
+    method = latest.get("hash_method", "legacy fingerprints; large-file content coverage not guaranteed")
+    return [f"Observation: {latest.time} · {latest.id}",
+            f"Coverage: {method} · {latest.get('tree_files', '?')} files · tree {latest.get('tree_digest', '?')}",
+            "This is the last recorded observation, not a live working-tree check. Run skills/finish.py before claiming done.", ""]
+
+
+def focus_ids(frags: list[Fragment], query: str) -> set[str]:
+    terms = query.casefold().split()
+    retired = supersession_map(frags)
+    selected = {f.id for f in frags if f.id not in retired and any(
+        term in " ".join([f.id, _summarize(f), f.body, *f.tags,
+                          *f.id_list("governs"), str(f.get("scope", ""))]).casefold()
+        for term in terms)}
+    selected.update(f.id for f in frags if f.kind == "principle"
+                    or (lane_of(f) == "judgment" and f.get("scope") == "global"))
+    selected.update(f.id for f in frags if lane_of(f) == "direction" and not _is_satisfied(f, frags))
+    selected.update(f.id for f in judgment_gap(frags))
+    selected.update(p.fragment for p in explanation_problems(frags))
+    # A bulk witness's explained_by names its entire window, not the query's
+    # relevant reasons. Following it pulls unrelated history back into focus.
+    by_id = {f.id: f for f in frags}
+    pending = list(selected)
+    while pending:
+        f = by_id.get(pending.pop())
+        if f is None:
+            continue
+        links = f.refs + sum((f.id_list(k) for k in ("supersedes", "explains", "closes")), [])
+        for target in links:
+            if target in by_id and target not in selected:
+                selected.add(target)
+                pending.append(target)
+    # Include results which support a selected direction, without unrelated captures.
+    selected.update(f.id for f in frags if f.kind == "verification-fact" and any(r in selected for r in f.refs))
+    return selected
+
+
+def review_conditions(frags: list[Fragment]) -> list[Fragment]:
+    cutoff = max((time_key(f.time) for f in frags), default="")
+    retired = supersession_map(frags)
+    return [f for f in frags if lane_of(f) == "judgment" and f.id not in retired
+            and (f.get("review_when") or (f.get("review_after")
+                 and time_key(str(f.get("review_after"))) <= cutoff))]
+
+
 def render_for_agent(
-    frags: list[Fragment], project_name: str = "", n: int = 10
+    frags: list[Fragment], project_name: str = "", n: int = 10,
+    selected_ids: set[str] | None = None,
 ) -> str:
     non_principle = [f for f in frags if f.kind != "principle"]
     digest = view_digest(non_principle, n=n)
+    if selected_ids is not None:
+        digest["decisions"] = [d for d in digest["decisions"] if d["id"] in selected_ids]
+        digest["recent"] = [_to_dict(f) for f in non_principle
+                            if f.id in selected_ids and lane_of(f) == "evidence"]
     superseded = supersession_map(non_principle)
     lines: list[str] = []
     header = (
@@ -884,6 +1036,11 @@ def render_for_agent(
     )
     lines.append("")
 
+    if selected_ids is not None:
+        lines.append(f"Task focus: {len(selected_ids)} of {len(frags)} fragments selected; full history remains available.")
+        lines.append("Principles, explicitly global judgments, open directions and integrity warnings are retained.")
+        lines.append("")
+    lines.extend(observation_lines(frags))
     lines.append(render_principles_block(frags).rstrip())
     lines.append("")
 
@@ -901,11 +1058,25 @@ def render_for_agent(
         lines.append("- (none)")
     for d in digest["decisions"]:
         lines.append(f"- [{d['time']}] {d['kind']} {d['id']}: {d['summary']}")
+        if selected_ids is not None:
+            source = next(f for f in frags if f.id == d["id"])
+            if source.body != d["summary"]:
+                lines.extend(f"    {line}" for line in source.body.splitlines())
+            if source.refs:
+                lines.append(f"    evidence: {', '.join(source.refs)}")
     if retired:
         lines.append(
             f"- ({retired} superseded judgment(s) hidden — `--view effective` to see the trail)"
         )
     lines.append("")
+
+    review = review_conditions(frags)
+    if review:
+        lines.append("## Judgment review conditions (as of recorded activity)")
+        for f in review:
+            condition = f.get("review_when") or f"review after {f.get('review_after')}"
+            lines.append(f"- {f.id}: {condition}; still in force until explicitly restated or superseded")
+        lines.append("")
 
     lines.append(f"## {LANE_TITLES['direction']}")
     if not digest["open_intents"]:
@@ -962,6 +1133,14 @@ def render_for_agent(
             "the ✓ may not be about this goal's `done_when`. B9 requires a "
             "verifier, not a discriminating one — that part is still on the reader."
         )
+        lines.append("")
+
+    stale = [f for f in frags if f.kind == "verification-fact"
+             and verification_status(f, frags) in {"stale", "unknown"}]
+    if stale:
+        lines.append("## Verification versions to recheck")
+        for f in stale:
+            lines.append(f"- {f.id}: {verification_status(f, frags)} — {', '.join(f.refs)}")
         lines.append("")
 
     decay = view_decay(non_principle)
@@ -1042,7 +1221,7 @@ def _format_human(view: str, result: Any, out: Any) -> None:
                 passed = v.get("passed") in {True, "true"}
                 out.write(
                     f"    {'PASS' if passed else 'FAIL'} [{v['time']}]: "
-                    f"{v.get('summary','')}\n"
+                    f"{v.get('summary','')} [{row['verification_states'][v['id']]}]\n"
                 )
             if row["verifier_shared_with"]:
                 out.write(
@@ -1128,6 +1307,7 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--for-agent", action="store_true")
     p.add_argument("--json", action="store_true")
     p.add_argument("--project-name", default="")
+    p.add_argument("--focus", help="Task terms or path; keeps global constraints and open risks")
     args = p.parse_args(argv)
 
     root = Path(args.folder)
@@ -1137,6 +1317,8 @@ def main(argv: list[str] | None = None) -> int:
         return 2
 
     frags, problems = load_report(fragments_dir)
+    if args.until:
+        frags = filter_fragments(frags, until=args.until)
     filtered = filter_fragments(
         frags,
         kind=args.kind,
@@ -1149,8 +1331,18 @@ def main(argv: list[str] | None = None) -> int:
         lane=args.lane,
     )
 
+    selected = {f.id for f in filtered}
+    if args.focus:
+        selected &= focus_ids(frags, args.focus)
+        filtered = [f for f in frags if f.id in selected]
     if args.for_agent:
-        sys.stdout.write(render_for_agent(filtered, args.project_name))
+        focused = bool(args.focus or any((args.kind, args.since, args.tag, args.ref, args.thread, args.family, args.lane)))
+        if focused:
+            selected |= {f.id for f in frags if f.kind == "principle" or f.get("scope") == "global"}
+        sys.stdout.write(render_for_agent(frags, args.project_name, selected_ids=selected if focused else None))
+        report = view_doctor(frags, problems)
+        if not report["ok"]:
+            sys.stdout.write("\n" + render_doctor_block(report))
         return 0
 
     if args.view == "doctor":
@@ -1163,11 +1355,13 @@ def main(argv: list[str] | None = None) -> int:
         return 0 if report["ok"] else 1
 
     if args.view == "digest":
-        result: Any = view_digest(filtered)
+        result: Any = view_digest(frags)
+        for key in ("decisions", "open_intents", "recent"):
+            result[key] = [row for row in result[key] if row["id"] in selected]
     elif args.view == "list":
         result = view_list(filtered)
     elif args.view == "progress":
-        result = view_progress(filtered)
+        result = [row for row in view_progress(frags) if row["intent"]["id"] in selected]
     elif args.view == "thread":
         if not args.thread:
             print("--thread is required for view=thread", file=sys.stderr)
@@ -1177,25 +1371,28 @@ def main(argv: list[str] | None = None) -> int:
         if not args.family:
             print("--family is required for view=family", file=sys.stderr)
             return 2
-        result = view_family(filtered, args.family)
+        result = view_family(frags, args.family)
+        result["members"] = [row for row in result["members"] if row["id"] in selected]
+        result["latest_by_role"] = {k: v for k, v in result["latest_by_role"].items() if v["id"] in selected}
     elif args.view == "goals":
-        result = view_goals(filtered)
+        result = [row for row in view_goals(frags) if row["goal"]["id"] in selected]
     elif args.view == "effective":
-        result = view_effective(filtered)
+        result = {key: [row for row in rows if row["id"] in selected]
+                  for key, rows in view_effective(frags).items()}
     elif args.view == "journal":
         result = view_journal(filtered)
     elif args.view == "unexplained":
-        result = [_to_dict(f) for f in judgment_gap(filtered)]
+        result = [_to_dict(f) for f in judgment_gap(frags) if f.id in selected]
     elif args.view == "decay":
-        result = view_decay(filtered)
+        result = [row for row in view_decay(frags) if row["id"] in selected]
     elif args.view == "principles":
         if args.json:
             json.dump(
-                view_principles(filtered), sys.stdout, indent=2, ensure_ascii=False
+                {k: [r for r in v if r["id"] in selected] for k, v in view_principles(frags).items()}, sys.stdout, indent=2, ensure_ascii=False
             )
             sys.stdout.write("\n")
         else:
-            sys.stdout.write(render_principles_block(filtered))
+            sys.stdout.write(render_principles_block([f for f in frags if f.id in selected and f.id not in supersession_map(frags)]))
         return 0
     elif args.view == "changes-summary":
         activity = [f for f in filtered if f.kind != "principle"]
@@ -1205,7 +1402,7 @@ def main(argv: list[str] | None = None) -> int:
             )
             sys.stdout.write("\n")
         else:
-            sys.stdout.write(render_changes_summary_block(activity) + "\n")
+            sys.stdout.write(render_changes_summary_block(activity, frags) + "\n")
         return 0
     else:
         result = view_list(filtered)

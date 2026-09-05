@@ -26,10 +26,10 @@ import argparse
 import os
 import subprocess
 import sys
-from datetime import datetime, timezone
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+from append import append_fragment, utc_now
 from render import load_fragments  # type: ignore
 
 DEFAULT_TIMEOUT_SECONDS = 600
@@ -37,7 +37,7 @@ OUTPUT_TRUNCATE = 8000
 
 
 def now_iso() -> str:
-    return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    return utc_now()
 
 
 def already_dispatched(intent_id: str, frags: list) -> bool:
@@ -77,30 +77,11 @@ def write_turn(
     success: bool,
     output: str,
 ) -> Path:
-    ts = now_iso()
-    safe_time = ts.replace(":", "-")
-    slug = f"turn-dispatch-{intent_id[:60]}"
-    fragment_id = f"{safe_time}--{slug}"
-    target = fragments_dir / f"{fragment_id}.md"
     status = "ok" if success else "error"
-    body = (
-        f"Executor command: `{command}`\n"
-        f"Status: {status}\n\n"
-        f"```\n{output}\n```"
-    )
-    target.write_text(
-        "---\n"
-        f"id: {fragment_id}\n"
-        f"time: {ts}\n"
-        "kind: turn\n"
-        f"refs: [{intent_id}]\n"
-        f"executor_status: {status}\n"
-        "tags: [skill, llm-dispatcher]\n"
-        "---\n"
-        f"{body}\n",
-        encoding="utf-8",
-    )
-    return target
+    return append_fragment(fragments_dir, f"turn-dispatch-{intent_id[:60]}", {
+        "kind": "turn", "refs": [intent_id], "executor_status": status,
+        "tags": ["skill", "llm-dispatcher"],
+    }, f"Executor command: `{command}`\nStatus: {status}\n\n```\n{output}\n```", stamp=now_iso())
 
 
 def main(argv: list[str] | None = None) -> int:

@@ -6,7 +6,7 @@ installs whatever mechanical trigger the project's substrate already offers:
 
 - git repository -> .git/hooks/post-commit (witness every commit)
 - Kiro CLI       -> .kiro/agents/sula.json (agentSpawn injects the boot,
-                    stop witnesses the turn) — written, never forced default
+                    stop runs the finish gate) — written, never forced default
 - Kiro IDE       -> .kiro/hooks/sula-witness.kiro.hook
 - no git         -> launchd timer on macOS, else the cron line to paste
 
@@ -38,13 +38,14 @@ from pathlib import Path
 
 MARKER = "# sula-vector witness"
 WITNESS = "tools/sula_vector/skills/witness.py"
+FINISH = "tools/sula_vector/skills/finish.py"
 BOOT = "tools/sula_vector/render.py"
 INTERVAL_SECONDS = 900
 
 POST_COMMIT = f"""#!/bin/sh
 {MARKER}
 python3 "$(git rev-parse --show-toplevel)/{WITNESS}" \\
-  --project-root "$(git rev-parse --show-toplevel)" >/dev/null 2>&1 || true
+  --project-root "$(git rev-parse --show-toplevel)" >/dev/null || echo "[sula] capture failed; run skills/finish.py before claiming done" >&2
 """
 
 CLI_AGENT = {
@@ -59,7 +60,7 @@ CLI_AGENT = {
             {"command": f"python3 {BOOT} . --for-agent", "timeout_ms": 60000}
         ],
         "stop": [
-            {"command": f"python3 {WITNESS} --project-root .", "timeout_ms": 60000}
+            {"command": f"python3 {FINISH} --project-root .", "timeout_ms": 60000}
         ],
     },
 }
@@ -71,7 +72,7 @@ IDE_HOOK = {
     "when": {"type": "agentStop"},
     "then": {
         "type": "runCommand",
-        "command": f"python3 {WITNESS} --project-root .",
+        "command": f"python3 {FINISH} --project-root .",
     },
 }
 

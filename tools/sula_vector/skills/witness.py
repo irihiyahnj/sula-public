@@ -16,177 +16,22 @@ cron, or by hand — the substrate schedules, Sula does not (B7).
 from __future__ import annotations
 
 import argparse
-import hashlib
 import subprocess
 import sys
-import time
-from datetime import datetime, timezone
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from render import lane_of, load_fragments  # type: ignore
+from render import lane_of, load_fragments, time_key
 
-DEFAULT_IGNORE = [
-    ".git",
-    ".hg",
-    ".svn",
-    "fragments",
-    ".sula",
-    "node_modules",
-    "__pycache__",
-    ".venv",
-    "venv",
-    ".mypy_cache",
-    ".pytest_cache",
-    ".ruff_cache",
-    "dist",
-    "build",
-    ".DS_Store",
-    ".idea",
-    "*.pyc",
-    "*.pyo",
-    "*.log",
-    "*.tmp",
-    "~$*",
-]
-
-DOCUMENT_SUFFIXES = {
-    ".pdf",
-    ".doc",
-    ".docx",
-    ".xls",
-    ".xlsx",
-    ".ppt",
-    ".pptx",
-    ".pages",
-    ".numbers",
-    ".key",
-    ".odt",
-    ".ods",
-    ".odp",
-    ".csv",
-}
-
-HASH_LIMIT_BYTES = 50 * 1024 * 1024
-MAX_ARTIFACT_FRAGMENTS = 20
+from append import append_fragment, utc_now
+from capture import (
+    DOCUMENT_SUFFIXES, MAX_ARTIFACT_FRAGMENTS, CaptureError, _encode_path,
+    capture_graph, diff_tree, fold_witnessed, ignore_patterns, scan_tree, tree_digest,
+)
 
 
 def now_iso() -> str:
-    return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
-
-
-def ignore_patterns(frags: list, extra: list[str]) -> list[str]:
-    patterns = list(DEFAULT_IGNORE)
-    for f in frags:
-        raw = f.get("witness_ignore")
-        if not raw:
-            continue
-        items = raw if isinstance(raw, list) else str(raw).split(",")
-        patterns.extend(str(i).strip() for i in items if str(i).strip())
-    patterns.extend(extra)
-    return patterns
-
-
-def is_ignored(rel: Path, patterns: list[str]) -> bool:
-    parts = rel.parts
-    for pattern in patterns:
-        if any(Path(part).match(pattern) for part in parts):
-            return True
-        if rel.match(pattern):
-            return True
-    return False
-
-
-def hash_file(path: Path) -> str:
-    try:
-        size = path.stat().st_size
-    except OSError:
-        return "unreadable"
-    if size > HASH_LIMIT_BYTES:
-        return f"s:{size}"
-    digest = hashlib.sha256()
-    try:
-        with path.open("rb") as handle:
-            for chunk in iter(lambda: handle.read(1 << 20), b""):
-                digest.update(chunk)
-    except OSError:
-        return "unreadable"
-    return digest.hexdigest()[:12]
-
-
-def scan_tree(root: Path, patterns: list[str]) -> dict[str, tuple[str, int]]:
-    out: dict[str, tuple[str, int]] = {}
-    for path in sorted(root.rglob("*")):
-        if not path.is_file() or path.is_symlink():
-            continue
-        rel = path.relative_to(root)
-        if is_ignored(rel, patterns):
-            continue
-        try:
-            size = path.stat().st_size
-        except OSError:
-            continue
-        out[rel.as_posix()] = (hash_file(path), size)
-    return out
-
-
-def _encode_path(rel: str) -> str:
-    """One file must be one line, or folding cannot round-trip.
-
-    A newline in a filename is legal on every POSIX substrate and does occur in
-    documents synced from other tools. Left raw it splits the delta line, the
-    path folds back truncated, and the file is reported added and removed on
-    every run forever. Only control characters are escaped, so CJK paths stay
-    readable.
-    """
-    return rel.replace("\\", "\\\\").replace("\n", "\\n").replace("\r", "\\r")
-
-
-def _decode_path(rel: str) -> str:
-    out: list[str] = []
-    i = 0
-    while i < len(rel):
-        if rel[i] == "\\" and i + 1 < len(rel):
-            nxt = rel[i + 1]
-            if nxt in {"n", "r", "\\"}:
-                out.append({"n": "\n", "r": "\r", "\\": "\\"}[nxt])
-                i += 2
-                continue
-        out.append(rel[i])
-        i += 1
-    return "".join(out)
-
-
-def fold_witnessed(frags: list) -> tuple[dict[str, tuple[str, int]], int]:
-    """Replay every prior witness delta into the last known tree state."""
-    state: dict[str, tuple[str, int]] = {}
-    count = 0
-    for f in frags:
-        if f.kind != "witness":
-            continue
-        count += 1
-        for line in f.body.splitlines():
-            parts = line.split(None, 3)
-            if len(parts) != 4 or parts[0] not in {"+", "~", "-"}:
-                continue
-            marker, digest, size, rel = parts
-            rel = _decode_path(rel)
-            if marker == "-":
-                state.pop(rel, None)
-            else:
-                state[rel] = (digest, int(size) if size.isdigit() else 0)
-    return state, count
-
-
-def diff_tree(
-    before: dict[str, tuple[str, int]], after: dict[str, tuple[str, int]]
-) -> tuple[list[str], list[str], list[str]]:
-    added = sorted(p for p in after if p not in before)
-    removed = sorted(p for p in before if p not in after)
-    changed = sorted(
-        p for p in after if p in before and after[p][0] != before[p][0]
-    )
-    return added, changed, removed
+    return utc_now()
 
 
 def git_info(root: Path) -> dict[str, str]:
@@ -269,7 +114,7 @@ def deliberate_since_last_capture(frags: list) -> list[str]:
     return [
         f.id
         for f in frags
-        if f.time >= last_capture
+        if time_key(f.time) >= time_key(last_capture)
         and f.id not in claimed
         and lane_of(f) in {"judgment", "direction"}
     ]
@@ -280,14 +125,6 @@ def last_witness_commit(frags: list) -> str:
         if f.kind == "witness" and f.get("commit"):
             return str(f.get("commit"))
     return ""
-
-
-def tree_digest(tree: dict[str, tuple[str, int]]) -> str:
-    digest = hashlib.sha256()
-    for rel in sorted(tree):
-        digest.update(rel.encode("utf-8"))
-        digest.update(tree[rel][0].encode("utf-8"))
-    return digest.hexdigest()[:12]
 
 
 def write_witness(
@@ -304,87 +141,48 @@ def write_witness(
     commits: list[str],
     baseline: bool,
     explained_by: list[str],
+    parents: list[str] | None = None,
+    snapshot: bool = False,
+    patterns: list[str] | None = None,
 ) -> Path:
-    slug = "witness-baseline" if baseline else "witness"
-    # Folding deltas requires a strict order, and same-second filenames sort by
-    # slug rather than by creation order. One witness per second, at most.
-    while True:
-        stamp = now_iso()
-        safe = stamp.replace(":", "-")
-        target = fragments_dir / f"{safe}--{slug}.md"
-        if not any(fragments_dir.glob(f"{safe}--witness*.md")):
-            break
-        time.sleep(0.25)
-
     headline = label or (
         f"Baseline of {len(tree)} file(s)."
         if baseline
         else f"+{len(added)} ~{len(changed)} -{len(removed)} file(s)."
     )
-    lines = ["---", f"id: {target.stem}", f"time: {stamp}", "kind: witness"]
-    if refs:
-        lines.append(f"refs: [{', '.join(refs)}]")
-    lines.append("tags: [witness, skill]")
-    if explained_by:
-        lines.append(f"explained_by: [{', '.join(explained_by)}]")
-    lines.append(f"summary: {headline}")
-    lines.append(f"substrate: {substrate}")
-    lines.append(f"files_added: {len(added)}")
-    lines.append(f"files_changed: {len(changed)}")
-    lines.append(f"files_removed: {len(removed)}")
-    lines.append(f"tree_files: {len(tree)}")
-    lines.append(f"tree_digest: {tree_digest(tree)}")
-    if baseline:
-        lines.append("baseline: true")
-    for key, value in git.items():
-        if value:
-            lines.append(f"{key}: {value}")
-    lines.append("---")
-
+    fields = {
+        "kind": "witness", "refs": refs, "tags": ["witness", "skill"],
+        "explained_by": explained_by, "summary": headline, "substrate": substrate,
+        "files_added": len(added), "files_changed": len(changed), "files_removed": len(removed),
+        "tree_files": len(tree), "tree_digest": tree_digest(tree), "hash_method": "sha256",
+        "baseline": baseline, **git,
+        "capture_format": "2", "capture_parents": parents or [], "snapshot": snapshot,
+        "capture_ignore": patterns or [], "coverage": "regular-files; symlinks excluded",
+    }
     body = [headline, ""]
     if commits:
         body.append("## commits")
         body.extend(f"  {c}" for c in commits)
         body.append("")
     body.append("## delta")
-    for rel in added:
+    for rel in sorted(tree) if snapshot else added:
         digest, size = tree[rel]
         body.append(f"+ {digest} {size} {_encode_path(rel)}")
-    for rel in changed:
+    for rel in [] if snapshot else changed:
         digest, size = tree[rel]
         body.append(f"~ {digest} {size} {_encode_path(rel)}")
-    for rel in removed:
+    for rel in [] if snapshot else removed:
         body.append(f"- - - {_encode_path(rel)}")
 
-    target.write_text("\n".join(lines + body) + "\n", encoding="utf-8")
-    return target
+    return append_fragment(fragments_dir, "witness-baseline" if baseline else "witness",
+                           fields, "\n".join(body), stamp=now_iso())
 
 
 def write_artifact(fragments_dir: Path, rel: str, witness_id: str) -> Path:
-    stamp = now_iso()
-    safe = stamp.replace(":", "-")
-    digest = hashlib.sha256(rel.encode("utf-8")).hexdigest()[:8]
-    target = fragments_dir / f"{safe}--artifact-{digest}.md"
-    suffix = 2
-    while target.exists():
-        target = fragments_dir / f"{safe}--artifact-{digest}-{suffix}.md"
-        suffix += 1
-    name = Path(rel).name
-    target.write_text(
-        "---\n"
-        f"id: {target.stem}\n"
-        f"time: {stamp}\n"
-        "kind: artifact\n"
-        f"refs: [{witness_id}]\n"
-        "tags: [witness, skill]\n"
-        f"summary: {name}\n"
-        f"pointer: {rel}\n"
-        "---\n"
-        f"{name} appeared in the project. Witnessed mechanically; no claim about "
-        "its content.\n",
-        encoding="utf-8",
-    )
-    return target
+    return append_fragment(fragments_dir, "artifact", {
+        "kind": "artifact", "refs": [witness_id], "tags": ["witness", "skill"],
+        "summary": Path(rel).name, "pointer": rel,
+    }, f"{Path(rel).name} appeared in the project. Witnessed mechanically; no claim about its content.")
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -401,6 +199,7 @@ def main(argv: list[str] | None = None) -> int:
         help="do not emit a kind:artifact fragment per new document",
     )
     p.add_argument("--dry-run", action="store_true")
+    p.add_argument("--reconcile", action="store_true", help="After fully syncing, publish a complete snapshot merging capture heads")
     args = p.parse_args(argv)
 
     root = Path(args.project_root).resolve()
@@ -410,13 +209,22 @@ def main(argv: list[str] | None = None) -> int:
         return 2
 
     frags = load_fragments(fragments_dir)
+    _, heads, ancestry_errors = capture_graph(frags)
+    if ancestry_errors or (len(heads) > 1 and not args.reconcile):
+        print("[witness] sync capture history before proceeding; multiple heads require --reconcile: "
+              + "; ".join(ancestry_errors or heads), file=sys.stderr)
+        return 2
     unknown = [r for r in args.refs if r not in {f.id for f in frags}]
     if unknown:
         print(f"unknown fragment id(s): {', '.join(unknown)}", file=sys.stderr)
         return 2
 
     patterns = ignore_patterns(frags, args.ignore)
-    tree = scan_tree(root, patterns)
+    try:
+        tree = scan_tree(root, patterns)
+    except CaptureError as exc:
+        print(f"[witness] incomplete capture: {exc}", file=sys.stderr)
+        return 2
     before, witness_count = fold_witnessed(frags)
     added, changed, removed = diff_tree(before, tree)
 
@@ -426,7 +234,7 @@ def main(argv: list[str] | None = None) -> int:
     baseline = witness_count == 0
     explained_by = deliberate_since_last_capture(frags)
 
-    if not (added or changed or removed or commits):
+    if not (added or changed or removed or commits or baseline or (args.reconcile and len(heads) > 1)):
         print("[witness] no change")
         return 0
 
@@ -453,6 +261,9 @@ def main(argv: list[str] | None = None) -> int:
         commits=commits,
         baseline=baseline,
         explained_by=explained_by,
+        parents=heads,
+        snapshot=args.reconcile,
+        patterns=patterns,
     )
     print(
         f"[witness] + witness  {target.name}  "

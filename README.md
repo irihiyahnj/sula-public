@@ -14,8 +14,9 @@ that folder. No daemon, no state directory, no cache-as-truth, no vendor.
 The same shape covers a code repository, a company folder of documents on a
 sync service, a client-services engagement, and a personal project.
 
-**Current release: v1.2.0** (2026-08-15) · Convention `1.1`, backwards
-compatible with v1.0 · [Release notes](tools/sula_vector/RELEASE-NOTES.md)
+**Current release: v1.3.0** (2026-09-05). Reliable handoffs under convention
+`1.2`; older fragments remain readable.
+[Changes and upgrade boundary](tools/sula_vector/RELEASE-NOTES.md#v130--reliable-handoffs)
 
 ---
 
@@ -57,12 +58,13 @@ evidence?*
 track effort, resolve dependencies, or coordinate actors. Your substrate (git,
 a sync service, a filesystem) and your existing tools keep doing all of that.
 
-Three things become **impossible** rather than merely discouraged:
+The supported tooling enforces these structural properties:
 
 | | how |
 | --- | --- |
 | A fragment carrying a wrong id or timestamp | identity is derived from the filename |
-| A dangling reference | the write path refuses unknown targets |
+| A dangling reference | the write path refuses unknown targets; doctor checks imported relations |
+| Overwriting a prior fragment | complete files are published atomically without replacement |
 | An undetected missing *why* | a witnessed change nothing claims fails the done-gate |
 
 Everything else the convention offers is **assisted discipline**, not a physical
@@ -126,7 +128,7 @@ python3 tools/sula_vector/note.py . --kind decision --title "<one line>" "<why>"
 python3 tools/sula_vector/skills/witness.py --project-root .
 
 # before claiming anything is done
-python3 tools/sula_vector/render.py . --view doctor   # must exit 0
+python3 tools/sula_vector/skills/finish.py --project-root .   # must exit 0
 ```
 
 ### Migrating a legacy Sula 0.18.x project
@@ -153,7 +155,7 @@ An update:
 
 - refreshes every file in `tools/sula_vector/` to the canonical version
 - rewrites the `sula-vector` protocol region of `AGENTS.md`, leaving everything the project wrote above it untouched, and leaving a region that does not look like a tool-written protocol alone with a report instead
-- projects the host pointers (`CLAUDE.md`, `CODEX.md`, `GEMINI.md`, Cursor rules, Copilot instructions) so every entrypoint boots the same protocol
+- projects the host pointers (`CLAUDE.md`, `CODEX.md`, `GEMINI.md`, Cursor rules, Copilot instructions) so every entrypoint boots the same protocol; an existing non-empty pointer file with custom content is left untouched rather than overwritten
 - never duplicates an existing fragment
 - reports whether the resulting vector passes `--view doctor`
 
@@ -207,10 +209,14 @@ Monthly delivery cadence.
 Rationale: matches the procurement cycle.
 ```
 
-`id` and `time` come from the filename, always. Frontmatter copies are treated
+`id` and `time` come from the filename, always. Convention 1.2 permits
+microsecond timestamps and new writers add random suffixes. Update readers
+before consuming these new filenames. Frontmatter copies are treated
 as redundant and any disagreement is reported. `kind` is the only field that
-must be authored. `:` becomes `-` in filenames so `ls` returns chronological
-order with no tool at all.
+must be authored. `:` becomes `-` in filenames. Convention 1.2 sorts by
+normalized timestamp and id, so the chronological order holds across the mix
+of legacy second-precision and new microsecond filenames; plain `ls` output
+is no longer a guarantee and readers should not rely on it.
 
 A fragment is **never silently dropped**. A file with no frontmatter, no `kind`,
 or an unparsable name still loads and surfaces in `--view doctor`. Silent loss
@@ -242,6 +248,11 @@ All optional except `kind`.
 | `family_key` / `artifact_role` | group artifact siblings and their roles |
 | `cadence` / `after` / `interrupt` | recurring, queued, and steering directions |
 | `author` | who appended this fragment |
+| `scope` | `global` retains a judgment in task-focused context |
+| `review_after` / `review_when` | review date against recorded activity / business condition for the reader |
+| `verification_paths` | optional verification input files/directories, set with repeated `--verify-path` |
+| `verified_tree_digest` / `verification_scope` | version binding written by the verifier |
+| `capture_parents` / `capture_format` | witnessed ancestry used to detect incomplete sync and forks |
 | `witness_ignore` | extra ignore patterns for capture — configuration is itself a fragment |
 
 Supersession, closure and explanation are **explicit only**. Listing something
@@ -270,13 +281,25 @@ python3 tools/sula_vector/render.py . --view changes-summary --since <ISO>
 python3 tools/sula_vector/render.py . --lane evidence --view list
 ```
 
+`--for-agent --focus "<task terms or path>"` supplies a task reading view after
+the full boot. It retains principles, explicitly global judgments, open
+directions and risk notices, and expands selected rationale and evidence links.
+
 Filters compose across views: `--kind`, `--lane`, `--since`, `--until`,
-`--tag`, `--ref`, `--thread`, `--family`. `--json` on any view. New views are
+`--tag`, `--ref`, `--thread`, `--family`. Display filters do not remove evidence
+from status resolution. `--until` deliberately reconstructs a historical graph;
+`--since` only limits displayed objects. `--json` is available on named views. New views are
 new functions; none of them ever requires a new on-disk format.
 
 ---
 
 ## The done-gate
+
+Use `python3 tools/sula_vector/skills/finish.py --project-root .` at completion.
+It captures files, runs doctor, then checks that included files still match the
+observation. Plain doctor only validates recorded fragments. Neither operation
+proves that a task-specific acceptance test passed.
+
 
 `--view doctor` is a pure function of the fragments — no state, no network, no
 writes. Exit code 1 on any problem, so the same command works as a CI gate and
@@ -292,9 +315,11 @@ as a goal verifier.
 | `duplicate-id` | two files claim one id |
 | `dangling-ref` | points at an id nothing carries, and no fragment acknowledges it |
 | `goal-without-verifier` | a wish, not a goal (B9) |
+| `invalid-explanation` | explanation endpoints do not form a judgment/direction-to-witness relation |
+| `capture-ancestry` / `capture-fork` | missing/cyclic capture ancestry or competing observed heads |
 | `unexplained-change` | a witnessed change nothing claims (B8) |
 
-The last two are invariant violations rather than malformed files. Both are
+Missing verifiers and unexplained changes are invariant violations rather than malformed files. Both are
 things only an author can supply, which is why the gate — not a notice — is
 where they belong.
 
@@ -322,14 +347,16 @@ python3 tools/sula_vector/hooks/install.py  --project-root .   # once
 
 `witness` scans the project folder, compares it against the previously witnessed
 state, and appends one `witness` fragment recording the delta: path, content
-hash and size for every added, changed and removed file. On git it also records
+full SHA-256 and size for every added, changed and removed included regular file.
+Large files are streamed without a size cutoff. Read errors or changes during
+hashing fail capture; symlinks and the recorded ignore patterns are excluded. On git it also records
 `commit`, `branch`, and the commits since the previous capture. New documents
 (`.pdf`, `.docx`, `.xlsx`, `.pptx`, `.pages`, `.key`, …) additionally become one
 `artifact` fragment each, so they appear in `--view journal`.
 
 Two properties carry the design:
 
-- **No state directory.** Previous state is folded out of prior witness fragments, each holding only its own delta. Truth stays in `fragments/`.
+- **No state directory.** Previous state is folded out of prior witness fragments, each holding its delta; explicit branch reconciliation records a full snapshot. Truth stays in `fragments/`.
 - **Silent when nothing changed.** Running it twice appends nothing.
 
 The installer wires whichever trigger the substrate already provides, and
@@ -338,7 +365,7 @@ nothing else:
 | substrate | trigger |
 | --- | --- |
 | git repository | `.git/hooks/post-commit` |
-| Kiro CLI | `.kiro/agents/sula.json` — `agentSpawn` injects the boot, `stop` witnesses the turn (written, not activated) |
+| Kiro CLI | `.kiro/agents/sula.json` — `agentSpawn` injects the boot, `stop` runs the finish gate (written, not activated) |
 | Kiro IDE | `.kiro/hooks/sula-witness.kiro.hook` |
 | sync service or plain folder | a launchd timer on macOS, else the cron line to paste |
 
@@ -482,7 +509,8 @@ negotiation. Adding one is one action; removing one is one action.
 | skill | role |
 | --- | --- |
 | [`witness.py`](tools/sula_vector/skills/witness.py) | Mechanical evidence on any substrate. Records path + content hash per changed file, commits on git, and an `artifact` per new document. Silent when nothing changed. |
-| [`verifier-shell.py`](tools/sula_vector/skills/verifier-shell.py) | Runs shell-command goal verifiers, emits `verification-fact`, closes goals. |
+| [`verifier-shell.py`](tools/sula_vector/skills/verifier-shell.py) | Runs shell-command goal verifiers and binds results to input content hashes. Later captured changes mark results stale. |
+| [`finish.py`](tools/sula_vector/skills/finish.py) | Captures current files, runs doctor and checks for changes after capture. |
 | [`scheduler.py`](tools/sula_vector/skills/scheduler.py) | Emits `cadence-tick` when a recurring direction's interval has elapsed. |
 | [`llm-dispatcher.py`](tools/sula_vector/skills/llm-dispatcher.py) | Routes directions carrying `executor_command` to a configured executor, captures stdout as a `turn`. |
 | [`auto-update-from-canonical.py`](tools/sula_vector/skills/auto-update-from-canonical.py) | Compares tooling hashes against canonical and updates when they differ. |
@@ -505,12 +533,12 @@ Contract: [`tools/sula_vector/skills/README.md`](tools/sula_vector/skills/README
 Sula cannot prevent a fragment from making a false claim. What it does is
 structural:
 
-1. **Append-only** — a false claim cannot be deleted.
+1. **Append-only tools** — supported writers never replace prior records; storage permissions and version history remain the substrate's responsibility.
 2. **Byte-stable replay** — the claim/counter-claim trail is reproducible.
 3. **A refs graph** — claims, evidence, disputes and corrections reference each other.
 4. **The substrate handles concurrency** — no invented locking or consensus.
 
-Any deception leaves a permanent trace. Readers traverse the graph and judge for
+Corrections made through the protocol leave a permanent trace. Readers traverse the graph and judge for
 themselves. **Trust is a property of the reader, not of the convention.**
 Identity signing, evidence-density audits and dispute resolution all layer on as
 skills, never as core enforcement.
@@ -530,7 +558,9 @@ verifier discriminates, and cannot answer whether it is correct.
 | any combination | works, because fragments are independent files |
 
 Multiple agents and devices appending in parallel produce multiple new files.
-Filesystem semantics resolve it. A vector stays valid even on a machine where no
+Random suffixes avoid naming collisions; capture-parent links reveal incomplete
+sync and competing captures. Finish requires a single coherent observed tree.
+A vector remains readable even on a machine where no
 Sula tooling exists — anyone can re-implement `render` in any language.
 
 ---
@@ -578,6 +608,8 @@ captures — is the project's own working record, readable with the same command
 documented above. It is the largest available worked example, including the
 parts that were wrong.
 
+Counted at the v1.2.0 release; live counts come from `render . --for-agent`.
+
 | | |
 | --- | --- |
 | fragments | 433 |
@@ -587,6 +619,9 @@ parts that were wrong.
 ---
 
 ## Verification evidence
+
+Snapshot from the v1.2.0 release — re-run the checks rather than quoting this
+table; current scenario results live in `docs/handoff-check-results.json`.
 
 | check | result |
 | --- | --- |
@@ -602,7 +637,8 @@ parts that were wrong.
 | Real-world adoption | multiple projects across git repositories, synced document folders, and plain folders |
 | Portability (move the folder, re-run the boot) | ✓ |
 
-Tooling size: about 5,200 lines including 1,700 lines of tests.
+Tooling size: about 5,200 lines including 1,700 lines of tests (v1.2.0 release
+snapshot; the count grows with the test suite).
 
 ---
 

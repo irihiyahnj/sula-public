@@ -1,72 +1,83 @@
-# Sula Vector
+# Sula Vector tooling
 
-A pure-function project memory layer: a folder of typed text fragments
-plus a tiny renderer.
+Project memory is an append-only `fragments/` folder. Render reads it; tools
+publish complete new fragments. Python standard library only.
 
-- Spec: [`../../docs/sula-vector-convention.md`](../../docs/sula-vector-convention.md)
-- Renderer: [`render.py`](render.py)
-- AGENTS.md template: [`AGENTS.md`](AGENTS.md)
-- Worked example: [`example/`](example/)
-
-The same shape works for code projects, governance projects, client-service
-projects, and creative projects. No daemon, no kernel directory, no cache as
-truth.
-
-## Quickstart
-
-Initialize a new project:
+## Start and finish a session
 
 ```bash
-mkdir -p my-project/fragments
-cp tools/sula_vector/AGENTS.md my-project/AGENTS.md
+python3 tools/sula_vector/render.py . --for-agent
+python3 tools/sula_vector/note.py . --kind decision --title "Chosen approach" "Why this approach"
+python3 tools/sula_vector/skills/finish.py --project-root .
 ```
 
-Append a fragment:
+`finish` captures files, runs doctor, then scans again to detect changes after
+capture. Its success describes that observation, not future edits. Plain
+`render --view doctor` checks recorded fragments without reading project files.
+
+## Read a task's context
 
 ```bash
-NOW=$(python3 -c 'import datetime; print(datetime.datetime.utcnow().strftime("%Y-%m-%dT%H-%M-%SZ"))')
-cat > "my-project/fragments/${NOW}--decision-start.md" <<EOF
----
-id: ${NOW}--decision-start
-time: $(python3 -c 'import datetime; print(datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ"))')
-kind: decision
-tags: [bootstrap]
----
-Adopted Sula vector convention.
-EOF
+python3 tools/sula_vector/render.py . --for-agent --focus "contract"
+python3 tools/sula_vector/render.py . --view goals --kind goal
+python3 tools/sula_vector/render.py . --view effective --tag delivery
 ```
 
-Render a view:
+Use focus after the full boot. It selects matching text, tags, subjects and
+outgoing evidence links. It keeps principles, judgments explicitly marked
+`scope: global`, open directions and risk notices. It includes the selected
+judgments' rationale; it never changes which judgments remain in force.
+
+Mark a business review condition with `--field review_when="contract renewed"`
+or `--field review_after=2026-12-01`. Date review uses the latest recorded
+activity, keeping replay deterministic. Supersede or restate a judgment after
+review; a review notice does not retire it automatically.
+
+All display filters preserve the full evidence graph. `--until` explicitly
+selects a historical graph; `--since` limits displayed objects only.
+
+## Verify a file version
 
 ```bash
-python3 tools/sula_vector/render.py my-project --for-agent
-python3 tools/sula_vector/render.py my-project --view digest
-python3 tools/sula_vector/render.py my-project --view goals
-python3 tools/sula_vector/render.py my-project --view progress --json
-python3 tools/sula_vector/render.py my-project --view thread --thread chief-of-staff
-python3 tools/sula_vector/render.py my-project --view family --family hospital-acme-intake
+python3 tools/sula_vector/note.py . --kind goal --title "Validate delivery" \
+  --done-when "Delivery checks pass" --verifier "shell: python3 checks.py" \
+  --verify-path delivery --verify-path checks.py "Validate the delivery folder"
+python3 tools/sula_vector/skills/verifier-shell.py --project-root .
+python3 tools/sula_vector/render.py . --view goals
 ```
 
-## Substrates
+By default verification covers every captured file. Repeat `--verify-path` to
+select relative files/directories, including all inputs and dependencies the
+check relies on. The verifier hashes before and after the command. Changing
+its inputs invalidates the result. Later captured changes mark old results
+`stale`; old results without a binding are shown as `unbound`. External services
+and runtime environments are not covered by file hashes.
 
-The folder works the same way regardless of where it lives:
+## Storage and sync
 
-- **git repository** — commit fragments alongside code; history comes from git
-- **Google Drive / Dropbox / OneDrive** — edit on any device with sync
-- **plain folder** — copy or zip to share
+Convention 1.2 accepts both second and microsecond timestamps. New fragment
+names carry random suffixes. `append.py` stages a complete file inside
+`fragments/`, flushes it, and uses an atomic no-replace hard link to publish it.
+A `.tmp` left by a killed process is not a fragment. An unsupported filesystem
+fails explicitly; it must not silently fall back to an overwriting write.
 
-## Re-implementing render
+`witness` streams SHA-256 for every included regular file, including large
+media. Ignore patterns and excluded symlinks are recorded as coverage. Read or
+mid-read mutation errors stop capture. The first capture after upgrading old
+fingerprints refreshes the stored hashes, so it may list unchanged-content files.
 
-The reference renderer is standard-library Python only and under 500 lines.
-Re-implement it in any language; given the same fragments and conventions, the
-output is byte-stable.
-
-## Try the example
+New captures name their parents. Missing ancestors and concurrent capture
+branches fail doctor rather than silently choosing a tree. After fully syncing
+the project files and fragments, merge the observed branches with:
 
 ```bash
-python3 tools/sula_vector/render.py tools/sula_vector/example --for-agent
-python3 tools/sula_vector/render.py tools/sula_vector/example --view goals
-python3 tools/sula_vector/render.py tools/sula_vector/example --view progress
-python3 tools/sula_vector/render.py tools/sula_vector/example --view family --family hospital-acme-intake
-python3 tools/sula_vector/render.py tools/sula_vector/example --view thread --thread chief-of-staff
+python3 tools/sula_vector/skills/witness.py --project-root . --reconcile
+python3 tools/sula_vector/skills/finish.py --project-root .
 ```
+
+Reconciliation records the current local tree as a complete snapshot. It does
+not perform synchronization or decide which device's files should win.
+
+The updater copies `append.py`, `capture.py`, `migrate.py` and all skills as one
+tooling set. Update every writer/reader before it consumes convention 1.2
+fragments. Existing fragments are never rewritten.

@@ -1,0 +1,46 @@
+{
+  "method": "controlled fixtures copied between local directories",
+  "limitations": "No real-user timing, codec QA, remote-device or sync-provider test; byte counts are not token counts.",
+  "scenarios": [
+    {
+      "scenario": "code-project",
+      "fixture": "src/rule.py",
+      "asset_bytes": 16,
+      "full_context_bytes": 11060,
+      "focused_context_bytes": 2133,
+      "reading_bytes_reduction_percent": 80.7,
+      "rationale_source_and_global_rules_retained": true,
+      "copied_project_boot_byte_stable": true,
+      "copied_updater_starts_without_canonical_imports": true,
+      "filtered_goal_stays_verified": true,
+      "same_size_edit_invalidates_old_pass": true
+    },
+    {
+      "scenario": "document-project",
+      "fixture": "delivery/terms.txt",
+      "asset_bytes": 9,
+      "full_context_bytes": 11091,
+      "focused_context_bytes": 2229,
+      "reading_bytes_reduction_percent": 79.9,
+      "rationale_source_and_global_rules_retained": true,
+      "copied_project_boot_byte_stable": true,
+      "copied_updater_starts_without_canonical_imports": true,
+      "filtered_goal_stays_verified": true,
+      "same_size_edit_invalidates_old_pass": true
+    },
+    {
+      "scenario": "media-sized-project",
+      "fixture": "delivery/master.bin",
+      "asset_bytes": 52428801,
+      "full_context_bytes": 11092,
+      "focused_context_bytes": 2230,
+      "reading_bytes_reduction_percent": 79.9,
+      "rationale_source_and_global_rules_retained": true,
+      "copied_project_boot_byte_stable": true,
+      "copied_updater_starts_without_canonical_imports": true,
+      "filtered_goal_stays_verified": true,
+      "same_size_edit_invalidates_old_pass": true
+    }
+  ],
+  "passed": true
+}

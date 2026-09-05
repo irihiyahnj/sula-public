@@ -1,5 +1,42 @@
 # Sula Vector — Release Notes
 
+## v1.3.0 — Reliable handoffs
+
+**Release date:** 2026-09-05
+**Convention version:** 1.2. Old fragments remain readable; new microsecond
+filenames require updated readers.
+
+**Mechanism freeze.** After this release the mechanism changes only for two
+reasons: a defect observed in the fleet (each one lands with a regression
+test) or a renderer defect. Features are not being added to the mechanism.
+
+- All built-in writers publish complete files without replacing existing
+  fragments. Random suffixes protect independent writers from name collisions.
+- Explains/explained_by must resolve to a judgment or direction and a witness.
+  Malformed imported explanations fail doctor and cannot clear a missing why.
+- Status resolves against the full evidence graph before display filtering.
+  `--until` reconstructs history; other selectors do not change completion.
+- Capture hashes every included regular file in full, fails on unreadable or
+  changing files, and records coverage. The first upgraded capture refreshes
+  older fingerprints even when file content has not changed.
+- Parent links detect incomplete sync, clock-order ambiguity and capture forks.
+  After full sync, `witness --reconcile` records the local tree as a complete
+  snapshot. It is not a sync or conflict-resolution tool.
+- Shell verification binds results to input content, detects commands changing
+  their own inputs, returns failure on failed checks, and exposes stale versus
+  legacy-unbound results. External state is outside a file-version binding.
+- `skills/finish.py` captures before doctor and checks for file changes afterward.
+  Kiro stop hooks invoke it; git hooks continue to capture at commit time.
+- Optional task focus preserves principles, explicitly global judgments, open
+  directions and risk notices, while expanding selected rationale. Review
+  conditions surface for a reader; they never implicitly retire judgments.
+- The updater includes the shared modules and migrator, so copied projects can
+  boot and update themselves without a canonical checkout on their import path.
+
+Validation is maintained in `tests/test_reliability.py` and
+`tests/handoff_scenarios.py`. Scenario measurements are reproducible fixtures,
+not evidence of real user time savings.
+
 ## v1.2.0 — The missing why is demanded, and judgment can end
 
 **Release date:** 2026-08-15

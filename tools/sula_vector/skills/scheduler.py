@@ -20,6 +20,7 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+from append import append_fragment, utc_now
 from render import load_fragments  # type: ignore
 
 CADENCE_RE = re.compile(r"^every-(\d+)([mhd])$")
@@ -31,7 +32,7 @@ def now_utc() -> datetime:
 
 def parse_iso(ts: str) -> datetime | None:
     try:
-        return datetime.strptime(ts, "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=timezone.utc)
+        return datetime.fromisoformat(ts.replace("Z", "+00:00"))
     except ValueError:
         return None
 
@@ -56,25 +57,9 @@ def parse_cadence(spec: str) -> timedelta | None:
 
 
 def emit_tick(fragments_dir: Path, intent_id: str, intent_body: str) -> Path:
-    ts = now_utc().strftime("%Y-%m-%dT%H:%M:%SZ")
-    safe_time = ts.replace(":", "-")
-    slug = f"cadence-tick-{intent_id[:80]}"
-    fragment_id = f"{safe_time}--{slug}"
-    target = fragments_dir / f"{fragment_id}.md"
-    body_preview = (intent_body or "").strip().split("\n", 1)[0][:160]
-    body = f"Cadence tick for {intent_id}.\n\n{body_preview}"
-    target.write_text(
-        "---\n"
-        f"id: {fragment_id}\n"
-        f"time: {ts}\n"
-        "kind: cadence-tick\n"
-        f"refs: [{intent_id}]\n"
-        "tags: [skill, scheduler]\n"
-        "---\n"
-        f"{body}\n",
-        encoding="utf-8",
-    )
-    return target
+    return append_fragment(fragments_dir, f"cadence-tick-{intent_id[:80]}", {
+        "kind": "cadence-tick", "refs": [intent_id], "tags": ["skill", "scheduler"],
+    }, f"Cadence tick for {intent_id}.\n\n{(intent_body or '').strip()[:160]}")
 
 
 def main(argv: list[str] | None = None) -> int:

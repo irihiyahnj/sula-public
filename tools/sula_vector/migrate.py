@@ -17,6 +17,8 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
+from append import publish
+
 PRINCIPLES_DIR_DEFAULT = Path(__file__).parent / "principles"
 AGENTS_TEMPLATE_DEFAULT = Path(__file__).parent / "AGENTS.md"
 PROTOCOL_HEADING = "# AGENTS.md — Sula Vector"
@@ -25,7 +27,11 @@ PROTOCOL_HEADING = "# AGENTS.md — Sula Vector"
 # over its own copy that had lost note.py and skills/witness.py, so a release
 # touching only those would report a project already up to date.
 TOOLING_FILES = (
+    "migrate.py",
     "render.py",
+    "append.py",
+    "capture.py",
+    "skills/finish.py",
     "note.py",
     "AGENTS.md",
     "README.md",
@@ -102,8 +108,7 @@ def emit_fragment(
         for key, value in extra.items():
             fm.append(f"{key}: {value}")
     fm.append("---")
-    target.write_text("\n".join(fm) + "\n" + body.strip() + "\n", encoding="utf-8")
-    return target
+    return target if publish(target, "\n".join(fm) + "\n" + body.strip() + "\n") else None
 
 
 def migrate_change_records(root: Path, out: Path) -> int:
@@ -341,8 +346,7 @@ def install_principles(out: Path, principles_dir: Path) -> int:
         target = out / src.name
         if target.exists():
             continue
-        shutil.copy2(src, target)
-        count += 1
+        count += int(publish(target, src.read_text(encoding="utf-8")))
     return count
 
 
@@ -458,21 +462,34 @@ def host_pointer_text(title: str) -> str:
     )
 
 
-def install_host_pointers(root: Path) -> int:
-    """Every host entrypoint must boot into the same protocol, or continuity is a claim
-    rather than a property."""
+def install_host_pointers(root: Path) -> tuple[int, int]:
+    """Every host entrypoint must boot into the same protocol, or continuity is
+    a claim rather than a property.
+
+    Returns (written, skipped). A non-empty existing file that is not exactly
+    the generated pointer is project-authored content; overwriting it would
+    silently delete rules the project wrote, so it is left untouched and
+    reported instead. The operator resolves the conflict the same way the
+    AGENTS.md updater reports a foreign protocol region.
+    """
     written = 0
+    skipped = 0
     for rel, title in HOST_POINTER_TARGETS.items():
         text = host_pointer_text(title)
         if rel.endswith(".mdc"):
             text = CURSOR_FRONTMATTER + text
         target = root / rel
-        if target.exists() and target.read_text(encoding="utf-8") == text:
-            continue
+        if target.exists():
+            existing = target.read_text(encoding="utf-8")
+            if existing == text:
+                continue
+            if existing.strip():
+                skipped += 1
+                continue
         target.parent.mkdir(parents=True, exist_ok=True)
         target.write_text(text, encoding="utf-8")
         written += 1
-    return written
+    return written, skipped
 
 
 def legacy_captures(out: Path) -> list:
@@ -641,7 +658,10 @@ def main(argv: list[str] | None = None) -> int:
     elif args.dry_run:
         counts["agents_template"] = "skipped (dry-run)"
     if not args.no_host_pointers and not args.dry_run:
-        counts["host_pointers"] = install_host_pointers(root)
+        host_written, host_skipped = install_host_pointers(root)
+        counts["host_pointers"] = host_written
+        if host_skipped:
+            counts["host_pointers_skipped_custom"] = host_skipped
 
     emit_migration_decision(out, total)
 

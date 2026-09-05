@@ -1,6 +1,6 @@
-# Contributing To Sula
+# Contributing To Sula Vector
 
-Thanks for improving Sula.
+Thanks for improving Sula Vector.
 
 ## Before You Start
 
@@ -13,7 +13,7 @@ Thanks for improving Sula.
 
 1. work in a non-`main` branch, usually with the `codex/` prefix
 2. keep changes focused and coherent
-3. update durable traceability for non-trivial changes
+3. record judgments with `tools/sula_vector/note.py`; never edit past fragments
 4. consider sync impact on adopted projects before changing managed templates
 5. run the relevant verification commands before opening a pull request
 
@@ -22,13 +22,16 @@ Thanks for improving Sula.
 For substantial code or template changes, run:
 
 ```bash
-python3 -m py_compile scripts/sula.py tests/test_sula.py
-python3 -m unittest discover -s tests -v
-python3 scripts/sula.py doctor --project-root . --strict
-python3 scripts/sula.py doctor --project-root examples/okoktoto --strict
-python3 scripts/sula.py sync --project-root . --dry-run
-python3 scripts/sula.py sync --project-root examples/okoktoto --dry-run
+python3 -m py_compile tools/sula_vector/*.py tools/sula_vector/skills/*.py tools/sula_vector/hooks/*.py
+python3 -m unittest discover -s tools/sula_vector/tests -v
+python3 tools/sula_vector/skills/finish.py --project-root .
+python3 tools/sula_vector/render.py . --for-agent > /dev/null
+python3 tools/sula_vector/render.py tools/sula_vector/example --view doctor
 ```
+
+Mechanical capture is part of verification too: after the working tree
+changes, run `python3 tools/sula_vector/skills/witness.py --project-root .`
+and make sure `--view doctor` stays clean (D5).
 
 ## Pull Request Expectations
 
@@ -39,4 +42,4 @@ python3 scripts/sula.py sync --project-root examples/okoktoto --dry-run
 
 ## Public Release Guardrail
 
-Do not assume the repository is ready to be made public just because the working tree is clean. Review [docs/reference/public-release-readiness.md](docs/reference/public-release-readiness.md) before opening the repository or migrating it to a public remote.
+Do not assume the repository is ready to be made public just because the working tree is clean. Re-check the vector (`render . --for-agent`), the done-gate (`render . --view doctor`), and the sync impact note in the pull request before opening the repository or migrating it to a public remote.

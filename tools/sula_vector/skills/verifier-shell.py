@@ -12,18 +12,19 @@ from __future__ import annotations
 import argparse
 import subprocess
 import sys
-from datetime import datetime, timezone
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from render import _is_satisfied, load_fragments  # type: ignore
+from append import append_fragment, utc_now
+from render import _is_satisfied, load_fragments
+from capture import CaptureError, ignore_patterns, scan_tree, select_tree, tree_digest
 
 DEFAULT_TIMEOUT_SECONDS = 600
 OUTPUT_TRUNCATE = 4000
 
 
 def now_iso() -> str:
-    return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    return utc_now()
 
 
 def run_command(command: str, cwd: Path, timeout: int) -> tuple[bool, str]:
@@ -45,27 +46,14 @@ def run_command(command: str, cwd: Path, timeout: int) -> tuple[bool, str]:
 
 
 def write_verification_fact(
-    fragments_dir: Path, goal_id: str, command: str, passed: bool, output: str
+    fragments_dir: Path, goal_id: str, command: str, passed: bool, output: str,
+    *, digest: str = "", scope: list[str] | None = None,
 ) -> Path:
-    ts = now_iso()
-    safe_time = ts.replace(":", "-")
-    base_slug = f"verification-fact-shell-{goal_id[:60]}"
-    fragment_id = f"{safe_time}--{base_slug}"
-    target = fragments_dir / f"{fragment_id}.md"
-    body = f"shell verifier: `{command}`\n\n```\n{output}\n```"
-    target.write_text(
-        "---\n"
-        f"id: {fragment_id}\n"
-        f"time: {ts}\n"
-        "kind: verification-fact\n"
-        f"refs: [{goal_id}]\n"
-        f"passed: {'true' if passed else 'false'}\n"
-        "tags: [skill, verifier-shell]\n"
-        "---\n"
-        f"{body}\n",
-        encoding="utf-8",
-    )
-    return target
+    return append_fragment(fragments_dir, f"verification-fact-shell-{goal_id[:60]}", {
+        "kind": "verification-fact", "refs": [goal_id], "passed": passed,
+        "tags": ["skill", "verifier-shell"], "verified_tree_digest": digest,
+        "verification_scope": scope or [], "verified_command": command,
+    }, f"shell verifier: `{command}`\n\n```\n{output}\n```", stamp=now_iso())
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -87,6 +75,12 @@ def main(argv: list[str] | None = None) -> int:
         print(f"no fragments/ in {root}", file=sys.stderr)
         return 2
 
+    witness = Path(__file__).with_name("witness.py")
+    if not args.dry_run:
+        captured = subprocess.run([sys.executable, str(witness), "--project-root", str(root)], capture_output=True, text=True)
+        if captured.returncode:
+            print(captured.stderr, file=sys.stderr)
+            return captured.returncode
     frags = load_fragments(fragments_dir)
     candidates = [
         f
@@ -101,6 +95,7 @@ def main(argv: list[str] | None = None) -> int:
         print("no shell-verified goals to evaluate")
         return 0
 
+    failed = False
     for goal in candidates:
         verifier_ref = str(goal.get("verifier_ref", ""))
         command = verifier_ref[len("shell:") :].strip()
@@ -109,13 +104,32 @@ def main(argv: list[str] | None = None) -> int:
         print(f"[verifier-shell] {goal.id}: {command}")
         if args.dry_run:
             continue
-        passed, output = run_command(command, root, args.timeout)
+        scope = goal.id_list("verification_paths")
+        patterns = ignore_patterns(frags, [])
+        try:
+            before = select_tree(scan_tree(root, patterns), scope)
+            missing = [p for p in scope if not select_tree(before, [p])]
+            if missing:
+                raise CaptureError("verification inputs missing or excluded: " + ", ".join(missing))
+            passed, output = run_command(command, root, args.timeout)
+            after = select_tree(scan_tree(root, patterns), scope)
+            if before != after:
+                passed = False
+                output += "\nVerification inputs changed during the command; result is not valid for a stable version."
+            digest = tree_digest(after)
+        except CaptureError as exc:
+            passed, output, digest = False, str(exc), ""
+        captured = subprocess.run([sys.executable, str(witness), "--project-root", str(root)], capture_output=True, text=True)
+        if captured.returncode:
+            passed = False
+            output += "\nCapture failed: " + captured.stderr
         target = write_verification_fact(
-            fragments_dir, goal.id, command, passed, output
+            fragments_dir, goal.id, command, passed, output, digest=digest, scope=scope
         )
+        failed |= not passed
         status = "PASS" if passed else "FAIL"
         print(f"[verifier-shell] -> {status}  {target.name}")
-    return 0
+    return 1 if failed else 0
 
 
 if __name__ == "__main__":

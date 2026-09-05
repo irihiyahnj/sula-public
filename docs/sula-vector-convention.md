@@ -8,13 +8,18 @@
 > The same shape works for code projects, governance projects, client-service
 > projects, and creative projects (e.g. video edits).
 
-Convention version: `1.1`
+Convention version: `1.2`
 
 v1.1 adds three things and invalidates no v1.0 fragment: **derived identity**
 (id and time come from the filename, never from hand-written frontmatter),
 **three lanes** (a render-time projection of every fragment into judgment /
 evidence / direction), and **mechanical evidence** (the `witness` skill
 captures what changed instead of asking an agent to describe it).
+
+v1.2 adds **reliable observation and focused reading**: atomic no-replace
+publication for every built-in writer, full-content capture hashing, relation
+validation, content-bound verification, and an optional task-focus reading
+view. See [Reliable observation and focused reading (1.2)](#reliable-observation-and-focused-reading-12).
 
 ---
 
@@ -71,8 +76,10 @@ travel with it.
 Example: `2026-05-23T04-21-56Z--decision-monthly-cadence.md`
 
 The timestamp is the canonical creation time. `:` is replaced by `-` so the
-filename is filesystem-safe and `ls` returns chronological order without any
-tool.
+filename is filesystem-safe. Convention 1.2 also accepts microseconds, e.g.
+`2026-09-05T00-00-00.123456Z--decision-<unique-suffix>.md`. Readers normalize
+whole and fractional seconds when ordering; plain lexical sorting across both
+formats is insufficient. Captures follow explicit parent links when clocks differ.
 
 ### File body
 
@@ -363,7 +370,7 @@ provides, and nothing else:
 | substrate | trigger installed |
 | --------- | ----------------- |
 | git repository | `.git/hooks/post-commit` |
-| Kiro CLI | `.kiro/agents/sula.json` — `agentSpawn` injects the boot, `stop` witnesses the turn (written, not activated) |
+| Kiro CLI | `.kiro/agents/sula.json` — `agentSpawn` injects the boot, `stop` runs the finish gate (written, not activated) |
 | Kiro IDE | `.kiro/hooks/sula-witness.kiro.hook` |
 | Drive / Dropbox / plain folder | launchd timer on macOS, else the cron line to paste |
 
@@ -654,14 +661,49 @@ device.
 
 ## Versioning the convention
 
-Bump the convention version only when a previously-valid fragment file would
-no longer parse. Bumps are rare. Adding a recommended kind, a new view, or a
+Bump the convention version when the fragment filename grammar requires a new
+reader, or a previously valid fragment would no longer parse. Bumps are rare. Adding a recommended kind, a new view, or a
 new optional field is **not** a bump — projects add those locally without
 coordination.
 
-Current convention version: `1.1` (2026-07-25). Every v1.0 fragment parses and
-renders unchanged; v1.1 only moves identity from the frontmatter copy to the
-filename, adds the lane projection, and adds `supersedes` / `closes`.
+Current convention version: `1.2` (2026-09-05). Existing v1.0/v1.1 fragments
+remain readable. New writers use microseconds and unique filename suffixes;
+update readers before sharing these new fragments. Existence and semantic
+validation of explanation links is now enforced consistently in every view.
 
 See `tools/sula_vector/RELEASE-NOTES.md` for release notes, verification
 evidence, and the adoption guide.
+
+## Reliable observation and focused reading (1.2)
+
+Writers publish a fully written staging file with an atomic, no-replace hard
+link. Staging files are temporary non-fragments; there is no state directory.
+Unsupported filesystems fail explicitly. Migration preserves deterministic
+legacy IDs and skips an existing destination without replacing it.
+
+Capture streams full SHA-256 over every included regular file. Each new witness
+records `hash_method`, `capture_ignore`, `coverage`, `capture_format: 2`, and
+`capture_parents`. Multiple heads or missing ancestors prevent completion.
+After synchronization, explicit `--reconcile` appends a full `snapshot: true`
+with all observed heads as parents. It asserts the current local tree, not that
+remote synchronization has occurred.
+
+`finish.py` observes files, runs doctor, and scans again for intervening edits.
+Doctor remains a pure fragment check. File observation, structural validity,
+and task-specific acceptance are separate statements.
+
+A `verification-fact` may carry `verified_tree_digest` and `verification_scope`.
+The verifier checks the same inputs before and after the command and records
+`verified_command`. Readers compare against the latest coherent witnessed tree:
+`current`, `stale`, `unknown`, `failed`, or `unbound` for historical results
+without a binding. The latest verification determines satisfaction unless a
+direction was explicitly closed. No file digest proves an external service's
+state or the correctness of a verifier.
+
+Display selectors operate after relation resolution. `--until` bounds the
+historical graph before resolution. A task focus is an optional reading view
+after full boot: principles, `scope: global`, open directions and risks remain
+visible; selected rationale and outgoing evidence links are included. It is not
+a new source of truth. `review_after` is evaluated against recorded activity;
+`review_when` is a business condition for the reader. Both require explicit
+restatement or supersession to change a judgment's authority.

@@ -169,6 +169,15 @@ class TestFragmentLoading(unittest.TestCase):
         _write(sub, time="2026-05-23T00:00:00Z", slug="d", kind="decision")
         self.assertEqual(len(load_fragments(self.frags)), 1)
 
+    def test_unreadable_file_is_reported_not_raised(self):
+        path = self.frags / "2026-05-23T00-00-00Z--bad.md"
+        path.write_bytes(b"\xff\xfe\x00")
+        frags, problems = load_report(self.frags)
+        self.assertEqual([p.code for p in problems], ["unreadable"])
+        report = view_doctor(frags, problems)
+        self.assertIn("unreadable", report["by_code"])
+        self.assertFalse(report["ok"])
+
 
 class TestViews(unittest.TestCase):
     def setUp(self):
@@ -239,6 +248,119 @@ class TestViews(unittest.TestCase):
         block = render_changes_summary_block(load_fragments(self.frags))
         self.assertIn("[sula] +5 this turn:", block)
         self.assertIn("✓ verification-fact", block)
+
+
+class TestIntentSatisfaction(unittest.TestCase):
+    """A failed verification must never close the direction it refutes."""
+
+    def setUp(self):
+        self.root, self.frags = _make_root()
+
+    def tearDown(self):
+        shutil.rmtree(self.root)
+
+    def _intent_with(self, *, passed: object | None = None):
+        iid = _write(
+            self.frags,
+            time="2026-05-10T00:00:00Z",
+            slug="direction",
+            kind="intent",
+            body="direction",
+            extras={"done_when": "the verifier passes"},
+        )
+        extras: dict[str, object] = {}
+        if passed is not None:
+            extras["passed"] = passed
+        _write(
+            self.frags,
+            time="2026-05-11T00:00:00Z",
+            slug="result",
+            kind="verification-fact",
+            body="result",
+            refs=[iid],
+            extras=extras,
+        )
+        return iid
+
+    def test_failed_verification_keeps_intent_open(self):
+        iid = self._intent_with(passed="false")
+        frags = load_fragments(self.frags)
+        open_ids = [d["id"] for d in view_digest(frags)["open_intents"]]
+        self.assertIn(iid, open_ids)
+        row = next(r for r in view_progress(frags) if r["intent"]["id"] == iid)
+        self.assertFalse(row["met"])
+
+    def test_passing_verification_satisfies_intent(self):
+        iid = self._intent_with(passed="true")
+        frags = load_fragments(self.frags)
+        open_ids = [d["id"] for d in view_digest(frags)["open_intents"]]
+        self.assertNotIn(iid, open_ids)
+        row = next(r for r in view_progress(frags) if r["intent"]["id"] == iid)
+        self.assertTrue(row["met"])
+
+    def test_plain_fact_backref_does_not_satisfy_intent(self):
+        iid = _write(
+            self.frags,
+            time="2026-05-10T00:00:00Z",
+            slug="direction",
+            kind="intent",
+            body="direction",
+            extras={"done_when": "the verifier passes"},
+        )
+        _write(
+            self.frags,
+            time="2026-05-11T00:00:00Z",
+            slug="neutral",
+            kind="fact",
+            body="something happened",
+            refs=[iid],
+        )
+        frags = load_fragments(self.frags)
+        open_ids = [d["id"] for d in view_digest(frags)["open_intents"]]
+        self.assertIn(iid, open_ids)
+
+    def test_explicit_close_still_satisfies_intent(self):
+        iid = _write(
+            self.frags,
+            time="2026-05-10T00:00:00Z",
+            slug="direction",
+            kind="intent",
+            body="direction",
+            extras={"done_when": "the verifier passes"},
+        )
+        _write(
+            self.frags,
+            time="2026-05-11T00:00:00Z",
+            slug="closing",
+            kind="fact",
+            body="closed by operator",
+            extras={"closes": f"[{iid}]"},
+        )
+        frags = load_fragments(self.frags)
+        open_ids = [d["id"] for d in view_digest(frags)["open_intents"]]
+        self.assertNotIn(iid, open_ids)
+
+    def test_goal_without_done_when_keeps_existing_semantics(self):
+        gid = _write(
+            self.frags,
+            time="2026-05-10T00:00:00Z",
+            slug="goal",
+            kind="goal",
+            body="goal",
+            extras={"verifier_ref": "shell: true"},
+        )
+        _write(
+            self.frags,
+            time="2026-05-11T00:00:00Z",
+            slug="pass",
+            kind="verification-fact",
+            body="pass",
+            refs=[gid],
+            extras={"passed": "true"},
+        )
+        frags = load_fragments(self.frags)
+        open_ids = [d["id"] for d in view_digest(frags)["open_intents"]]
+        self.assertNotIn(gid, open_ids)
 
 
 class TestThreadAndFamily(unittest.TestCase):
@@ -669,8 +791,8 @@ class TestLLMDispatcherSkill(unittest.TestCase):
 
 
 class TestConventionVersion(unittest.TestCase):
-    def test_version_is_one_one(self):
-        self.assertEqual(CONVENTION_VERSION, "1.1")
+    def test_version_is_one_two(self):
+        self.assertEqual(CONVENTION_VERSION, "1.2")
 
 
 class TestDerivedIdentity(unittest.TestCase):
@@ -963,6 +1085,24 @@ class TestNoteCli(unittest.TestCase):
         result = self._note("--kind", "decision", "--explains", "nope", "body")
         self.assertEqual(result.returncode, 2)
         self.assertEqual(list(self.frags.glob("*.md")), [])
+
+    def test_rejects_reserved_field_override(self):
+        for key in ("kind", "id", "time", "refs"):
+            result = self._note(
+                "--kind", "decision", "--title", "x", "--field", f"{key}=nope", "body"
+            )
+            self.assertEqual(result.returncode, 2, result.stderr)
+            self.assertIn(f"reserved key: {key}", result.stderr)
+        self.assertEqual(list(self.frags.glob("*.md")), [])
+
+    def test_accepts_symbolic_refs_doctor_ignores(self):
+        result = self._note(
+            "--kind", "decision", "--refs", "family:demo", "--title", "x", "body"
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        frags, problems = load_report(self.frags)
+        self.assertEqual(frags[0].refs, ["family:demo"])
+        self.assertNotIn("dangling-ref", view_doctor(frags, problems)["by_code"])
 
     def test_explains_lands_in_frontmatter(self):
         wid = _write(
@@ -1687,13 +1827,38 @@ class TestHostPointers(unittest.TestCase):
         sys.path.insert(0, str(TOOLS))
         from migrate import HOST_POINTER_TARGETS, install_host_pointers  # type: ignore
 
-        written = install_host_pointers(self.root)
+        written, skipped = install_host_pointers(self.root)
         self.assertEqual(written, len(HOST_POINTER_TARGETS))
+        self.assertEqual(skipped, 0)
         for rel in HOST_POINTER_TARGETS:
             text = (self.root / rel).read_text(encoding="utf-8")
             self.assertIn("AGENTS.md", text)
             self.assertIn("--for-agent", text)
-        self.assertEqual(install_host_pointers(self.root), 0)
+        self.assertEqual(install_host_pointers(self.root), (0, 0))
+
+    def test_custom_host_pointer_is_preserved_not_overwritten(self):
+        sys.path.insert(0, str(TOOLS))
+        from migrate import HOST_POINTER_TARGETS, install_host_pointers  # type: ignore
+
+        (self.root / "CLAUDE.md").write_text("# my custom rules\n", encoding="utf-8")
+        written, skipped = install_host_pointers(self.root)
+        self.assertEqual(written, len(HOST_POINTER_TARGETS) - 1)
+        self.assertEqual(skipped, 1)
+        text = (self.root / "CLAUDE.md").read_text(encoding="utf-8")
+        self.assertIn("my custom rules", text)
+        self.assertNotIn("Sula Vector convention", text)
+
+    def test_empty_host_pointer_is_filled(self):
+        sys.path.insert(0, str(TOOLS))
+        from migrate import install_host_pointers  # type: ignore
+
+        (self.root / "CLAUDE.md").write_text("", encoding="utf-8")
+        written, skipped = install_host_pointers(self.root)
+        self.assertEqual(skipped, 0)
+        self.assertIn(
+            "Sula Vector convention",
+            (self.root / "CLAUDE.md").read_text(encoding="utf-8"),
+        )
 
     def test_agents_protocol_is_projected_from_template(self):
         sys.path.insert(0, str(TOOLS))

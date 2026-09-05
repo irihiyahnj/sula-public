@@ -30,7 +30,6 @@ import sys
 import tempfile
 import urllib.error
 import urllib.request
-from datetime import datetime, timezone
 from pathlib import Path
 
 DEFAULT_CANONICAL_RAW = (
@@ -39,6 +38,7 @@ DEFAULT_CANONICAL_RAW = (
 DEFAULT_CANONICAL_GIT = "https://github.com/irihiyahnj/sula-vector.git"
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+from append import append_fragment, utc_now
 from migrate import TOOLING_FILES  # type: ignore
 
 
@@ -76,7 +76,7 @@ def hash_url(url: str, timeout: int = 30) -> str:
 
 
 def now_iso() -> str:
-    return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    return utc_now()
 
 
 def emit_update_fragment(
@@ -86,32 +86,10 @@ def emit_update_fragment(
     canonical_git: str,
     migrate_output: str,
 ) -> Path:
-    ts = now_iso()
-    safe_time = ts.replace(":", "-")
-    fragment_id = f"{safe_time}--operation-auto-updated-from-canonical"
-    target = fragments_dir / f"{fragment_id}.md"
-    body = (
-        f"Tooling auto-updated from canonical `{canonical_git}`.\n\n"
-        f"aggregate hash: {old_hash[:12]} → {new_hash[:12]}\n\n"
-        "migrate.py output:\n"
-        "```\n"
-        f"{migrate_output[:3000]}\n"
-        "```\n"
-    )
-    target.write_text(
-        "---\n"
-        f"id: {fragment_id}\n"
-        f"time: {ts}\n"
-        "kind: operation\n"
-        "tags: [auto-update, skill, canonical-pull]\n"
-        f"old_aggregate_hash: {old_hash[:16]}\n"
-        f"new_aggregate_hash: {new_hash[:16]}\n"
-        f"canonical: {canonical_git}\n"
-        "---\n"
-        f"{body}",
-        encoding="utf-8",
-    )
-    return target
+    return append_fragment(fragments_dir, "operation-auto-updated-from-canonical", {
+        "kind": "operation", "tags": ["auto-update", "skill", "canonical-pull"],
+        "old_aggregate_hash": old_hash, "new_aggregate_hash": new_hash, "canonical": canonical_git,
+    }, f"Tooling auto-updated from `{canonical_git}`.\n\n{old_hash} → {new_hash}\n\n```\n{migrate_output[:3000]}\n```", stamp=now_iso())
 
 
 def main(argv: list[str] | None = None) -> int:

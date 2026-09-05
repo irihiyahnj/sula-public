@@ -24,9 +24,30 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from render import LANE_BY_KIND, LANES, load_fragments  # type: ignore
+from append import append_fragment, fragment_text
+from render import LANE_BY_KIND, LANES, Fragment, explanation_problems, is_symbolic_ref, load_fragments
 
 SLUG_KEEP = re.compile(r"[^a-z0-9]+")
+
+RESERVED_FIELD_KEYS = {
+    "id",
+    "time",
+    "kind",
+    "lane",
+    "refs",
+    "tags",
+    "closes",
+    "supersedes",
+    "explains",
+    "broken_ref",
+    "explained_by",
+    "done_when",
+    "verifier_ref",
+    "pointer",
+    "author",
+    "summary",
+    "verification_paths",
+}
 
 
 def lane_of_kind(kind: str, fields: dict) -> str:
@@ -47,20 +68,6 @@ def slugify(text: str, kind: str, fallback_seed: str, hints: list[str] | None = 
             return f"{kind}-{slug}" if not slug.startswith(kind) else slug
     digest = hashlib.sha256(fallback_seed.encode("utf-8")).hexdigest()[:8]
     return f"{kind}-{digest}"
-
-
-def frontmatter_lines(fields: dict[str, object]) -> list[str]:
-    lines = []
-    for key, value in fields.items():
-        if value in (None, "", [], ()):
-            continue
-        if isinstance(value, (list, tuple)):
-            lines.append(f"{key}: [{', '.join(str(v) for v in value)}]")
-        elif isinstance(value, bool):
-            lines.append(f"{key}: {'true' if value else 'false'}")
-        else:
-            lines.append(f"{key}: {value}")
-    return lines
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -101,6 +108,7 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--author", default="")
     p.add_argument("--done-when", default="", help="goal success condition")
     p.add_argument("--verifier", default="", help="e.g. 'shell: python3 -m unittest ...'")
+    p.add_argument("--verify-path", action="append", default=[], help="Relative verification input; repeat for multiple files/directories")
     p.add_argument("--field", action="append", default=[], metavar="KEY=VALUE")
     p.add_argument("--dry-run", action="store_true")
     args, extra = p.parse_known_args(argv)
@@ -141,7 +149,8 @@ def main(argv: list[str] | None = None) -> int:
         print("nothing to record: give a body or --title", file=sys.stderr)
         return 2
 
-    existing = {f.id for f in load_fragments(fragments_dir)}
+    frags = load_fragments(fragments_dir)
+    existing = {f.id for f in frags}
     unknown = [
         target
         for target in (
@@ -150,7 +159,7 @@ def main(argv: list[str] | None = None) -> int:
             + list(args.supersedes)
             + list(args.explains)
         )
-        if target not in existing
+        if target not in existing and not is_symbolic_ref(target)
     ]
     if unknown:
         print("unknown fragment id(s):", file=sys.stderr)
@@ -161,9 +170,13 @@ def main(argv: list[str] | None = None) -> int:
     if args.kind == "goal" and not args.verifier:
         print("a goal needs --verifier (B9: no goal without a verifier)", file=sys.stderr)
         return 2
+    for path in args.verify_path:
+        if Path(path).is_absolute() or ".." in Path(path).parts or not path.strip():
+            print(f"verification input must be project-relative: {path}", file=sys.stderr)
+            return 2
 
     now = now_utc()
-    stamp = now.strftime("%Y-%m-%dT%H:%M:%SZ")
+    stamp = now.isoformat(timespec="microseconds").replace("+00:00", "Z")
     safe_stamp = stamp.replace(":", "-")
     seed = f"{stamp}{args.title}{body}"
     slug = slugify(
@@ -173,20 +186,21 @@ def main(argv: list[str] | None = None) -> int:
         hints=list(args.tags),
     )
 
-    target = fragments_dir / f"{safe_stamp}--{slug}.md"
-    suffix = 2
-    while target.exists():
-        target = fragments_dir / f"{safe_stamp}--{slug}-{suffix}.md"
-        suffix += 1
-
     extra: dict[str, object] = {}
     for raw in args.field:
         key, _, value = raw.partition("=")
-        if key.strip():
-            extra[key.strip()] = value.strip()
+        key = key.strip()
+        if key in RESERVED_FIELD_KEYS:
+            print(
+                f"--field cannot set reserved key: {key} "
+                "(use the dedicated flag or leave it to the tool)",
+                file=sys.stderr,
+            )
+            return 2
+        if key:
+            extra[key] = value.strip()
 
     fields: dict[str, object] = {
-        "id": target.stem,
         "time": stamp,
         "kind": args.kind,
     }
@@ -208,21 +222,24 @@ def main(argv: list[str] | None = None) -> int:
         fields["done_when"] = args.done_when
     if args.verifier:
         fields["verifier_ref"] = args.verifier
+    if args.verify_path:
+        fields["verification_paths"] = args.verify_path
     fields.update(extra)
 
-    text = (
-        "---\n"
-        + "\n".join(frontmatter_lines(fields))
-        + "\n---\n"
-        + (body or args.title)
-        + "\n"
-    )
+    candidate = Fragment(id="pending", time=stamp, kind=args.kind, extra=fields, body=body)
+    issues = explanation_problems([*frags, candidate])
+    if any(p.fragment == "pending" for p in issues):
+        print("invalid explanation relation: " + "; ".join(p.detail for p in issues if p.fragment == "pending"), file=sys.stderr)
+        return 2
+    try:
+        if args.dry_run:
+            sys.stdout.write(fragment_text(fields, body or args.title))
+            return 0
+        target = append_fragment(fragments_dir, slug, fields, body or args.title, stamp=stamp)
+    except (OSError, ValueError) as exc:
+        print(f"cannot append fragment: {exc}", file=sys.stderr)
+        return 2
 
-    if args.dry_run:
-        sys.stdout.write(f"# would write {target}\n{text}")
-        return 0
-
-    target.write_text(text, encoding="utf-8")
     print(f"[sula] + {args.kind} → {lane_of_kind(args.kind, fields)}  {target.name}")
     return 0
 
